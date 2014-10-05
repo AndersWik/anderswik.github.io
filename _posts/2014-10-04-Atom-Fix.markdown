@@ -1,0 +1,15 @@
+---
+layout: post
+title:  "Atom Fix"
+date:   2014-10-04 22:26:00
+categories: Quick Fix
+---
+
+Started using [Atom][atom] on Linux a little bit. Oddly it seems to break from time to time. When trying to open files it will give a nasty error. This is a quik fix.
+
+{% highlight bash %}
+cd ~/.atom/storage
+find . -type f -delete
+{% endhighlight %}
+
+[atom]:        https://atom.io
