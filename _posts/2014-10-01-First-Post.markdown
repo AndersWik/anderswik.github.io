@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "First Post"
-date:   2014-10-03 22:26:00
+date:   2014-10-01 22:26:00
 categories: Miscellaneous
 ---
 

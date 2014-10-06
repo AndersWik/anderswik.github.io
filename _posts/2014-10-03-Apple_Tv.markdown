@@ -1,0 +1,14 @@
+---
+layout: post
+title:  "OSX Apple Tv Fix"
+date:   2014-10-03 22:30:00
+categories: Quick Fix
+---
+
+When the audio dies on Apple TV when streaming from OSX this is the fix.
+
+In the terminal type:
+
+{% highlight bash %}
+sudo killall coreaudiod
+{% endhighlight %}
