@@ -1,11 +1,11 @@
 ---
 layout: post
 title:  "OSX Git Fix"
-date:   2014-10-04 22:30:00
+date:   2014-10-05 22:30:00
 categories: Quick Fix
 ---
 
-As a OSX user the `.DS_Store` files never bothered me much. Now I am using Linux ([Mint][mint]) more and more and I am getting more sympathetic to the people calling this file a nuisance. 
+As a OSX user the `.DS_Store` files never bothered me much. Now I am using Linux ([Mint][mint]) more and more and I am getting more sympathetic to the people calling this file a nuisance.
 
 One problem with this file is when you share some code. Here is the Git fix you need. With the terminal go to the Git directory you want to fix.
 
