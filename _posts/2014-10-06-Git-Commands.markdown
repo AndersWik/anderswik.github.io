@@ -20,7 +20,7 @@ The next line `remote add origin` adds the address of a remote repository.
 This line is optional instead of using origin when doing a pull or push you can
 type the url of your remote repository.
 
-If you want you can use `git remote show origin` to make sure you set the origin
+If you want you can use `git remote show origin` or `git remote -v` to make sure you set the origin
 variables correctly. Next use `git pull origin master` to clone the content of
 the remote repository to your local repository. Now you can work on it. When done
 use `git push origin master` to push the changes to the remote repository.
