@@ -2,7 +2,7 @@
 layout: post
 title:  "Git Commands"
 date:   2014-10-06 22:30:00
-categories: Not Quick Fix
+categories: Miscellaneous
 ---
 
 To start using git you only need to know some basic commands.

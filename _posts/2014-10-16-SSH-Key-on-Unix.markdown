@@ -1,8 +1,8 @@
 ---
 layout: post
 title:  "SSH-Key on Unix (Linux/OSX)"
-date:   2014-10-07 22:30:00
-categories: Notes
+date:   2014-10-16 22:30:00
+categories: Miscellaneous
 ---
 
 Generate a ssh-key on Unix (Linux/OSX).

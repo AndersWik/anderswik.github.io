@@ -1,8 +1,8 @@
 ---
 layout: post
 title:  "Firefox Javascript Toggle"
-date:   2014-10-08 22:30:00
-categories: Notes
+date:   2014-10-17 22:30:00
+categories: Miscellaneous
 ---
 
 Turn of Javascript on Firefox.
