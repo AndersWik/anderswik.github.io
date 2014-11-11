@@ -14,10 +14,17 @@ sudo find / -name ".DS_Store" -depth -exec rm {} \;
 cp gitignore.txt .gitignore
 {% endhighlight %}
 
-The first way. Create a text file called gitignore.txt in the root of your git folder. The content of the file should be .DS_Store and what ever else you normaly have. Run the first command to remove the .DS_Store files and then copy the gitignore.txt to .gitignore.
+The first way. Create a text file called gitignore.txt in the root of your git folder. The content of the file should be .DS_Store and what ever else you normaly have. Run the first or the second command to remove the .DS_Store files. Then copy the gitignore.txt to .gitignore.
+
+{% highlight bash %}
+find . -name \.DS_Store -exec rm -v {} \;
+{% endhighlight %}
 
 {% highlight bash %}
 sudo find / -name ".DS_Store" -depth -exec rm {} \;
+{% endhighlight %}
+
+{% highlight bash %}
 touch .gitignore
 nano .gitignore
 {% endhighlight %}
@@ -34,3 +41,4 @@ Wrap up, Git status should show you a nice red list of .DS_Store files. Add the 
 
 
 [mint]:        http://www.linuxmint.com
+[mint2]:        defaults write com.apple.desktopservices DSDontWriteNetworkStores true
