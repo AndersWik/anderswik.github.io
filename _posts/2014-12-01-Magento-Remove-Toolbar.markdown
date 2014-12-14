@@ -34,7 +34,7 @@ In the new file you can remove line 43 and 173. The problem with this is that yo
 
 Now you can use `<action method="setHideToolbar"><value>true</value></action>` too turn the toolbar on and off on different pages using the local.xml.
 
-Example, to turn of the toolbar on the CMS index page and keep it on all the pages type the following in the local.xml file.
+Example, to turn off the toolbar on the CMS index page and keep it on all other pages type the following in the local.xml file.
 
 {% highlight html %}
   <cms_index_index>
