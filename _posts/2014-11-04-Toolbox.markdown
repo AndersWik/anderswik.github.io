@@ -6,16 +6,16 @@ categories: Toolbox
 ---
 
 
-Good to have
-Open mailbox for testing: [Mailinator][mailinator]
+Good to have:
+Open mailbox for testing, [Mailinator][mailinator].
 Need some dummy text? [Slipsum][slipsum] will fix it.
 
-Good to know.
-How to [execute][execute.sh-files-linux] .sh files on Linux
+Good to know:
+How to [execute][execute.sh-files-linux] .sh files on Linux.
 How to close a [frozen][close-program-linux] program in Linux.
 
 Why not?
-And why not end with making a batch game in notepad: [Smashwords][smashwords]
+And why not end with making a batch game in notepad? [Smashwords][smashwords].
 
 
 
