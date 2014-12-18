@@ -64,3 +64,7 @@ git log --graph --oneline --all
 {% endhighlight %}
 
 Bonus print a graph, `git log --graph --oneline --all`.
+
+Restore to the last commit with `git stash` and then `git stash drop`.
+
+Clone a specific branch `git clone -b <branch> <remote_repo>`. Example: `git clone -b my-branch git@github.com:user/myproject.git` or `git clone user@git-server:<project>.git -b <branch> /some/folder`

@@ -6,7 +6,7 @@ categories: Magento
 ---
 
 
-Using the `local.xml` file to change the layout. Chnage the layout one at the time.
+Using the `local.xml` file to change the layout.
 
 {% highlight html %}
   <catalog_category_default>

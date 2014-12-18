@@ -9,6 +9,8 @@ categories: Toolbox
 Good to have:
 Open mailbox for testing, [Mailinator][mailinator].
 Need some dummy text? [Slipsum][slipsum] will fix it.
+We all like colors, [color-hex][color-hex].
+You need some icons too, [flaticon][flaticon].
 
 Good to know:
 How to [execute][execute.sh-files-linux] .sh files on Linux.
@@ -18,6 +20,7 @@ Why not?
 And why not end with making a batch game in notepad? [Smashwords][smashwords].
 
 
+[color-hex]: http://www.color-hex.com
 
 [mailinator]: http://mailinator.com
 
@@ -28,3 +31,5 @@ And why not end with making a batch game in notepad? [Smashwords][smashwords].
 [close-program-linux]: http://community.linuxmint.com/tutorial/view/50
 
 [slipsum]: http://slipsum.com/
+
+[flaticon]: http://www.flaticon.com

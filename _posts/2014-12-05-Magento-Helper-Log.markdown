@@ -23,4 +23,4 @@ public function log($e, $error = null) {
 }
 {% endhighlight %}
 
-Then call the method with `Mage::helper('mymodule')->log($e);` or `Mage::helper('mymodule')->log($e, Zend_Log::ERR);`. Now all your modules logs are in one place.
+Then call the method with `Mage::helper('mymodule')->log($e);`, `Mage::helper('mymodule')->log($e, Zend_Log::ERR);` or `Mage::helper('mymodule')->log($e, Zend_Log::INFO);`. Now all your modules logs are in one place.
