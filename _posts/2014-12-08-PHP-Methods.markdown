@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  PHP Methods
-date:   2014-12-07 22:30:00
+date:   2014-12-08 22:30:00
 categories: PHP
 ---
 
@@ -22,7 +22,7 @@ Some times we want to print a var_dump to a log file or have the result in varia
 {% highlight php %}
 <?php
 ob_start();
-var_dump($someVar);
+var_dump($stuffInVar);
 $result = ob_get_clean();
 ?>
 {% endhighlight %}
