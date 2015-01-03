@@ -26,3 +26,29 @@ var_dump($stuffInVar);
 $result = ob_get_clean();
 ?>
 {% endhighlight %}
+
+Modifying a date plus or minus.
+
+{% highlight php %}
+<?php
+public function modifyDate1($newDate)
+{
+  $date = date("Y-m-d");
+  return strtotime(date("Y-m-d", strtotime($date)) . $newDate);
+}
+
+public function modifyDate2($newDate)
+{
+  return date('d-m-Y', strtotime($newDate));
+}
+
+$this->modifyDate1(" +1 day");
+$this->modifyDate1(" -1 day");
+$this->modifyDate1(" +1 week");
+$this->modifyDate1(" -1 week");
+$this->modifyDate1(" +1 month");
+$this->modifyDate1(" -1 month");
+$this->modifyDate1(" +30 days");
+$this->modifyDate1(" -30 days");
+?>
+{% endhighlight %}
