@@ -24,3 +24,6 @@ public function log($e, $error = null) {
 {% endhighlight %}
 
 Then call the method with `Mage::helper('mymodule')->log($e);`, `Mage::helper('mymodule')->log($e, Zend_Log::ERR);` or `Mage::helper('mymodule')->log($e, Zend_Log::INFO);`. Now all your modules logs are in one place.
+
+If it does not work, did you turn on the log funtion in Magenton?
+`System > Configuration > Advanced > Developer > Log Settings > Enabled: Yes`

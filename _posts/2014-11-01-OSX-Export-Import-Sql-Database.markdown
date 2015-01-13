@@ -15,3 +15,7 @@ Export a SQL database
 Import a SQL database
 ./mysql -u [USER] -p [DBNAME] < dump.sql
 {% endhighlight %}
+
+Examples:
+`./mysqldump -u root -p mydb1 > dump.sql`
+`./mysql -u root -p mydb2 < dump.sql`
