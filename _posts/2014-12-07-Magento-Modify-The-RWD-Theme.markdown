@@ -16,7 +16,7 @@ In your theme folder create a folder named `etc` with a file called `theme.xml`.
 </theme>
 {% endhighlight %}
 
-You are now extending the RWD theme. In the theme foldre create a file called the following structure, `[ThemeName]/default/layout/local.xml`. In our `local.xml` we add the path too the themes custom css.
+You are now extending the RWD theme. In the theme folder create a file called `local.xml`. The following structure should be used, `[ThemeName]/default/layout/local.xml`. In our `local.xml` we add the path too the themes custom css.
 
 {% highlight html %}
 <?xml version="1.0"?>

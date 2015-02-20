@@ -25,11 +25,11 @@ echo "<img src=\"http://tbs.tradedoubler.com/report?organization=".$org_id."&eve
 Then add this to the success page.
 
 {% highlight html %}
-<cart_index_success>
+<checkout_onepage_success>
 <reference name="cart.success">
 <action method="setTemplate"><value>cart/success.phtml</value></action>
 </reference>
-</cart_index_success>
+</checkout_onepage_success>
 {% endhighlight %}
 
 

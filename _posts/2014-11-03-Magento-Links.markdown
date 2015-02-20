@@ -5,11 +5,19 @@ date:   2014-11-03 22:30:00
 categories: Magento
 ---
 
-Magento
-Download Magento modules without Magento Connect: [Freegento][freegento]
-The Magento [standard-block-layout][standard-block-layout]
+Magento stuff
 
-
-[freegento]: http://freegento.com/ddl-magento-extension.php
-
-[standard-block-layout]: http://www.magentocommerce.com/knowledge-base/entry/standard-block-layout
+<ul style="list-style-type: none;">
+  <li>
+    Download Magento modules without Magento Connect: <a href="http://freegento.com/ddl-magento-extension.php">Freegento</a>
+  </li>
+  <li>
+    <a href="http://www.codexpedia.com/magento/get-last-order-details-from-checkout-session-in-magento/">Get last order details from checkout session</a>
+  </li>
+  <li>
+    <a href="http://www.kathirvel.com/magento-get-current-store-id-code-name-status-details/">Get current store id, code, name, status, details</a>
+  </li>
+  <li>
+    <a href="http://blog.chapagain.com.np/magento-how-to-get-controller-action-and-module-name-in-template-file/">How to get controller action and module name in template-file</a>
+  </li>
+<ul>

@@ -42,14 +42,14 @@ Above your script in the `facebookconversion.phtml` add the following code.
 ?>
 {% endhighlight %}
 
-Add the page to your carts checkout success page with your `local.xml`.
+Add the page to your checkout success page with your `local.xml`.
 
 {% highlight html %}
-<cart_index_success>
+<checkout_onepage_success>
   <reference name='head'>
     <block type='core/template' template='page/facebookconversion.phtml' after="-" />
   </reference>
-</cart_index_success>
+</checkout_onepage_success>
 {% endhighlight %}
 
 You are done.

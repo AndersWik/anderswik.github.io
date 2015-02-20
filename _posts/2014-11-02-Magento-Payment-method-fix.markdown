@@ -8,7 +8,7 @@ categories: Magento
 When removing a payment method in Magento you can't open the old orders
 that use the discarded payment method.
 
-There is a "quick" fix for this. Before you try make a [backup][exportSQL] of the database.
+There is a "quick" fix for this. Before you try, make a [backup][exportSQL] of the database.
 Then change the `custom_payment` method to one of Magentos standard methods like `ccsave`.
 
 If you set the new method to one you don't normaly use in the store you can easily find them later.

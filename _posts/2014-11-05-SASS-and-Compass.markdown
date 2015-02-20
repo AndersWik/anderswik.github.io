@@ -39,7 +39,17 @@ Go to your project folder (where you store the SCSS files).
 sass --watch scss
 {% endhighlight %}
 
-Sass is now up and running.
+Sass is now up and running. Some additional ways to watch a single file.
+
+
+{% highlight bash %}
+sass --watch some.scss
+sass --watch scss/some.scss
+sass --watch scss/some.scss:../css/some.css
+{% endhighlight %}
+
+
+
 
 <h3>Install Compass</h3>
 
