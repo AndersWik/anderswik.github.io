@@ -4,20 +4,13 @@ title:  "Toolbox"
 date:   2014-11-04 22:30:00
 categories: Toolbox
 ---
-
-
 Good to have:
-Open mailbox for testing, [Mailinator][mailinator].
-Need some dummy text? [Slipsum][slipsum] will fix it.
-We all like colors, [color-hex][color-hex].
-You need some icons too, [flaticon][flaticon].
 
-Good to know:
-How to [execute][execute.sh-files-linux] .sh files on Linux.
-How to close a [frozen][close-program-linux] program in Linux.
+* Open mailbox for testing, [Mailinator][mailinator].
+* Need some dummy text? [Slipsum][slipsum] will fix it.
+* We all like colors, [color-hex][color-hex].
+* You need some icons too, [flaticon][flaticon].
 
-Why not?
-And why not end with making a batch game in notepad? [Smashwords][smashwords].
 
 
 [color-hex]: http://www.color-hex.com

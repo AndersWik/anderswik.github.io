@@ -38,16 +38,10 @@ Simple links to share on social-sites. Popup or none popup.
 
 <!-- Google+ -->
 
-<a href="https://plus.google.com/share?url=http://blog.anderswik.se" target="_blank">Share on Google+ 1</a>
+<a href="https://plus.google.com/share?url=http://blog.anderswik.se" target="_blank">Share on Google+</a>
 
 {% highlight bash %}
-<a href="https://plus.google.com/share?url=http://blog.anderswik.se" target="_blank">Share on Google+ 1</a>
-{% endhighlight %}
-
-<a href="https://plus.google.com/share?url=http://blog.anderswik.se" target="_blank">Share on Google+ 2</a>
-
-{% highlight bash %}
-<a href="https://plus.google.com/share?url=http://blog.anderswik.se" target="_blank">Share on Google+ 2</a>
+<a href="https://plus.google.com/share?url=http://blog.anderswik.se" target="_blank">Share on Google+</a>
 {% endhighlight %}
 
 <!-- Digg -->
@@ -108,4 +102,10 @@ function popWin(url, name) {
 </script>
 
 <a href="javascript:popWin('http://blog.anderswik.se','share');" title="Share!">Share Popup</a>
+{% endhighlight %}
+
+To use the a share link in the pop up use the ful share url.
+
+{% highlight bash %}
+<a href="javascript:popWin('http://twitter.com/share?url=http://blog.anderswik.se&text=Some','share');" title="Share!">Share on Twitter</a>
 {% endhighlight %}
