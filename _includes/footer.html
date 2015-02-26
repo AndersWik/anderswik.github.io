@@ -1,14 +1,14 @@
-<footer class="site-footer">
+<footer class="site-footer" style="background-color:#5b5b5b;">
 
   <div class="wrapper">
 
-    <h2 class="footer-heading">{{ site.title }}</h2>
+    <!-- <h2 class="footer-heading" style="color:#fff;">{{ site.title }}</h2> -->
 
     <div class="footer-col-wrapper">
       <div class="footer-col  footer-col-1">
         <ul class="contact-list">
-          <li>{{ site.title }}</li>
-          <li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+          <!-- <li style="color:#fff;">{{ site.title }}</li> -->
+          <li><a href="mailto:{{ site.email }}" class="footer-style">{{ site.email }}</a></li>
         </ul>
       </div>
 
@@ -23,7 +23,7 @@
                 </svg>
               </span>
 
-              <span class="username">{{ site.github_username }}</span>
+              <span class="username footer-style" >{{ site.github_username }}</span>
             </a>
           </li>
           {% endif %}
@@ -38,7 +38,7 @@
                 </svg>
               </span>
 
-              <span class="username">{{ site.twitter_username }}</span>
+              <span class="username footer-style" >{{ site.twitter_username }}</span>
             </a>
           </li>
           {% endif %}
@@ -46,7 +46,7 @@
       </div>
 
       <div class="footer-col  footer-col-3">
-        <p class="text">{{ site.description }}</p>
+        <p class="text" style="color:#fff;" >{{ site.description }}</p>
       </div>
     </div>
 

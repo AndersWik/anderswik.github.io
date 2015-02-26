@@ -1,0 +1,16 @@
+footer {
+
+  a {
+      color: #fff;
+      text-decoration: none;
+
+      &:visited {
+          color: darken(#fff, 15%);
+      }
+
+      &:hover {
+          color: #fff;
+          text-decoration: underline;
+      }
+  }
+}
