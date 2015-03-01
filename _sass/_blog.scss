@@ -1,3 +1,21 @@
+
+.home {
+  h2  {
+    a {
+        color: #000;
+        text-decoration: none;
+
+        &:visited {
+            color: darken(#000, 15%);
+        }
+
+        &:hover {
+            color: #000;
+            text-decoration: underline;
+        }
+    }
+  }
+}
 footer {
 
   a {

@@ -1,15 +1,18 @@
 ---
 layout: post
 title:  Can’t access the Magento admin?
-date:   2015-02-25 22:30:00
-categories: Linux
+date:   2015-02-26 22:30:00
+categories: Magento
 ---
-Did you lock yourself out? Can't access the Magento admin?
-One simple solution is to make a module with an install-script
-that adds a new admin user. The next solution is to [download][newadmin] a finished module that do it.
+Did you lock yourself out? Can't access the Magento admin? We can take several approaches to this problem.
+
+The first one is to log on to your Magento installations database. Go to the `admin_user` table and add a user or change the password of your admin user. When adding the password use the `MD5` function.
+
+Another simple solution is to make a module with an install-script
+that adds a new admin user. The next solution is to [download][newadmin] a finished module that do it for you.
 
 Logg on with ftp/ssh and drag the app folder in to the root of
-your installation. Merge the folder do not replace it!
+your installation. Merge the folder do not replace it! Then go to your Magento page. Navigate to your admin log in and use the user name "you" and the password "welcome99".
 
 {% highlight bash %}
 <?php
