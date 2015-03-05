@@ -45,11 +45,15 @@ Sass is now up and running. Some additional ways to watch a single file.
 {% highlight bash %}
 sass --watch some.scss
 sass --watch scss/some.scss
+sass --watch scss/some.scss:css/some.css
 sass --watch scss/some.scss:../css/some.css
 {% endhighlight %}
 
+Get Bootstrap converted to Sass.
 
-
+{% highlight bash %}
+sudo gem install bootstrap-sass
+{% endhighlight %}
 
 <h3>Install Compass</h3>
 
