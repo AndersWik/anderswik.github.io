@@ -11,9 +11,10 @@ Magento stuff
 * [Get last order details from checkout session][last-order]
 * [Get current store id, code, name, status, details][current-id]
 * [How to get controller action and module name in template-file][get-controller-action]
-
+* [Magento get base url][magento-get-base]
 
 [freegento]:http://freegento.com/ddl-magento-extension.php
 [last-order]:http://www.codexpedia.com/magento/get-last-order-details-from-checkout-session-in-magento/
 [current-id]:http://www.kathirvel.com/magento-get-current-store-id-code-name-status-details/
 [get-controller-action]:http://blog.chapagain.com.np/magento-how-to-get-controller-action-and-module-name-in-template-file/
+[magento-get-base]:http://jagdeepbanga.com/blog/magento-get-base-url-skin-url-media-url-js-url-store-url-and-current-url.html

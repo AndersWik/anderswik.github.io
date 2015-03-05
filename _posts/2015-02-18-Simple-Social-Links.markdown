@@ -75,6 +75,13 @@ Simple links to share on social-sites. Popup or none popup.
 <a href="http://www.stumbleupon.com/submit?url=http://blog.anderswik.se&title=Simple Share Buttons" target="_blank">StumbleUpon</a>
 {% endhighlight %}
 
+<!-- Pinterest-->
+<a href="https://pinterest.com/pin/create/button/?url=http://blog.anderswik.se&media=some&description=some-description" target="_blank">StumbleUpon</a>
+
+{% highlight bash %}
+<a href="https://pinterest.com/pin/create/button/?url=http://blog.anderswik.se&media=some&description=some-description" target="_blank">StumbleUpon</a>
+{% endhighlight %}
+
 
 
 <script language="javascript" type="text/javascript">
@@ -109,3 +116,7 @@ To use the a share link in the pop up use the ful share url.
 {% highlight bash %}
 <a href="javascript:popWin('http://twitter.com/share?url=http://blog.anderswik.se&text=Some','share');" title="Share!">Share on Twitter</a>
 {% endhighlight %}
+
+
+
+[x]:http://inchoo.net/ecommerce/simple-social-sharing-buttons-in-magento/

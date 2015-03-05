@@ -8,6 +8,7 @@ Good to have:
 
 * Open mailbox for testing, [Mailinator][mailinator].
 * Need some dummy text? [Slipsum][slipsum] will fix it.
+* Some other text?[Baconipsum][baconipsum].
 * We all like colors, [color-hex][color-hex].
 * You need some icons too, [flaticon][flaticon].
 
@@ -25,4 +26,10 @@ Good to have:
 
 [slipsum]: http://slipsum.com/
 
+[baconipsum]: http://baconipsum.com/
+
 [flaticon]: http://www.flaticon.com
+
+[mashable]: http://mashable.com/2013/07/11/lorem-ipsum/
+
+[svadagenerator]: http://textomedia.se/svadagenerator/
