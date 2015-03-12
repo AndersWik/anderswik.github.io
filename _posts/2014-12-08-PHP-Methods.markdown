@@ -17,6 +17,15 @@ foreach($class_methods as $i){
 ?>
 {% endhighlight %}
 
+Some times we want to print a variable.
+
+{% highlight php %}
+<?php
+$toprint = print_r($somevar, true);
+echo toprint;
+?>
+{% endhighlight %}
+
 Some times we want to print a var_dump to a log file or have the result in variable for some other reason.
 
 {% highlight php %}

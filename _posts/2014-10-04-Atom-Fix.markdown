@@ -12,4 +12,18 @@ cd ~/.atom/storage
 find . -type f -delete
 {% endhighlight %}
 
+
+Another issue that might happen. `Unable to watch path: keymap.cson. Make sure you have permission to read /home/anders/.atom/keymap.cson.` Type this in the terminal. If it works read this [git post][atom1] about troubleshooting. 
+
+{% highlight bash %}
+sudo sysctl fs.inotify.max_user_watches=32768
+{% endhighlight %}
+
+
+
+
+
+
 [atom]:        https://atom.io
+
+[atom1]: https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
