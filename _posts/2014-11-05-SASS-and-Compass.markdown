@@ -2,6 +2,7 @@
 layout: post
 title:  "Sass and Compass"
 date:   2014-11-05 22:30:00
+updated:   2015-04-25 22:30:00
 categories: Toolbox
 ---
 
@@ -47,6 +48,18 @@ sass --watch some.scss
 sass --watch scss/some.scss
 sass --watch scss/some.scss:css/some.css
 sass --watch scss/some.scss:../css/some.css
+{% endhighlight %}
+
+Or use,
+
+{% highlight bash %}
+scss-watch some.scss:some.css
+{% endhighlight %}
+
+that is shorthand for:
+
+{% highlight bash %}
+scss --watch --no-cache some.scss:some.css --style compressed
 {% endhighlight %}
 
 Get Bootstrap converted to Sass.

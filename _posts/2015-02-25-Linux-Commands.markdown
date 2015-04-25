@@ -2,9 +2,10 @@
 layout: post
 title:  Linux Quick Start
 date:   2015-02-25 22:30:00
+updated:   2015-04-25 22:30:00
 categories: Linux
 ---
-Some Quick tip on terminal commands that are useful.
+Some Quick tips on terminal commands that are useful.
 
 
 Manual page
@@ -110,3 +111,25 @@ Use the `dig` command to get information about a domain.
 {% highlight bash %}
 dig example.com
 {% endhighlight %}
+
+
+Edit you host-file
+-------------
+
+This is not a single command but it is still useful.
+To redirect a domain locally you can add a row in your `hosts` file. Open the file,
+
+{% highlight bash %}
+sudo nano /ect/hosts
+{% endhighlight %}
+
+and add a new row.
+
+{% highlight bash %}
+0.0.0.0         facebook.com
+{% endhighlight %}
+
+Depending on the your browser you should now be loopedbacked when trying to access facebook.com.
+
+
+[geek]:http://www.howtogeek.com/howto/27350/beginner-geek-how-to-edit-your-hosts-file/
