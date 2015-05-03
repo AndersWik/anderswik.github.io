@@ -2,6 +2,7 @@
 layout: post
 title:  "Git Commands"
 date:   2014-10-06 22:30:00
+updated:   2015-04-03 22:30:00
 categories: Miscellaneous
 ---
 
@@ -16,20 +17,36 @@ git push origin master
 {% endhighlight %}
 
 The first line, `git init`. Creates a new empty Git repository.
-The next line `remote add origin` adds the address of a remote repository.
-This line is optional instead of using origin when doing a pull or push you can
-type the url of your remote repository.
+The next line `remote add origin` adds the address of a remote repository. This line is optional instead of using origin when doing a pull or push you can type the url of your remote repository.
 
-If you want you can use `git remote show origin` or `git remote -v` to make sure you set the origin
-variables correctly. Next use `git pull origin master` to clone the content of
-the remote repository to your local repository. Now you can work on it. When done
-use `git push origin master` to push the changes to the remote repository.
+If you want you can use `git remote show origin` or `git remote -v` to make sure you set the origin variables correctly. Next use `git pull origin master` to clone the content of the remote repository to your local repository. Next add name and email to your config. It will be used when you commit your changes.
+
+{% highlight bash %}
+git config --global user.name "Your Name"
+git config --global user.email you@example.com
+{% endhighlight %}
+
+Now you can work on your repository. First thing might be to add a readme file.
+
+{% highlight bash %}
+touch README.md
+git add README.md
+{% endhighlight %}
+
+Use `git status` to see what files have been changed. To add all changes ues `git add -A`. Commit the changes with `git commit -m 'New Commit'`.
 
 {% highlight bash %}
 git status
 git add -A
 git commit -m 'New Commit'
 {% endhighlight %}
+
+When done use `git push origin master` to push the changes to the remote repository.
+
+{% highlight bash %}
+git push origin master
+{% endhighlight %}
+
 
 When the local repository is up and running we can start working on the code.
 Use `git status` to see what files have changed. Then use git `git add -A` to
@@ -55,15 +72,44 @@ git merge mybranch
 git branch -d mybranch
 {% endhighlight %}
 
+To show all branches (remote and local).
+{% highlight bash %}
+git branch -a
+{% endhighlight %}
+
+To only show remote branches.
+{% highlight bash %}
+git branch -r
+{% endhighlight %}
+
+To only show local branches.
+{% highlight bash %}
+git branch
+{% endhighlight %}
+
 When done with the new feature commit the changes and use `git checkout master` to
 switch to the master branch. `git merge mybranch` to merge the two branches and
 `git branch -d mybranch` to delete the mybranch branch when the merge is complete.
 
+Removing a directory from git and your local hardrive.
+
+{% highlight bash %}
+git rm -r your-directory
+git commit -m "Removing directory"
+git push origin master
+{% endhighlight %}
+
+To remove the directory from git but you still have it available locally use
+
+{% highlight bash %}
+git rm -r --cached your-directory
+{% endhighlight %}
+
+Bonus print a graph,
+
 {% highlight bash %}
 git log --graph --oneline --all
 {% endhighlight %}
-
-Bonus print a graph, `git log --graph --oneline --all`.
 
 Restore to the last commit with `git stash` and then `git stash drop`.
 

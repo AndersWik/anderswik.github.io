@@ -2,7 +2,7 @@
 layout: post
 title:  "Toolbox"
 date:   2014-11-04 22:30:00
-updated:   2015-04-25 22:30:00
+updated:   2015-05-03 22:30:00
 categories: Toolbox
 ---
 Good to have:
@@ -16,6 +16,15 @@ Good to have:
 * [What the font][what-the-font]?
 * More fonts from [Google Fonts][google-fonts].
 * Some nice colors @ [Adobe][color.adobe]
+* And [HtAccess-301-Redirect-Generator][HtAccess-301-Redirect-Generator]
+* Some [social sharing][addthis]
+* We like [subtlepatterns]
+
+[subtlepatterns]:http://subtlepatterns.com
+
+[addthis]:https://www.addthis.com/get/follow
+
+[HtAccess-301-Redirect-Generator]: https://websiteadvantage.com.au/HtAccess-301-Redirect-Generator
 
 [color.adobe]: https://color.adobe.com/create/color-wheel/
 

@@ -2,29 +2,39 @@
 layout: post
 title:  "Magento Links"
 date:   2014-11-03 22:30:00
+updated:   2015-04-27 22:30:00
 categories: Magento
 ---
 
-Magento stuff
+Magento miscellaneous
 
 * Download Magento modules without Magento Connect:[Freegento][freegento]
-* [Get last order details from checkout session][last-order]
-* [Get current store id, code, name, status, details][current-id]
-* [How to get controller action and module name in template-file][get-controller-action]
-* [Magento get base url][magento-get-base]
+
+Magento Modules
+
+* [Aoe Scheduler][aoe-scheduler]
+* [Arts On It Offline Maintenance][maintenance-page-artson-it]
+* [RicoNeitzel VertNav][RicoNeitzel_VertNav]
+* [Fooman Speedster][speedster-by-fooman]
+
+Magento CheatSheets:
+
 * [url-construction-and-redirection][magento-url]
+* [Magento get base url][magento-get-base]
+* [How to get controller action and module name in template-file][get-controller-action]
+* [Get current store id, code, name, status, details][current-id]
+* [Get last order details from checkout session][last-order]
 
-
-Some other Magento Links:
-
-[Magento simplexml_load_string][Magento simplexml_load_string]
+Magento How To:
 
 [Magento-ajax-add-cart][magento-ajax-add-cart]
 
 
 
-
-
+[RicoNeitzel_VertNav]:http://www.magentocommerce.com/magento-connect/vertical-navigation-with-css-classes.html
+[speedster-by-fooman]:http://www.magentocommerce.com/magento-connect/speedster-by-fooman.html
+[aoe-scheduler]:http://www.magentocommerce.com/magento-connect/aoe-scheduler.html
+[maintenance-page-artson-it]:http://www.magentocommerce.com/magento-connect/maintenance-page-artson-it.html
 [freegento]:http://freegento.com/ddl-magento-extension.php
 [last-order]:http://www.codexpedia.com/magento/get-last-order-details-from-checkout-session-in-magento/
 [current-id]:http://www.kathirvel.com/magento-get-current-store-id-code-name-status-details/
@@ -49,3 +59,5 @@ Some other Magento Links:
 [l6]:http://www.databasically.com/2011/06/06/remove-all-those-ds_store-files/
 
 [l7]:http://magentoexpertforum.com/showthread.php/11168-Create-Open-Read-Write-Append-Close-and-Delete-file-in-PHP
+
+[l8]:http://www.mcnab.co/blog/e-commerce/magento/magento-admin-dashboard-404-with-multiple-store/
