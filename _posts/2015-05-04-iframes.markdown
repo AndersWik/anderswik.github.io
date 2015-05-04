@@ -1,0 +1,169 @@
+---
+layout: post
+title:  Loading iframes.
+date:   2015-02-29 22:30:00
+categories: Web
+---
+
+<iframe name="iframe" id="iframe" src="http://blog.anderswik.se" width="100%" height="390"></iframe>
+
+This is an iframe. The tag looks likes this.
+
+{% highlight html %}
+
+<iframe name="iframe" id="iframe" src="http://blog.anderswik.se" width="100%" height="390"></iframe>
+
+{% endhighlight %}
+
+We can change the content of the iframe using a `href`. When doing this we can use Javascript or no Javascript.
+
+Javascript
+-------------
+
+When using Javascript we can create a function and call it from the `href`.
+
+{% highlight html %}
+
+<script type="text/javascript">
+function newTarget(url) {;
+  var el = document.getElementById('iframe');
+  el.src = url;
+}
+</script>
+
+<a href="javascript:newTarget('http://ascii.demonfish.org');" title="With Javascript">With Javascript</a>
+
+{% endhighlight %}
+
+Try it out with this, "<a href="javascript:newTarget('http://ascii.demonfish.org');" title="With Javascript">link</a>". The `iframe` above will change content.
+
+{% highlight html %}
+
+<script type="text/javascript">
+function newTarget2(url) {;
+  window.frames['iframe'].location = url;
+}
+</script>
+
+<a href="javascript:newTarget2('http://qr.demonfish.org');" title="With Javascript">With Javascript</a>
+
+{% endhighlight %}
+
+This <a href="javascript:newTarget2('http://qr.demonfish.org');" title="With Javascript">link</a> works the same as the link above.
+
+{% highlight html %}
+
+<script type="text/javascript">
+function newTarget3(url) {;
+  window.frames['iframe'].location.replace(url);
+}
+</script>
+
+<a href="javascript:newTarget3('http://myip.demonfish.org');" title="With Javascript">With Javascript</a>
+
+{% endhighlight %}
+
+This <a href="javascript:newTarget3('http://myip.demonfish.org');" title="With Javascript">link</a> is the last Javascript example.
+
+
+No Javascript
+-------------
+
+{% highlight html %}
+
+<a href="http://www.demonfish.org" target="iframe">With No javascript</a>
+
+{% endhighlight %}
+
+This <a href="http://www.demonfish.org" target="iframe">link</a> works the same as the links above but without any script.
+
+
+What to do with it?
+-------------
+
+We can add some Youtube icons and use an ifram and some hrefs to switch between the videos. To get the images for the youtube videos we use the following.
+
+{% highlight html %}
+
+http://img.youtube.com/vi/THE-VIDEO-ID/0.jpg
+http://img.youtube.com/vi/THE-VIDEO-ID/default.jpg
+http://img.youtube.com/vi/THE-VIDEO-ID/mqdefault.jpg
+http://img.youtube.com/vi/THE-VIDEO-ID/maxresdefault.jpg
+http://img.youtube.com/vi/THE-VIDEO-ID/1.jpg
+http://img.youtube.com/vi/THE-VIDEO-ID/2.jpg
+http://img.youtube.com/vi/THE-VIDEO-ID/3.jpg
+
+{% endhighlight %}
+
+The code looks like this. A nice way to switch between videos without needing to reload the page.
+
+{% highlight html %}
+
+<a href="https://www.youtube.com/embed/P5yHEKqx86U" target="youtube">
+<img src="http://img.youtube.com/vi/P5yHEKqx86U/default.jpg" alt="big buck bunny" height="100" width="100">
+</a>
+
+<a href="https://www.youtube.com/embed/Z4C82eyhwgU" target="youtube">
+<img src="http://img.youtube.com/vi/Z4C82eyhwgU/default.jpg" alt="big buck bunny" height="100" width="100">
+</a>
+
+<iframe id="youtube" width="640" height="390" src="https://www.youtube.com/embed/P5yHEKqx86U" frameborder="0" allowfullscreen></iframe>
+
+{% endhighlight %}
+
+When done it will look something like this.
+
+<ul style="clear:both; list-style-type: none;">
+  <li style="float:left; padding-bottom:5px;">
+    <a href="https://www.youtube.com/embed/P5yHEKqx86U" target="youtube">
+      <img src="http://img.youtube.com/vi/P5yHEKqx86U/default.jpg" alt="big buck bunny" height="100" width="100">
+    </a>
+  </li>
+  <li style="float:left; padding-bottom:5px; padding-left:5px;">
+    <a href="https://www.youtube.com/embed/Z4C82eyhwgU" target="youtube">
+      <img src="http://img.youtube.com/vi/Z4C82eyhwgU/default.jpg" alt="big buck bunny" height="100" width="100">
+    </a>
+  </li>
+  <li style="float:left; padding-bottom:5px; padding-left:5px;">
+    <a href="https://www.youtube.com/embed/eRsGyueVLvQ" target="youtube">
+      <img src="http://img.youtube.com/vi/eRsGyueVLvQ/default.jpg" alt="big buck bunny" height="100" width="100">
+    </a>
+  </li>
+  <li style="float:left; padding-bottom:5px; padding-left:5px;">
+    <a href="https://www.youtube.com/embed/R6MlUcmOul8" target="youtube">
+      <img src="http://img.youtube.com/vi/R6MlUcmOul8/default.jpg" alt="big buck bunny" height="100" width="100">
+    </a>
+  </li>
+</ul>
+
+<iframe id="youtube" width="100%" height="390" src="https://www.youtube.com/embed/P5yHEKqx86U" frameborder="0" allowfullscreen></iframe>
+
+
+
+
+<script type="text/javascript">
+function newTarget(url) {;
+  var el = document.getElementById('iframe');
+  el.src = url;
+}
+
+function newTarget2(url) {;
+  window.frames['iframe'].location = url;
+}
+
+function newTarget3(url) {;
+  window.frames['iframe'].location.replace(url);
+}
+</script>
+
+
+
+<!--
+<script type="text/javascript">
+/*
+if ( top != self ) {
+    top.location = self.location;
+}
+*/
+</script>
+-->
