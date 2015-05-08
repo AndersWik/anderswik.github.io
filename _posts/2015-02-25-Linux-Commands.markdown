@@ -16,16 +16,16 @@ To get information about any command type `man` and the command in the terminal.
 Search in file with grep
 -------------
 
-With grep we can search in any given file for a string. Navigate to the file with the terminal. Type `grep "text" folder-name` too search in the file.
+With grep we can search in any given file for a string. Navigate to the file with the terminal. Type `grep "text" file-name` too search in the file.
 
 {% highlight bash %}
-grep "text" folder-name
+grep "text" file-name
 {% endhighlight %}
 
 To search in multiple files add more file names.
 
 {% highlight bash %}
-grep "text" folder1 folder3 folder3
+grep "text" file1 file3 file3
 {% endhighlight %}
 
 To search in a directory type the `-R` and the folder name instead of the filename.

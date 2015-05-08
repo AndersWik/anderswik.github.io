@@ -47,6 +47,6 @@ Cheat sheet for Inline PHP
 
 {% highlight html %}
 <?php for($i; $i<10; $i++) : ?>
-  <p>for:<?php echo $i; ?></p></br>
+  <p>for=0:<?php echo $i; ?></p></br>
 <?php endfor; ?>
 {% endhighlight %}
