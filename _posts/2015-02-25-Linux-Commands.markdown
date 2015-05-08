@@ -37,7 +37,7 @@ grep -R "text" folder-name
 To highlight the search result add `--color` after `grep`.
 
 {% highlight bash %}
-grep --color "text" folder-name
+grep --color "text" file-name
 {% endhighlight %}
 
 For a folder that would be,
