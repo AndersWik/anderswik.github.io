@@ -10,7 +10,7 @@ Add customer email either to email or pdf invoices in Magento.
 
 Add customer email to Magento email invoices
 -------------
-You find the invoice email templates in `app > locale > {Country_Code} > template > email > sales`. For loged in users the template file is `invoice_new.html`. To insert the email use,
+You find the invoice email templates in `app/locale/{Country_Code}/template/email/sales`. For loged in users the template file is `invoice_new.html`. To insert the email use,
 
 {% highlight php %}
 {% raw %}
