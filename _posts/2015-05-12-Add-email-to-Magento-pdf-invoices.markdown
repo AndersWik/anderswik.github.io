@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  Add customer email to Magento invoices
-date:   2015-05-13 22:30:00
+date:   2015-05-12 22:30:00
 categories: Magento
 ---
 
