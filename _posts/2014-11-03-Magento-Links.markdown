@@ -2,7 +2,7 @@
 layout: post
 title:  "Magento Links"
 date:   2014-11-03 22:30:00
-updated:   2015-04-27 22:30:00
+updated:   2015-06-02 22:30:00
 categories: Magento
 ---
 
@@ -27,10 +27,10 @@ Magento CheatSheets:
 
 Magento How To:
 
-[Magento-ajax-add-cart][magento-ajax-add-cart]
+* [Magento Ajax Add To Cart][magento-ajax-add-cart]
+* [Packaging Community Extension][packaging-community-extension]
 
-
-
+[packaging-community-extension]:http://markshust.com/2012/02/27/packaging-community-extension-distribution-magento-connect
 [RicoNeitzel_VertNav]:http://www.magentocommerce.com/magento-connect/vertical-navigation-with-css-classes.html
 [speedster-by-fooman]:http://www.magentocommerce.com/magento-connect/speedster-by-fooman.html
 [aoe-scheduler]:http://www.magentocommerce.com/magento-connect/aoe-scheduler.html

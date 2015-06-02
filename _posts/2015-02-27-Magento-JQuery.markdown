@@ -2,9 +2,14 @@
 layout: post
 title:  Add JQuery to Magento.
 date:   2015-02-27 22:30:00
+updated: 2015-06-02 22:30:00
 categories: Magento
 ---
+
 If you want to add [JQuery][jquery.com] to your Magento installation there are two fast ways. The first is to add it to your theme with `local.xml`. The second way is to make a [module][jquery] that adds it to Magento.
+
+Add local JQuery file?
+-------------
 
 To add it to the theme, start with downloading [JQuery][jquery.com/download]. Then put the file in the base default theme. If you download `jquery-2.1.3.min` the full path should be `skin/frontend/base/default/jquery/jquery-2.1.3.min.js`. Next create another script `noconflict.js` and put the following content in it.
 
@@ -14,7 +19,7 @@ $.noConflict();
 
 The full path should be `skin/frontend/base/default/jquery/noconflict.js`. The next step is to add a `local.xml` file. The file should be located in `app/design/frontend/base/default/layout`. In the file add the two scripts.
 
-{% highlight bash %}
+{% highlight xml %}
 <?xml version="1.0"?>
 <layout version="0.1.0">
   <default translate="label">
@@ -34,7 +39,7 @@ The full path should be `skin/frontend/base/default/jquery/noconflict.js`. The n
 
 [JQuery][jquery.com] is now added. To test if [JQuery][jquery.com] works you can use the following script. Note that you need to use the full `JQuery` and not `$` in your document ready function.
 
-{% highlight bash %}
+{% highlight html %}
 <script>
 jQuery( document ).ready(function( $ ) {
   $("#header").mouseenter(function(){
@@ -44,8 +49,26 @@ jQuery( document ).ready(function( $ ) {
 </script>
 {% endhighlight %}
 
+Google CDN?
+-------------
 
-The module does the same thing. [Download][jquery] the finished module from git.
+A different way is to add JQuery from the Google CDN. All we need to do is to put the script between the `<![CDATA[...]]>` tags.
+
+{% highlight xml %}
+<reference name="head">
+    <block type="core/text" name="google.cdn.jquery">
+        <action method="setText">
+            <text><![CDATA[<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script><script type="text/javascript">jQuery.noConflict();</script>]]>
+            </text>
+        </action>
+    </block>
+</reference>
+{% endhighlight %}
+
+The module have options for adding JQuery both from local or Google. [Download][jquery] the finished module from git.
+
+
+
 
 
 [jquery]:https://github.com/AndersWik/Magento_Wik_Jquery
