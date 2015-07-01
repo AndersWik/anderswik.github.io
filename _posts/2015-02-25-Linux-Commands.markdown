@@ -2,10 +2,27 @@
 layout: post
 title:  Linux Quick Start
 date:   2015-02-25 22:30:00
-updated:   2015-04-25 22:30:00
+updated:   2015-07-01 22:30:00
 categories: Linux
 ---
 Some Quick tips on terminal commands that are useful.
+
+User
+-------------
+
+* To list all users `cut -d: -f1 /etc/passwd`.
+
+* To add a new user type `sudo useradd your_username`.
+
+* To change user name type `usermod -l your_new_username your_old_username`.
+
+* To change password of a user type `sudo passwd your_username`.
+
+* To delete a user type `sudo userdel your_username`.
+
+* To delete the home directory of a deleted user type `sudo rm -r /home/your_username`.
+
+
 
 
 Manual page

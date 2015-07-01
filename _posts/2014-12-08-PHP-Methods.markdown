@@ -2,8 +2,35 @@
 layout: post
 title:  PHP Methods
 date:   2014-12-08 22:30:00
+updated:  2015-07-01 22:30:00
 categories: PHP
 ---
+
+To find out if the object is of a specified class use [is_a()][is-a].
+
+{% highlight php %}
+<?php
+$obj = new ObjectStuff();
+is_a($obj, 'ObjectStuff');
+?>
+{% endhighlight %}
+
+To find out if a property is available in a class use [property_exists()][property_exists].
+
+{% highlight php %}
+<?php
+property_exists('aClass', 'aProperty')
+?>
+{% endhighlight %}
+
+To find out if a method is available in a class use [method_exists()][method-exists].
+
+{% highlight php %}
+<?php
+$obj = new ObjectStuff();
+method_exists($obj, 'ObjectMethod');
+?>
+{% endhighlight %}
 
 A simple way to get all the class methods available in your object.
 
@@ -61,3 +88,8 @@ $this->modifyDate1(" +30 days");
 $this->modifyDate1(" -30 days");
 ?>
 {% endhighlight %}
+
+
+[is-a]:http://php.net/manual/en/function.is-a.php
+[property_exists]:http://php.net/manual/en/function.property-exists.php
+[method-exists]:http://php.net/manual/en/function.method-exists.php

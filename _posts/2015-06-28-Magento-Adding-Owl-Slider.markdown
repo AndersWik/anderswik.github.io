@@ -4,6 +4,9 @@ title:  Adding OWL Carousel To Magento
 date:   2015-06-28 22:30:00
 categories: Magento
 ---
+
+To add a slider to our Magento store we can use one of the free modules from [Magento Connect][MagentoConnect]. But there are benefits to adding the slider to your theme. The main one is that you can use any slider you want. We are going to use OWL Carousel.
+
 <!-- Important Owl stylesheet -->
 <link rel="stylesheet" href="/assets/owl-carousel/owl.carousel.css">
 <!-- Default Theme -->
@@ -12,8 +15,6 @@ categories: Magento
 <script src="/assets/jquery/jquery-1.11.3.min.js"></script>
 <!-- Include js plugin -->
 <script src="/assets/owl-carousel/owl.carousel.js"></script>
-
-To add a slider to our Magento store we can use one of the free modules from [Magento Connect][MagentoConnect]. But there are benefits to adding the slider to your theme. The main one is that you can use any slider you want. We are going to use OWL Carousel.
 
 <div id="owl-demo" class="owl-carousel owl-theme">
   <div class="item"><img src="/assets/images/fullimage1.jpg" alt="img1"></div>
@@ -118,9 +119,12 @@ You really only need to add the template file now but we also add a cms block fo
   <div class="item"><img src="<?php //echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA).'/slider/ex4.jpg'; ?>" alt="mwd4"></div>
 
 </div>
+{% endhighlight %}
+
 
 Now we need to add some jQuery. Also add the script below in the `slider.phtml` template file and then you are done. You have a working slider.
 
+{% highlight html %}
 <script>
 jQuery( document ).ready(function( $ ) {
 

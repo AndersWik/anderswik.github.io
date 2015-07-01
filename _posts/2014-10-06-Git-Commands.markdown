@@ -2,11 +2,20 @@
 layout: post
 title:  "Git Commands"
 date:   2014-10-06 22:30:00
-updated:   2015-05-26 22:30:00
+updated:   2015-07-01 22:30:00
 categories: Miscellaneous
 ---
 
 There are some nice assets online to learn git. Like this interactive [thing on github][try]. There is also a free [book][book]. If that is to much here are some short notes. To start using git you only need to know some basic commands.
+
+To install Git with Apt type,
+
+{% highlight bash %}
+sudo apt-get update
+sudo apt-get install git
+{% endhighlight %}
+
+You still need too configure git. When done you can create your git repository.
 
 {% highlight bash %}
 git init
