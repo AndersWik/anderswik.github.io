@@ -2,13 +2,14 @@
 layout: post
 title:  "Magento Links"
 date:   2014-11-03 22:30:00
-updated:   2015-06-02 22:30:00
+updated:   2015-07-02 22:30:00
 categories: Magento
 ---
 
 Magento miscellaneous
 
 * Download Magento modules without Magento Connect:[Freegento][freegento]
+* [n98-Magerun][n98-Magerun]
 
 Magento Modules
 
@@ -24,12 +25,19 @@ Magento CheatSheets:
 * [How to get controller action and module name in template-file][get-controller-action]
 * [Get current store id, code, name, status, details][current-id]
 * [Get last order details from checkout session][last-order]
+* [Form fields and fieldsets][form-fields]
 
 Magento How To:
 
 * [Magento Ajax Add To Cart][magento-ajax-add-cart]
 * [Packaging Community Extension][packaging-community-extension]
+* [SEO Optimizing Pages][seo-optimizing-pages]
+* [Pagination On Pages][seo-pagination]
 
+[seo-pagination]:http://thedistance.co.uk/journal/2014-07/pagination-ecommerce-magento-fix
+[seo-optimizing-pages]:http://code.tutsplus.com/articles/magento-seo-optimizing-pages-and-avoiding-duplicate-content-penalties--cms-22110
+[n98-Magerun]:https://github.com/netz98/n98-magerun
+[form-fields]:http://www.beckindesigns.com/magento-form-fields-fieldsets/
 [packaging-community-extension]:http://markshust.com/2012/02/27/packaging-community-extension-distribution-magento-connect
 [RicoNeitzel_VertNav]:http://www.magentocommerce.com/magento-connect/vertical-navigation-with-css-classes.html
 [speedster-by-fooman]:http://www.magentocommerce.com/magento-connect/speedster-by-fooman.html
