@@ -2,7 +2,7 @@
 layout: post
 title:  "Magento Links"
 date:   2014-11-03 22:30:00
-updated:   2015-07-02 22:30:00
+updated:   2015-07-03 22:30:00
 categories: Magento
 ---
 
@@ -33,7 +33,11 @@ Magento How To:
 * [Packaging Community Extension][packaging-community-extension]
 * [SEO Optimizing Pages][seo-optimizing-pages]
 * [Pagination On Pages][seo-pagination]
+* [Simple Social Sharing Buttons In Magento][simple-social-sharing-buttons-in-magento]
+* Not exclusively a Magento link but with share buttons come [share count][share-count].
 
+[share-count]:https://gist.github.com/jonathanmoore/2640302
+[simple-social-sharing-buttons-in-magento]:http://inchoo.net/ecommerce/simple-social-sharing-buttons-in-magento/
 [seo-pagination]:http://thedistance.co.uk/journal/2014-07/pagination-ecommerce-magento-fix
 [seo-optimizing-pages]:http://code.tutsplus.com/articles/magento-seo-optimizing-pages-and-avoiding-duplicate-content-penalties--cms-22110
 [n98-Magerun]:https://github.com/netz98/n98-magerun

@@ -2,7 +2,7 @@
 layout: post
 title:  "Toolbox"
 date:   2014-11-04 22:30:00
-updated:   2015-05-03 22:30:00
+updated:   2015-07-03 22:30:00
 categories: Toolbox
 ---
 Good to have:
@@ -18,7 +18,10 @@ Good to have:
 * Some nice colors @ [Adobe][color.adobe]
 * And [HtAccess-301-Redirect-Generator][HtAccess-301-Redirect-Generator]
 * Some [social sharing][addthis]
-* We like [subtlepatterns]
+* We like [subtlepatterns][subtlepatterns]
+* [Whats the closest font?][font]
+
+[font]:http://joelcrawfordsmith.com/closest-font/content/font-tools
 
 [subtlepatterns]:http://subtlepatterns.com
 

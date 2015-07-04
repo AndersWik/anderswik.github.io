@@ -2,6 +2,7 @@
 layout: post
 title:  Simple Social Links
 date:   2015-02-18 22:30:00
+updated:   2015-07-03 22:30:00
 categories: Javascript
 ---
 
@@ -111,7 +112,7 @@ function popWin(url, name) {
 <a href="javascript:popWin('http://blog.anderswik.se','share');" title="Share!">Share Popup</a>
 {% endhighlight %}
 
-To use the a share link in the pop up use the ful share url.
+To use the a share link in the pop up use the ful share url, <a href="javascript:popWin('http://twitter.com/share?url=http://blog.anderswik.se&text=Some','share');" title="Share!">Share on Twitter</a>.
 
 {% highlight bash %}
 <a href="javascript:popWin('http://twitter.com/share?url=http://blog.anderswik.se&text=Some','share');" title="Share!">Share on Twitter</a>

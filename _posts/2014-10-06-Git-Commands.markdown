@@ -2,7 +2,7 @@
 layout: post
 title:  "Git Commands"
 date:   2014-10-06 22:30:00
-updated:   2015-07-01 22:30:00
+updated:   2015-07-02 22:30:00
 categories: Miscellaneous
 ---
 
@@ -49,6 +49,13 @@ git status
 git add -A
 git commit -m 'New Commit'
 {% endhighlight %}
+
+If you make a mistake, forget to include some file or type something wrong in your commit message you can undo the commit. Type the command below and make a new commit.
+
+{% highlight bash %}
+git reset --soft HEAD~1
+{% endhighlight %}
+
 
 When done use `git push origin master` to push the changes to the remote repository.
 
