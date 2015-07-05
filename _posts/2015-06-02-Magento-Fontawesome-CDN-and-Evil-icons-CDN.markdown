@@ -54,6 +54,17 @@ Google Fonts CDN
 </reference>
 {% endhighlight %}
 
+Or we can use,
+
+{% highlight xml %}
+<reference name="head">
+  <action method="addLinkRel">
+    <rel>stylesheet</rel>
+    <href>http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300</href>
+  </action>
+</reference>
+{% endhighlight %}
+
 [https://www.google.com/fonts][google-fonts]
 
 
