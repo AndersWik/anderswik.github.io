@@ -2,7 +2,7 @@
 layout: post
 title:  "Magento Links"
 date:   2014-11-03 22:30:00
-updated:   2015-07-03 22:30:00
+updated:   2015-07-08 22:30:00
 categories: Magento
 ---
 
@@ -17,6 +17,9 @@ Magento Modules
 * [Arts On It Offline Maintenance][maintenance-page-artson-it]
 * [RicoNeitzel VertNav][RicoNeitzel_VertNav]
 * [Fooman Speedster][speedster-by-fooman]
+* [Magento Autocomplete][magento-autocomplete]
+* [One Page Checkout][one-page-checkout]
+
 
 Magento CheatSheets:
 
@@ -36,6 +39,10 @@ Magento How To:
 * [Simple Social Sharing Buttons In Magento][simple-social-sharing-buttons-in-magento]
 * Not exclusively a Magento link but with share buttons come [share count][share-count].
 
+
+
+[one-page-checkout]:http://www.magentocommerce.com/magento-connect/one-page-checkout.html
+[magento-autocomplete]:https://github.com/jreinke/magento-autocomplete
 [share-count]:https://gist.github.com/jonathanmoore/2640302
 [simple-social-sharing-buttons-in-magento]:http://inchoo.net/ecommerce/simple-social-sharing-buttons-in-magento/
 [seo-pagination]:http://thedistance.co.uk/journal/2014-07/pagination-ecommerce-magento-fix
