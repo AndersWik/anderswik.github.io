@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  Fontawesome, Evil-icons and Google Fonts for Magento
-date:   2015-06-02 22:30:00
+date:   2015-07-24 22:30:00
 categories: Magento
 ---
 
@@ -20,6 +20,23 @@ Fontawesome CDN
     </action>
   </block>
 </reference>
+{% endhighlight %}
+
+Or we can use,
+
+{% highlight xml %}
+<reference name="head">
+  <action method="addLinkRel">
+    <rel>stylesheet</rel>
+    <href>http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css</href>
+  </action>
+</reference>
+{% endhighlight %}
+
+Or in the css file,
+
+{% highlight xml %}
+@import url(http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css);
 {% endhighlight %}
 
 [http://fortawesome.github.io/Font-Awesome/][fontawesome]
@@ -63,6 +80,12 @@ Or we can use,
     <href>http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300</href>
   </action>
 </reference>
+{% endhighlight %}
+
+Or in the css file,
+
+{% highlight xml %}
+@import url(http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300)
 {% endhighlight %}
 
 [https://www.google.com/fonts][google-fonts]
