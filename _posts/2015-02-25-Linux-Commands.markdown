@@ -2,7 +2,7 @@
 layout: post
 title:  Linux Quick Start
 date:   2015-02-25 22:30:00
-updated:   2015-07-01 22:30:00
+updated:   2015-11-12 22:30:00
 categories: Linux
 ---
 Some Quick tips on terminal commands that are useful.
@@ -63,6 +63,30 @@ For a folder that would be,
 grep -R --color "text" folder-name
 {% endhighlight %}
 
+
+Tail
+-------------
+
+To get the last lines of a file we can use `tail`.
+
+{% highlight bash %}
+tail file.txt
+{% endhighlight %}
+
+The above command will get the last 10 rows of the file.
+
+{% highlight bash %}
+tail -n 1000 file.txt
+{% endhighlight %}
+
+With the option `-n` we can define how many rows we want to get.
+
+{% highlight bash %}
+tail -f file.txt
+{% endhighlight %}
+
+With the option `-f` we print all new rows that are added to the file. This
+is useful when you monitor a exception file in real time.
 
 Add/Remove Cron
 -------------

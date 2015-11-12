@@ -10,8 +10,8 @@ Magento miscellaneous
 
 * Download Magento modules without Magento Connect:[Freegento][freegento]
 * [n98-Magerun][n98-Magerun]
-
-Magento Modules
+* [Modman][modman]
+* Check for security vulnerabilities:[Magereport][security-check]
 
 * [Aoe Scheduler][aoe-scheduler]
 * [Arts On It Offline Maintenance][maintenance-page-artson-it]
@@ -39,8 +39,8 @@ Magento How To:
 * [Simple Social Sharing Buttons In Magento][simple-social-sharing-buttons-in-magento]
 * Not exclusively a Magento link but with share buttons come [share count][share-count].
 
-
-
+[modman]:https://github.com/colinmollenhour/modman
+[security-check]:https://www.magereport.com/
 [one-page-checkout]:http://www.magentocommerce.com/magento-connect/one-page-checkout.html
 [magento-autocomplete]:https://github.com/jreinke/magento-autocomplete
 [share-count]:https://gist.github.com/jonathanmoore/2640302
