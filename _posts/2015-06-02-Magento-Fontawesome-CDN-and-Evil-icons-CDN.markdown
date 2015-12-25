@@ -1,7 +1,8 @@
 ---
 layout: post
 title:  Fontawesome, Evil-icons and Google Fonts for Magento
-date:   2015-07-24 22:30:00
+date:   2015-06-02 22:30:00
+updated:   2015-07-24 22:30:00
 categories: Magento
 ---
 

@@ -1,13 +1,16 @@
 # Site settings
 title: AndersWik
-email: about@anderswiik.se
+email: ""
 description: > # this means to ignore newlines until "baseurl:"
-  Awesome description for this site here! Yes it is Jekyll (jekyllrb.com)..
+  This is some notes about stuff.
 baseurl: "" # the subpath of your site, e.g. /blog/
-url: "http://anderswiik.se" # the base hostname & protocol for your site
+url: "http://anderswik.se" # the base hostname & protocol for your site
 twitter_username: AndersWik_
 github_username:  AndersWik
 
+gems: [jekyll-paginate]
 paginate: 10
+paginate_path: "page:num"
+
 # Build settings
 markdown: kramdown
