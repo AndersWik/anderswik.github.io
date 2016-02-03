@@ -53,12 +53,6 @@ sass --watch scss/some.scss:../css/some.css
 Or use,
 
 {% highlight bash %}
-scss-watch some.scss:some.css
-{% endhighlight %}
-
-that is shorthand for:
-
-{% highlight bash %}
 scss --watch --no-cache some.scss:some.css --style compressed
 {% endhighlight %}
 
