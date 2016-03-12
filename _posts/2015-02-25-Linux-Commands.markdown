@@ -1,8 +1,8 @@
 ---
 layout: post
-title:  Linux Quick Start
+title:  Linux Ubuntu/Mint Quick Start
 date:   2015-02-25 22:30:00
-updated:   2015-11-12 22:30:00
+updated:   2016-03-12 22:30:00
 categories: Linux
 ---
 Some Quick tips on terminal commands that are useful.
@@ -173,4 +173,38 @@ and add a new row.
 Depending on the your browser you should now be loopedbacked when trying to access facebook.com.
 
 
+Last ssh login attempts
+-------------
+
+All failed login attempts
+{% highlight bash %}
+cat /var/log/auth.log | grep 'sshd.*Invalid'
+{% endhighlight %}
+
+All successful logins
+{% highlight bash %}
+cat /var/log/auth.log | grep 'sshd.*opened'
+{% endhighlight %}
+
+
+
+
+
+<!--
+stop/start mysql
+/etc/init.d/mysqld start
+/etc/init.d/mysqld stop
+/etc/init.d/mysqld restart
+
+stop/start mysql
+service mysqld start
+service mysqld stop
+service mysqld restart
+-->
+
+
+
+
+
 [geek]:http://www.howtogeek.com/howto/27350/beginner-geek-how-to-edit-your-hosts-file/
+[stack]:http://askubuntu.com/questions/634370/why-does-apt-get-not-require-restarts-where-the-update-manager-does

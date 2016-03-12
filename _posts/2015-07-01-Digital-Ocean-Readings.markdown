@@ -2,6 +2,7 @@
 layout: post
 title:  Digital Ocean Readings
 date:   2015-07-01 22:30:00
+updated:  2016-03-10 22:30:00
 categories: Digitalocean
 ---
 
@@ -26,6 +27,12 @@ Get started
 
 [how-to-use-sftp-to-securely-transfer-files-with-a-remote-server][how-to-use-sftp-to-securely-transfer-files-with-a-remote-server]
 
+[how-to-set-up-a-firewall-with-ufw-on-ubuntu][firewall-with-ufw-on-ubuntu]
+
+[how-to-configure-ssh-key-based-authentication-on-a-linux-server][ssh-key-based-authentication-on-a-linux-server]
+
+
+
 Basic SQL
 -------------
 
@@ -33,11 +40,11 @@ Basic SQL
 
 [how-to-import-sql-file-into-mysql][how-to-import-sql-file-into-mysql]
 
+[initial-server-setup-with-ubuntu]:https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-14-04
 
+[firewall-with-ufw-on-ubuntu]:https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-14-04
 
-
-
-
+[ssh-key-based-authentication-on-a-linux-server]:https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server
 
 [initial-server-setup-with-ubuntu-14-04]:https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-14-04
 

@@ -2,6 +2,7 @@
 layout: post
 title:  Debug Mode in Magento
 date:   2015-06-30 22:30:00
+updated:   2016-03-12 22:30:00
 categories: Magento
 ---
 
@@ -14,3 +15,8 @@ categories: Magento
   * Also open the `.htaccess` file and add `SetEnv MAGE_IS_DEVELOPER_MODE "true"` at the end
 7. Enable on Logging, go to `System > Configuration > Advanced > Developer > Log Settings` and set `Enabled` to `Yes`
 8. Enable Mangeto Error Page change the name of `errors/local.xml.sample` to `errors/local.xml`.
+
+Use Modman for modules
+-------------
+1. Create modman file
+`find * -type f ! -name 'modman' > modman`
