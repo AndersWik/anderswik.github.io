@@ -31,7 +31,7 @@ Get started
 
 [how-to-configure-ssh-key-based-authentication-on-a-linux-server][ssh-key-based-authentication-on-a-linux-server]
 
-
+[how-to-add-swap-on-ubuntu-14-04][tutorials/how-to-add-swap-on-ubuntu]
 
 Basic SQL
 -------------
@@ -67,3 +67,5 @@ Basic SQL
 [how-to-import-sql-file-into-mysql]:https://www.digitalocean.com/community/questions/how-to-import-sql-file-into-mysql
 
 [fw]:https://www.digitalocean.com/community/tutorials/how-to-setup-a-firewall-with-ufw-on-an-ubuntu-and-debian-cloud-server
+
+[tutorials/how-to-add-swap-on-ubuntu]:https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-14-04
