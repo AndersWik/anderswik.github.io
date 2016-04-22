@@ -2,7 +2,7 @@
 layout: post
 title:  Magento Layout XML
 date:   2014-12-04 22:30:00
-updated:   2015-12-22 22:30:00
+updated:   2016-04-21 22:30:00
 categories: Magento
 ---
 
@@ -88,15 +88,23 @@ We were looking for the CMS index page and this is the IndexController and the I
 </layout>
 {% endhighlight %}
 
-Some additional good to know handles,
+Some additional good to know handles. We can target product types.
 
-{% highlight html %}
-PRODUCT_TYPE_simple
-PRODUCT_TYPE_configurable
-PRODUCT_TYPE_grouped
-PRODUCT_TYPE_virtual
-PRODUCT_TYPE_downloadable
-PRODUCT_TYPE_bundle
+{% highlight xml %}
+<PRODUCT_TYPE_simple>
+<PRODUCT_TYPE_configurable>
+<PRODUCT_TYPE_grouped>
+<PRODUCT_TYPE_virtual>
+<PRODUCT_TYPE_downloadable>
+<PRODUCT_TYPE_bundle>
+{% endhighlight %}
+
+We can also target a specific store. The syntax is `STORE_` followed by
+the store code. If we have one storeview with the store code `en` and one with the store code `sv` the syntax would be,
+
+{% highlight xml %}
+<STORE_en>
+<STORE_sv>
 {% endhighlight %}
 
 ### References
