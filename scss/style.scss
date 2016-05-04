@@ -71,6 +71,14 @@ h2 {
 				}
 			}
 		}
+		li {
+			a {
+				color: #8b6c33;
+				&:hover {
+					color: #E8B455;
+				}
+			}
+		}
 	}
 }
 
@@ -110,9 +118,9 @@ footer {
 	font-family: 'Open Sans Condensed', sans-serif;
 
 	a {
-		color: #828282;
+		color: #8b6c33;
 		&hover{
-			color: #828282;
+			color: #e8b455;
 		}
 	}
 	ul {
