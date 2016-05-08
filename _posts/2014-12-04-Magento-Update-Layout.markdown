@@ -104,7 +104,9 @@ the store code. If we have one storeview with the store code `en` and one with t
 
 {% highlight xml %}
 <STORE_en>
+</STORE_en>
 <STORE_sv>
+</STORE_sv>
 {% endhighlight %}
 
 ### References
