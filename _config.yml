@@ -7,6 +7,7 @@ baseurl: "" # the subpath of your site, e.g. /blog/
 url: "http://anderswik.se" # the base hostname & protocol for your site
 twitter_username: AndersWik_
 github_username:  AndersWik
+linkedin_username: anders-wik-80208aa2
 
 gems: [jekyll-paginate]
 paginate: 10
