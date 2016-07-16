@@ -1,0 +1,287 @@
+<!-- Creator     : groff version 1.22.2 -->
+<!-- CreationDate: Tue Jul 12 15:33:22 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>GIT&minus;CAT&minus;FILE</title>
+
+</head>
+<body>
+
+<h1 align="center">GIT&minus;CAT&minus;FILE</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#OPTIONS">OPTIONS</a><br>
+<a href="#OUTPUT">OUTPUT</a><br>
+<a href="#BATCH OUTPUT">BATCH OUTPUT</a><br>
+<a href="#CAVEATS">CAVEATS</a><br>
+<a href="#GIT">GIT</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">git-cat-file
+&minus; Provide content or type and size information for
+repository objects</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><i>git
+cat&minus;file</i> (&minus;t | &minus;s | &minus;e |
+&minus;p | &lt;type&gt; | &minus;&minus;textconv )
+&lt;object&gt; <i><br>
+git cat&minus;file</i> (&minus;&minus;batch |
+&minus;&minus;batch&minus;check) &lt;
+&lt;list&minus;of&minus;objects&gt;</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">In its first
+form, the command provides the content or the type of an
+object in the repository. The type is required unless
+<i>&minus;t</i> or <i>&minus;p</i> is used to find the
+object type, or <i>&minus;s</i> is used to find the object
+size, or <i>&minus;&minus;textconv</i> is used (which
+implies type &quot;blob&quot;).</p>
+
+<p style="margin-left:11%; margin-top: 1em">In the second
+form, a list of objects (separated by linefeeds) is provided
+on stdin, and the SHA&minus;1, type, and size of each object
+is printed on stdout.</p>
+
+<h2>OPTIONS
+<a name="OPTIONS"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em">&lt;object&gt;</p>
+
+<p style="margin-left:17%;">The name of the object to show.
+For a more complete list of ways to spell object names, see
+the &quot;SPECIFYING REVISIONS&quot; section in
+<b>gitrevisions</b>(7).</p>
+
+<p style="margin-left:11%; margin-top: 1em">&minus;t</p>
+
+<p style="margin-left:17%;">Instead of the content, show
+the object type identified by &lt;object&gt;.</p>
+
+<p style="margin-left:11%; margin-top: 1em">&minus;s</p>
+
+<p style="margin-left:17%;">Instead of the content, show
+the object size identified by &lt;object&gt;.</p>
+
+<p style="margin-left:11%; margin-top: 1em">&minus;e</p>
+
+<p style="margin-left:17%;">Suppress all output; instead
+exit with zero status if &lt;object&gt; exists and is a
+valid object.</p>
+
+<p style="margin-left:11%; margin-top: 1em">&minus;p</p>
+
+<p style="margin-left:17%;">Pretty&minus;print the contents
+of &lt;object&gt; based on its type.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em">&lt;type&gt;</p>
+
+<p style="margin-left:17%;">Typically this matches the real
+type of &lt;object&gt; but asking for a type that can
+trivially be dereferenced from the given &lt;object&gt; is
+also permitted. An example is to ask for a &quot;tree&quot;
+with &lt;object&gt; being a commit object that contains it,
+or to ask for a &quot;blob&quot; with &lt;object&gt; being a
+tag object that points at it.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em">&minus;&minus;textconv</p>
+
+<p style="margin-left:17%;">Show the content as transformed
+by a textconv filter. In this case, &lt;object&gt; has be of
+the form &lt;tree&minus;ish&gt;:&lt;path&gt;, or
+:&lt;path&gt; in order to apply the filter to the content
+recorded in the index at &lt;path&gt;.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em">&minus;&minus;batch,
+&minus;&minus;batch=&lt;format&gt;</p>
+
+<p style="margin-left:17%;">Print object information and
+contents for each object provided on stdin. May not be
+combined with any other options or arguments. See the
+section BATCH OUTPUT below for details.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em">&minus;&minus;batch&minus;check,
+&minus;&minus;batch&minus;check=&lt;format&gt;</p>
+
+<p style="margin-left:17%;">Print object information for
+each object provided on stdin. May not be combined with any
+other options or arguments. See the section BATCH OUTPUT
+below for details.</p>
+
+<h2>OUTPUT
+<a name="OUTPUT"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">If
+<i>&minus;t</i> is specified, one of the &lt;type&gt;.</p>
+
+<p style="margin-left:11%; margin-top: 1em">If
+<i>&minus;s</i> is specified, the size of the &lt;object&gt;
+in bytes.</p>
+
+<p style="margin-left:11%; margin-top: 1em">If
+<i>&minus;e</i> is specified, no output.</p>
+
+<p style="margin-left:11%; margin-top: 1em">If
+<i>&minus;p</i> is specified, the contents of &lt;object&gt;
+are pretty&minus;printed.</p>
+
+<p style="margin-left:11%; margin-top: 1em">If &lt;type&gt;
+is specified, the raw (though uncompressed) contents of the
+&lt;object&gt; will be returned.</p>
+
+<h2>BATCH OUTPUT
+<a name="BATCH OUTPUT"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">If
+&minus;&minus;batch or &minus;&minus;batch&minus;check is
+given, cat&minus;file will read objects from stdin, one per
+line, and print information about them. By default, the
+whole line is considered as an object, as if it were fed to
+<b>git-rev-parse</b>(1).</p>
+
+<p style="margin-left:11%; margin-top: 1em">You can specify
+the information shown for each object by using a custom
+&lt;format&gt;. The &lt;format&gt; is copied literally to
+stdout for each object, with placeholders of the form
+%(atom) expanded, followed by a newline. The available atoms
+are:</p>
+
+<p style="margin-left:11%; margin-top: 1em">objectname</p>
+
+<p style="margin-left:17%;">The 40&minus;hex object name of
+the object.</p>
+
+<p style="margin-left:11%; margin-top: 1em">objecttype</p>
+
+<p style="margin-left:17%;">The type of of the object (the
+same as cat&minus;file &minus;t reports).</p>
+
+<p style="margin-left:11%; margin-top: 1em">objectsize</p>
+
+<p style="margin-left:17%;">The size, in bytes, of the
+object (the same as cat&minus;file &minus;s reports).</p>
+
+
+<p style="margin-left:11%; margin-top: 1em">objectsize:disk</p>
+
+<p style="margin-left:17%;">The size, in bytes, that the
+object takes up on disk. See the note about on&minus;disk
+sizes in the CAVEATS section below.</p>
+
+<p style="margin-left:11%; margin-top: 1em">deltabase</p>
+
+<p style="margin-left:17%;">If the object is stored as a
+delta on&minus;disk, this expands to the 40&minus;hex sha1
+of the delta base object. Otherwise, expands to the null
+sha1 (40 zeroes). See CAVEATS below.</p>
+
+<p style="margin-left:11%; margin-top: 1em">rest</p>
+
+<p style="margin-left:17%;">If this atom is used in the
+output string, input lines are split at the first whitespace
+boundary. All characters before that whitespace are
+considered to be the object name; characters after that
+first run of whitespace (i.e., the &quot;rest&quot; of the
+line) are output in place of the %(rest) atom.</p>
+
+<p style="margin-left:11%; margin-top: 1em">If no format is
+specified, the default format is %(objectname) %(objecttype)
+%(objectsize).</p>
+
+<p style="margin-left:11%; margin-top: 1em">If
+&minus;&minus;batch is specified, the object information is
+followed by the object contents (consisting of %(objectsize)
+bytes), followed by a newline.</p>
+
+<p style="margin-left:11%; margin-top: 1em">For example,
+&minus;&minus;batch without a custom format would
+produce:</p>
+
+<p style="margin-left:17%; margin-top: 1em">&lt;sha1&gt; SP
+&lt;type&gt; SP &lt;size&gt; LF <br>
+&lt;contents&gt; LF</p>
+
+<p style="margin-left:11%; margin-top: 1em">Whereas
+&minus;&minus;batch&minus;check='%(objectname)
+%(objecttype)' would produce:</p>
+
+<p style="margin-left:17%; margin-top: 1em">&lt;sha1&gt; SP
+&lt;type&gt; LF</p>
+
+<p style="margin-left:11%; margin-top: 1em">If a name is
+specified on stdin that cannot be resolved to an object in
+the repository, then cat&minus;file will ignore any custom
+format and print:</p>
+
+<p style="margin-left:17%; margin-top: 1em">&lt;object&gt;
+SP missing LF</p>
+
+<h2>CAVEATS
+<a name="CAVEATS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Note that the
+sizes of objects on disk are reported accurately, but care
+should be taken in drawing conclusions about which refs or
+objects are responsible for disk usage. The size of a packed
+non&minus;delta object may be much larger than the size of
+objects which delta against it, but the choice of which
+object is the base and which is the delta is arbitrary and
+is subject to change during a repack.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Note also that
+multiple copies of an object may be present in the object
+database; in this case, it is undefined which copy&rsquo;s
+size or delta base will be reported.</p>
+
+<h2>GIT
+<a name="GIT"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Part of the
+<b>git</b>(1) suite</p>
+<hr>
+</body>
+</html>
