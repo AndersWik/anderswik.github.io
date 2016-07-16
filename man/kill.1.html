@@ -1,0 +1,191 @@
+<!-- Creator     : groff version 1.22.2 -->
+<!-- CreationDate: Tue Jul 12 15:34:48 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>KILL</title>
+
+</head>
+<body>
+
+<h1 align="center">KILL</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#OPTIONS">OPTIONS</a><br>
+<a href="#NOTES">NOTES</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#STANDARDS">STANDARDS</a><br>
+<a href="#AUTHOR">AUTHOR</a><br>
+<a href="#REPORTING BUGS">REPORTING BUGS</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">kill &minus;
+send a signal to a process</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>kill</b>
+[options] &lt;pid&gt; [...]</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The default
+signal for kill is TERM. Use <b>&minus;l</b> or
+<b>&minus;L</b> to list available signals. Particularly
+useful signals include HUP, INT, KILL, STOP, CONT, and 0.
+Alternate signals may be specified in three ways:
+<b>&minus;9</b>, <b>&minus;SIGKILL</b> or
+<b>&minus;KILL</b>. Negative PID values may be used to
+choose whole process groups; see the PGID column in ps
+command output. A PID of <b>&minus;1</b> is special; it
+indicates all processes except the kill process itself and
+init.</p>
+
+<h2>OPTIONS
+<a name="OPTIONS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>&lt;pid&gt;
+[...]</b></p>
+
+<p style="margin-left:22%;">Send signal to every
+&lt;pid&gt; listed.</p>
+
+<p style="margin-left:11%;"><b>&minus;&lt;signal&gt; <br>
+&minus;s &lt;signal&gt; <br>
+&minus;&minus;signal &lt;signal&gt;</b></p>
+
+<p style="margin-left:22%;">Specify the <b>signal</b> to be
+sent. The signal can be specified by using name or number.
+The behavior of signals is explained in <b>signal</b>(7)
+manual page.</p>
+
+<p style="margin-left:11%;"><b>&minus;l</b>,
+<b>&minus;&minus;list</b> [<i>signal</i>]</p>
+
+<p style="margin-left:22%;">List signal names. This option
+has optional argument, which will convert signal number to
+signal name, or other way round.</p>
+
+
+<p style="margin-left:11%;"><b>&minus;L</b>,&nbsp;<b>&minus;&minus;table</b></p>
+
+<p style="margin-left:22%;">List signal names in a nice
+table.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="7%">
+
+
+<h2>NOTES
+<a name="NOTES"></a>
+</h2>
+</td>
+<td width="4%"></td>
+<td width="78%">
+
+
+<p style="margin-top: 1em">Your shell (command line
+interpreter) may have a built-in kill command. You may need
+to run the command described here as /bin/kill to solve the
+conflict.</p> </td></tr>
+</table>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>kill
+&minus;9 &minus;1</b></p>
+
+<p style="margin-left:22%;">Kill all processes you can
+kill.</p>
+
+<p style="margin-left:11%;"><b>kill &minus;l 11</b></p>
+
+<p style="margin-left:22%;">Translate number 11 into a
+signal name.</p>
+
+<p style="margin-left:11%;"><b>kill -L</b></p>
+
+<p style="margin-left:22%;">List the available signal
+choices in a nice table.</p>
+
+<p style="margin-left:11%;"><b>kill 123 543 2341
+3453</b></p>
+
+<p style="margin-left:22%;">Send the default signal,
+SIGTERM, to all those processes.</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>kill</b>(2),
+<b>killall</b>(1), <b>nice</b>(1), <b>pkill</b>(1),
+<b>renice</b>(1), <b>signal</b>(7), <b>skill</b>(1)</p>
+
+<h2>STANDARDS
+<a name="STANDARDS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">This command
+meets appropriate standards. The <b>&minus;L</b> flag is
+Linux-specific.</p>
+
+<h2>AUTHOR
+<a name="AUTHOR"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><a href="albert@users.sf.net">Albert
+Cahalan</a> wrote kill in 1999 to replace a bsdutils one
+that was not standards compliant. The util-linux one might
+also work correctly.</p>
+
+<h2>REPORTING BUGS
+<a name="REPORTING BUGS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Please send bug
+reports to
+<a href="procps@freelists.org">procps@freelists.org</a></p>
+<hr>
+</body>
+</html>

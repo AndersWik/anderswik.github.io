@@ -1,0 +1,218 @@
+<!-- Creator     : groff version 1.22.2 -->
+<!-- CreationDate: Tue Jul 12 15:33:23 2016 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>GIT&minus;CHERRY</title>
+
+</head>
+<body>
+
+<h1 align="center">GIT&minus;CHERRY</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#OPTIONS">OPTIONS</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+<a href="#GIT">GIT</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">git-cherry
+&minus; Find commits yet to be applied to upstream</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><i>git
+cherry</i> [&minus;v] [&lt;upstream&gt; [&lt;head&gt;
+[&lt;limit&gt;]]]</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Determine
+whether there are commits in &lt;head&gt;..&lt;upstream&gt;
+that are equivalent to those in the range
+&lt;limit&gt;..&lt;head&gt;.</p>
+
+<p style="margin-left:11%; margin-top: 1em">The equivalence
+test is based on the diff, after removing whitespace and
+line numbers. git&minus;cherry therefore detects when
+commits have been &quot;copied&quot; by means of
+<b>git-cherry-pick</b>(1), <b>git-am</b>(1) or
+<b>git-rebase</b>(1).</p>
+
+<p style="margin-left:11%; margin-top: 1em">Outputs the
+SHA1 of every commit in &lt;limit&gt;..&lt;head&gt;,
+prefixed with &minus; for commits that have an equivalent in
+&lt;upstream&gt;, and + for commits that do not.</p>
+
+<h2>OPTIONS
+<a name="OPTIONS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">&minus;v</p>
+
+<p style="margin-left:17%;">Show the commit subjects next
+to the SHA1s.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em">&lt;upstream&gt;</p>
+
+<p style="margin-left:17%;">Upstream branch to search for
+equivalent commits. Defaults to the upstream branch of
+HEAD.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em">&lt;head&gt;</p>
+
+<p style="margin-left:17%;">Working branch; defaults to
+HEAD.</p>
+
+
+<p style="margin-left:11%; margin-top: 1em">&lt;limit&gt;</p>
+
+<p style="margin-left:17%;">Do not report commits up to
+(and including) limit.</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>Patch
+workflows</b> <br>
+git&minus;cherry is frequently used in patch&minus;based
+workflows (see <b>gitworkflows</b>(7)) to determine if a
+series of patches has been applied by the upstream
+maintainer. In such a workflow you might create and send a
+topic branch like this:</p>
+
+<p style="margin-left:17%; margin-top: 1em">$ git checkout
+&minus;b topic origin/master <br>
+# work and create some commits <br>
+$ git format&minus;patch origin/master <br>
+$ git send&minus;email ... 00*</p>
+
+<p style="margin-left:11%; margin-top: 1em">Later, you can
+see whether your changes have been applied by saying (still
+on topic):</p>
+
+<p style="margin-left:17%; margin-top: 1em">$ git fetch #
+update your notion of origin/master <br>
+$ git cherry &minus;v</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Concrete
+example</b> <br>
+In a situation where topic consisted of three commits, and
+the maintainer applied two of them, the situation might look
+like:</p>
+
+<p style="margin-left:17%; margin-top: 1em">$ git log
+&minus;&minus;graph &minus;&minus;oneline
+&minus;&minus;decorate &minus;&minus;boundary
+origin/master...topic <br>
+* 7654321 (origin/master) upstream tip commit <br>
+[... snip some other commits ...] <br>
+* cccc111 cherry&minus;pick of C <br>
+* aaaa111 cherry&minus;pick of A <br>
+[... snip a lot more that has happened ...] <br>
+| * cccc000 (topic) commit C <br>
+| * bbbb000 commit B <br>
+| * aaaa000 commit A <br>
+|/ <br>
+o 1234567 branch point</p>
+
+<p style="margin-left:11%; margin-top: 1em">In such cases,
+git&minus;cherry shows a concise summary of what has yet to
+be applied:</p>
+
+<p style="margin-left:17%; margin-top: 1em">$ git cherry
+origin/master topic <br>
+&minus; cccc000... commit C <br>
++ bbbb000... commit B <br>
+&minus; aaaa000... commit A</p>
+
+<p style="margin-left:11%; margin-top: 1em">Here, we see
+that the commits A and C (marked with &minus;) can be
+dropped from your topic branch when you rebase it on top of
+origin/master, while the commit B (marked with +) still
+needs to be kept so that it will be sent to be applied to
+origin/master.</p>
+
+<p style="margin-left:11%; margin-top: 1em"><b>Using a
+limit</b> <br>
+The optional &lt;limit&gt; is useful in cases where your
+topic is based on other work that is not in upstream.
+Expanding on the previous example, this might look like:</p>
+
+<p style="margin-left:17%; margin-top: 1em">$ git log
+&minus;&minus;graph &minus;&minus;oneline
+&minus;&minus;decorate &minus;&minus;boundary
+origin/master...topic <br>
+* 7654321 (origin/master) upstream tip commit <br>
+[... snip some other commits ...] <br>
+* cccc111 cherry&minus;pick of C <br>
+* aaaa111 cherry&minus;pick of A <br>
+[... snip a lot more that has happened ...] <br>
+| * cccc000 (topic) commit C <br>
+| * bbbb000 commit B <br>
+| * aaaa000 commit A <br>
+| * 0000fff (base) unpublished stuff F <br>
+[... snip ...] <br>
+| * 0000aaa unpublished stuff A <br>
+|/ <br>
+o 1234567 merge&minus;base between upstream and topic</p>
+
+<p style="margin-left:11%; margin-top: 1em">By specifying
+base as the limit, you can avoid listing commits between
+base and topic:</p>
+
+<p style="margin-left:17%; margin-top: 1em">$ git cherry
+origin/master topic base <br>
+&minus; cccc000... commit C <br>
++ bbbb000... commit B <br>
+&minus; aaaa000... commit A</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>git-patch-id</b>(1)</p>
+
+<h2>GIT
+<a name="GIT"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Part of the
+<b>git</b>(1) suite</p>
+<hr>
+</body>
+</html>

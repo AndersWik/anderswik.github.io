@@ -221,6 +221,20 @@ footer {
 	}
 }
 
+.manualpage {
+	padding: 10px 0px;
+	table {
+		td, th {
+		    border: 1px solid #dddddd;
+				p {
+					padding: 5px;
+				}
+		}
+		tr:nth-child(even) {
+		    background-color: #dddddd;
+		}
+	}
+}
 /*
 .head-image{
     background-image: url("../images/bg-top.jpg");
