@@ -14,9 +14,11 @@
           <ul class="nav navbar-nav">
             {% for page in site.pages %}
               {% if page.title %}
-              <li>
-                <a href="{{ page.url | prepend: site.baseurl }}">{{ page.title }}</a>
-              </li>
+                {% unless page.nonav %}
+                <li>
+                  <a href="{{ page.url | prepend: site.baseurl }}">{{ page.title }}</a>
+                </li>
+                {% endunless %}
               {% endif %}
             {% endfor %}
           </ul>

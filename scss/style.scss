@@ -235,6 +235,13 @@ footer {
 		}
 	}
 }
+
+.manualpage-section {
+	p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+	pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+	table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+	h1      { text-align: center }
+}
 /*
 .head-image{
     background-image: url("../images/bg-top.jpg");
