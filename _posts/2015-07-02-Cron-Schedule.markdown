@@ -1,8 +1,8 @@
 ---
 layout: post
-title:  Cheat sheet for Crontab
+title:  OSX/Linux Ubuntu/Mint Cron
 date:   2015-07-02 22:30:00
-updated:   2015-07-03 22:30:00
+updated:   2015-07-18 22:30:00
 categories: Crontab
 ---
 
@@ -28,6 +28,12 @@ all hours, etc..
 
  We execute the script in intervals. If one is Monday and five is Friday we can
  execute the script on weekdays using `1-5`. The full comman would be `* * * * 1-5 /home/user/somefile.sh`
+
+If you want to temporarily stop the cron use `#` to comment the line out.
+
+ {% highlight bash %}
+ #5 0 * * * some/path/to/file.php
+ {% endhighlight %}
 
 For the last position english abbreviation can be used instead of numbers.
 
