@@ -1,37 +1,166 @@
 ---
 layout: post
-title:  Linux Ubuntu/Mint Quick Start
+title:  OSX/Linux Ubuntu/Mint Basic Commands
 date:   2015-02-25 22:30:00
-updated:   2016-03-12 22:30:00
-categories: Linux
+updated:   2016-07-18 22:30:00
+categories: Linux OSX
 ---
-Some Quick tips on terminal commands that are useful.
 
-User
+
+Basic Commands
 -------------
 
-* To list all users `cut -d: -f1 /etc/passwd`.
+### echo
 
-* To add a new user type `sudo useradd your_username`.
+[$Manualpage: echo][echo]
 
-* To change user name type `usermod -l your_new_username your_old_username`.
+{% highlight bash %}
+$echo {1,2,3,4,5}
+1 2 3 4 5
+{% endhighlight %}
 
-* To change password of a user type `sudo passwd your_username`.
+{% highlight bash %}
+$echo {1..5}
+1 2 3 4 5
+{% endhighlight %}
 
-* To delete a user type `sudo userdel your_username`.
+{% highlight bash %}
+$echo {A..Z}
+A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+{% endhighlight %}
 
-* To delete the home directory of a deleted user type `sudo rm -r /home/your_username`.
+{% highlight bash %}
+$echo {A..Z}
+Z Y X W V U T S R Q P O N M L K J I H G F E D C B A
+{% endhighlight %}
 
+### pwd (Print Writen Directory)
 
+[$Manualpage: echo][pwd]
 
+### cd (Change Directory)
 
-Manual page
+[$Manualpage: cp][cp]
+
+absolute path
+relative path
+cd..
+
+### ls (List)
+
+[$Manualpage: ls][ls]
+
+What type of file
 -------------
 
-To get information about any command type `man` and the command in the terminal. Example type `man man` in the terminal. To exit type `q` next to the `:`.
+### file
 
-Search in file with grep
+[$Manualpage: file][file]
+
+
+Creating a file
 -------------
+
+### touch
+
+[$Manualpage: touch][touch]
+
+
+Reading and Manipulating a file
+-------------
+
+### less (Less opposite of more)
+
+[$Manualpage: less][less]
+
+### nano
+
+[$Manualpage: nano][nano]
+
+### vim
+
+[$Manualpage: vim][vim]
+
+### gedit
+
+[$Manualpage: gedit][gedit]
+
+### cat (Concatenate)
+
+[$Manualpage: cat][cat]
+
+{% highlight bash %}
+$cat file.txt > otherfile.txt
+{% endhighlight %}
+
+{% highlight bash %}
+$cat file.txt >> otherfile.txt
+{% endhighlight %}
+
+{% highlight bash %}
+$cat < file.txt
+{% endhighlight %}
+
+{% highlight bash %}
+$cat file.txt | wc
+{% endhighlight %}
+
+### cp (Copy)
+
+[$Manualpage: cp][cp]
+
+### mv (Move)
+
+[$Manualpage: mv][mv]
+
+### rm (Remove)
+
+[$Manualpage: rm][rm]
+
+### mkdir (Make directory)
+
+[$Manualpage: mkdir][mkdir]
+
+### head
+
+[$Manualpage: head][head]
+
+### tail
+
+[$Manualpage: tail][tail]
+
+To get the last lines of a file we can use `tail`.
+
+{% highlight bash %}
+$tail file.txt
+{% endhighlight %}
+
+The above command will get the last 10 rows of the file.
+
+{% highlight bash %}
+$tail -n 1000 file.txt
+{% endhighlight %}
+
+With the option `-n` we can define how many rows we want to get.
+
+{% highlight bash %}
+$tail -f file.txt
+{% endhighlight %}
+
+With the option `-f` we print all new rows that are added to the file. This
+is useful when you monitor a exception file in real time.
+
+
+Searching
+-------------
+
+### find
+
+[$Manualpage: find][find]
+
+### grep
+
+[$Manualpage: grep][grep]
 
 With grep we can search in any given file for a string. Navigate to the file with the terminal. Type `grep "text" file-name` too search in the file.
 
@@ -51,160 +180,266 @@ To search in a directory type the `-R` and the folder name instead of the filena
 grep -R "text" folder-name
 {% endhighlight %}
 
-To highlight the search result add `--color` after `grep`.
-
-{% highlight bash %}
-grep --color "text" file-name
-{% endhighlight %}
-
 For a folder that would be,
 
 {% highlight bash %}
 grep -R --color "text" folder-name
 {% endhighlight %}
 
+To highlight the search result add `--color` after `grep`.
 
-Tail
+{% highlight bash %}
+grep --color "text" file-name
+{% endhighlight %}
+
+To include lines `after` use `-A`.
+
+{% highlight bash %}
+grep --color -A 3 "text" file-name
+{% endhighlight %}
+
+To include lines `before` use `-B`.
+
+{% highlight bash %}
+grep --color -B 3 "text" file-name
+{% endhighlight %}
+
+To include lines `before` and `after` use `-A` and `-B`.
+
+{% highlight bash %}
+grep --color -A 3 -B 3 "text" file-name
+{% endhighlight %}
+
+Or use `-C` to include lines `before` and `after`.
+
+{% highlight bash %}
+grep --color -C 3 "text" file-name
+{% endhighlight %}
+
+
+Locating Commands
 -------------
 
-To get the last lines of a file we can use `tail`.
+### type
 
-{% highlight bash %}
-tail file.txt
-{% endhighlight %}
+### which
 
-The above command will get the last 10 rows of the file.
+[$Manualpage: which][which]
 
-{% highlight bash %}
-tail -n 1000 file.txt
-{% endhighlight %}
+### help
 
-With the option `-n` we can define how many rows we want to get.
+### man (Manual page)
 
-{% highlight bash %}
-tail -f file.txt
-{% endhighlight %}
+[$Manualpage: man][man]
 
-With the option `-f` we print all new rows that are added to the file. This
-is useful when you monitor a exception file in real time.
+To get information about any command type `man` and the command in the terminal. Example type `man man` in the terminal. To exit type `q` next to the `:`.
 
-Add/Remove Cron
+### whatis
+
+[$Manualpage: whatis][whatis]
+
+### whereis
+
+[$Manualpage: whereis][whereis]
+
+Compression
 -------------
 
-Type `crontab -e` in the terminal. In the file add the frequency and path to the file you want to run.
+###zip
 
-{% highlight bash %}
-5 0 * * * some/path/to/file.php
-{% endhighlight %}
+[$Manualpage: zip][zip]
 
-If you want to temporarily stop the cron use `#` to comment the line out.
+### cat
+
+[$Manualpage: zcat][zcat]
+
+### zdiff
+
+[$Manualpage: zdiff][zdiff]
+
+### zgrep
+
+[$Manualpage: zgrep][zgrep]
+
+### zless
+
+[$Manualpage: zless][zless]
 
 
-Execute .sh file
+
+I/O redirection
 -------------
 
-You have a file (file.sh). In the terminal navigate to the folder where the file is located.
-
-* Type `chmod +x file.sh` to make it executable.
-* Then type `sh ./file.sh` to execute it.
-
-
 {% highlight bash %}
-chmod +x file.sh
-sh ./file.sh
+$cat file.txt > otherfile.txt
 {% endhighlight %}
 
+{% highlight bash %}
+$cat file.txt >> otherfile.txt
+{% endhighlight %}
 
-Close Frozen Window
+{% highlight bash %}
+$cat < file.txt
+{% endhighlight %}
+
+{% highlight bash %}
+$cat file.txt | wc
+{% endhighlight %}
+
+Pipes
 -------------
 
-Use the xkill command to close a frozen window. Type `xkill` in the teminal and use the mouse to click on any window. Success it is now closed.
-
-{% highlight bash %}
-xkill
-{% endhighlight %}
 
 
-DNS-lookup
--------------
-To get an ip with a domain-name use the `host` command.
-
-{% highlight bash %}
-host example.com
-{% endhighlight %}
-
-
-WHOIS
+Filters
 -------------
 
-Use the `whois` command to get information about a domain.
+### sort
 
-{% highlight bash %}
-whois example.com
-{% endhighlight %}
+[$Manualpage: sort][sort]
+
+### uniq
+
+[$Manualpage: uniq][uniq]
+
+### fmt
+
+[$Manualpage: fmt][fmt]
+
+### pr
+
+[$Manualpage: pr][pr]
+
+### tr
+
+[$Manualpage: tr][tr]
+
+### sed
+
+[$Manualpage: sed][sed]
+
+### awk
+
+[$Manualpage: awk][awk]
 
 
-Domain information groper (dns-lookup utility)
+Jobs
 -------------
 
-Use the `dig` command to get information about a domain.
+### ps
 
-{% highlight bash %}
-dig example.com
-{% endhighlight %}
+[$Manualpage: ps][ps]
+
+### kill
+
+[$Manualpage: kill][kill]
+
+### jobs
+
+### bg
+
+### fg
 
 
-Edit you host-file
+Date and Time
 -------------
 
-This is not a single command but it is still useful.
-To redirect a domain locally you can add a row in your `hosts` file. Open the file,
+### cal
+
+[$Manualpage: cal][cal]
 
 {% highlight bash %}
-sudo nano /ect/hosts
-{% endhighlight %}
+$cal
 
-and add a new row.
+     Juni 2016
+Sö Må Ti On To Fr Lö
+          1  2  3  4
+ 5  6  7  8  9 10 11
+12 13 14 15 16 17 18
+19 20 21 22 23 24 25
+26 27 28 29 30
+{% endhighlight %}
 
 {% highlight bash %}
-0.0.0.0         facebook.com
+$cal -m apr
+
+     Juni 2016
+Sö Må Ti On To Fr Lö
+          1  2  3  4
+ 5  6  7  8  9 10 11
+12 13 14 15 16 17 18
+19 20 21 22 23 24 25
+26 27 28 29 30
 {% endhighlight %}
 
-Depending on the your browser you should now be loopedbacked when trying to access facebook.com.
+jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec
 
 
-Last ssh login attempts
--------------
-
-All failed login attempts
 {% highlight bash %}
-cat /var/log/auth.log | grep 'sshd.*Invalid'
+$ncal
+
+Må     6 13 20 27
+Ti     7 14 21 28
+On  1  8 15 22 29
+To  2  9 16 23 30
+Fr  3 10 17 24
+Lö  4 11 18 25
+Sö  5 12 19 26
 {% endhighlight %}
 
-All successful logins
-{% highlight bash %}
-cat /var/log/auth.log | grep 'sshd.*opened'
-{% endhighlight %}
+### ncal
+
+[$Manualpage: ncal][ncal]
+
+### date
+
+[$Manualpage: date][date]
+
+### time
+
+[$Manualpage: time][time]
 
 
 
 
 
-<!--
-stop/start mysql
-/etc/init.d/mysqld start
-/etc/init.d/mysqld stop
-/etc/init.d/mysqld restart
-
-stop/start mysql
-service mysqld start
-service mysqld stop
-service mysqld restart
--->
-
-
-
-
-
-[geek]:http://www.howtogeek.com/howto/27350/beginner-geek-how-to-edit-your-hosts-file/
-[stack]:http://askubuntu.com/questions/634370/why-does-apt-get-not-require-restarts-where-the-update-manager-does
+[awk]:http://www.anderswik.se/man/awk.html
+[cal]:http://www.anderswik.se/man/cal.html
+[cat]:http://www.anderswik.se/man/cat.html
+[cp]:http://www.anderswik.se/man/cp.html
+[date]:http://www.anderswik.se/man/date.html
+[echo]:http://www.anderswik.se/man/echo.html
+[find]:http://www.anderswik.se/man/find.html
+[file]:http://www.anderswik.se/man/file.html
+[fmt]:http://www.anderswik.se/man/fmt.html
+[gedit]:http://www.anderswik.se/man/gedit.html
+[head]:http://www.anderswik.se/man/head.html
+[grep]:http://www.anderswik.se/man/grep.html
+[kill]:http://www.anderswik.se/man/kill.html
+[less]:http://www.anderswik.se/man/less.html
+[ls]:http://www.anderswik.se/man/ls.html
+[man]:http://www.anderswik.se/man/man.html
+[mkdir]:http://www.anderswik.se/man/mkdir.html
+[mv]:http://www.anderswik.se/man/mv.html
+[ncal]:http://www.anderswik.se/man/ncal.html
+[nano]:http://www.anderswik.se/man/nano.html
+[pr]:http://www.anderswik.se/man/pr.html
+[ps]:http://www.anderswik.se/man/ps.html
+[pwd]:http://www.anderswik.se/man/pwd.html
+[rm]:http://www.anderswik.se/man/rm.html
+[sed]:http://www.anderswik.se/man/sed.html
+[sort]:http://www.anderswik.se/man/sort.html
+[tail]:http://www.anderswik.se/man/tail.html
+[time]:http://www.anderswik.se/man/time.html
+[touch]:http://www.anderswik.se/man/touch.html
+[tr]:http://www.anderswik.se/man/tr.html
+[uniq]:http://www.anderswik.se/man/uniq.html
+[vim]:http://www.anderswik.se/man/vim.html
+[whatis]:http://www.anderswik.se/man/whatis.html
+[whereis]:http://www.anderswik.se/man/whereis.html
+[which]:http://www.anderswik.se/man/which.html
+[zcat]:http://www.anderswik.se/man/zcat.html
+[zdiff]:http://www.anderswik.se/man/zdiff.html
+[zgrep]:http://www.anderswik.se/man/zgrep.html
+[zip]:http://www.anderswik.se/man/zip.html
+[zless]:http://www.anderswik.se/man/zless.html
