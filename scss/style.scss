@@ -38,6 +38,47 @@ h2 {
 	font-family: 'Open Sans Condensed', sans-serif;
 }
 
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+th,td {
+  padding: 6px 15px;
+}
+th {
+    background-color: #e8e8e8;
+    border-top: 1px solid #d5d5d5;
+    border-bottom: 1px solid #d5d5d5;
+    color: #0087cc;
+    text-align: left;
+    text-shadow: 1px 1px #f4f4f4;
+}
+td {
+  border-right: 1px solid #c6c9cc;
+  border-bottom: 1px solid #c6c9cc;
+}
+td:first-child {
+  border-left: 1px solid #c6c9cc;
+}
+tr:nth-child(even) td {
+  background: #eaeaed;
+}
+tr:first-child th:first-child {
+  border-top-left-radius: 3px;
+  border-left: 1px solid #d5d5d5;
+}
+tr:first-child th:last-child {
+  border-top-right-radius: 3px;
+  border-right: 1px solid #d5d5d5;
+}
+tr:last-child td:first-child {
+  border-bottom-left-radius: 3px;
+}
+tr:last-child td:last-child {
+  border-bottom-right-radius: 3px;
+}
+
 //</editor-fold>
 
 ///////////////////////////////////////////////////
@@ -221,19 +262,12 @@ footer {
 	}
 }
 
-.manualpage {
+.manualpage, .ascii {
 	padding: 10px 0px;
-	table {
-		width:100%;
-		td, th {
-		    border: 1px solid #dddddd;
-				p {
-					padding: 5px;
-				}
-		}
-		tr:nth-child(even) {
-		    background-color: #dddddd;
-		}
+}
+.ascii {
+	div {
+		padding: 10px 0px;
 	}
 }
 
