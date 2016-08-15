@@ -7,6 +7,11 @@ categories: Magento
 
 If you want to copy all blocks from one storeview to another storeview. This can be done by manually copy the blocks in the Magento admin or we can do it with mysql.
 
+<div class="alert alert-danger" role="alert">
+  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  Try on a development site first!
+</div>
+
 If we only have one storeview it is simple. All the cms blocks are stored in the table `cms_block` and have the following columns.
 
 * block_id
@@ -34,7 +39,7 @@ LEFT JOIN `cms_block_store` ON `cms_block`.`block_id`=`cms_block_store`.`block_i
 WHERE `cms_block_store`.`store_id` = 1;
 {% endhighlight %}
 
-Export the table without the `block_id` column. If you are using phpmyadmin make sure you do not add `DROP TABLE` if exist. Look what the last `block_id` is in the current table the new row id's will start from there. If the last row had the `page_id` 20 the page id you start on is 21. Now import the file you exported.
+Export the table without the `block_id` column. If you are using phpmyadmin make sure you do not add `DROP TABLE` if exist. Look what the last `block_id` is in the current table the new row id's will start from there. If the last row had the `block_id` 20 the page id you start on is 21. Now import the file you exported.
 
 You need to add a new row in the `cms_block_store` table. One new row for each block created. You need to go to the Magento admin and look up the storeview id. Then look in the `cms_block` table again and find the new last `block_id`. Then make a query with all the new block id's and the storeview id.
 
@@ -45,7 +50,7 @@ INSERT INTO `cms_block_store` (`block_id`, `store_id`) VALUES
 (35,2),(36,2),(37,2),(38,2),(39,2),(40,2);
 {% endhighlight %}
 
-if you want to copy the blocks to yet another storeview import the file again and make another query with the next storeview id and new block id's.
+If you want to copy the blocks to yet another storeview import the file again and make another query with the next storeview id and new block id's.
 
 {% highlight sql %}
 INSERT INTO `cms_block_store` (`block_id`, `store_id`) VALUES
