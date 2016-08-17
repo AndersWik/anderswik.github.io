@@ -103,10 +103,15 @@ We can also target a specific store. The syntax is `STORE_` followed by
 the store code. If we have one storeview with the store code `en` and one with the store code `sv` the syntax would be,
 
 {% highlight xml %}
-<STORE_en>
-</STORE_en>
-<STORE_sv>
-</STORE_sv>
+<?xml version="1.0"?>
+<layout version="0.1.0">
+  <STORE_en>
+    <remove name="head" />
+  </STORE_en>
+  <STORE_sv>
+    <remove name="head" />
+  </STORE_sv>
+</layout>
 {% endhighlight %}
 
 ### References
@@ -409,6 +414,32 @@ This will also get the ”mystyle.css” file from the my ”css” directory in
   <type>skin_css</type>
   <name>css/ajaxbuy.css</name>
 </action>
+{% endhighlight %}
+
+
+We can also add a css class to the html body.
+
+{% highlight html %}
+<reference name="root">
+  <action method="addBodyClass">
+    <classname>this-is-a-class</classname>
+  </action>
+</reference>
+{% endhighlight %}
+
+This would add a css class to the body of all bundled products.
+
+{% highlight html %}
+<?xml version="1.0"?>
+<layout>
+    <PRODUCT_TYPE_bundle>
+        <reference name="root">
+            <action method="addBodyClass">
+                <classname>product-bundle</classname>
+            </action>
+        </reference>
+    </PRODUCT_TYPE_bundle>
+</layout>
 {% endhighlight %}
 
 
