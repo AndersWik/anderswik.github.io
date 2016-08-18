@@ -6,7 +6,7 @@ updated:   2016-04-21 22:30:00
 categories: Magento
 ---
 
-Uncompleted notes about `layout.xml`. We can add layout changes in three different ways. Admin, module and theme.
+Uncompleted notes about `layout xml`. We can add layout changes in three different ways. Admin, module and theme.
 
 Layout XML with modules
 -------------
@@ -33,7 +33,7 @@ If we want to add layout changes with a module we need to add this in the module
 </config>
 {% endhighlight %}
 
-In the file tag we define the name of the xml file we are going to make the layout changes in. The path to our file will be `app > design > frontend > base > default > layout > module.xml`
+In the file tag we define the name of the xml file were we are going to make the layout changes. The path to our file will be `app > design > frontend > base > default > layout > module.xml`
 
 We always add our modules layout xml file to the `base > default` theme.
 This because `base > default` is the last theme in the fallback hierarchy.
@@ -42,13 +42,13 @@ This makes sure that Magento can see the file whatever theme the store might be 
 Layout XML with Local.xml
 -------------
 
-If we want to add layout changes to a theme but not make a module we can also use the `local.xml` file. You can add a `local.xml` file to any theme in Magento (`app > design > frontend > [Pakage] > [Theme] > layout > local.xml`). Magento reads the XML layout files in a specific order. The a `local.xml` file will always be added last. This allows you to overwrite all other layout xml updates in a single file.
+If we want to add layout changes to a theme but not make a module we can also use the `local.xml` file. You can add a `local.xml` file to any theme in Magento (`app > design > frontend > [Pakage] > [Theme] > layout > local.xml`). Magento reads the XML layout files in a specific order. The `local.xml` file will always be added last. This allows you to overwrite all other layout xml updates in a single file.
 
 
 How to use Layout XML
 -------------
 
-If we want to make changes to a theme we need to use handles. A handle defines what pages the changes will be made to. The `<default>` handle are used for making changes on (almost) all pages. To remove the `head` block from all pages we can type.
+If we want to make changes to a theme we need to use layout handles. A handle defines what pages the changes will be made to. The `<default>` handle are used for making changes on (almost) all pages. To remove the `head` block from all pages we can type.
 
 {% highlight html %}
 <?xml version="1.0"?>
@@ -58,7 +58,6 @@ If we want to make changes to a theme we need to use handles. A handle defines w
   </default>
 </layout>
 {% endhighlight %}
-
 
 If we want to make changes to a specific page we need that pages handle.
 A handle are `[module_front_name]_[controller_name]_[action_name]`. An example is the index page. If we want to find out the handle for the CMS index page we go to `app > code > core > Mage > CMS > etc > config.xml`. Here we find the front name of the module.
@@ -88,7 +87,18 @@ We were looking for the CMS index page and this is the IndexController and the I
 </layout>
 {% endhighlight %}
 
-Some additional good to know handles. We can target product types.
+Some additional good to know handles. We can target product types. The following will remove the footer block from all bundled products.
+
+{% highlight html %}
+<?xml version="1.0"?>
+<layout>
+  <PRODUCT_TYPE_bundle translate="label" module="bundle">
+    <remove name="footer" />
+  </PRODUCT_TYPE_bundle>
+</layout>
+{% endhighlight %}
+
+You can use the following different types of handles for products.
 
 {% highlight xml %}
 <PRODUCT_TYPE_simple>
@@ -114,13 +124,28 @@ the store code. If we have one storeview with the store code `en` and one with t
 </layout>
 {% endhighlight %}
 
+We can even use a handle to determine if a user are logged in or not.
+The first handle will remove the footer block for logged in customers.  The second handle will remove the header block for logged out customers.
+
+{% highlight xml %}
+<?xml version="1.0"?>
+<layout version="0.1.0">
+  <customer_logged_in>
+    <remove name="footer" />
+  </customer_logged_in>
+  <customer_logged_out>
+    <remove name="head" />
+  <customer_logged_out>
+</layout>
+{% endhighlight %}
+
 ### References
 
 In layout xml we can nest a reference tag in the handle. This will allow us to target a specific part of the page. The reference are really only the name that were set on creation of the block. We will come back this later.
 
 ### XML Block
 
-Sometimes not often though we might need to add stuff. This is were `blocks` will help you. The `block` is a php class. The block will contain functions that can be called from the template. We decide what functions will be available in the template when we define what `block` it uses. We define this by setting a type to the block.
+Sometimes we might need to add stuff. This is were `blocks` will help you. The `block` is a php class. The block will contain functions that can be called from the template. We decide what functions will be available in the template when we define what `block` it uses. We define this by setting a `type` to the block.
 
 In a layout xml file we can create a new `block` using the `<block>` tag. We would place the block within reference tags.
 
@@ -148,7 +173,7 @@ In a layout xml file we can create a new `block` using the `<block>` tag. We wou
 </cms_index_index>
 {% endhighlight %}
 
-This will add a block to the right sidebar of your page. Just a heads up, this will not work so good if you use a one column layout for the index page. This works for the right sidebar because it is of the block type `core/text_list` this will not work for other types of blocks like `core/template`. This might be something to consider when your `block` dosen't show when you are so sure it should. We will get into why soon.
+This will add a block to the right sidebar of your page. Just a heads up, this will not work so good if you use a one column layout for the index page. This works for the right sidebar because it is of the block type `core/text_list` this will not work for other types of blocks like `core/template`. This might be something to consider when your `block` dosen't show when you are so sure it should.
 
 There are lots of built in blocks in Magento. There are a few examples below and you can also create your own blocks in modules.
 
@@ -169,7 +194,7 @@ page/template_links
 
 ### Core Text List
 
-In Magento we think of blocks to content blocks or structural blocks. The `core/text_list` block are a structural block. It is a placeholder for other `blocks` that have content in them. The `core/text_list` will print all blocks added to it automatically. If we add blocks to other blocks that are not of the type `core/text_list` we need to print them out in the template.
+In Magento blocks are content blocks or structural blocks. The `core/text_list` block are a structural block. It is a placeholder for other `blocks` that have content in them. The `core/text_list` will print all blocks added to it automatically. If we add blocks to other blocks that are not of the type `core/text_list` we need to print them out in the template.
 
 Since the `core/text_list` print all blocks automatically and we do not position the child blocks in a template file we need another way too position the blocks. There are two attributes for this, `before` and `after`.
 
@@ -192,8 +217,9 @@ after:
 
 ### Core Template
 
-Printing a Template in `core/text_list` block. Since a `core/text_list` block prints all children automatically we only need to add the block with the template attached.
-In the block declaration we change the `type` to `core/template`. Then we add the `name` attribute. This is the reference we can use if we want to add child blocks or remove the block later. The `name` needs to be unique. The `as` attribute can be ommited in this case. This attribute is needed for printing the block in a template. The `as` attribute only needs to be unique in the template file it is added to. The last attribute `template` is the path to the template file. The path starts from the themes template folder.
+Since a `core/text_list` block prints all children automatically we only need to add the block with the template attached. This does not work for `core/template` blocks. In a `core/template` block we need to print the block in the template it were added to.
+
+In the block declaration we change the `type` to `core/template`. Then we add the `name` attribute. This is the reference we can use if we want to add child blocks or remove the block later. We can also use the `name` attribute to print the block in the template file. The `name` needs to be unique. The `as` attribute can be omitted in this case. The `as` attribute only needs to be unique in the template file it is added to. The last attribute `template` is the path to the template file. The path starts from the themes template folder.
 
 {% highlight html %}
 <?xml version="1.0"?>
@@ -206,7 +232,7 @@ In the block declaration we change the `type` to `core/template`. Then we add th
 </layout>
 {% endhighlight %}
 
-If we want to add a `core/template` block to another `core/template` block we need to nest the second block as child block to the block were we gonna print it. Notice in the first example we use a self closed block tag. In the second example we need to open and close the block with `<block></block>`.
+If we want to add a `core/template` block to another `core/template` block we need to nest the second block as child block to the block were we want to print it. Notice in the first example we use a self closed block tag. In the second example we need to open and close the block with `<block></block>`.
 
 {% highlight html %}
 <?xml version="1.0"?>
