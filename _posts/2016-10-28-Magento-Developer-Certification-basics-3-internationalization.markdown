@@ -278,6 +278,14 @@ Each module will translate their own `string`.
 
 #### Additional Readings
 
+* [Belvg: Internationalization][belvg.internationalization]
+* [Magecert.com: Basics][magecert.basics]
+
+
+[belvg.internationalization]:http://blog.belvg.com/magento-certified-developer-exam-internationalization.html
+[magecert.basics]:http://magecert.com/basics.html
+
+
 
 [php.array-unshift]:http://php.net/manual/en/function.array-unshift.php
 [php.array-shift]:http://php.net/manual/en/function.array-shift.php

@@ -89,10 +89,10 @@ A Magento module must have an `xml` file in the [app/etc/modules/][app/etc/modul
 </config>
 {% endhighlight %}
 
-The file would look something like the `xml` above. In this file we define the module `namespace` and name. We also define in what `codepool` the module will be placed.
+The file would look something like the `xml` above. In this file we define the module `namespace` and name. We also define what `codepool` the module belong to.
 We can also turn the module off by changing the `active` node to `false`. Depending on if the module is a `local` or `community` extension it will be placed in the `app/code/local` or `app/code/community` folder.
 
-In the `local/community` folder there will be a folder with the same name as the modules `namespace`. This is often the company name. In the `namespace` folder there will be a subdirectory with the modules (`app/code/{local/community}/{namespace}/{modulename}`) name. This is where the modules files are located. There are an exception, frontend related files (templates, layout files etc) will be located in the [app/design/][app/design/] folder.
+In the `local/community` folder there will be a folder with the same name as the modules `namespace`. This is often the company name. In the `namespace` folder there will be a subdirectory (`app/code/{local/community}/{namespace}/{modulename}`) with the modules name. This is where the modules files are located. There are an exception, frontend related files (templates, layout files etc) will be located in the [app/design/][app/design/] folder.
 
 * `Block`
 * `Controller`
@@ -135,14 +135,14 @@ If we have theme translations we would also have a `locale` folder. We would add
 
 The content in a `translate.csv` file should be one translation per row. First the phrase that should be translated surrounded with quotation marks. Then what it should be translated to. Also surrounded with quotation marks (`"Translation one","Översättning ett."`). We can also translate modules in a theme. This will take precedence over the translations in the module when the theme is used. To do this we add the module name space and name inside the quotation marks of the phrase that are going to be translated (`"Mage_Sales::About This Order:","About This Order:"`).
 
-A package can contain several different themes. An example is [app/design/frontend/default/][app/design/frontend/default/]. This package contains four themes.
+A package can contain several different themes. An example is [app/design/frontend/default/][app/design/frontend/default/]. This package contain four themes.
 
 * `blank`
 * `default`
 * `iphone`
 * `modern`
 
-The main theme is the `default` theme. All other themes will be child themes and fallback to `default` if a file is missing in the theme. We can also use the `theme.xml` file in the `etc` folder to specify a parent. The syntax is `{package}/{theme}`.
+The main theme is the `default` theme. All other themes will be child themes and fallback to `default`. We can also use the `theme.xml` file in the `etc` folder to specify a parent. The syntax is `{package}/{theme}`.
 
 {% highlight xml %}
 <?xml version="1.0"?>
@@ -158,7 +158,7 @@ Magento stores the `skin` files in a folder called [skin][skin] in the root fold
 A theme with the path `app/design/{custompackage}/{custometheme}/` will have the skin files in
 `skin/frontend/{custompackage}/{customtheme}/css` and `skin/frontend/{custompackage}/{customtheme}/js`.
 
-Magento can also store theme independent `js` in the [root/js][js] folder. This folder are used by modules and not themes.
+Magento can also store theme independent `js` in the [root/js][js] folder. This folder is used by modules and not themes.
 
 ### Identify and explain the main Magento design areas (adminhtml and frontend)
 
@@ -183,7 +183,7 @@ In [app/design/frontend/][app/design/frontend/] there are three packages that co
 * [default/modern/][app/design/frontend/default/modern/]
 * [rwd/default/][app/design/frontend/rwd/default/] [(MEE 1.14 and MCE 1.9)][devdocs.rwd]
 
-Each package have a `default` theme. This is the theme Magento first fallback to when the none `default` themes do not have the needed files. Magento will then fallback to the `base/default` theme. Unless other themes are set as fallback before. Infinit fallback where introduced in [MCE 1.9][alanstorm.magento_infinite_fallback]
+Each package have a `default` theme. Magento fallback to the `default` theme if needed files are not found in a none `default` theme. If the needed files are not found in `default` Magento will then fallback to the `base/default` theme. Unless other themes are set as fallback before. Infinit fallback where introduced in [MCE 1.9][alanstorm.magento_infinite_fallback]
 
 `app/design/frontend/{pakagename}/{themename}/`
 
@@ -282,7 +282,7 @@ The function [getModel()][Mage::getModel] calls [getModelInstance][Mage_Core_Mod
  }
 {% endhighlight %}
 
-And the function [getModelInstance][Mage_Core_Model_Config::getModelInstance] calls [getModelClassName()][Mage_Core_Model_Config::getModelClassName]. [getModelClassName][Mage_Core_Model_Config::getModelClassName] is also located in [Mage_Core_Model_Config][Mage_Core_Model_Config].
+The function [getModelInstance][Mage_Core_Model_Config::getModelInstance] calls [getModelClassName()][Mage_Core_Model_Config::getModelClassName]. [getModelClassName][Mage_Core_Model_Config::getModelClassName] is also located in [Mage_Core_Model_Config][Mage_Core_Model_Config].
 
 {% highlight php %}
 <?php

@@ -399,7 +399,7 @@ The `function` [Mage_Checkout_Model_Cart::addProduct][Mage_Checkout_Model_Cart::
 Mage::dispatchEvent('checkout_cart_product_add_after', array('quote_item' => $result, 'product' => $product));
 {% endhighlight %}
 
-We make a module to that listen for it. First we add a declaration file in `app/etc/modules`. The file name is `My_Module.xml`.
+We make a module that listen for it. First we add a declaration file in `app/etc/modules`. The file name is `My_Module.xml`.
 
 {% highlight xml %}
 <?xml version="1.0"?>
