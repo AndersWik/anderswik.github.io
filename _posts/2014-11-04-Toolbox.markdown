@@ -2,27 +2,43 @@
 layout: post
 title:  "Toolbox"
 date:   2014-11-04 22:30:00
-updated:   2016-04-21 22:30:00
+updated:   2017-01-27 22:30:00
 categories: Toolbox
 ---
-Good to have:
 
-* Open mailbox for testing, [Mailinator][mailinator].
-* Need some dummy text? [Slipsum][slipsum] will fix it.
-* Something with more flavor? [Baconipsum][baconipsum].
-* We all like colors, [color-hex][color-hex].
-* You need some icons, [flaticon][flaticon].
-* [Font awesome][font-awesome], yes it is.
-* [What the font][what-the-font]?
-* More fonts from [Google Fonts][google-fonts].
-* Some nice colors @ [Adobe][color.adobe]
-* And [HtAccess-301-Redirect-Generator][HtAccess-301-Redirect-Generator]
-* Some [social sharing][addthis]
-* We like [subtlepatterns][subtlepatterns]
+## Email testing
+* [Mailinator][mailinator]
+* [Mailtrap][mailtrap.io]
+
+## Icons
+* [Material.io][material.io]
+* [Flaticon][flaticon]
+
+## Fonts
+* [Font awesome][font-awesome]
+* [Google Fonts][google-fonts]
+* [What the font][what-the-font]
 * [Whats the closest font?][font]
-* [caniuse.com][caniuse]
+
+## Colors
+* [Adobe][color.adobe]
+* [Color-Hex][color-hex]
+
+## HtAccess Helper
+* [HtAccess-301-Redirect-Generator][HtAccess-301-Redirect-Generator]
+
+## CSS
+* [CanIUse.com][caniuse]
+
+## Backgrounds and Patterns
+* [Subtlepatterns][subtlepatterns]
 
 
+
+
+[mailtrap.io]:https://mailtrap.io/
+
+[material.io]:https://material.io/icons/
 
 [caniuse]:http://caniuse.com
 
