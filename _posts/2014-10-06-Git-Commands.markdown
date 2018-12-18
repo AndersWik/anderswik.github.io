@@ -2,7 +2,7 @@
 layout: post
 title:  "Git Commands"
 date:   2014-10-06 22:30:00
-updated:   2015-07-02 22:30:00
+updated:   2017-01-27 22:30:00
 categories: Miscellaneous
 ---
 
@@ -132,7 +132,13 @@ Restore to the last commit with `git stash` and then `git stash drop`.
 Clone a specific branch `git clone -b <branch> <remote_repo>`. Example: `git clone -b my-branch git@github.com:user/myproject.git` or `git clone user@git-server:<project>.git -b <branch> /some/folder`
 
 
+## Further readings
 
+[A successful Git branching model by Vincent Driessen][http://nvie.com/posts/a-successful-git-branching-model/]
+
+
+
+[http://nvie.com/posts/a-successful-git-branching-model/]:http://nvie.com/posts/a-successful-git-branching-model/
 
 [try]:https://try.github.io/levels/1/challenges/1
 [book]:https://git-scm.com/book/en/v2
