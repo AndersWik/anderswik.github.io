@@ -1,6 +1,0 @@
----
-layout: post
-title:  Add to Basepath in OSX
-date:   2016-02-03 22:30:00
-categories: OSX
----

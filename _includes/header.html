@@ -3,26 +3,8 @@
     <div class="navbar navbar-fixed-top navbar-inverse" role="navigation">
       <div class="container">
         <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
           <a id="navbar-brand-name" class="navbar-brand" href="{{ site.baseurl }}/">{{ site.title }}</a>
         </div>
-        <div class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            {% for page in site.pages %}
-              {% if page.title %}
-                {% unless page.nonav %}
-                <li>
-                  <a href="{{ page.url | prepend: site.baseurl }}">{{ page.title }}</a>
-                </li>
-                {% endunless %}
-              {% endif %}
-            {% endfor %}
-          </ul>
-        </div><!-- /.nav-collapse -->
       </div><!-- /.container -->
       <a class="magento-certification" href="https://www.magentocommerce.com/certification/directory/dev/1889072/" target="_blank">
         <img src="http://www.anderswik.se/assets/images/frontend_developer.png">

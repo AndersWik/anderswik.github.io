@@ -150,9 +150,6 @@ footer {
 	width: 100%;
 	padding: 15px 0px 15px 0px;
 
-	border-top: 1px solid #e5e5e5;
-	background-color: #f5f5f5;
-
 	font-size: 16px;
 	font-family : Cabin, sans-serif;
 	font-family: 'Homenaje', sans-serif;
@@ -204,9 +201,6 @@ footer {
 	.post {
 		border-bottom: 1px solid #636363;
 	}
-}
-.home, .projects, .about {
-	min-height: 400px;
 }
 .projects {
 
@@ -277,17 +271,89 @@ footer {
 	table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
 	h1      { text-align: center }
 }
-/*
-.head-image{
-    background-image: url("../images/bg-top.jpg");
-    background-position: bottom right;
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-size:cover;
-    width: 100%;
-    height: 250px;
-    margin-bottom: 10px;
-		font-family: 'Architects Daughter';
+//</editor-fold>
+
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- HOME --">
+///////////////////////////////////////////////////
+.home {
+	padding: 40px 0px 25px 0px;
+
+	.terminal {
+		margin: auto;
+		max-width: 500px;
+
+		.menu {
+			border-radius: 5px 5px 0 0;
+			background-color: #e2e2e2;
+			color: #525152;
+			min-height: 10px;
+
+			.title {
+				position: relative;
+				text-align: center;
+				width: 100%;
+				display: block;
+			
+			}
+			.close-btn, .hide-btn, .full-btn {
+				width: 10px;
+				height: 10px;
+				margin-left: 5px;
+				border-radius: 50%;
+				display: block;
+				float: left;
+				position: relative;
+				top: -18px;
+			}
+			.close-btn {
+				background: #fc615d;
+				border: 1px solid #e04a47;
+			}
+			.hide-btn {
+				background: #fdbc40;
+				border: 1px solid #e0af5b;
+			}
+			.full-btn {
+				background: #34c749;
+				border: 1px solid #29ab37;
+			}
+		}
+		.text {
+			border-radius: 0 0 5px 5px;
+			background-color: #181818;
+			color: #3bfc34;
+			padding: 0px 5px;
+
+			.terminal-row {
+				display: block;
+				width: 100%;
+				clear: both;
+			}
+			.usr {
+				.b {
+					animation: blink-animation 1s steps(5, start) infinite;
+					-webkit-animation: blink-animation 1s steps(5, start) infinite;
+				}
+				@keyframes blink-animation {
+					to {
+						visibility: hidden;
+					}
+				}
+				@-webkit-keyframes blink-animation {
+					to {
+						visibility: hidden;
+					}
+				}
+			}
+		}
+	}
 }
-*/
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- 404 --">
+///////////////////////////////////////////////////
+
 //</editor-fold>

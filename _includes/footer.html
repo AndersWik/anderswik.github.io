@@ -1,59 +1,41 @@
-<footer class="site-footer" style="background-color:#5b5b5b;">
-  <div class="wrapper">
-    <div class="container">
-    <!-- <h2 class="footer-heading" style="color:#fff;">{{ site.title }}</h2> -->
-      <div class="row">
-        <div class="col-sm-4 col-md-4">
-          <ul class="contact-list">
-            <!-- <li style="color:#fff;">{{ site.title }}</li> -->
-            <li>
-              <!--a href="{{ site.url }}" class="footer-style">{{ site.title }} &copy; 2016 </a-->
-            </li>
-          </ul>
-        </div>
-        <div class="col-sm-4 col-md-4">
-          <!--p class="text" style="color:#fff;" >{{ site.description }}</p-->
-          <p style="text-align:center;">
-            <a href="{{ site.url }}" class="footer-style">{{ site.title }} &copy; 2016 </a>
-          </p>
-        </div>
-        <div class="col-sm-4 col-md-4">
-          <ul class="social-media-list">
-            {% if site.github_username %}
-            <li>
-              <a href="https://github.com/{{ site.github_username }}">
-                <span class="icon  icon--github">
-                  <i class="fa fa-github fa-6" aria-hidden="true"></i>
-                </span>
-              </a>
-            </li>
-            {% endif %}
+<footer class="site-footer">
+  
+    <p style="text-align:center;">
+      <a href="{{ site.url }}" class="footer-style">{{ site.title }} &copy; 2019 </a>
+    </p>
 
-            {% if site.twitter_username %}
-            <li>
-              <a href="https://twitter.com/{{ site.twitter_username }}">
-                <span class="icon  icon--twitter">
-                  <i class="fa fa-twitter fa-6" aria-hidden="true"></i>
-                </span>
-              </a>
-            </li>
-            {% endif %}
+    <ul class="social-media-list">
+    {% if site.github_username %}
+    <li>
+      <a href="https://github.com/{{ site.github_username }}">
+        <span class="icon  icon--github">
+          <i class="fa fa-github fa-6" aria-hidden="true"></i>
+        </span>
+      </a>
+    </li>
+    {% endif %}
 
-            {% if site.linkedin_username %}
-            <li>
-              <a href="https://se.linkedin.com/in/{{ site.linkedin_username }}">
-                <span class="icon  icon--linkedin">
-                  <i class="fa fa-linkedin fa-6" aria-hidden="true"></i>
-                </span>
-              </a>
-            </li>
-            {% endif %}
+    {% if site.twitter_username %}
+    <li>
+      <a href="https://twitter.com/{{ site.twitter_username }}">
+        <span class="icon  icon--twitter">
+          <i class="fa fa-twitter fa-6" aria-hidden="true"></i>
+        </span>
+      </a>
+    </li>
+    {% endif %}
 
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+    {% if site.linkedin_username %}
+    <li>
+      <a href="https://se.linkedin.com/in/{{ site.linkedin_username }}">
+        <span class="icon  icon--linkedin">
+          <i class="fa fa-linkedin fa-6" aria-hidden="true"></i>
+        </span>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+  
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <!-- Include all compiled plugins (below), or include individual files as needed -->
