@@ -9,7 +9,7 @@ twitter_username: AndersWik_
 github_username:  AndersWik
 linkedin_username: anders-wik-80208aa2
 
-gems: [jekyll-paginate]
+plugins: []
 paginate: 10
 paginate_path: "page:num"
 
