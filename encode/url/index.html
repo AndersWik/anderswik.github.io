@@ -49,7 +49,7 @@ nonav: true
     document.getElementById("encodeBtn").addEventListener("click", function(){
         var text = document.getElementById("encodeText1").value;
         
-        var escapedText = escape(text);
+        var escapedText = encodeURI(text);
         document.getElementById("encodeText2").value = escapedText;
     
         document.getElementById("escapedCss").value = ".myImage:before {" +
