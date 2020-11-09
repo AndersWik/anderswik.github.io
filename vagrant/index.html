@@ -1,0 +1,83 @@
+---
+layout: default
+title: Vagrantfile Maker
+permalink: /vagrant/
+nonav: true
+---
+
+<div class="vagrant-maker">
+
+    <form>
+        <div class="form-group">
+            <label for="vagrantIp">Ip:</label>
+            <input type="text" class="form-control" id="vagrantIp" name="vagrantIp" aria-describedby="Vagrant ip" placeholder="Ip for Vagrant file">
+        </div>
+        <div class="form-group">
+            <label for="vagrantIp">Url:</label>
+            <input type="text" class="form-control" id="vagrantUrl" name="vagrantUrl" aria-describedby="Vagrant url" placeholder="Url for Vagrant file">
+        </div>
+        <div class="form-group">
+            <label for="vagrantFileSelect">Choose a Vagrantfile:</label>
+            <select class="form-control" name="vagrantFileSelect" id="vagrantFileSelect">
+                <option value="{{ site.url }}/assets/vagrantfile/elasticsearch/Vagrantfile">Elasticsearch</option>
+                <option value="{{ site.url }}/assets/vagrantfile/lamp/Vagrantfile">LAMP</option>
+                <option value="{{ site.url }}/assets/vagrantfile/lemp/Vagrantfile">LEMP</option>
+                <option value="{{ site.url }}/assets/vagrantfile/wordpress/Vagrantfile">Wordpress</option>
+            </select>
+        </div>
+    </form>
+
+    <textarea id="vagrantfile" name="vagrantfile" rows="25" cols="50" style="width:100%;">
+    
+    </textarea>
+
+    <input id="download" value='Download file' type='button' />
+
+    <a href="#" id="downloadContent" download="Vagrantfile" style="display:none;"></a>
+
+    <script>
+        const Http = new XMLHttpRequest();
+        
+        const vagrantFileSelect = document.getElementById("vagrantFileSelect");
+        const vagrantFile = document.getElementById("vagrantfile");
+        
+        const vagrantIp = document.getElementById("vagrantIp");
+        const vagrantUrl = document.getElementById("vagrantUrl");
+
+        const vagrantDownload = document.getElementById("download");
+        const vagrantDownloadContent = document.getElementById("downloadContent");
+        
+        vagrantFileSelect.addEventListener("change", function() {
+
+            if(vagrantIp.value !== "" && vagrantUrl.value !== "")
+            {
+                httpGet(vagrantFileSelect.value);
+            }
+            else
+            {
+                vagrantFile.value = "Please enter Vagrant Ip and Url.";
+            }
+        });
+
+        vagrantDownload.addEventListener("click", function() {
+            
+            vagrantDownloadContent.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(vagrantFile.value));
+            vagrantDownloadContent.click();
+        });
+
+        function httpGet(url) {
+
+            Http.open("Get", url);
+            Http.send();
+        }
+
+        Http.onreadystatechange = (e) => {
+
+            var content = Http.responseText;
+            content = content.replaceAll("vagrantip", vagrantIp.value);
+            content = content.replaceAll("vagranturl", vagrantUrl.value);
+            vagrantFile.value = content;
+        }
+    </script>
+
+</div>
