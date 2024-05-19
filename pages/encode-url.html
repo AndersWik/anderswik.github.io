@@ -1,0 +1,57 @@
+---
+layout: default
+title: Url encode
+permalink: /encode/url/
+nonav: true
+---
+
+<div class="encode-url container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Encode Url</h2>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12 col-md-6">
+      <p>Text to url encode</p>
+      <textarea id="decoded-text"></textarea>
+    </div>
+    <div class="col-sm-12 col-md-6">
+      <p>Url encoded text</p>
+      <textarea id="encoded-text"></textarea>
+    </div>
+    <div class="col-sm-12">
+      <p>CSS for SVG</p>
+      <textarea id="escaped-css">
+        .myImage:before {
+            background-image: url('data:image/svg+xml;charset=US-ASCII,');
+            background-repeat: no-repeat;
+        }
+      </textarea>
+    </div>
+    <div class="col-sm-12 col-md-6 mt-3">
+      <button class="btn btn-secondary" type="button" id="encode-btn">Encode</button>
+    </div>
+    <div class="col-sm-12 col-md-6 mt-3">
+      <button class="btn btn-secondary" type="button" id="decode-btn">Decode</button>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById("encode-btn").addEventListener("click", function(){
+var text = document.getElementById("decoded-text").value;
+var escapedText = encodeURI(text);
+document.getElementById("encoded-text").value = escapedText;
+
+document.getElementById("escaped-css").value = ".myImage:before {" +
+    "    background-image: url('data:image/svg+xml;charset=US-ASCII,"+escapedText+");" +
+    "    background-size: 100% 100%;"+
+    "    background-repeat: no-repeat;" +
+    "}";
+});
+
+document.getElementById("decode-btn").addEventListener("click", function(){
+    var text = document.getElementById("encoded-text").value;
+    document.getElementById("decoded-text").value = decodeURI(text);
+});
+</script>

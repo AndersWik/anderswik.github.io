@@ -1,0 +1,28 @@
+---
+layout: default
+title: MyIp
+permalink: /myip/
+---
+
+<div class="myip container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>My Ip</h2>
+      <p id="ip" class="bw">000.000.000.000</p>
+    </div>
+  </div>
+  <div class="row align-items-start">
+    <div class="col text-center">
+      <a href="https://github.com/rdegges/ipify-api">Using: ipify-api</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function getIP(json) {
+    let i = document.getElementById("ip");
+    i.innerHTML = json.ip;
+  }
+</script>
+
+<script src="https://api.ipify.org?format=jsonp&callback=getIP"></script>

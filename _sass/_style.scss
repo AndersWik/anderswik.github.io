@@ -14,113 +14,35 @@
 // END GROUP
 
 ///////////////////////////////////////////////////
-//<editor-fold desc="-- BASICS --">
+//<editor-fold desc="-- FONTS --">
 ///////////////////////////////////////////////////
 
-body{
-	background-image: url("../assets/images/concrete_seamless.png");
-	font-family : Arial, sans-serif;
-	width: 100%;
-	padding-top: 90px;
-	color: #636363;
-	font-size: 16px;
-}
-a {
-    color :#e8b455;
-		&:hover {
-			color :#e8b455;
-		  text-decoration: none;
-		}
-}
-h2 {
-	font-family : Cabin, sans-serif;
-	font-family: 'Homenaje', sans-serif;
-	font-family: 'Open Sans Condensed', sans-serif;
-}
-
-table {
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-}
-th,td {
-  padding: 6px 15px;
-}
-th {
-    background-color: #e8e8e8;
-    border-top: 1px solid #d5d5d5;
-    border-bottom: 1px solid #d5d5d5;
-    color: #0087cc;
-    text-align: left;
-    text-shadow: 1px 1px #f4f4f4;
-}
-td {
-  border-right: 1px solid #c6c9cc;
-  border-bottom: 1px solid #c6c9cc;
-}
-td:first-child {
-  border-left: 1px solid #c6c9cc;
-}
-tr:nth-child(even) td {
-  background: #eaeaed;
-}
-tr:first-child th:first-child {
-  border-top-left-radius: 3px;
-  border-left: 1px solid #d5d5d5;
-}
-tr:first-child th:last-child {
-  border-top-right-radius: 3px;
-  border-right: 1px solid #d5d5d5;
-}
-tr:last-child td:first-child {
-  border-bottom-left-radius: 3px;
-}
-tr:last-child td:last-child {
-  border-bottom-right-radius: 3px;
+@font-face {
+	font-family: 'ubuntu';
+	src: URL('/assets/fonts/Ubuntu/Ubuntu-Bold.ttf') format('truetype');
 }
 
 //</editor-fold>
 
 ///////////////////////////////////////////////////
-//<editor-fold desc="-- Bootstrap Elements --">
+//<editor-fold desc="-- BASICS --">
 ///////////////////////////////////////////////////
 
-.container {
-	max-width: 750px;
-}
-.navbar{
-    padding-top: 20px;
-    padding-bottom: 20px;
-}
-#navbar-brand-name {
-    font-family : Cabin, sans-serif;
-    font-family: 'Homenaje', sans-serif;
-    font-family: 'Open Sans Condensed', sans-serif;
-    color: #e8b455;
-    font-size: 30px;
+body {
+	background-color: #efefef;
 }
 
-.navbar-inverse {
-	background-color: rgba(0,0,0,.7);
-	border-color: #fff!important;
-	.nav.navbar-nav {
-		>li {
-			>a {
-				font-size: 16px;
-				&:hover {
-					color: #444;
-				}
-			}
-		}
-		li {
-			a {
-				color: #b9b9b9;
-				&:hover {
-					color: #E8B455;
-				}
-			}
-		}
+a {
+	color: #e8b455;
+	text-decoration: none;
+
+	&:hover {
+		color: #000;
 	}
+}
+
+.bw {
+	background-color: #fff;
 }
 
 //</editor-fold>
@@ -129,14 +51,10 @@ tr:last-child td:last-child {
 //<editor-fold desc="-- HEADER --">
 ///////////////////////////////////////////////////
 
-.magento-certification {
-    position: absolute;
-    top: 25px;
-    right: 66px;
-
-		img {
-		    width: 50px;
-		}
+header {
+	background-color: #808080;
+	font-family: ubuntu;
+	font-size: 45px;
 }
 
 //</editor-fold>
@@ -146,137 +64,30 @@ tr:last-child td:last-child {
 ///////////////////////////////////////////////////
 
 footer {
-	bottom: 0;
-	width: 100%;
-	padding: 15px 0px 15px 0px;
-
-	font-size: 16px;
-	font-family : Cabin, sans-serif;
-	font-family: 'Homenaje', sans-serif;
-	font-family: 'Open Sans Condensed', sans-serif;
-
+	background-color: #808080;
 	a {
-		color: #b9b9b9;
-		&hover{
+		color: #000;
+		text-decoration: none;
+		&:hover {
 			color: #e8b455;
 		}
 	}
-	ul {
-		padding: 0;
-	  margin: 0;
-		width:100%;
-		list-style-type: none;
-		li {
-			display: inline;
-		}
-	}
-	.social-media-list {
 
-		width:100%;
-		float: none;
-		text-align: center;
-		font-size: 42px;
-
-		.icon {
-			svg {
-				width:50px;
-			}
+	.social {
+		img {
+			width: 100%;
+			max-width: 60px;
 		}
 	}
 }
 
-
-
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- CONTENT --">
-///////////////////////////////////////////////////
-
-.post-meta {
-	color: #828282
-}
-.home {
-	.post {
-		border-bottom: 1px solid #636363;
-	}
-}
-.projects {
-
-}
-.projects {
-	div {
-		div {
-			padding-top: 10px;
-			padding-bottom: 10px;
-			img {
-				display: block;
-	    	margin: 0 auto;
-			}
-		}
-	}
-}
-
-.projects {
-	img {
-		width: 100%;
-	}
-	.projects-info {
-		background-color: rgba(0,0,0,0.7);
-		padding: 10px;
-
-		ul {
-			list-style: none;
-		  padding: 0;
-		  margin: 0;
-			li {
-				ul {
-					list-style: none;
-				  padding: 0;
-				  margin: 0;
-					li {
-						font-family: Arial, sans-serif;
-						font-size: 16px;
-						color: #b9b9b9;
-						a {
-							color: #b9b9b9;
-						}
-						&:first-child {
-							padding-top: 10px;
-							border-bottom:1px solid #e8b455;
-						}
-						span {
-							color: #e8b455;
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-.manualpage, .ascii {
-	padding: 10px 0px;
-}
-.ascii {
-	div {
-		padding: 10px 0px;
-	}
-}
-
-.manualpage-section {
-	p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
-	pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
-	table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
-	h1      { text-align: center }
-}
 //</editor-fold>
 
 
 ///////////////////////////////////////////////////
 //<editor-fold desc="-- HOME --">
 ///////////////////////////////////////////////////
+
 .home {
 	padding: 40px 0px 25px 0px;
 
@@ -289,15 +100,21 @@ footer {
 			background-color: #e2e2e2;
 			color: #525152;
 			min-height: 10px;
+			padding-top: 3px;
+			padding-bottom: 1px;
 
 			.title {
 				position: relative;
 				text-align: center;
 				width: 100%;
 				display: block;
-			
+				font-size: 16px;
+				margin-bottom: 0px;
 			}
-			.close-btn, .hide-btn, .full-btn {
+
+			.close-btn,
+			.hide-btn,
+			.full-btn {
 				width: 10px;
 				height: 10px;
 				margin-left: 5px;
@@ -307,19 +124,23 @@ footer {
 				position: relative;
 				top: -18px;
 			}
+
 			.close-btn {
 				background: #fc615d;
 				border: 1px solid #e04a47;
 			}
+
 			.hide-btn {
 				background: #fdbc40;
 				border: 1px solid #e0af5b;
 			}
+
 			.full-btn {
 				background: #34c749;
 				border: 1px solid #29ab37;
 			}
 		}
+
 		.text {
 			border-radius: 0 0 5px 5px;
 			background-color: #181818;
@@ -331,16 +152,19 @@ footer {
 				width: 100%;
 				clear: both;
 			}
+
 			.usr {
 				.b {
 					animation: blink-animation 1s steps(5, start) infinite;
 					-webkit-animation: blink-animation 1s steps(5, start) infinite;
 				}
+
 				@keyframes blink-animation {
 					to {
 						visibility: hidden;
 					}
 				}
+
 				@-webkit-keyframes blink-animation {
 					to {
 						visibility: hidden;
@@ -350,34 +174,153 @@ footer {
 		}
 	}
 }
+
 //</editor-fold>
 
 ///////////////////////////////////////////////////
-//<editor-fold desc="-- 404 --">
+//<editor-fold desc="-- Asciip--">
+///////////////////////////////////////////////////
+
+.ascii {
+	background-color: #fff;
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Decode Base64-">
+///////////////////////////////////////////////////
+
+.decode-base64 {
+	textarea {
+		width: 100%;
+		height: 150px;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Decode Url-">
+///////////////////////////////////////////////////
+
+.decode-url {
+	textarea {
+		width: 100%;
+		height: 150px;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Encode base64-">
+///////////////////////////////////////////////////
+
+.encode-base64 {
+	textarea {
+		width: 100%;
+		height: 150px;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Encode Url-">
+///////////////////////////////////////////////////
+
+.encode-url {
+	textarea {
+		width: 100%;
+		height: 150px;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- JumpCar--">
+///////////////////////////////////////////////////
+
+.jumpcar {
+	.bw {
+		padding: 15px;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- MyIp--">
 ///////////////////////////////////////////////////
 
 .myip {
-	.col-xs-12 {
-		h2 {
-			text-align: center;
-		}
-		p {
-			text-align: center;
-			font-size: 50px;
-			font-size: 9vw;
-		}
-		a {
-			text-align: center;
-			display: block;
-		}
+	#ip {
+		font-size: 4rem;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Projects --">
+///////////////////////////////////////////////////
+
+.projects {
+	img {
+		width: 100%;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Vagrant--">
+///////////////////////////////////////////////////
+
+.vagrant {
+	label {
+		background-color: #808080;
+  		width: 100%;
+		border-radius: 15px 50px 0px 0px;
+		color: #fff;
+	}
+	#vagrant-ip, #vagrant-url, #vagrant-file-select {
+		border-radius: 0px 0px 6px 6px;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Week--">
+///////////////////////////////////////////////////
+
+.week {
+	#number {
+		font-size: 10rem;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- 404--">
+///////////////////////////////////////////////////
+
+.notfound {
+	h2 {
+		font-size: 45px;
+	}
+	p {
+		color: #e8b455;
+		font-family: ubuntu;
+		font-size: 35px;
 	}
 }
 
 //</editor-fold>
 
 
-///////////////////////////////////////////////////
-//<editor-fold desc="-- 404 --">
-///////////////////////////////////////////////////
 
-//</editor-fold>
