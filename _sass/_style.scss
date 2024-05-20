@@ -188,6 +188,35 @@ footer {
 //</editor-fold>
 
 ///////////////////////////////////////////////////
+//<editor-fold desc="-- ColorHex--">
+///////////////////////////////////////////////////
+
+.colorhex {
+	.panel-container {
+		background-color:#fff;
+	}
+	#color-panel-rgb, #color-panel-rgba, #color-panel-hex, #color-panel-inverted {
+		height: 150px;
+		font-family: ubuntu;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		p {
+			text-align: center;
+		}
+	}
+	#color-panel-rgb, #color-panel-rgba, #color-panel-hex {
+		font-size: 20px;
+	}
+	#color-panel-inverted {
+		font-size: 45px;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
 //<editor-fold desc="-- Decode Base64-">
 ///////////////////////////////////////////////////
 

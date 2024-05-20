@@ -11,4 +11,157 @@ nonav: true
       <h2>Color Hex</h2>
     </div>
   </div>
+  <div class="row panel-container">
+    <div class="col-sm-12 col-md-4" id="color-panel-rgb">
+      <p id="color-panel-text-rgb"></p>
+    </div>
+    <div class="col-sm-12 col-md-4" id="color-panel-rgba">
+      <p id="color-panel-text-rgba"></p>
+    </div>
+    <div class="col-sm-12 col-md-4" id="color-panel-hex">
+      <p id="color-panel-text-hex"></p>
+    </div>
+    <div class="col-sm-12" id="color-panel-inverted">
+      <p id="color-panel-text-inverted"></p>
+    </div>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12">
+      <label for="alpha">Alpha:</label>
+      <input type="range" min="0" max="100" value="100" class="slider" name="alpha" id="alpha">
+    </div>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12 col-md-4">
+      <label for="red">Red:</label>
+      <input type="range" min="0" max="255" value="50" class="slider" name="red" id="red">
+    </div>
+    <div class="col-sm-12 col-md-4">
+      <label for="green">Green:</label>
+      <input type="range" min="0" max="255" value="50" class="slider" name="green" id="green">
+    </div>
+    <div class="col-sm-12 col-md-4">
+      <label for="blue">Blue:</label>
+      <input type="range" min="0" max="255" value="50" class="slider" name="blue" id="blue">
+    </div>
+  </div>
+  <div class="row ">
+    <div class="col-sm-12">
+      <label for="hex">Hex:</label>
+      <input type="text" name="hex" id="hex">
+    </div>
+  </div>
 </div>
+<script>
+
+const panelRgba = document.getElementById("color-panel-rgba");
+const panelTextRgba = document.getElementById("color-panel-text-rgba");
+const panelRgb = document.getElementById("color-panel-rgb");
+const panelTextRgb = document.getElementById("color-panel-text-rgb");
+const panelHex = document.getElementById("color-panel-hex");
+const panelTextHex = document.getElementById("color-panel-text-hex");
+const panelInverted = document.getElementById("color-panel-inverted");
+const panelTextInverted = document.getElementById("color-panel-text-inverted");
+
+//const rgb = document.getElementById("rgb");
+//const rgba = document.getElementById("rgba");
+const hex = document.getElementById("hex");
+const aplpa = document.getElementById("alpha");
+const red = document.getElementById("red");
+const green = document.getElementById("green");
+const blue = document.getElementById("blue");
+
+const rgbaColor = {}
+const rgbColor = {}
+const invertedColor = {}
+
+function rgbToHex(color) {
+
+  let redHex = color.red.toString(16);
+  let r = redHex.length == 1 ? "0" + redHex : redHex;
+  let greenHex = color.green.toString(16);
+  let g = greenHex.length == 1 ? "0" + greenHex : greenHex;
+  let blueHex = color.blue.toString(16);
+  let b = blueHex.length == 1 ? "0" + blueHex : blueHex;
+  return "#"+r+g+b;
+}
+
+function fillColorsFromRgba() {
+
+  rgbaColor.red = red.value;
+  rgbaColor.green = green.value;
+  rgbaColor.blue = blue.value;
+  rgbaColor.alpha = (alpha.value/100);
+
+  rgbColor.red = Math.round((1 - rgbaColor.alpha) * 255 + rgbaColor.alpha * rgbaColor.red);
+  rgbColor.green = Math.round((1 - rgbaColor.alpha) * 255 + rgbaColor.alpha * rgbaColor.green);
+  rgbColor.blue = Math.round((1 - rgbaColor.alpha) * 255 + rgbaColor.alpha * rgbaColor.blue);
+  rgbColor.hex = rgbToHex(rgbColor);
+
+  invertedColor.red = (255 - rgbColor.red).toString(16);
+  invertedColor.green = (255 - rgbColor.green).toString(16);
+  invertedColor.blue = (255 - rgbColor.blue).toString(16);
+  invertedColor.hex = rgbToHex(invertedColor);
+}
+
+function hexToRgb(hex) {
+  let temp = {};
+  if(hex.match(/^[0-9A-Fa-f]{6}$/)) {
+
+  }
+  return temp;
+}
+
+function fillColorsFromHex() {
+  const hexColor = hex.value;
+  const tempRgb = hexToRgb(hexColor);
+}
+
+const setPanelAndText = function(panel, text, color, invColor) {
+
+  panel.setAttribute("style", "color: "+invColor+"; background-color:"+color+";");
+  text.innerHTML = "background-color:"+color+";";
+}
+
+const updateUIfromRGB = function() {
+
+  let backgroundRgba = "rgb("+rgbaColor.red+","+rgbaColor.green+","+rgbaColor.blue+","+rgbaColor.alpha+")";
+  let backgroundRgb = "rgb("+rgbColor.red+","+rgbColor.green+","+rgbColor.blue+")";
+
+  setPanelAndText(panelRgba, panelTextRgba, backgroundRgba, invertedColor.hex);
+  setPanelAndText(panelRgb, panelTextRgb, backgroundRgb, invertedColor.hex);
+  setPanelAndText(panelHex, panelTextHex, rgbColor.hex, invertedColor.hex);
+  setPanelAndText(panelInverted, panelTextInverted, invertedColor.hex, rgbColor.hex);
+
+  hex.value = rgbColor.hex;
+}
+
+const updateUIfromHex = function () {
+
+}
+
+aplpa.addEventListener("change", function(){
+  fillColorsFromRgba();
+  updateUIfromRGB();
+});
+red.addEventListener("change", function(){
+  fillColorsFromRgba();
+  updateUIfromRGB();
+});
+green.addEventListener("change", function(){
+  fillColorsFromRgba();
+  updateUIfromRGB();
+});
+blue.addEventListener("change", function(){
+  fillColorsFromRgba();
+  updateUIfromRGB();
+});
+hex.addEventListener("change", function(){
+  fillColorsFromHex();
+  updateUIfromHex();
+});
+
+fillColorsFromRgba();
+updateUIfromRGB();
+
+</script>

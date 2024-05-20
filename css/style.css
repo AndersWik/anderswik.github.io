@@ -117,6 +117,26 @@ footer .social img {
   background-color: #fff;
 }
 
+.colorhex .panel-container {
+  background-color: #fff;
+}
+.colorhex #color-panel-rgb, .colorhex #color-panel-rgba, .colorhex #color-panel-hex, .colorhex #color-panel-inverted {
+  height: 150px;
+  font-family: ubuntu;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.colorhex #color-panel-rgb p, .colorhex #color-panel-rgba p, .colorhex #color-panel-hex p, .colorhex #color-panel-inverted p {
+  text-align: center;
+}
+.colorhex #color-panel-rgb, .colorhex #color-panel-rgba, .colorhex #color-panel-hex {
+  font-size: 20px;
+}
+.colorhex #color-panel-inverted {
+  font-size: 45px;
+}
+
 .decode-base64 textarea {
   width: 100%;
   height: 150px;
