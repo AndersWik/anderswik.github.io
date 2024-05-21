@@ -104,17 +104,18 @@ function fillColorsFromRgba() {
   invertedColor.hex = rgbToHex(invertedColor);
 }
 
-function hexToRgb(hex) {
-  let temp = {};
-  if(hex.match(/^[0-9A-Fa-f]{6}$/)) {
+function hexToRgb() {
 
+  let hexValue = hex.value.replace("#", '');
+
+  if(hexValue.match(/^[0-9A-Fa-f]{6}$/)) {
+
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexValue);
+    aplpa.value = 100;
+    red.value = parseInt(result[1], 16);
+    green.value = parseInt(result[2], 16);
+    blue.value = parseInt(result[3], 16);
   }
-  return temp;
-}
-
-function fillColorsFromHex() {
-  const hexColor = hex.value;
-  const tempRgb = hexToRgb(hexColor);
 }
 
 const setPanelAndText = function(panel, text, color, invColor) {
@@ -123,7 +124,7 @@ const setPanelAndText = function(panel, text, color, invColor) {
   text.innerHTML = "background-color:"+color+";";
 }
 
-const updateUIfromRGB = function() {
+const updateUI = function() {
 
   let backgroundRgba = "rgb("+rgbaColor.red+","+rgbaColor.green+","+rgbaColor.blue+","+rgbaColor.alpha+")";
   let backgroundRgb = "rgb("+rgbColor.red+","+rgbColor.green+","+rgbColor.blue+")";
@@ -136,32 +137,31 @@ const updateUIfromRGB = function() {
   hex.value = rgbColor.hex;
 }
 
-const updateUIfromHex = function () {
-
-}
-
 aplpa.addEventListener("change", function(){
   fillColorsFromRgba();
-  updateUIfromRGB();
+  updateUI();
 });
 red.addEventListener("change", function(){
   fillColorsFromRgba();
-  updateUIfromRGB();
+  updateUI();
 });
 green.addEventListener("change", function(){
   fillColorsFromRgba();
-  updateUIfromRGB();
+  updateUI();
 });
 blue.addEventListener("change", function(){
   fillColorsFromRgba();
-  updateUIfromRGB();
+  updateUI();
 });
-hex.addEventListener("change", function(){
-  fillColorsFromHex();
-  updateUIfromHex();
+hex.addEventListener("keypress", function(){
+  if (event.key === "Enter") {
+    hexToRgb();
+    fillColorsFromRgba();
+    updateUI();
+  }
 });
 
 fillColorsFromRgba();
-updateUIfromRGB();
+updateUI();
 
 </script>
