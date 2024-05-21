@@ -104,9 +104,9 @@ function fillColorsFromRgba() {
   invertedColor.hex = rgbToHex(invertedColor);
 }
 
-function hexToRgb() {
+function hexToRgb(hexValue) {
 
-  let hexValue = hex.value.replace("#", '');
+  hexValue = hexValue.replace("#", '');
 
   if(hexValue.match(/^[0-9A-Fa-f]{6}$/)) {
 
@@ -155,12 +155,14 @@ blue.addEventListener("change", function(){
 });
 hex.addEventListener("keypress", function(){
   if (event.key === "Enter") {
-    hexToRgb();
+    hexToRgb(hex.value);
     fillColorsFromRgba();
     updateUI();
   }
 });
 
+
+hexToRgb(window.location.hash);
 fillColorsFromRgba();
 updateUI();
 
