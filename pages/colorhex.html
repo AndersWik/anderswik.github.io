@@ -67,6 +67,16 @@ nonav: true
 
     </div>
   </div>
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col-12">
+        <p id="darker-color">Favorites</p>
+      </div>
+    </div>
+    <div id="favorite-color-container" class="row mt-3">
+
+    </div>
+  </div>
 <script>
 
 const panelRgba = document.getElementById("color-panel-rgba");
@@ -78,8 +88,10 @@ const panelTextHex = document.getElementById("color-panel-text-hex");
 const panelInverted = document.getElementById("color-panel-inverted");
 const panelTextInverted = document.getElementById("color-panel-text-inverted");
 
-const lighterColorContainer = document.getElementById("lighter-color-container")
-const darkerColorContainer = document.getElementById("darker-color-container")
+const lighterColorContainer = document.getElementById("lighter-color-container");
+const darkerColorContainer = document.getElementById("darker-color-container");
+const favoriteColorContainer = document.getElementById("favorite-color-container");
+const favorites = ["#afc0bc","#7c878f","#253746;","#8dB9ca;","#ca9a8e;","#d9c89e","#899064","#6ba4B8","#d9d9d6","#caffca"];
 
 const inputHex = document.getElementById("hex");
 const inputAlpha = document.getElementById("alpha");
@@ -126,7 +138,7 @@ const hexToRgba = function(hexIn, rgbaOut) {
   if(hexIn.match(/^[0-9A-Fa-f]{6}$/)) {
 
     let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexIn);
-    rgbaOut.alpha = 100;
+    rgbaOut.alpha = 1;
     rgbaOut.red = parseInt(result[1], 16);
     rgbaOut.green = parseInt(result[2], 16);
     rgbaOut.blue = parseInt(result[3], 16);
@@ -202,6 +214,20 @@ const setDarkerColors = function() {
   }
 }
 
+const setFavoriteColors = function() {
+
+  let rgbaColorClone = JSON.parse(JSON.stringify(rgbaColor));
+
+  for (var i = 0; i < favorites.length; i++) {
+
+    hexToRgba(favorites[i], rgbaColorClone);
+    let newRgb = rgbaToRgb(rgbaColorClone, {});
+    let newInverted = invertRgb(newRgb, {});
+
+    favoriteColorContainer.appendChild(createGoToHref(favorites[i], newInverted.hex));
+  }
+}
+
 const updateUI = function() {
 
   fillRgbaFromUI(rgbaColor)
@@ -247,5 +273,6 @@ inputHex.addEventListener("keypress", function(event) {
 
 initUIfromHex(window.location.hash);
 updateUI();
+setFavoriteColors();
 
 </script>
