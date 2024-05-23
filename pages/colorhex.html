@@ -204,6 +204,10 @@ const setDarkerColors = function() {
 
 const updateUI = function() {
 
+  fillRgbaFromUI(rgbaColor)
+  rgbaToRgb(rgbaColor, rgbColor);
+  invertRgb(rgbColor, invertedColor);
+
   let backgroundRgba = "rgb("+rgbaColor.red+","+rgbaColor.green+","+rgbaColor.blue+","+rgbaColor.alpha+")";
   let backgroundRgb = "rgb("+rgbColor.red+","+rgbColor.green+","+rgbColor.blue+")";
 
@@ -213,49 +217,35 @@ const updateUI = function() {
   setPanelAndText(panelInverted, panelTextInverted, invertedColor.hex, rgbColor.hex);
 
   hex.value = rgbColor.hex;
+
+  setLighterColors();
+  setDarkerColors();
 }
 
 inputAlpha.addEventListener("change", function() {
-  fillRgbaFromUI(rgbaColor)
-  rgbaToRgb(rgbaColor, rgbColor);
-  invertRgb(rgbColor, invertedColor);
   updateUI();
-  setLighterColors();
-  setDarkerColors();
 });
 
 inputRed.addEventListener("change", function() {
-  fillRgbaFromUI(rgbaColor)
-  rgbaToRgb(rgbaColor, rgbColor);
-  invertRgb(rgbColor, invertedColor);
   updateUI();
-  setLighterColors();
-  setDarkerColors();
 });
 
 inputGreen.addEventListener("change", function() {
-  fillRgbaFromUI(rgbaColor)
-  rgbaToRgb(rgbaColor, rgbColor);
-  invertRgb(rgbColor, invertedColor);
   updateUI();
-  setLighterColors();
-  setDarkerColors();
 });
 
 inputBlue.addEventListener("change", function() {
-  fillRgbaFromUI(rgbaColor)
-  rgbaToRgb(rgbaColor, rgbColor);
-  invertRgb(rgbColor, invertedColor);
   updateUI();
-  setLighterColors();
-  setDarkerColors();
+});
+
+inputHex.addEventListener("keypress", function(event) {
+  if (event.key === "Enter") {
+    initUIfromHex(inputHex.value);
+    updateUI();
+  }
 });
 
 initUIfromHex(window.location.hash);
-fillRgbaFromUI(rgbaColor)
-rgbaToRgb(rgbaColor, rgbColor);
-invertRgb(rgbColor, invertedColor);
 updateUI();
-setLighterColors();
-setDarkerColors();
+
 </script>
