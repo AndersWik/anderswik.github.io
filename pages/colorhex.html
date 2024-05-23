@@ -28,7 +28,7 @@ nonav: true
   <div class="row settings">
     <div class="col-sm-12 form-group mt-3 py-2">
       <label class="pt-2" for="alpha">Alpha:</label>
-      <input class="form-control form-control-lg" type="range" min="0" max="100" value="100" class="slider" name="alpha" id="alpha">
+      <input class="form-control form-control-lg" type="range" min="0" max="100" value="50" class="slider" name="alpha" id="alpha">
     </div>
     <div class="col-sm-12 form-group mt-3 py-2">
       <label class="pt-2" for="red">Red:</label>
@@ -47,7 +47,26 @@ nonav: true
       <input class="form-control form-control-lg" type="text" name="hex" id="hex">
     </div>
   </div>
-</div>
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col-12">
+        <p id="lighter-color">Lighter</p>
+      </div>
+    </div>
+    <div id="lighter-color-container" class="row mt-3">
+
+    </div>
+  </div>
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col-12">
+        <p id="darker-color">Darker</p>
+      </div>
+    </div>
+    <div id="darker-color-container" class="row mt-3">
+
+    </div>
+  </div>
 <script>
 
 const panelRgba = document.getElementById("color-panel-rgba");
@@ -59,65 +78,128 @@ const panelTextHex = document.getElementById("color-panel-text-hex");
 const panelInverted = document.getElementById("color-panel-inverted");
 const panelTextInverted = document.getElementById("color-panel-text-inverted");
 
-//const rgb = document.getElementById("rgb");
-//const rgba = document.getElementById("rgba");
-const hex = document.getElementById("hex");
-const aplpa = document.getElementById("alpha");
-const red = document.getElementById("red");
-const green = document.getElementById("green");
-const blue = document.getElementById("blue");
+const lighterColorContainer = document.getElementById("lighter-color-container")
+const darkerColorContainer = document.getElementById("darker-color-container")
+
+const inputHex = document.getElementById("hex");
+const inputAlpha = document.getElementById("alpha");
+const inputRed = document.getElementById("red");
+const inputGreen = document.getElementById("green");
+const inputBlue = document.getElementById("blue");
 
 const rgbaColor = {}
 const rgbColor = {}
 const invertedColor = {}
 
-function rgbToHex(color) {
+const rgbToHex = function(rgbIn) {
 
-  let redHex = color.red.toString(16);
+  let redHex = rgbIn.red.toString(16);
   let r = redHex.length == 1 ? "0" + redHex : redHex;
-  let greenHex = color.green.toString(16);
+  let greenHex = rgbIn.green.toString(16);
   let g = greenHex.length == 1 ? "0" + greenHex : greenHex;
-  let blueHex = color.blue.toString(16);
+  let blueHex = rgbIn.blue.toString(16);
   let b = blueHex.length == 1 ? "0" + blueHex : blueHex;
   return "#"+r+g+b;
 }
 
-function fillColorsFromRgba() {
+const rgbaToRgb = function(rgbaIn, rgbOut) {
 
-  rgbaColor.red = red.value;
-  rgbaColor.green = green.value;
-  rgbaColor.blue = blue.value;
-  rgbaColor.alpha = (alpha.value/100);
-
-  rgbColor.red = Math.round((1 - rgbaColor.alpha) * 255 + rgbaColor.alpha * rgbaColor.red);
-  rgbColor.green = Math.round((1 - rgbaColor.alpha) * 255 + rgbaColor.alpha * rgbaColor.green);
-  rgbColor.blue = Math.round((1 - rgbaColor.alpha) * 255 + rgbaColor.alpha * rgbaColor.blue);
-  rgbColor.hex = rgbToHex(rgbColor);
-
-  invertedColor.red = (255 - rgbColor.red).toString(16);
-  invertedColor.green = (255 - rgbColor.green).toString(16);
-  invertedColor.blue = (255 - rgbColor.blue).toString(16);
-  invertedColor.hex = rgbToHex(invertedColor);
+  rgbOut.red = Math.round((1 - rgbaIn.alpha) * 255 + rgbaIn.alpha * rgbaIn.red);
+  rgbOut.green = Math.round((1 - rgbaIn.alpha) * 255 + rgbaIn.alpha * rgbaIn.green);
+  rgbOut.blue = Math.round((1 - rgbaIn.alpha) * 255 + rgbaIn.alpha * rgbaIn.blue);
+  rgbOut.hex = rgbToHex(rgbOut);
+  return rgbOut;
 }
 
-function hexToRgb(hexValue) {
+const invertRgb = function(rgbIn, rgbOut) {
 
-  hexValue = hexValue.replace("#", '');
+  rgbOut.red = (255 - rgbIn.red).toString(16);
+  rgbOut.green = (255 - rgbIn.green).toString(16);
+  rgbOut.blue = (255 - rgbIn.blue).toString(16);
+  rgbOut.hex = rgbToHex(rgbOut);
+  return rgbOut;
+}
 
-  if(hexValue.match(/^[0-9A-Fa-f]{6}$/)) {
+const hexToRgba = function(hexIn, rgbaOut) {
+  hexIn = hexIn.replace("#", '');
 
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexValue);
-    aplpa.value = 100;
-    red.value = parseInt(result[1], 16);
-    green.value = parseInt(result[2], 16);
-    blue.value = parseInt(result[3], 16);
+  if(hexIn.match(/^[0-9A-Fa-f]{6}$/)) {
+
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexIn);
+    rgbaOut.alpha = 100;
+    rgbaOut.red = parseInt(result[1], 16);
+    rgbaOut.green = parseInt(result[2], 16);
+    rgbaOut.blue = parseInt(result[3], 16);
   }
+  return rgbaOut;
+}
+
+const initUIfromHex = function(hexIn) {
+
+  hexIn = hexIn.replace("#", '');
+
+  if(hexIn.match(/^[0-9A-Fa-f]{6}$/)) {
+
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexIn);
+    inputAlpha.value = 100;
+    inputRed.value = parseInt(result[1], 16);
+    inputGreen.value = parseInt(result[2], 16);
+    inputBlue.value = parseInt(result[3], 16);
+  }
+}
+
+const fillRgbaFromUI = function(rgbaOut) {
+
+  rgbaOut.red = inputRed.value;
+  rgbaOut.green = inputGreen.value;
+  rgbaOut.blue = inputBlue.value;
+  rgbaOut.alpha = (inputAlpha.value/100);
+  return rgbaOut;
 }
 
 const setPanelAndText = function(panel, text, color, invColor) {
 
   panel.setAttribute("style", "color: "+invColor+"; background-color:"+color+";");
   text.innerHTML = "background-color:"+color+";";
+}
+
+const createGoToHref = function(hex, hexInverted) {
+  let a = document.createElement('a');
+  a.setAttribute('href', hex);
+  a.setAttribute('class', 'go-to-color col-sm-6 col-md-3');
+  a.setAttribute('style', 'color:'+hexInverted+'; background-color:'+hex+';');
+  a.innerHTML = "<span>"+hex+"</span>";
+  return a;
+}
+
+const setLighterColors = function() {
+
+  let rgbaColorClone = JSON.parse(JSON.stringify(rgbaColor));
+  lighterColorContainer.innerHTML = "";
+
+  for (var i = rgbaColor.alpha; i > 0; i = i-0.1) {
+
+    rgbaColorClone.alpha = i;
+    let newRgb = rgbaToRgb(rgbaColorClone, {});
+    let newInverted = invertRgb(newRgb, {});
+
+    lighterColorContainer.appendChild(createGoToHref(newRgb.hex, newInverted.hex));
+  }
+}
+
+const setDarkerColors = function() {
+
+  let rgbaColorClone = JSON.parse(JSON.stringify(rgbaColor));
+  darkerColorContainer.innerHTML = "";
+
+  for (var i = rgbaColor.alpha; i < 1; i = i+0.1) {
+
+    rgbaColorClone.alpha = i;
+    let newRgb = rgbaToRgb(rgbaColorClone, {});
+    let newInverted = invertRgb(newRgb, {});
+
+    darkerColorContainer.appendChild(createGoToHref(newRgb.hex, newInverted.hex));
+  }
 }
 
 const updateUI = function() {
@@ -133,33 +215,47 @@ const updateUI = function() {
   hex.value = rgbColor.hex;
 }
 
-aplpa.addEventListener("change", function(){
-  fillColorsFromRgba();
+inputAlpha.addEventListener("change", function() {
+  fillRgbaFromUI(rgbaColor)
+  rgbaToRgb(rgbaColor, rgbColor);
+  invertRgb(rgbColor, invertedColor);
   updateUI();
-});
-red.addEventListener("change", function(){
-  fillColorsFromRgba();
-  updateUI();
-});
-green.addEventListener("change", function(){
-  fillColorsFromRgba();
-  updateUI();
-});
-blue.addEventListener("change", function(){
-  fillColorsFromRgba();
-  updateUI();
-});
-hex.addEventListener("keypress", function(){
-  if (event.key === "Enter") {
-    hexToRgb(hex.value);
-    fillColorsFromRgba();
-    updateUI();
-  }
+  setLighterColors();
+  setDarkerColors();
 });
 
+inputRed.addEventListener("change", function() {
+  fillRgbaFromUI(rgbaColor)
+  rgbaToRgb(rgbaColor, rgbColor);
+  invertRgb(rgbColor, invertedColor);
+  updateUI();
+  setLighterColors();
+  setDarkerColors();
+});
 
-hexToRgb(window.location.hash);
-fillColorsFromRgba();
+inputGreen.addEventListener("change", function() {
+  fillRgbaFromUI(rgbaColor)
+  rgbaToRgb(rgbaColor, rgbColor);
+  invertRgb(rgbColor, invertedColor);
+  updateUI();
+  setLighterColors();
+  setDarkerColors();
+});
+
+inputBlue.addEventListener("change", function() {
+  fillRgbaFromUI(rgbaColor)
+  rgbaToRgb(rgbaColor, rgbColor);
+  invertRgb(rgbColor, invertedColor);
+  updateUI();
+  setLighterColors();
+  setDarkerColors();
+});
+
+initUIfromHex(window.location.hash);
+fillRgbaFromUI(rgbaColor)
+rgbaToRgb(rgbaColor, rgbColor);
+invertRgb(rgbColor, invertedColor);
 updateUI();
-
+setLighterColors();
+setDarkerColors();
 </script>

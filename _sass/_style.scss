@@ -242,6 +242,19 @@ footer {
 			}
 		}
 	}
+	#lighter-color, #darker-color {
+		font-family: ubuntu;
+		font-size: 30px;
+	}
+	.go-to-color {
+		height: 100px;
+		span {
+			position: relative;
+			top: 25px;
+			font-family: ubuntu;
+			font-size: 30px;
+		}
+	}
 }
 
 //</editor-fold>

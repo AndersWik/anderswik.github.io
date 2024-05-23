@@ -163,6 +163,19 @@ footer .social img {
   width: 90%;
   font-family: arial;
 }
+.colorhex #lighter-color, .colorhex #darker-color {
+  font-family: ubuntu;
+  font-size: 30px;
+}
+.colorhex .go-to-color {
+  height: 100px;
+}
+.colorhex .go-to-color span {
+  position: relative;
+  top: 25px;
+  font-family: ubuntu;
+  font-size: 30px;
+}
 
 .decode-base64 textarea {
   width: 100%;
