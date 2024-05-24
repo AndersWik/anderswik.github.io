@@ -15,6 +15,18 @@ a:hover {
   color: #000;
 }
 
+h2, h3 {
+  font-family: ubuntu;
+}
+
+h2 {
+  font-size: 35px;
+}
+
+h3 {
+  font-size: 30px;
+}
+
 .bw {
   background-color: #fff;
 }
@@ -162,10 +174,6 @@ footer .social img {
   float: left;
   width: 90%;
   font-family: arial;
-}
-.colorhex #lighter-color, .colorhex #darker-color {
-  font-family: ubuntu;
-  font-size: 30px;
 }
 .colorhex .go-to-color {
   height: 100px;

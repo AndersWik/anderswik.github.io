@@ -41,6 +41,18 @@ a {
 	}
 }
 
+h2, h3 {
+	font-family: ubuntu;
+}
+
+h2 {
+	font-size: 35px;
+}
+
+h3 {
+	font-size: 30px;
+}
+
 .bw {
 	background-color: #fff;
 }
@@ -242,10 +254,6 @@ footer {
 			}
 		}
 	}
-	#lighter-color, #darker-color {
-		font-family: ubuntu;
-		font-size: 30px;
-	}
 	.go-to-color {
 		height: 100px;
 		span {
@@ -312,7 +320,7 @@ footer {
 //</editor-fold>
 
 ///////////////////////////////////////////////////
-//<editor-fold desc="-- JumpCar--">
+//<editor-fold desc="-- Jump Car--">
 ///////////////////////////////////////////////////
 
 .jumpcar {
@@ -320,6 +328,13 @@ footer {
 		padding: 15px;
 	}
 }
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Make Request--">
+///////////////////////////////////////////////////
+
 
 //</editor-fold>
 

@@ -32,11 +32,11 @@ nonav: true
     </div>
     <div class="col-sm-12 form-group mt-3 py-2">
       <label class="pt-2" for="red">Red:</label>
-      <input class="form-control form-control-lg" type="range" min="0" max="255" value="50" class="slider" name="red" id="red">
+      <input class="form-control form-control-lg" type="range" min="0" max="255" value="200" class="slider" name="red" id="red">
     </div>
     <div class="col-sm-12 form-group mt-3 py-2">
       <label class="pt-2" for="green">Green:</label>
-      <input class="form-control form-control-lg" type="range" min="0" max="255" value="50" class="slider" name="green" id="green">
+      <input class="form-control form-control-lg" type="range" min="0" max="255" value="200" class="slider" name="green" id="green">
     </div>
     <div class="col-sm-12 form-group mt-3 py-2">
       <label class="pt-2" for="blue">Blue:</label>
@@ -50,7 +50,7 @@ nonav: true
   <div class="container">
     <div class="row mt-3">
       <div class="col-12">
-        <p id="lighter-color">Lighter</p>
+        <h3 id="lighter-color">Lighter</h3>
       </div>
     </div>
     <div id="lighter-color-container" class="row mt-3">
@@ -60,7 +60,7 @@ nonav: true
   <div class="container">
     <div class="row mt-3">
       <div class="col-12">
-        <p id="darker-color">Darker</p>
+        <h3 id="darker-color">Darker</h3>
       </div>
     </div>
     <div id="darker-color-container" class="row mt-3">
@@ -70,7 +70,7 @@ nonav: true
   <div class="container">
     <div class="row mt-3">
       <div class="col-12">
-        <p id="darker-color">Favorites</p>
+        <h3 id="darker-color">Favorites</h3>
       </div>
     </div>
     <div id="favorite-color-container" class="row mt-3">
@@ -133,6 +133,7 @@ const invertRgb = function(rgbIn, rgbOut) {
 }
 
 const hexToRgba = function(hexIn, rgbaOut) {
+
   hexIn = hexIn.replace("#", '');
 
   if(hexIn.match(/^[0-9A-Fa-f]{6}$/)) {
@@ -176,12 +177,19 @@ const setPanelAndText = function(panel, text, color, invColor) {
 }
 
 const createGoToHref = function(hex, hexInverted) {
+
   let a = document.createElement('a');
   a.setAttribute('href', hex);
   a.setAttribute('class', 'go-to-color col-sm-6 col-md-3');
   a.setAttribute('style', 'color:'+hexInverted+'; background-color:'+hex+';');
   a.innerHTML = "<span>"+hex+"</span>";
   return a;
+}
+
+const goToColorEvent = function(hex) {
+
+  initUIfromHex(hex);
+  updateUI();
 }
 
 const setLighterColors = function() {
@@ -195,7 +203,11 @@ const setLighterColors = function() {
     let newRgb = rgbaToRgb(rgbaColorClone, {});
     let newInverted = invertRgb(newRgb, {});
 
-    lighterColorContainer.appendChild(createGoToHref(newRgb.hex, newInverted.hex));
+    let goToColorHref = createGoToHref(newRgb.hex, newInverted.hex);
+    goToColorHref.addEventListener("click", function(event) { 
+      goToColorEvent(newRgb.hex);
+    });
+    lighterColorContainer.appendChild(goToColorHref);
   }
 }
 
@@ -210,7 +222,11 @@ const setDarkerColors = function() {
     let newRgb = rgbaToRgb(rgbaColorClone, {});
     let newInverted = invertRgb(newRgb, {});
 
-    darkerColorContainer.appendChild(createGoToHref(newRgb.hex, newInverted.hex));
+    let goToColorHref = createGoToHref(newRgb.hex, newInverted.hex)
+    goToColorHref.addEventListener("click", function(event) { 
+      goToColorEvent(newRgb.hex);
+    });
+    darkerColorContainer.appendChild(goToColorHref);
   }
 }
 
@@ -224,7 +240,11 @@ const setFavoriteColors = function() {
     let newRgb = rgbaToRgb(rgbaColorClone, {});
     let newInverted = invertRgb(newRgb, {});
 
-    favoriteColorContainer.appendChild(createGoToHref(favorites[i], newInverted.hex));
+    let goToColorHref = createGoToHref(favorites[i], newInverted.hex);
+    goToColorHref.addEventListener("click", function(event) { 
+      goToColorEvent(newRgb.hex);
+    });
+    favoriteColorContainer.appendChild(goToColorHref);
   }
 }
 
@@ -248,31 +268,42 @@ const updateUI = function() {
   setDarkerColors();
 }
 
+const updateLocationHash = function() {
+  
+  if (event.key === "Enter" && /^#[0-9A-F]{6}$/i.test(inputHex.value)) {
+    window.location.hash = inputHex.value;
+  }
+}
+
 inputAlpha.addEventListener("change", function() {
+
   updateUI();
 });
 
 inputRed.addEventListener("change", function() {
+
   updateUI();
 });
 
 inputGreen.addEventListener("change", function() {
+
   updateUI();
 });
 
 inputBlue.addEventListener("change", function() {
+
   updateUI();
 });
 
 inputHex.addEventListener("keypress", function(event) {
-  if (event.key === "Enter") {
-    initUIfromHex(inputHex.value);
-    updateUI();
-  }
+  
+  updateLocationHash(inputHex.value);
+  initUIfromHex(inputHex.value);
+  updateUI();
+  
 });
 
 initUIfromHex(window.location.hash);
 updateUI();
 setFavoriteColors();
-
 </script>
