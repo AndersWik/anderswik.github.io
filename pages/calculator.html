@@ -6,105 +6,231 @@ nonav: true
 ---
 
 <div class="calculator container-sm mt-3 mb-3 pt-5 pb-5 text-center" style="max-width: 720px !important;">
-  <div class="row align-items-start">
-    <div class="col">
-      <h2>Calculator</h2>
-    </div>
-  </div>
-  <div class="container">
-    <div class="row p-4 rounded components">
+    <div class="row align-items-start">
         <div class="col">
-            <div class="row">
-              <div class="col">
-                <input class="form-control form-control-lg" id="output" readonly="readonly">
-              </div>
-            </div>
-            <div class="row mt-3">
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="ac">AC</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="±">±</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="%">%</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="/">/</p>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="7">7</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="8">8</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="9">9</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="X">X</p>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="4">4</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="5">5</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="6">6</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="-">-</p>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="1">1</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="2">2</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="3">3</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="+">+</p>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-6 calc-button-container">
-                <p class="calc-button" data-val="0">0</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val=".">.</p>
-              </div>
-              <div class="col-3 calc-button-container">
-                <p class="calc-button" data-val="=">=</p>
-              </div>
+            <h2>Calculator</h2>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row p-4 rounded components">
+            <div class="col">
+                <div class="row">
+                    <div class="col">
+                        <input class="form-control form-control-lg" id="output" readonly="readonly">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="ac">AC</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="&lt;">&lt;</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="%">%</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="/">/</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="7">7</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="8">8</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="9">9</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="X">X</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="4">4</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="5">5</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="6">6</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="-">-</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="1">1</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="2">2</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="3">3</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="+">+</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 calc-button-container">
+                        <p class="calc-button" data-val="0">0</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val=".">.</p>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <p class="calc-button" data-val="=">=</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-  </div>
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col">
+                <div class="accordion" id="how-to-percent">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#how-to-percent-x" aria-expanded="false" aria-controls="how-to-percent-x">
+                                How to use the % button with X
+                            </button>
+                        </h2>
+                        <div id="how-to-percent-x" class="accordion-collapse collapse show" data-bs-parent="#how-to-percent">
+                            <div class="accordion-body">
+                                <p class="text-start">Should calculate percentage. First total then percentage.</p>
+                                <p class="text-start"><strong>200x20% should give 40</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#how-to-percent-plus" aria-expanded="false" aria-controls="how-to-percent-plus">
+                                How to use the % button with +
+                            </button>
+                        </h2>
+                        <div id="how-to-percent-plus" class="accordion-collapse collapse" data-bs-parent="#how-to-percent">
+                            <div class="accordion-body">
+                                <p class="text-start">Should calculate percentage and add it to the number. First total then percentage.</p>
+                                <p class="text-start"><strong>200+20% should give 240</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#how-to-percent-minus" aria-expanded="false" aria-controls="how-to-percent-minus">
+                                How to use the % button with -
+                            </button>
+                        </h2>
+                        <div id="how-to-percent-minus" class="accordion-collapse collapse" data-bs-parent="#how-to-percent">
+                            <div class="accordion-body">
+                                <p class="text-start">Should calculate percentage and subtract it from the number. First total then percentage.</p>
+                                <p class="text-start"><strong>200-20% should give 160</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
 
 let output = document.getElementById("output");
 let calcButtons = document.getElementsByClassName("calc-button");
 
+const calculatePercentResult = function(input, operator) {
+    
+    let result = "";
+    let numbers = input.split(operator)
+    if (numbers.length > 1 && !isNaN(numbers[0]) && !isNaN(numbers[1])) {
+
+        let number = parseFloat(numbers[0]);
+        let percentage = parseFloat(numbers[1]);
+
+        if(operator === "/") {
+            
+            result = (number / percentage) * 100;
+        }
+        else if(operator === "*") {
+
+            result = number * (percentage/100);
+        }
+        else if(operator === "+") {
+
+            result = number + (number * (percentage/100));
+        }
+        else if(operator === "-") {
+            
+            result = number - (number * (percentage/100));
+        }
+    }
+    return result;
+}
+
+const onlyOnePercentageOperator = function(input, operator, operators) {
+
+    return input.includes(operator) && 
+    !input.includes(operators[0]) &&
+    !input.includes(operators[1]) &&
+    !input.includes(operators[2]) && 
+    input.split(operator).length < 3;
+}
+
+const attributeIsPercentage = function(value) {
+
+    let percentage = null;
+
+    if(onlyOnePercentageOperator(value, "/", ["*","+","-"])) {
+        
+        percentage = calculatePercentResult(value, "/");
+    }
+    else if(onlyOnePercentageOperator(value, "*", ["/","+","-"])) {
+        
+        percentage = calculatePercentResult(value, "*");
+    }
+    else if(onlyOnePercentageOperator(value, "+", ["/","*","-"])) {
+        
+        percentage = calculatePercentResult(value, "+");
+    }
+    else if(onlyOnePercentageOperator(value, "-", ["/","*","+"])) {
+        
+        percentage = calculatePercentResult(value, "-");
+    }
+
+    return percentage;
+}
+
 const calcButtonFunction = function() {
+
     let attribute = this.getAttribute("data-val");
+    let value = output.value.replaceAll('X', '*');
 
     if(attribute === "ac") {
 
         output.value = "";
     }
+    else if(attribute === "<") {
+
+        output.value = output.value.substring(0, output.value.length - 1);
+    }
     else if(attribute === "=") {
 
-        output.value = eval(output.value.replaceAll('X', '*'));
+        output.value = eval(value);
+    }
+    else if(attribute === "%") {
+
+        let percentage = attributeIsPercentage(output.value);
+
+        if(percentage) {
+            output.value = percentage;
+        }
     }
     else {
 
