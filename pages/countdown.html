@@ -72,56 +72,81 @@ const removeAfter = function(value) {
   return value;
 }
 
+const getTotalSeconds = function(stopDateTime, startDateTime) {
+
+  return Math.abs(stopDateTime - startDateTime) / 1000;
+}
+
+const setDays = function(delta) {
+
+  let days = Math.floor(delta / 86400);
+  delta -= days * 86400;
+  outputDays.innerHTML = padString(days);
+  return delta;
+}
+
+const setHours = function(delta) {
+
+  let hours = Math.floor(delta / 3600) % 24;
+  delta -= hours * 3600;
+  hours = (hours + "".length < 2 ? "0" + hours : hours);
+  outputHours.innerHTML = padString(hours);
+  return delta;
+}
+
+const setMinutes = function(delta) {
+
+  let minutes = Math.floor(delta / 60) % 60;
+  delta -= minutes * 60;
+  minutes = (minutes + "".length < 2 ? "0" + minutes : minutes);
+  outputMinutes.innerHTML = padString(minutes);
+  return delta;
+}
+
+const setSeconds = function(delta) {
+
+  let seconds = delta % 60;
+  seconds = removeAfter(seconds);
+  seconds = padString(seconds);
+  outputSeconds.innerHTML = seconds;
+  return delta;
+}
+
+const startBlinking = function() {
+
+  outputDays.classList.add("blink");
+  outputHours.classList.add("blink");
+  outputMinutes.classList.add("blink");
+  outputSeconds.classList.add("blink");
+}
+
+const displayImage = function() {
+
+  if(url !== null) {
+    const img = document.createElement("img");
+    img.setAttribute("src", url);
+    img.style.width = '100%';
+    imageContainer.appendChild(img);
+  }
+}
+
 const updateUI = function() {
 
   if (startDate < stopDate) {
 
-    let date_now = startDate.getTime();
-    let date_future = stopDate.getTime();
-
-    // get total seconds between the times
-    let delta = Math.abs(date_future - date_now) / 1000;
-
-    // calculate (and subtract) whole days
-    let days = Math.floor(delta / 86400);
-    delta -= days * 86400;
-    outputDays.innerHTML = padString(days);
-
-    // calculate (and subtract) whole hours
-    let hours = Math.floor(delta / 3600) % 24;
-    delta -= hours * 3600;
-    hours = (hours + "".length < 2 ? "0" + hours : hours);
-    outputHours.innerHTML = padString(hours);
-
-    // calculate (and subtract) whole minutes
-    let minutes = Math.floor(delta / 60) % 60;
-    delta -= minutes * 60;
-    minutes = (minutes + "".length < 2 ? "0" + minutes : minutes);
-    outputMinutes.innerHTML = padString(minutes);
-
-    // what's left is seconds
-    let seconds = delta % 60;
-    seconds = removeAfter(seconds);
-    seconds = padString(seconds);
-    outputSeconds.innerHTML = seconds;
-
+    let startDateTime = startDate.getTime();
+    let stopDateTime = stopDate.getTime();
+    let delta = getTotalSeconds(stopDateTime, startDateTime);
+    delta = setDays(delta);
+    delta = setHours(delta);
+    delta = setMinutes(delta);
+    delta = setSeconds(delta);
     startDate = new Date();
   }
   else
   {
-    outputDays.classList.add("blink");
-    outputHours.classList.add("blink");
-    outputMinutes.classList.add("blink");
-    outputSeconds.classList.add("blink");
-
-    if(url !== null) {
-
-      const img = document.createElement("img");
-      img.setAttribute("src", url);
-      img.style.width = '100%';
-      imageContainer.appendChild(img);
-    }
-    
+    startBlinking();
+    displayImage();
     clearInterval(runningInterval);
   }
 }
@@ -130,15 +155,17 @@ const init = function() {
 
   stopDate.setDate(stopDate.getDate() + 1);
 
+  if(urlParams.has("title")) {
+    
+    countdownTitle.innerHTML = urlParams.get("title");
+  }
+
+  if(urlParams.has("url")) {
+
+    url = decodeURI(urlParams.get("url"));
+  }
+
   if(urlParams.has("to") && isDate(urlParams.get("to"))) {
-
-    if(urlParams.has("title")) {
-      countdownTitle.innerHTML = urlParams.get("title");
-    }
-
-    if(urlParams.has("url")) {
-      url = decodeURI(urlParams.get("url"));
-    }
 
     stopDate = new Date(urlParams.get("to"));
     runningInterval = setInterval(updateUI, 1000);
