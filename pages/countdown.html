@@ -38,15 +38,14 @@ nonav: true
 <script>
 
 const urlParams = new URLSearchParams(window.location.search);
-let runningInterval = null;
-let url = null;
 const imageContainer = document.getElementById("image-container");
 const countdownTitle = document.getElementById("countdown-title");
 const outputDays = document.getElementById("output-days");
 const outputHours = document.getElementById("output-hours");
 const outputMinutes = document.getElementById("output-minutes");
 const outputSeconds = document.getElementById("output-seconds");
-
+let runningInterval = null;
+let url = null;
 let startDate = new Date();
 let stopDate = new Date();
 let delta = 0;
@@ -156,7 +155,7 @@ const init = function() {
   stopDate.setDate(stopDate.getDate() + 1);
 
   if(urlParams.has("title")) {
-    
+
     countdownTitle.innerHTML = urlParams.get("title");
   }
 
