@@ -300,6 +300,47 @@ footer {
 //<editor-fold desc="-- Decode Base64-">
 ///////////////////////////////////////////////////
 
+.countdown {
+	.countdown-title {
+
+	}
+
+	#countdown-days, #countdown-hours, #countdown-minutes, #countdown-seconds {
+
+		color: #fdbc40;
+		font-family: ubuntu;
+		font-size: 30px;
+	}
+	
+	#output-days, #output-hours, #output-minutes, #output-seconds {
+
+		font-family: ubuntu;
+		font-size: 30px;
+	}
+
+	.blink {
+		animation-duration: 400ms;
+		animation-name: blink;
+		animation-iteration-count: infinite;
+		animation-direction: alternate;
+	 }
+
+	 @keyframes blink {
+		from {
+		   opacity: 1;
+		}
+		to {
+		   opacity: 0;
+		}
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Decode Base64-">
+///////////////////////////////////////////////////
+
 .decode-base64 {
 	textarea {
 		width: 100%;

@@ -1,0 +1,153 @@
+---
+layout: default
+title: Countdown
+permalink: /countdown/
+nonav: true
+---
+
+<div class="countdown container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2 id="countdown-title">Countdown</h2>
+    </div>
+  </div>
+  <div class="row align-items-start mt-3">
+    <div class="col-sm-3">
+      <p id="countdown-days">Days</p>
+      <p id="output-days" class="bw">00</p>
+    </div>
+    <div class="col-sm-3">
+      <p id="countdown-hours">Hours</p>
+      <p id="output-hours" class="bw">00</p>
+    </div>
+    <div class="col-sm-3">
+      <p id="countdown-minutes">Minutes</p>
+      <p id="output-minutes" class="bw">00</p>
+    </div>
+    <div class="col-sm-3">
+      <p id="countdown-seconds">Seconds</p>
+      <p id="output-seconds" class="bw">00</p>
+    </div>
+  </div>
+  <div class="row">
+    <div id="image-container" class="col">
+
+    </div>
+  </div>
+</div>
+<script>
+
+const urlParams = new URLSearchParams(window.location.search);
+let runningInterval = null;
+let url = null;
+const imageContainer = document.getElementById("image-container");
+const countdownTitle = document.getElementById("countdown-title");
+const outputDays = document.getElementById("output-days");
+const outputHours = document.getElementById("output-hours");
+const outputMinutes = document.getElementById("output-minutes");
+const outputSeconds = document.getElementById("output-seconds");
+
+let startDate = new Date();
+let stopDate = new Date();
+let delta = 0;
+
+const isDate = function(date) {
+
+    return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
+}
+
+const padString = function(value) {
+
+  value = value + "";
+  if(value.length < 2) {
+    value = "0"+value;
+  }
+  return value;
+}
+
+const removeAfter = function(value) {
+  
+  value = value + "";
+  value = value.substring(0, value.indexOf("."));
+  return value;
+}
+
+const updateUI = function() {
+
+  if (startDate < stopDate) {
+
+    let date_now = startDate.getTime();
+    let date_future = stopDate.getTime();
+
+    // get total seconds between the times
+    let delta = Math.abs(date_future - date_now) / 1000;
+
+    // calculate (and subtract) whole days
+    let days = Math.floor(delta / 86400);
+    delta -= days * 86400;
+    outputDays.innerHTML = padString(days);
+
+    // calculate (and subtract) whole hours
+    let hours = Math.floor(delta / 3600) % 24;
+    delta -= hours * 3600;
+    hours = (hours + "".length < 2 ? "0" + hours : hours);
+    outputHours.innerHTML = padString(hours);
+
+    // calculate (and subtract) whole minutes
+    let minutes = Math.floor(delta / 60) % 60;
+    delta -= minutes * 60;
+    minutes = (minutes + "".length < 2 ? "0" + minutes : minutes);
+    outputMinutes.innerHTML = padString(minutes);
+
+    // what's left is seconds
+    let seconds = delta % 60;
+    seconds = removeAfter(seconds);
+    seconds = padString(seconds);
+    outputSeconds.innerHTML = seconds;
+
+    startDate = new Date();
+  }
+  else
+  {
+    outputDays.classList.add("blink");
+    outputHours.classList.add("blink");
+    outputMinutes.classList.add("blink");
+    outputSeconds.classList.add("blink");
+
+    if(url !== null) {
+
+      const img = document.createElement("img");
+      img.setAttribute("src", url);
+      img.style.width = '100%';
+      imageContainer.appendChild(img);
+    }
+    
+    clearInterval(runningInterval);
+  }
+}
+
+const init = function() {
+
+  stopDate.setDate(stopDate.getDate() + 1);
+
+  if(urlParams.has("to") && isDate(urlParams.get("to"))) {
+
+    if(urlParams.has("title")) {
+      countdownTitle.innerHTML = urlParams.get("title");
+    }
+
+    if(urlParams.has("url")) {
+      url = decodeURI(urlParams.get("url"));
+    }
+
+    stopDate = new Date(urlParams.get("to"));
+    runningInterval = setInterval(updateUI, 1000);
+  }
+  else {
+    
+    output.innerHTML = "You must supplie the date in a valid format ex 1999-12-31T23:59:00";
+  }
+}
+
+init();
+</script>

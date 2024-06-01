@@ -206,6 +206,30 @@ footer .social img {
   font-size: 30px;
 }
 
+.countdown #countdown-days, .countdown #countdown-hours, .countdown #countdown-minutes, .countdown #countdown-seconds {
+  color: #fdbc40;
+  font-family: ubuntu;
+  font-size: 30px;
+}
+.countdown #output-days, .countdown #output-hours, .countdown #output-minutes, .countdown #output-seconds {
+  font-family: ubuntu;
+  font-size: 30px;
+}
+.countdown .blink {
+  animation-duration: 400ms;
+  animation-name: blink;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+@keyframes blink {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .decode-base64 textarea {
   width: 100%;
   height: 150px;
