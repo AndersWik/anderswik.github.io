@@ -106,8 +106,7 @@ const setSeconds = function(delta) {
 
   let seconds = delta % 60;
   seconds = removeAfter(seconds);
-  seconds = padString(seconds);
-  outputSeconds.innerHTML = seconds;
+  outputSeconds.innerHTML = padString(seconds);
   return delta;
 }
 
