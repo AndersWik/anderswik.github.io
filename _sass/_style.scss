@@ -364,6 +364,34 @@ footer {
 //</editor-fold>
 
 ///////////////////////////////////////////////////
+//<editor-fold desc="-- Egg clock-">
+///////////////////////////////////////////////////
+
+.egg-clock {
+
+	#clock-minutes, #clock-seconds {
+
+		color: #fdbc40;
+		font-family: ubuntu;
+		font-size: 30px;
+	}
+	
+	#output-minutes, #output-seconds {
+
+		font-family: ubuntu;
+		font-size: 56px;
+	}
+
+	button {
+		font-family: ubuntu;
+		width: 100%;
+		height: 70px;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
 //<editor-fold desc="-- Encode base64-">
 ///////////////////////////////////////////////////
 
