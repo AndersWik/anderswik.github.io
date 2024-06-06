@@ -40,8 +40,8 @@ nonav: true
     <div class="col-sm-12 col-md-6 mt-3">
       <p>Base:</p>
       <select class="form-select mt-3" aria-label="Select base" id="base-select">
-        <option value="decimal">1000</option>
-        <option value="binary">1024</option>
+        <option value="decimal">Decimal: 1000</option>
+        <option value="binary">Binary: 1024</option>
       </select>
     </div>
   </div>
@@ -55,7 +55,7 @@ nonav: true
       </h2>
       <div id="bit-to-byte" class="accordion-collapse collapse" data-bs-parent="#convertion-table">
         <div class="accordion-body">
-          <table>
+          <table class="table table-striped">
             <tbody>
               <tr>
                 <td>1 bits</td>
@@ -391,8 +391,7 @@ nonav: true
       </h2>
       <div id="bit-to-kb" class="accordion-collapse collapse" data-bs-parent="#convertion-table">
         <div class="accordion-body">
-
-          <table>
+          <table class="table table-striped">
             <tbody>
               <tr>
                 <td>1 bit</td>
@@ -729,7 +728,7 @@ nonav: true
       </h2>
       <div id="bit-to-mb" class="accordion-collapse collapse" data-bs-parent="#convertion-table">
         <div class="accordion-body">
-          <table>
+          <table class="table table-striped">
             <tbody>
               <tr>
                 <td>1000 bits</td>
@@ -1078,7 +1077,7 @@ nonav: true
     binary: 1024
   }
   let bit = 0;
-  let size = 1024;
+  let size = 1000;
 
   const setSize = function (value) {
     if (value === "decimal") {
