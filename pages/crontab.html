@@ -1,0 +1,405 @@
+---
+layout: default
+title: Crontab
+permalink: /crontab/
+nonav: true
+---
+
+<div class="crontab container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Cron Tab</h2>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col-sm-12">
+      <div class="col-sm-12 rounded bw">
+        <input class="text-center" type="text" name="input" value="*" id="minute">
+        <input class="text-center" type="text" name="input" value="*" id="hour">
+        <input class="text-center" type="text" name="input" value="*" id="day-month">
+        <input class="text-center" type="text" name="input" value="*" id="month">
+        <input class="text-center" type="text" name="input" value="*" id="day-week">
+      </div>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col-sm-12">
+      <p id="minute-header" class="header">minute</p>
+      <p id="hour-header" class="header" style="display:none;">hour</p>
+      <p id="day-month-header" class="header" style="display:none;">day (month)</p>
+      <p id="month-header" class="header" style="display:none;">month</p>
+      <p id="day-week-header" class="header" style="display:none;">day (week)</p>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col-sm-12 bw pt-3" id="minute-txt">
+      <table class="table table-striped text-left">
+        <tr>
+          <td class="col-sm-3">*</td>
+          <td class="col-sm-9 text-left">Every minute</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">0-59</td>
+          <td class="col-sm-9 text-left">0 is the first minute of the hour.</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">-</td>
+          <td class="col-sm-9 text-left">Ranges are two numbers separated by hyphen. Ranges are inclusive.<br>Range ex: 4-6<br>We can randomize execution in a range with ~.<br>Range ex: 4~6</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">,</td>
+          <td class="col-sm-9 text-left">Lists are numbers separated by commas.<br>List ex 3,5,7 also List of ranges ex 3-5,7-9</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">/</td>
+          <td class="col-sm-9 text-left">Step</td>
+        </tr>
+      </table>
+    </div>
+    <div class="col-sm-12 bw pt-3" id="hour-txt" style="display:none;">
+      <table class="table table-striped text-left">
+        <tr>
+          <td class="col-sm-3">*</td>
+          <td class="col-sm-9 text-left">Every hour</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">0-23</td>
+          <td class="col-sm-9 text-left">0 is 12:00am</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">-</td>
+          <td class="col-sm-9 text-left">Ranges are two numbers separated by hyphen. Ranges are inclusive.<br>Range ex: 4-6<br>We can randomize execution in a range with ~.<br>Range ex: 4~6</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">,</td>
+          <td class="col-sm-9 text-left">Lists are numbers separated by commas.<br>List ex 3,5,7 also List of ranges ex 3-5,7-9</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">/</td>
+          <td class="col-sm-9 text-left">Step</td>
+        </tr>
+      </table>
+    </div>
+    <div class="col-sm-12 bw pt-3" id="day-month-txt" style="display:none;">
+      <table class="table table-striped text-left">
+        <tr>
+          <td class="col-sm-3">*</td>
+          <td class="col-sm-9 text-left">Every day</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">1-31</td>
+          <td class="col-sm-9 text-left">1 is the first day of the month</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">-</td>
+          <td class="col-sm-9 text-left">Ranges are two numbers separated by hyphen. Ranges are inclusive.<br>Range ex: 4-6<br>We can randomize execution in a range with ~.<br>Range ex: 4~6</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">,</td>
+          <td class="col-sm-9 text-left">Lists are numbers separated by commas.<br>List ex 3,5,7 also List of ranges ex 3-5,7-9</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">/</td>
+          <td class="col-sm-9 text-left">Step can be used with ranges or *. Adding / and a number after a range will step over days.</td>
+        </tr>
+      </table>
+    </div>
+    <div class="col-sm-12 bw pt-3" id="month-txt" style="display:none;">
+      <table class="table table-striped text-left">
+        <tr>
+          <td class="col-sm-3">*</td>
+          <td class="col-sm-9 text-left">Every month</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">1-12</td>
+          <td class="col-sm-9 text-left">1 is January</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">JAN-DEC</td>
+          <td class="col-sm-9 text-left">We can also use names</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">-</td>
+          <td class="col-sm-9 text-left">Ranges are two numbers separated by hyphen. Ranges are inclusive.<br>Range ex: 4-6<br>We can randomize execution in a range with ~.<br>Range ex: 4~6</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">,</td>
+          <td class="col-sm-9 text-left">Lists are numbers separated by commas.<br>List ex 3,5,7 also List of ranges ex 3-5,7-9</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">/</td>
+          <td class="col-sm-9 text-left">Step can be used with ranges or *. Adding / and a number after a range will step over months.</td>
+        </tr>
+      </table>
+    </div>
+    <div class="col-sm-12 bw pt-3" id="day-week-txt" style="display:none;">
+      <table class="table table-striped">
+        <tr>
+          <td class="col-sm-3">*</td>
+          <td class="col-sm-9 text-left">Every day</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">0-6</td>
+          <td class="col-sm-9 text-left">0 is Sunday (7 is Sunday on some systems)</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">SUN-SAT</td>
+          <td class="col-sm-9 text-left">We can also use names</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">-</td>
+          <td class="col-sm-9 text-left">Ranges are two numbers separated by hyphen. Ranges are inclusive.<br>Range ex: 4-6<br>We can randomize execution in a range with ~.<br>Range ex: 4~6</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">,</td>
+          <td class="col-sm-9 text-left">Lists are numbers separated by commas.<br>List ex 3,5,7 also List of ranges ex 3-5,7-9</td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">/</td>
+          <td class="col-sm-9 text-left">Step can be used with ranges or *. Adding / and a number after a range will step over days.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+  const minute = document.getElementById("minute");
+  const hour = document.getElementById("hour");
+  const dayMonth = document.getElementById("day-month");
+  const month = document.getElementById("month");
+  const dayWeek = document.getElementById("day-week");
+
+  const minuteHeader = document.getElementById("minute-header");
+  const hourHeader = document.getElementById("hour-header");
+  const dayMonthHeader = document.getElementById("day-month-header");
+  const monthHeader = document.getElementById("month-header");
+  const dayWeekHeader = document.getElementById("day-week-header");
+
+  const minuteTxt = document.getElementById("minute-txt");
+  const hourTxt = document.getElementById("hour-txt");
+  const dayMonthTxt = document.getElementById("day-month-txt");
+  const monthTxt = document.getElementById("month-txt");
+  const dayWeekTxt = document.getElementById("day-week-txt");
+
+  const hide = function() {
+    minuteHeader.style.display = "none";
+    hourHeader.style.display = "none";
+    dayMonthHeader.style.display = "none";
+    monthHeader.style.display = "none";
+    dayWeekHeader.style.display = "none";
+    minuteTxt.style.display = "none";
+    hourTxt.style.display = "none";
+    dayMonthTxt.style.display = "none";
+    monthTxt.style.display = "none";
+    dayWeekTxt.style.display = "none";
+  }
+
+  const show = function(option) {
+    switch (option) {
+      case "minute":
+        minuteHeader.style.display = "block";
+        minuteTxt.style.display = "block";
+        break;
+      case "hour":
+        hourHeader.style.display = "block";
+        hourTxt.style.display = "block";
+        break;
+      case "day-month":
+        dayMonthHeader.style.display = "block";
+        dayMonthTxt.style.display = "block";
+        break;
+      case "month":
+        monthHeader.style.display = "block";
+        monthTxt.style.display = "block";
+        break;
+      case "day-week":
+        dayWeekHeader.style.display = "block";
+        dayWeekTxt.style.display = "block";
+    }
+  }
+
+  const isWildcard = function(val) {
+
+    return /^([\*])$/.test(val);
+  }
+
+  const isWildcardWithStep = function(val) {
+    
+    return /^([\*][\/][0-9]+)$/.test(val)
+  }
+
+  const isNumber = function(val) {
+    
+    return /^([\0-9]+)$/.test(val);
+  }
+
+  const isRange = function(val) {
+    
+    return /^([\0-9]+[\-][0-9]+)$/.test(val)
+  }
+
+  const isRangeWithStep = function(val) {
+    
+    return /^([\0-9]+[\-][0-9]+[\/][0-9]+)$/.test(val)
+  }
+
+  const isRandomized = function(val) {
+    
+    return /^([\0-9]+[\~][0-9]+)$/.test(val);
+  }
+
+  const isRandomizedWithStep = function(val) {
+    
+    return /^([\0-9]+[\~][0-9]+[\/][0-9]+)$/.test(val);
+  }
+
+  const isList = function(val) {
+    
+    return /^([\0-9],)+[\0-9]$/.test(val);
+  }
+
+  const isListOfRanges = function(val) {
+    
+    return /^([\0-9]+[\-][0-9]+[\,])([\0-9]+[\-][0-9]+)$/.test(val)
+  }
+
+  const isMonthName = function(val) {
+    
+    return /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/.test(val)
+  }
+
+  const isMonthNameList = function(val) {
+    
+    return false;
+  }
+
+  const isMonthNameRange = function(val) {
+    
+    return /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[\-](?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/.test(val)
+  }
+
+  const isMonthNameRangeList = function(val) {
+    
+    return false;
+  }
+
+  const isValid = function(val) {
+
+    return (isWildcard(val) || isNumber(val) || isWildcardWithStep(val) || isRange(val) || isRangeWithStep(val) || isRandomized(val) || isRandomizedWithStep(val) || isList(val) || isListOfRanges(val));
+  }
+
+  const validateMinute = function(){
+   
+    if(isValid(minute.value))
+    {
+      minute.classList.remove("not-valid");
+    }
+    else
+    {
+      minute.classList.add("not-valid");
+    }
+  }
+
+  const validateHour = function() {
+
+    if(isValid(hour.value))
+    {
+      hour.classList.remove("not-valid");
+    }
+    else
+    {
+      hour.classList.add("not-valid");
+    }
+  }
+
+  const validateDayMonth = function() {
+
+    if(isValid(dayMonth.value))
+    {
+      dayMonth.classList.remove("not-valid");
+    }
+    else
+    {
+      dayMonth.classList.add("not-valid");
+    }
+  }
+
+  const validateMonth = function() {
+
+    if(isValid(month.value) || isMonthName(val) || isMonthNameRange(val) || isMonthNameList(val) || isMonthNameRange(val))
+    {
+      month.classList.remove("not-valid");
+    }
+    else
+    {
+      month.classList.add("not-valid");
+    }
+  }
+
+  const validateDayWeek = function() {
+
+    if(isValid(dayWeek.value))
+    {
+      dayWeek.classList.remove("not-valid");
+    }
+    else
+    {
+      dayWeek.classList.add("not-valid");
+    }
+  }
+
+  minute.addEventListener("focus", function () {
+    hide();
+    show("minute");
+  });
+
+  minute.addEventListener("change", function () {
+    hide();
+    show("minute");
+    validateMinute();
+  });
+
+  hour.addEventListener("focus", function () {
+    hide();
+    show("hour");
+  });
+
+  hour.addEventListener("change", function () {
+    hide();
+    show("hour");
+    validateHour();
+  });
+
+  dayMonth.addEventListener("focus", function () {
+    hide();
+    show("day-month");
+  });
+
+  dayMonth.addEventListener("change", function () {
+    hide();
+    show("day-month");
+    validateDayMonth();
+  });
+
+  month.addEventListener("focus", function () {
+    hide();
+    show("month");
+  });
+
+  month.addEventListener("change", function () {
+    hide();
+    show("month");
+    validateMonth();
+  });
+
+  dayWeek.addEventListener("focus", function () {
+    hide();
+    show("day-week");
+  });
+
+  dayWeek.addEventListener("change", function () {
+    hide();
+    show("day-week");
+    validateDayWeek();
+  });
+</script>

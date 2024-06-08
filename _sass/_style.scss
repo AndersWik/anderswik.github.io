@@ -297,6 +297,34 @@ footer {
 //</editor-fold>
 
 ///////////////////////////////////////////////////
+//<editor-fold desc="-- Crontab--">
+///////////////////////////////////////////////////
+
+.crontab {
+	font-family: ubuntu;
+	input {
+		font-size: 30px;
+		width:18%;
+		margin-left: 1%;
+		border: none;
+	}
+	p {
+		font-size: 15px;
+	}
+	p.header {
+		font-size: 25px;
+	}
+	table td.text-left {
+		text-align: left;
+	}
+	.not-valid {
+		border: 3px dashed #ff0000;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
 //<editor-fold desc="-- Decode Base64-">
 ///////////////////////////////////////////////////
 

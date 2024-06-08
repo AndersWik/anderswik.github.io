@@ -206,6 +206,28 @@ footer .social img {
   font-size: 30px;
 }
 
+.crontab {
+  font-family: ubuntu;
+}
+.crontab input {
+  font-size: 30px;
+  width: 18%;
+  margin-left: 1%;
+  border: none;
+}
+.crontab p {
+  font-size: 15px;
+}
+.crontab p.header {
+  font-size: 25px;
+}
+.crontab table td.text-left {
+  text-align: left;
+}
+.crontab .not-valid {
+  border: 3px dashed #ff0000;
+}
+
 .countdown #countdown-days, .countdown #countdown-hours, .countdown #countdown-minutes, .countdown #countdown-seconds {
   color: #fdbc40;
   font-family: ubuntu;
