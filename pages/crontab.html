@@ -457,45 +457,12 @@ nonav: true
     }
     return isAllMonthNamesRange;
   }
-
-  const isValidMinute = function(val) {
-    
-    return (isMinute(val) || isMinuteList(val) || isMinuteRange(val) || isMinuteRangeList(val) || isMinuteRandomized(val) || isMinuteRandomizedList(val));
-  }
-
-  const isValidHour = function(val) {
-    
-    return (isHour(val) || isHourList(val) || isHourRange(val) || isHourRangeList(val) || isHourRandomized(val) || isHourRandomizedList(val));
-  }
-
-  const isValidMonthDayNumber = function(val) {
-
-    return (isMonthDayNumber(val) || isMonthDayNumberList(val) || isMonthDayNumberRange(val) || isMonthDayNumberRangeList(val) || isMonthDayNumberRandomized(val) || isMonthDayNumberRandomizedList(val));
-  }
-
-  const isValidMonthNumber = function(val) {
-
-    return (isMonthNumber(val) || isMonthNumberList(val) || isMonthNumberRange(val) || isMonthNumberRangeList(val) || isMonthNumberRandomized(val) || isMonthNumberRandomizedList(val));
-  }
-
-  const isValidMonthName = function(val) {
-
-    return (isMonthName(val) || isMonthNameList(val) || isMonthNameRange(val) || isMonthNameRangeList(val) || isMonthNameRandomized(val) || isMonthNameRandomizedList(val));
-  }
-
-  const isValidWeekDay = function(val) {
-    
-    return (isWeekDay(val) || isWeekDayList(val) || isWeekDayRange(val) || isWeekDayRangeList(val) || isWeekDayRandomized(val) || isWeekDayRandomizedList(val));
-  }
-
-  const isValidWeekDayName = function(val) {
-    
-    return (isWeekDayName(val) || isWeekDayNameList(val) || isWeekDayNameRange(val) || isWeekDayNameRangeList(val) || isWeekDayNameRandomized(val) || isWeekDayNameRandomizedList(val));
-  }
-
+  
   const validateMinute = function(){
+
+    let isValidMinute = (isMinute(minute.value) || isMinuteList(minute.value) || isMinuteRange(minute.value) || isMinuteRangeList(minute.value) || isMinuteRandomized(minute.value) || isMinuteRandomizedList(minute.value));
    
-    if(isWildcard(minute.value) || isWildcardWithStep(minute.value) || isValidMinute(minute.value))
+    if(isWildcard(minute.value) || isWildcardWithStep(minute.value) || isValidMinute)
     {
       minute.classList.remove("not-valid");
     }
@@ -507,7 +474,9 @@ nonav: true
 
   const validateHour = function() {
 
-    if(isWildcard(hour.value) || isWildcardWithStep(hour.value) || isValidHour(hour.value))
+    let isValidHour = (isHour(hour.value) || isHourList(hour.value) || isHourRange(hour.value) || isHourRangeList(hour.value) || isHourRandomized(hour.value) || isHourRandomizedList(hour.value));
+
+    if(isWildcard(hour.value) || isWildcardWithStep(hour.value) || isValidHour)
     {
       hour.classList.remove("not-valid");
     }
@@ -519,7 +488,9 @@ nonav: true
 
   const validateDayMonth = function() {
 
-    if(isWildcard(dayMonth.value) || isWildcardWithStep(dayMonth.value) || isValidMonthDayNumber(dayMonth.value))
+    let isValidMonthDayNumber = (isMonthDayNumber(dayMonth.value) || isMonthDayNumberList(dayMonth.value) || isMonthDayNumberRange(dayMonth.value) || isMonthDayNumberRangeList(dayMonth.value) || isMonthDayNumberRandomized(dayMonth.value) || isMonthDayNumberRandomizedList(dayMonth.value));
+
+    if(isWildcard(dayMonth.value) || isWildcardWithStep(dayMonth.value) || isValidMonthDayNumber)
     {
       dayMonth.classList.remove("not-valid");
     }
@@ -531,14 +502,15 @@ nonav: true
 
   const validateMonth = function() {
 
-    let usingMonthName = isValidMonthName(month.value);
+    let isValidMonthNumber = (isMonthNumber(month.value) || isMonthNumberList(month.value) || isMonthNumberRange(month.value) || isMonthNumberRangeList(month.value) || isMonthNumberRandomized(month.value) || isMonthNumberRandomizedList(month.value));
+    let isValidMonthName = (isMonthName(month.value) || isMonthNameList(month.value) || isMonthNameRange(month.value) || isMonthNameRangeList(month.value) || isMonthNameRandomized(month.value) || isMonthNameRandomizedList(month.value));
 
-    if(usingMonthName)
+    if(isValidMonthName)
     {
       // Non standard add warning
     }
 
-    if(isWildcard(month.value) || isWildcardWithStep(month.value) || isValidMonthNumber(month.value) || usingMonthName)
+    if(isWildcard(month.value) || isWildcardWithStep(month.value) || isValidMonthNumber || isValidMonthName)
     {
       month.classList.remove("not-valid");
     }
@@ -550,7 +522,10 @@ nonav: true
 
   const validateDayWeek = function() {
 
-    if(isWildcard(dayWeek.value) || isWildcardWithStep(dayWeek.value) || isValidWeekDay(dayWeek.value) || isValidWeekDayName(dayWeek.value))
+    let isValidWeekDay = (isWeekDay(dayWeek.value) || isWeekDayList(dayWeek.value) || isWeekDayRange(dayWeek.value) || isWeekDayRangeList(dayWeek.value) || isWeekDayRandomized(dayWeek.value) || isWeekDayRandomizedList(dayWeek.value));
+    let isValidWeekDayName = (isWeekDayName(dayWeek.value) || isWeekDayNameList(dayWeek.value) || isWeekDayNameRange(dayWeek.value) || isWeekDayNameRangeList(dayWeek.value) || isWeekDayNameRandomized(dayWeek.value) || isWeekDayNameRandomizedList(dayWeek.value));
+
+    if(isWildcard(dayWeek.value) || isWildcardWithStep(dayWeek.value) || isValidWeekDay || isValidWeekDayName)
     {
       dayWeek.classList.remove("not-valid");
     }
