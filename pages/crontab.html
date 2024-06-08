@@ -225,72 +225,277 @@ nonav: true
 
   const isWildcardWithStep = function(val) {
     
-    return /^([\*][\/][0-9]+)$/.test(val)
+    return /^([\*][\/][0-9]+)$/.test(val);
   }
 
-  const isNumber = function(val) {
+  const isMinute = function(val) {
     
-    return /^([\0-9]+)$/.test(val);
+    return /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])$/.test(val);
   }
 
-  const isRange = function(val) {
+  const isMinuteList = function(val) {
     
-    return /^([\0-9]+[\-][0-9]+)$/.test(val)
+    return isListTest(val, isMinute);
   }
 
-  const isRangeWithStep = function(val) {
+  const isMinuteRange = function(val) {
     
-    return /^([\0-9]+[\-][0-9]+[\/][0-9]+)$/.test(val)
+    return  /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])[\-]([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])$/.test(val);
   }
 
-  const isRandomized = function(val) {
+  const isMinuteRangeList = function(val) {
     
-    return /^([\0-9]+[\~][0-9]+)$/.test(val);
+    return isListTest(val, isMinuteRange);
   }
 
-  const isRandomizedWithStep = function(val) {
+  const isMinuteRandomized = function(val) {
     
-    return /^([\0-9]+[\~][0-9]+[\/][0-9]+)$/.test(val);
+    return /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])[\~]([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])$/.test(val);
   }
 
-  const isList = function(val) {
+  const isMinuteRandomizedList = function(val) {
     
-    return /^([\0-9],)+[\0-9]$/.test(val);
+    return isListTest(val, isMinuteRandomized);
   }
 
-  const isListOfRanges = function(val) {
+  const isHour = function(val) {
     
-    return /^([\0-9]+[\-][0-9]+[\,])([\0-9]+[\-][0-9]+)$/.test(val)
+    return /^([0-9]|1[0-9]|2[0-3])$/.test(val);
+  }
+
+  const isHourList = function(val) {
+    
+    return isListTest(val, isHour);
+  }
+
+  const isHourRange = function(val) {
+    
+    return /^([0-9]|1[0-9]|2[0-3])[\-]([0-9]|1[0-9]|2[0-3])$/.test(val);
+  }
+
+  const isHourRangeList = function(val) {
+    
+    return isListTest(val, isHourRange);
+  }
+
+  const isHourRandomized = function(val) {
+    
+    return /^([0-9]|1[0-9]|2[0-3])[\~]([0-9]|1[0-9]|2[0-3])$/.test(val);
+  }
+
+  const isHourRandomizedList = function(val) {
+    
+    return isListTest(val, isHourRandomized);
+  }
+
+  const isMonthDayNumber = function(val) {
+
+    return /^([1-9]|1[0-9]|2[0-3]|3[0-1])$/.test(val);
+  }
+
+  const isMonthDayNumberList = function(val) {
+
+    return isListTest(val, isMonthDayNumber);
+  }
+
+  const isMonthDayNumberRange = function(val) {
+
+    return /^([1-9]|1[0-9]|2[0-3]|3[0-1])[\-]([1-9]|1[0-9]|2[0-3]|3[0-1])$/.test(val);
+  }
+
+  const isMonthDayNumberRangeList = function(val) {
+    
+    return isListTest(val, isMonthDayNumberRange);
+  }
+
+  const isMonthDayNumberRandomized = function(val) {
+
+    return /^([1-9]|1[0-9]|2[0-3]|3[0-1])[\~]([1-9]|1[0-9]|2[0-3]|3[0-1])$/.test(val);
+  }
+
+  const isMonthDayNumberRandomizedList = function(val) {
+    
+    return isListTest(val, isMonthDayNumberRandomized);
+  }
+
+  const isMonthNumber = function(val) {
+    
+    return /^([1-9]|1[0-2])$/.test(val);
+  }
+
+  const isMonthNumberList = function(val) {
+    
+    return isListTest(val, isMonthNumber);
+  }
+
+  const isMonthNumberRange = function(val) {
+
+    return /^([1-9]|1[0-2])[\-]([1-9]|1[0-2])$/.test(val);
+  }
+
+  const isMonthNumberRangeList = function(val) {
+    
+    return isListTest(val, isMonthNumberRange);
+  }
+
+  const isMonthNumberRandomized = function(val) {
+    
+    return /^([1-9]|1[0-2])[\~]([1-9]|1[0-2])$/.test(val);
+  }
+
+  const isMonthNumberRandomizedList = function(val) {
+    
+    return isListTest(val, isMonthNumberRandomized);
   }
 
   const isMonthName = function(val) {
     
-    return /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/.test(val)
+    return /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/.test(val);
   }
 
   const isMonthNameList = function(val) {
     
-    return false;
+    return isListTest(val, isMonthName);
   }
 
   const isMonthNameRange = function(val) {
     
-    return /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[\-](?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/.test(val)
+    return /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[\-](?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/.test(val);
   }
 
   const isMonthNameRangeList = function(val) {
     
-    return false;
+    return isListTest(val, isMonthNameRange);
   }
 
-  const isValid = function(val) {
+  const isMonthNameRandomized = function(val) {
+    
+    return /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[\~](?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)$/.test(val);
+  }
 
-    return (isWildcard(val) || isNumber(val) || isWildcardWithStep(val) || isRange(val) || isRangeWithStep(val) || isRandomized(val) || isRandomizedWithStep(val) || isList(val) || isListOfRanges(val));
+  const isMonthNameRandomizedList = function(val) {
+    
+    return isListTest(val, isMonthNameRandomized);
+  }
+
+  const isWeekDay = function(val) {
+    
+    return /^([0-6])$/.test(val);
+  }
+
+  const isWeekDayList = function(val) {
+    
+    return isListTest(val, isWeekDay);
+  }
+
+  const isWeekDayRange = function(val) {
+
+    return /^([0-6])[\-]([0-6])$/.test(val);
+  }
+
+  const isWeekDayRangeList = function(val) {
+    
+    return isListTest(val, isWeekDayRange);
+  }
+
+  const isWeekDayRandomized = function(val) {
+
+    return /^([0-6])[\~]([0-6])$/.test(val);
+  }
+
+  const isWeekDayRandomizedList = function(val) {
+    
+    return isListTest(val, isWeekDayRandomized);
+  }
+
+  const isWeekDayName = function(val) {
+    
+    return /^(?:MON|TUE|WED|THU|FRI|SAT|SUN)$/.test(val)
+  }
+
+  const isWeekDayNameList = function(val) {
+    
+    return isListTest(val, isWeekDayName);
+  }
+
+  const isWeekDayNameRange = function(val) {
+    
+    return /^(?:MON|TUE|WED|THU|FRI|SAT|SUN)[\-](?:MON|TUE|WED|THU|FRI|SAT|SUN)$/.test(val);
+  }
+
+  const isWeekDayNameRangeList = function(val) {
+    
+    return isListTest(val, isWeekDayNameRange );
+  }
+
+  const isWeekDayNameRandomized = function(val) {
+
+    return /^(?:MON|TUE|WED|THU|FRI|SAT|SUN)[\~](?:MON|TUE|WED|THU|FRI|SAT|SUN)$/.test(val);
+  }
+
+  const isWeekDayNameRandomizedList = function(val) {
+    
+    return isListTest(val, isWeekDayNameRandomized);
+  }
+
+  const isListTest = function(val, regexFunc) {
+
+    let isAllMonthNamesRange = false;
+
+    if(val.indexOf(',') > -1)
+    {
+      let temp = true;
+      let list = val.split(',');
+      for(let i = 0; i < list.length; i++)
+      {
+        if(!regexFunc(list[i]))
+        {
+          temp = false;
+        }
+      }
+      isAllMonthNamesRange = temp;
+    }
+    return isAllMonthNamesRange;
+  }
+
+  const isValidMinute = function(val) {
+    
+    return (isMinute(val) || isMinuteList(val) || isMinuteRange(val) || isMinuteRangeList(val) || isMinuteRandomized(val) || isMinuteRandomizedList(val));
+  }
+
+  const isValidHour = function(val) {
+    
+    return (isHour(val) || isHourList(val) || isHourRange(val) || isHourRangeList(val) || isHourRandomized(val) || isHourRandomizedList(val));
+  }
+
+  const isValidMonthDayNumber = function(val) {
+
+    return (isMonthDayNumber(val) || isMonthDayNumberList(val) || isMonthDayNumberRange(val) || isMonthDayNumberRangeList(val) || isMonthDayNumberRandomized(val) || isMonthDayNumberRandomizedList(val));
+  }
+
+  const isValidMonthNumber = function(val) {
+
+    return (isMonthNumber(val) || isMonthNumberList(val) || isMonthNumberRange(val) || isMonthNumberRangeList(val) || isMonthNumberRandomized(val) || isMonthNumberRandomizedList(val));
+  }
+
+  const isValidMonthName = function(val) {
+
+    return (isMonthName(val) || isMonthNameList(val) || isMonthNameRange(val) || isMonthNameRangeList(val) || isMonthNameRandomized(val) || isMonthNameRandomizedList(val));
+  }
+
+  const isValidWeekDay = function(val) {
+    
+    return (isWeekDay(val) || isWeekDayList(val) || isWeekDayRange(val) || isWeekDayRangeList(val) || isWeekDayRandomized(val) || isWeekDayRandomizedList(val));
+  }
+
+  const isValidWeekDayName = function(val) {
+    
+    return (isWeekDayName(val) || isWeekDayNameList(val) || isWeekDayNameRange(val) || isWeekDayNameRangeList(val) || isWeekDayNameRandomized(val) || isWeekDayNameRandomizedList(val));
   }
 
   const validateMinute = function(){
    
-    if(isValid(minute.value))
+    if(isWildcard(minute.value) || isWildcardWithStep(minute.value) || isValidMinute(minute.value))
     {
       minute.classList.remove("not-valid");
     }
@@ -302,7 +507,7 @@ nonav: true
 
   const validateHour = function() {
 
-    if(isValid(hour.value))
+    if(isWildcard(hour.value) || isWildcardWithStep(hour.value) || isValidHour(hour.value))
     {
       hour.classList.remove("not-valid");
     }
@@ -314,7 +519,7 @@ nonav: true
 
   const validateDayMonth = function() {
 
-    if(isValid(dayMonth.value))
+    if(isWildcard(dayMonth.value) || isWildcardWithStep(dayMonth.value) || isValidMonthDayNumber(dayMonth.value))
     {
       dayMonth.classList.remove("not-valid");
     }
@@ -326,7 +531,14 @@ nonav: true
 
   const validateMonth = function() {
 
-    if(isValid(month.value) || isMonthName(val) || isMonthNameRange(val) || isMonthNameList(val) || isMonthNameRange(val))
+    let usingMonthName = isValidMonthName(month.value);
+
+    if(usingMonthName)
+    {
+      // Non standard add warning
+    }
+
+    if(isWildcard(month.value) || isWildcardWithStep(month.value) || isValidMonthNumber(month.value) || usingMonthName)
     {
       month.classList.remove("not-valid");
     }
@@ -338,7 +550,7 @@ nonav: true
 
   const validateDayWeek = function() {
 
-    if(isValid(dayWeek.value))
+    if(isWildcard(dayWeek.value) || isWildcardWithStep(dayWeek.value) || isValidWeekDay(dayWeek.value) || isValidWeekDayName(dayWeek.value))
     {
       dayWeek.classList.remove("not-valid");
     }
