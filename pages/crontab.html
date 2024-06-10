@@ -194,7 +194,15 @@ nonav: true
             <p>L</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Last, Last day of month<br>Example 31 of December. We can offest the value L-1 would be 30th of December</p>
+            <p>Last day of month<br>Example 31 of December. We can offset the value L-1 would be 30th of December</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>#</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>N-th day of month. Can be used to specify a weekday in month<br>Example 1#3 is the third monday of the month.</p>
           </td>
         </tr>
       </table>
@@ -326,56 +334,97 @@ nonav: true
             <p>L</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Last of week, L would be Sunday. 0L is last Monday.</p>
+            <p>Last of week, L would be Sunday. 1L would be Monday (This may differ, Sunday is 7 on some systems and 0 on other.)</p>
           </td>
         </tr>
       </table>
     </div>
   </div>
   <div class="row bw mt-3">
-    <p class="mt-3">None Standard Options</p>
-    <p>The `@' commands that appear in place of the first five fields are extensions.</p>
-    <table class="table table-striped">
-      <tr>
-        <td class="col-sm-3">Value</td>
-        <td class="col-sm-9 text-left">Explanation</td>
-      </tr>
-      <tr>
-        <td class="col-sm-3">@reboot</td>
-        <td class="col-sm-9 text-left">Run once, at startup</td>
-      </tr>
-      <tr>
-        <td class="col-sm-3">@yearly</td>
-        <td class="col-sm-9 text-left">Run once a year, "0 0 1 1 *"</td>
-      </tr>
-      <tr>
-        <td class="col-sm-3">@annually</td>
-        <td class="col-sm-9 text-left">(same as @yearly)</td>
-      </tr>
-      <tr>
-        <td class="col-sm-3">@monthly</td>
-        <td class="col-sm-9 text-left">Run once a month, "0 0 1 * *"</td>
-      </tr>
-      <tr>
-        <td class="col-sm-3">@weekly</td>
-        <td class="col-sm-9 text-left">Run once a week, "0 0 * * 0"</td>
-      </tr>
-      <tr>
-        <td class="col-sm-3">@daily</td>
-        <td class="col-sm-9 text-left">Run once a day, "0 0 * * *"</td>
-      </tr>
-      <tr>
-        <td class="col-sm-3">@midnight</td>
-        <td class="col-sm-9 text-left">(same as @daily)</td>
-      </tr>
-      <tr>
-        <td class="col-sm-3">@hourly</td>
-        <td class="col-sm-9 text-left">Run once an hour, "0 * * * *"</td>
-      </tr>
-    </table>
-  </div>
-  <div class="row mt-3">
-    
+    <div class="col-sm-12 col-md-6">
+      <p class="mt-3">None Standard Options</p>
+      <p>The `@' commands that appear in place of the first five fields are extensions.</p>
+      <table class="table table-striped">
+        <tr>
+          <td class="col-sm-3">
+            <p>Value</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>Explanation</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>@reboot</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>Run once, at startup</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>@yearly</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>Run once a year, "0 0 1 1 *"</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>@annually</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>(same as @yearly)</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>@monthly</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>Run once a month, "0 0 1 * *"</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>@weekly</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>Run once a week, "0 0 * * 0"</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>@daily</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>Run once a day, "0 0 * * *"</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>@midnight</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>(same as @daily)</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>@hourly</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>Run once an hour, "0 * * * *"</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="col-sm-12 col-md-6">
+      <p class="mt-3">What is crontab</p>
+      <p class="mt-3">The crontab file contains instructions for the cron daemon. Every user have a their own crontab. These commands will be executed as the user. Rows that start with # are comments.</p>
+      <p class="mt-3">Access the crontab file with "$ crontab -e"</p>
+      <p class="mt-3">Root user can edit another users crontab file by adding the username ex: "$ crontab -e [username]"</p>
+    </div>
   </div>
 </div>
 <script>
@@ -396,6 +445,12 @@ nonav: true
   const dayMonthTxt = document.getElementById("day-month-txt");
   const monthTxt = document.getElementById("month-txt");
   const dayWeekTxt = document.getElementById("day-week-txt");
+
+  let queValidateMinute = null;
+  let queValidateHour = null;
+  let queValidateDayMonth = null;
+  let queValidateMonth = null;
+  let queValidateDayWeek = null;
 
   const hide = function() {
     minuteHeader.style.display = "none";
@@ -451,6 +506,7 @@ nonav: true
     isMonthDayNumberLast: /^L$/,
     isMonthDayNumberLastOffset: /^L[\-]([1-9]|1[0-9]|2[0-3]|3[0-1])$/,
     isMonthDayNumberWeekday: /^([1-9]|1[0-9]|2[0-3]|3[0-1])W$/,
+    isMonthDayNumberNthDay: /^([0-7])#([0-9])$/,
     isMonthDayNumberRange: /^([1-9]|1[0-9]|2[0-3]|3[0-1])[\-]([1-9]|1[0-9]|2[0-3]|3[0-1])$/,
     isMonthDayNumberRangeWithStep: /^([1-9]|1[0-9]|2[0-3]|3[0-1])[\-]([1-9]|1[0-9]|2[0-3]|3[0-1])[\/][0-9]+$/,
     isMonthDayNumberRandomized: /^([1-9]|1[0-9]|2[0-3]|3[0-1])[\~]([1-9]|1[0-9]|2[0-3]|3[0-1])$/,
@@ -623,6 +679,7 @@ nonav: true
 
     let isWildCardOrIsAny = testValueAgainstRegex(dayMonth.value, validationRegex.isWildcard) || testValueAgainstRegex(dayMonth.value, validationRegex.isWildcardWithStep) || testValueAgainstRegex(dayMonth.value, validationRegex.isAny);
     let isValidMonthDayNumberWeekday = false;
+    let isMonthDayNumberNthDay = false;
     let isMonthDayNumberLast = false;
     let isValidMonthDayNumber = false;
     let isValidMonthDayNumberRange = false;
@@ -639,21 +696,26 @@ nonav: true
 
     if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday) {
       
-      isValidMonthDayNumber = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumber) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumber) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized);
+      isMonthDayNumberNthDay = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberNthDay);
     }
 
-    if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday && !isValidMonthDayNumber) {
+    if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday && !isMonthDayNumberNthDay) {
+
+      isValidMonthDayNumber = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumber) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumber);
+    }
+
+    if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday && !isMonthDayNumberNthDay && !isValidMonthDayNumber) {
       
       isValidMonthDayNumberRange = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized);
     }
 
-    if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday && !isValidMonthDayNumber && isValidMonthDayNumberRange) {
+    if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday && !isMonthDayNumberNthDay && !isValidMonthDayNumber && isValidMonthDayNumberRange) {
 
       // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
       isValidMonthDayNumberRange = isRangeListInAscendingOrder(dayMonth.value, '-') || isRangeListInAscendingOrder(dayMonth.value, '~') || isRangeInAscendingOrder(dayMonth.value, '-') || isRangeInAscendingOrder(dayMonth.value, '~');
     }
 
-    if(isWildCardOrIsAny || isMonthDayNumberLast || isValidMonthDayNumberWeekday || isValidMonthDayNumber || isValidMonthDayNumberRange)
+    if(isWildCardOrIsAny || isMonthDayNumberLast || isValidMonthDayNumberWeekday || isMonthDayNumberNthDay || isValidMonthDayNumber || isValidMonthDayNumberRange)
     {
       dayMonth.classList.remove("not-valid");
     }
@@ -760,10 +822,11 @@ nonav: true
     show("minute");
   });
 
-  minute.addEventListener("change", function () {
+  minute.addEventListener("keyup", function () {
     hide();
     show("minute");
-    validateMinute();
+    clearTimeout(queValidateMinute);
+    queValidateMinute = setTimeout(validateMinute, 500);
   });
 
   hour.addEventListener("focus", function () {
@@ -771,10 +834,11 @@ nonav: true
     show("hour");
   });
 
-  hour.addEventListener("change", function () {
+  hour.addEventListener("keyup", function () {
     hide();
     show("hour");
-    validateHour();
+    clearTimeout(queValidateHour);
+    queValidateHour = setTimeout(validateHour, 500);
   });
 
   dayMonth.addEventListener("focus", function () {
@@ -782,10 +846,11 @@ nonav: true
     show("day-month");
   });
 
-  dayMonth.addEventListener("change", function () {
+  dayMonth.addEventListener("keyup", function () {
     hide();
     show("day-month");
-    validateDayMonth();
+    clearTimeout(queValidateDayMonth);
+    queValidateDayMonth = setTimeout(validateDayMonth, 500);
   });
 
   month.addEventListener("focus", function () {
@@ -793,10 +858,11 @@ nonav: true
     show("month");
   });
 
-  month.addEventListener("change", function () {
+  month.addEventListener("keyup", function () {
     hide();
     show("month");
-    validateMonth();
+    clearTimeout(queValidateMonth);
+    queValidateMonth = setTimeout(validateMonth, 500);
   });
 
   dayWeek.addEventListener("focus", function () {
@@ -804,9 +870,10 @@ nonav: true
     show("day-week");
   });
 
-  dayWeek.addEventListener("change", function () {
+  dayWeek.addEventListener("keyup", function () {
     hide();
     show("day-week");
-    validateDayWeek();
+    clearTimeout(queValidateDayWeek);
+    queValidateDayWeek = setTimeout(validateDayWeek, 500);
   });
 </script>
