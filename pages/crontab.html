@@ -446,132 +446,38 @@ nonav: true
   const monthTxt = document.getElementById("month-txt");
   const dayWeekTxt = document.getElementById("day-week-txt");
 
-  let queValidateMinute = null;
-  let queValidateHour = null;
-  let queValidateDayMonth = null;
-  let queValidateMonth = null;
-  let queValidateDayWeek = null;
-
-  const hide = function() {
-
-    minuteHeader.style.display = "none";
-    hourHeader.style.display = "none";
-    dayMonthHeader.style.display = "none";
-    monthHeader.style.display = "none";
-    dayWeekHeader.style.display = "none";
-    minuteTxt.style.display = "none";
-    hourTxt.style.display = "none";
-    dayMonthTxt.style.display = "none";
-    monthTxt.style.display = "none";
-    dayWeekTxt.style.display = "none";
-  }
-
-  const show = function(option) {
-
-    switch (option) {
-      case "minute":
-        minuteHeader.style.display = "block";
-        minuteTxt.style.display = "block";
-        break;
-      case "hour":
-        hourHeader.style.display = "block";
-        hourTxt.style.display = "block";
-        break;
-      case "day-month":
-        dayMonthHeader.style.display = "block";
-        dayMonthTxt.style.display = "block";
-        break;
-      case "month":
-        monthHeader.style.display = "block";
-        monthTxt.style.display = "block";
-        break;
-      case "day-week":
-        dayWeekHeader.style.display = "block";
-        dayWeekTxt.style.display = "block";
-    }
-  }
-
-  const translateMonthName = function(option) {
-
-    let monthNumber = 1;
-    switch (option) {
-      case "JAN":
-        monthNumber = 1;
-        break;
-      case "FEB":
-        monthNumber = 2;
-        break;
-      case "MAR":
-        monthNumber = 3;
-        break;
-      case "APR":
-        monthNumber = 4;
-        break;
-      case "MAY":
-        monthNumber = 5;
-        break;
-      case "JUN":
-        monthNumber = 6;
-        break;
-      case "JUL":
-        monthNumber = 7;
-        break;
-      case "AUG":
-        monthNumber = 8;
-        break;
-      case "SEP":
-        monthNumber = 9;
-        break;
-      case "OCT":
-        monthNumber = 10;
-        break;
-      case "NOV":
-        monthNumber = 11;
-        break;
-      case "DEC":
-        monthNumber = 12;
-        break;
-    }
-    return monthNumber;
-  }
-
-  const translateWeekName = function(option) {
-
-    let weekNumber = 1;
-    switch (option) {
-      case "MON":
-        weekNumber = 1;
-        break;
-      case "TUE":
-        weekNumber = 2;
-        break;
-      case "WED":
-        weekNumber = 3;
-        break;
-      case "THU":
-        weekNumber = 4;
-        break;
-      case "FRI":
-        weekNumber = 5;
-        break;
-      case "SAT":
-        weekNumber = 6;
-        break;
-      case "SUN":
-        weekNumber = 7;
-        break;
-    }
-    return weekNumber;
-  }
-
   const rangeType = {
     NUMBER: "NUMBER",
     WEEKDAYNAME: "WEEKDAYNAME",
     MONTHNAME: "MONTHNAME"
   }
 
-  const validationRegex = {
+  const monthName = {
+    JAN: "JAN",
+    FEB: "FEB",
+    MAR: "MAR",
+    APR: "APR",
+    MAY: "MAY",
+    JUN: "JUN",
+    JUL: "JUL",
+    AUG: "AUG",
+    SEP: "SEP",
+    OCT: "OCT",
+    NOV: "NOV",
+    DEC: "DEC"
+  }
 
+  const weekName = {
+    MON: "MON",
+    TUE: "TUE",
+    WED: "WED",
+    THU: "THU",
+    FRI: "FRI",
+    SAT: "SAT",
+    SUN: "SUN"
+  }
+
+  const validationRegex = {
     isWildcard: /^([\*])$/,
     isWildcardWithStep: /^([\*][\/][0-9]+)$/,
     isAny: /^([\?])$/,
@@ -611,23 +517,138 @@ nonav: true
     isWeekDayNameRandomized: /^(?:MON|TUE|WED|THU|FRI|SAT|SUN)[\~](?:MON|TUE|WED|THU|FRI|SAT|SUN)$/
   }
 
-  const testValueAgainstRegex = function(val, regex) {
+  let queValidateMinute = null;
+  let queValidateHour = null;
+  let queValidateDayMonth = null;
+  let queValidateMonth = null;
+  let queValidateDayWeek = null;
+
+  const hide = function () {
+
+    minuteHeader.style.display = "none";
+    hourHeader.style.display = "none";
+    dayMonthHeader.style.display = "none";
+    monthHeader.style.display = "none";
+    dayWeekHeader.style.display = "none";
+    minuteTxt.style.display = "none";
+    hourTxt.style.display = "none";
+    dayMonthTxt.style.display = "none";
+    monthTxt.style.display = "none";
+    dayWeekTxt.style.display = "none";
+  }
+
+  const show = function (option) {
+
+    switch (option) {
+      case "minute":
+        minuteHeader.style.display = "block";
+        minuteTxt.style.display = "block";
+        break;
+      case "hour":
+        hourHeader.style.display = "block";
+        hourTxt.style.display = "block";
+        break;
+      case "day-month":
+        dayMonthHeader.style.display = "block";
+        dayMonthTxt.style.display = "block";
+        break;
+      case "month":
+        monthHeader.style.display = "block";
+        monthTxt.style.display = "block";
+        break;
+      case "day-week":
+        dayWeekHeader.style.display = "block";
+        dayWeekTxt.style.display = "block";
+    }
+  }
+
+  const translateMonthName = function (option) {
+
+    let monthNumber = 1;
+    switch (option) {
+      case monthName.JAN:
+        monthNumber = 1;
+        break;
+      case monthName: FEB:
+        monthNumber = 2;
+        break;
+      case monthName.MAR:
+        monthNumber = 3;
+        break;
+      case monthName.APR:
+        monthNumber = 4;
+        break;
+      case monthName.MAY:
+        monthNumber = 5;
+        break;
+      case monthName.JUN:
+        monthNumber = 6;
+        break;
+      case monthName.JUL:
+        monthNumber = 7;
+        break;
+      case monthName.AUG:
+        monthNumber = 8;
+        break;
+      case monthName.SEP:
+        monthNumber = 9;
+        break;
+      case monthName.OCT:
+        monthNumber = 10;
+        break;
+      case monthName.NOV:
+        monthNumber = 11;
+        break;
+      case monthName.DEC:
+        monthNumber = 12;
+        break;
+    }
+    return monthNumber;
+  }
+
+  const translateWeekName = function (option) {
+
+    let weekNumber = 1;
+    switch (option) {
+      case weekName.MON:
+        weekNumber = 1;
+        break;
+      case weekName.TUE:
+        weekNumber = 2;
+        break;
+      case weekName.WED:
+        weekNumber = 3;
+        break;
+      case weekName.THU:
+        weekNumber = 4;
+        break;
+      case weekName.FRI:
+        weekNumber = 5;
+        break;
+      case weekName.SAT:
+        weekNumber = 6;
+        break;
+      case weekName.SUN:
+        weekNumber = 0;
+        break;
+    }
+    return weekNumber;
+  }
+
+  const testValueAgainstRegex = function (val, regex) {
 
     return regex.test(val);
   }
 
-  const isValueListOfRegex = function(val, regex) {
+  const isValueListOfRegex = function (val, regex) {
 
     let allItemsMatchRegex = false;
 
-    if(val.indexOf(',') > -1)
-    {
+    if (val.indexOf(',') > -1) {
       let temp = true;
       let list = val.split(',');
-      for(let i = 0; i < list.length; i++)
-      {
-        if(!regex.test(list[i]))
-        {
+      for (let i = 0; i < list.length; i++) {
+        if (!regex.test(list[i])) {
           temp = false;
           break;
         }
@@ -637,65 +658,54 @@ nonav: true
     return allItemsMatchRegex;
   }
 
-  const splitRangeToObject = function(val, divider) {
+  const splitRangeToObject = function (val, divider) {
 
     let values = null;
 
-    if(val.indexOf(divider) > -1)
-    {
+    if (val.indexOf(divider) > -1) {
       let rangeValues = {};
       let items = val.split(divider);
 
-      if(items.length == 2)
-      {
+      if (items.length == 2) {
         rangeValues['first'] = items[0];
         rangeValues['last'] = items[1];
       }
 
       let temp = rangeValues['last'].split("/");
 
-      if(temp.length == 2)
-      {
+      if (temp.length == 2) {
         rangeValues['last'] = temp[0];
         rangeValues['step'] = temp[1];
       }
 
-      if(rangeValues['first'] && rangeValues['last'])
-      {
+      if (rangeValues['first'] && rangeValues['last']) {
         values = rangeValues;
       }
     }
     return values;
   }
 
-  const isRangeInAscendingOrder = function(val, divider, type = "NUMBER") {
+  const isRangeInAscendingOrder = function (val, divider, type = "NUMBER") {
 
     let isAsc = false;
 
     let rangeValues = splitRangeToObject(val, divider);
 
-    if(type == rangeType.MONTHNAME && rangeValues !== null)
-    {
+    if (type == rangeType.MONTHNAME && rangeValues !== null) {
       rangeValues['first'] = translateMonthName(rangeValues['first']);
       rangeValues['last'] = translateMonthName(rangeValues['last']);
     }
 
-    if(type == rangeType.WEEKDAYNAME && rangeValues !== null)
-    {
+    if (type == rangeType.WEEKDAYNAME && rangeValues !== null) {
       rangeValues['first'] = translateWeekName(rangeValues['first']);
       rangeValues['last'] = translateWeekName(rangeValues['last']);
     }
 
-    console.log("rangeValues");
-    console.log(rangeValues);
-
-    if(rangeValues !== null)
-    {
+    if (rangeValues !== null) {
       rangeValues['first'] = parseInt(rangeValues['first']);
       rangeValues['last'] = parseInt(rangeValues['last']);
 
-      if(rangeValues['first'] !== NaN && rangeValues['last'] !== NaN && rangeValues['first'] <= rangeValues['last'])
-      {
+      if (rangeValues['first'] !== NaN && rangeValues['last'] !== NaN && rangeValues['first'] <= rangeValues['last']) {
         isAsc = true;
       }
     }
@@ -703,18 +713,15 @@ nonav: true
     return isAsc;
   }
 
-  const isRangeListInAscendingOrder = function(val, divider, type = "NUMBER") {
+  const isRangeListInAscendingOrder = function (val, divider, type = "NUMBER") {
 
     let allItemsAreInAscOrder = false;
 
-    if(val.indexOf(',') > -1)
-    {
+    if (val.indexOf(',') > -1) {
       let temp = true;
       let list = val.split(',');
-      for(let i = 0; i < list.length; i++)
-      {
-        if(!isRangeInAscendingOrder(list[i], divider, type))
-        {
+      for (let i = 0; i < list.length; i++) {
+        if (!isRangeInAscendingOrder(list[i], divider, type)) {
           temp = false;
           break;
         }
@@ -724,221 +731,169 @@ nonav: true
     return allItemsAreInAscOrder;
   }
 
-  const validateMinute = function(){
+  const validateMinute = function () {
 
-    let isWildCard = testValueAgainstRegex(minute.value, validationRegex.isWildcard) || testValueAgainstRegex(minute.value, validationRegex.isWildcardWithStep);
-    let isValidMinute = false;
-    let isValidMinuteRange = false;
+    let isValid = testValueAgainstRegex(minute.value, validationRegex.isWildcard) || testValueAgainstRegex(minute.value, validationRegex.isWildcardWithStep);
 
-    if(!isWildCard) {
-
-      isValidMinute = testValueAgainstRegex(minute.value, validationRegex.isMinute) || isValueListOfRegex(minute.value, validationRegex.isMinute);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(minute.value, validationRegex.isMinute) || isValueListOfRegex(minute.value, validationRegex.isMinute);
     }
 
-    if(!isWildCard && !isValidMinute) {
-      
-      isValidMinuteRange = testValueAgainstRegex(minute.value, validationRegex.isMinuteRange) || isValueListOfRegex(minute.value, validationRegex.isMinuteRange) || testValueAgainstRegex(minute.value, validationRegex.isMinuteRangeWithStep) || isValueListOfRegex(minute.value, validationRegex.isMinuteRangeWithStep) || testValueAgainstRegex(minute.value, validationRegex.isMinuteRandomized) || isValueListOfRegex(minute.value, validationRegex.isMinuteRandomized);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(minute.value, validationRegex.isMinuteRange) || isValueListOfRegex(minute.value, validationRegex.isMinuteRange) || testValueAgainstRegex(minute.value, validationRegex.isMinuteRangeWithStep) || isValueListOfRegex(minute.value, validationRegex.isMinuteRangeWithStep) || testValueAgainstRegex(minute.value, validationRegex.isMinuteRandomized) || isValueListOfRegex(minute.value, validationRegex.isMinuteRandomized);
+
+      if (isValid) {
+        // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
+        isValid = isRangeListInAscendingOrder(minute.value, '-') || isRangeListInAscendingOrder(minute.value, '~') || isRangeInAscendingOrder(minute.value, '-') || isRangeInAscendingOrder(minute.value, '~');
+      }
     }
 
-    if(!isWildCard && !isValidMinute && isValidMinuteRange) {
-
-      // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
-      isValidMinuteRange = isRangeListInAscendingOrder(minute.value, '-') || isRangeListInAscendingOrder(minute.value, '~') || isRangeInAscendingOrder(minute.value, '-') || isRangeInAscendingOrder(minute.value, '~');
-    }
-
-    if(isWildCard || isValidMinute || isValidMinuteRange)
-    {
+    if (isValid) {
       minute.classList.remove("not-valid");
     }
-    else
-    {
+    else {
       minute.classList.add("not-valid");
     }
   }
 
-  const validateHour = function() {
+  const validateHour = function () {
 
-    let isWildCard = testValueAgainstRegex(hour.value, validationRegex.isWildcard) || testValueAgainstRegex(hour.value, validationRegex.isWildcardWithStep);
-    let isValidHour = false;
-    let isValidHourRange = false;
+    let isValid = testValueAgainstRegex(hour.value, validationRegex.isWildcard) || testValueAgainstRegex(hour.value, validationRegex.isWildcardWithStep);
 
-    if(!isWildCard) {
-
-      isValidHour = testValueAgainstRegex(hour.value, validationRegex.isHour) || isValueListOfRegex(hour.value, validationRegex.isHour);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(hour.value, validationRegex.isHour) || isValueListOfRegex(hour.value, validationRegex.isHour);
     }
 
-    if(!isWildCard && !isValidHour) {
-      
-      isValidHourRange = testValueAgainstRegex(hour.value, validationRegex.isHourRange) || isValueListOfRegex(hour.value, validationRegex.isHourRange) || testValueAgainstRegex(hour.value, validationRegex.isHourRangeWithStep) || isValueListOfRegex(hour.value, validationRegex.isHourRangeWithStep) || testValueAgainstRegex(hour.value, validationRegex.isHourRandomized) || isValueListOfRegex(hour.value, validationRegex.isHourRandomized);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(hour.value, validationRegex.isHourRange) || isValueListOfRegex(hour.value, validationRegex.isHourRange) || testValueAgainstRegex(hour.value, validationRegex.isHourRangeWithStep) || isValueListOfRegex(hour.value, validationRegex.isHourRangeWithStep) || testValueAgainstRegex(hour.value, validationRegex.isHourRandomized) || isValueListOfRegex(hour.value, validationRegex.isHourRandomized);
+
+      if (isValid) {
+        // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
+        isValidHourRange = isRangeListInAscendingOrder(hour.value, '-') || isRangeListInAscendingOrder(hour.value, '~') || isRangeInAscendingOrder(hour.value, '-') || isRangeInAscendingOrder(hour.value, '~');
+      }
     }
 
-    if(!isWildCard && !isValidHour && isValidHourRange) {
-
-      // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
-      isValidHourRange = isRangeListInAscendingOrder(hour.value, '-') || isRangeListInAscendingOrder(hour.value, '~') || isRangeInAscendingOrder(hour.value, '-') || isRangeInAscendingOrder(hour.value, '~');
-    }
-
-    if(isWildCard || isValidHour || isValidHourRange)
-    {
+    if (isValid) {
       hour.classList.remove("not-valid");
     }
-    else
-    {
+    else {
       hour.classList.add("not-valid");
     }
   }
 
-  const validateDayMonth = function() {
+  const validateDayMonth = function () {
 
-    let isWildCardOrIsAny = testValueAgainstRegex(dayMonth.value, validationRegex.isWildcard) || testValueAgainstRegex(dayMonth.value, validationRegex.isWildcardWithStep) || testValueAgainstRegex(dayMonth.value, validationRegex.isAny);
-    let isValidMonthDayNumberWeekday = false;
-    let isMonthDayNumberNthDay = false;
-    let isMonthDayNumberLast = false;
-    let isValidMonthDayNumber = false;
-    let isValidMonthDayNumberRange = false;
+    let isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isWildcard) || testValueAgainstRegex(dayMonth.value, validationRegex.isWildcardWithStep) || testValueAgainstRegex(dayMonth.value, validationRegex.isAny);
 
-    if(!isWildCardOrIsAny) {
-
-      isMonthDayNumberLast = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberLast) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberLastOffset);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberLast) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberLastOffset);
     }
 
-    if(!isWildCardOrIsAny && !isMonthDayNumberLast) {
-      
-      isValidMonthDayNumberWeekday = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberWeekday);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberWeekday);
     }
 
-    if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday) {
-      
-      isMonthDayNumberNthDay = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberNthDay);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberNthDay);
     }
 
-    if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday && !isMonthDayNumberNthDay) {
-
-      isValidMonthDayNumber = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumber) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumber);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumber) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumber);
     }
 
-    if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday && !isMonthDayNumberNthDay && !isValidMonthDayNumber) {
-      
-      isValidMonthDayNumberRange = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized);
+
+      if (isValid) {
+        // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
+        isValid = isRangeListInAscendingOrder(dayMonth.value, '-') || isRangeListInAscendingOrder(dayMonth.value, '~') || isRangeInAscendingOrder(dayMonth.value, '-') || isRangeInAscendingOrder(dayMonth.value, '~');
+      }
     }
 
-    if(!isWildCardOrIsAny && !isMonthDayNumberLast && !isValidMonthDayNumberWeekday && !isMonthDayNumberNthDay && !isValidMonthDayNumber && isValidMonthDayNumberRange) {
-
-      // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
-      isValidMonthDayNumberRange = isRangeListInAscendingOrder(dayMonth.value, '-') || isRangeListInAscendingOrder(dayMonth.value, '~') || isRangeInAscendingOrder(dayMonth.value, '-') || isRangeInAscendingOrder(dayMonth.value, '~');
-    }
-
-    if(isWildCardOrIsAny || isMonthDayNumberLast || isValidMonthDayNumberWeekday || isMonthDayNumberNthDay || isValidMonthDayNumber || isValidMonthDayNumberRange)
-    {
+    if (isValid) {
       dayMonth.classList.remove("not-valid");
     }
-    else
-    {
+    else {
       dayMonth.classList.add("not-valid");
     }
   }
 
-  const validateMonth = function() {
+  const validateMonth = function () {
 
-    let isWildCard = testValueAgainstRegex(month.value, validationRegex.isWildcard) || testValueAgainstRegex(month.value, validationRegex.isWildcardWithStep);
-    let isValidMonthNumber = false;
-    let isValidMonthNumberRange = false;
-    let isValidMonthName = false;
-    let isValidMonthNameRange = false;
+    let isValid = testValueAgainstRegex(month.value, validationRegex.isWildcard) || testValueAgainstRegex(month.value, validationRegex.isWildcardWithStep);
 
-    if(!isWildCard) {
+    if (!isValid) {
 
-      isValidMonthNumber = testValueAgainstRegex(month.value, validationRegex.isMonthNumber) || isValueListOfRegex(month.value, validationRegex.isMonthNumber);
+      isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNumber) || isValueListOfRegex(month.value, validationRegex.isMonthNumber);
     }
 
-    if(!isWildCard && !isValidMonthNumber) {
-      
-      isValidMonthNumberRange = testValueAgainstRegex(month.value, validationRegex.isMonthNumberRange) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRange) || testValueAgainstRegex(month.value, validationRegex.isMonthNumberRangeWithStep) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRangeWithStep) || testValueAgainstRegex(month.value, validationRegex.isMonthNumberRandomized) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRandomized);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNumberRange) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRange) || testValueAgainstRegex(month.value, validationRegex.isMonthNumberRangeWithStep) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRangeWithStep) || testValueAgainstRegex(month.value, validationRegex.isMonthNumberRandomized) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRandomized);
+
+      if (isValid) {
+        // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
+        isValidMonthNumberRange = isRangeListInAscendingOrder(month.value, '-') || isRangeListInAscendingOrder(month.value, '~') || isRangeInAscendingOrder(month.value, '-') || isRangeInAscendingOrder(month.value, '~');
+      }
     }
 
-    if(!isWildCard && !isValidMonthNumber && isValidMonthNumberRange) {
-
-      // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
-      isValidMonthNumberRange = isRangeListInAscendingOrder(month.value, '-') || isRangeListInAscendingOrder(month.value, '~') || isRangeInAscendingOrder(month.value, '-') || isRangeInAscendingOrder(month.value, '~');
+    if (!isValid) {
+      isValid = testValueAgainstRegex(month.value, validationRegex.isMonthName) || isValueListOfRegex(month.value, validationRegex.isMonthName);
     }
 
-    if(!isWildCard && !isValidMonthNumber && !isValidMonthNumberRange) {
+    if (!isValid) {
+      isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNameRange) || isValueListOfRegex(month.value, validationRegex.isMonthNameRange) || testValueAgainstRegex(month.value, validationRegex.isMonthNameRangeWithStep) || isValueListOfRegex(month.value, validationRegex.isMonthNameRangeWithStep) || testValueAgainstRegex(month.value, validationRegex.isMonthNameRandomized) || isValueListOfRegex(month.value, validationRegex.isMonthNameRandomized);
 
-      isValidMonthName = testValueAgainstRegex(month.value, validationRegex.isMonthName) || isValueListOfRegex(month.value, validationRegex.isMonthName);
+      if (isValid) {
+        isValidMonthNameRange = isRangeInAscendingOrder(month.value, '-', rangeType.MONTHNAME) || isRangeListInAscendingOrder(month.value, '~', rangeType.MONTHNAME) || isRangeInAscendingOrder(month.value, '-', rangeType.MONTHNAME) || isRangeInAscendingOrder(month.value, '~', rangeType.MONTHNAME);
+      }
     }
 
-    if(!isWildCard && !isValidMonthNumber && !isValidMonthNumberRange && !isValidMonthName) {
-
-      isValidMonthNameRange = testValueAgainstRegex(month.value, validationRegex.isMonthNameRange) || isValueListOfRegex(month.value, validationRegex.isMonthNameRange) || testValueAgainstRegex(month.value, validationRegex.isMonthNameRangeWithStep) || isValueListOfRegex(month.value, validationRegex.isMonthNameRangeWithStep) || testValueAgainstRegex(month.value, validationRegex.isMonthNameRandomized) || isValueListOfRegex(month.value, validationRegex.isMonthNameRandomized);
-    }
-
-    if(isValidMonthNameRange)
-    {
-      isValidMonthNameRange = isRangeInAscendingOrder(month.value, '-', rangeType.MONTHNAME) || isRangeListInAscendingOrder(month.value, '~', rangeType.MONTHNAME) || isRangeInAscendingOrder(month.value, '-', rangeType.MONTHNAME) || isRangeInAscendingOrder(month.value, '~', rangeType.MONTHNAME);
-      // Non standard add warning
-    }
-
-    if(isWildCard || isValidMonthNumber || isValidMonthNumberRange || isValidMonthName || isValidMonthNameRange)
-    {
+    if (isValid) {
       month.classList.remove("not-valid");
     }
-    else
-    {
+    else {
       month.classList.add("not-valid");
     }
   }
 
-  const validateDayWeek = function() {
+  const validateDayWeek = function () {
 
-    let isWildCardOrIsAny = testValueAgainstRegex(dayWeek.value, validationRegex.isWildcard) || testValueAgainstRegex(dayWeek.value, validationRegex.isWildcardWithStep) || testValueAgainstRegex(dayWeek.value, validationRegex.isAny);
-    let isWeekDayNumberLast = false;
-    let isValidWeekDay = false;
-    let isValidWeekDayRange = false;
-    let isValidWeekDayName = false;
-    let isValidWeekDayNameRange = false;
+    let isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWildcard) || testValueAgainstRegex(dayWeek.value, validationRegex.isWildcardWithStep) || testValueAgainstRegex(dayWeek.value, validationRegex.isAny);
 
-    if(!isWildCardOrIsAny) {
-
-      isWeekDayNumberLast = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberLast) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberLastOffset);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberLast) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberLastOffset);
     }
 
-    if(!isWildCardOrIsAny && !isWeekDayNumberLast) {
-
-      isValidWeekDay = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumber) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumber);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumber) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumber);
     }
 
-    if(!isWildCardOrIsAny && !isWeekDayNumberLast && !isValidWeekDay) {
-      
-      isValidWeekDayRange = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRange) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRange) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRangeWithStep) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRangeWithStep) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRandomized) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRandomized);
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRange) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRange) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRangeWithStep) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRangeWithStep) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRandomized) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRandomized);
+
+      if (isValid) {
+        // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
+        isValid = isRangeListInAscendingOrder(dayWeek.value, '-') || isRangeListInAscendingOrder(dayWeek.value, '~') || isRangeInAscendingOrder(dayWeek.value, '-') || isRangeInAscendingOrder(dayWeek.value, '~');
+      }
     }
 
-    if(!isWildCardOrIsAny && !isWeekDayNumberLast && !isValidWeekDay && isValidWeekDayRange) {
-
-      // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
-      isValidWeekDayRange = isRangeListInAscendingOrder(dayWeek.value, '-') || isRangeListInAscendingOrder(dayWeek.value, '~') || isRangeInAscendingOrder(dayWeek.value, '-') || isRangeInAscendingOrder(dayWeek.value, '~');
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayName) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayName);
     }
 
-    if(!isWildCardOrIsAny && !isWeekDayNumberLast && !isValidWeekDay && !isValidWeekDayRange) {
+    if (!isValid) {
+      isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRange) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRange) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRangeWithStep) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRangeWithStep) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRandomized) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRandomized);
 
-      isValidWeekDayName = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayName) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayName);
+      if (isValid) {
+        // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
+        isValid = isRangeInAscendingOrder(dayWeek.value, '-', rangeType.WEEKDAYNAME) || isRangeListInAscendingOrder(dayWeek.value, '~', rangeType.WEEKDAYNAME) || isRangeInAscendingOrder(dayWeek.value, '-', rangeType.WEEKDAYNAME) || isRangeInAscendingOrder(dayWeek.value, '~', rangeType.WEEKDAYNAME);
+      }
     }
 
-    if(!isWildCardOrIsAny && !isWeekDayNumberLast && !isValidWeekDay && !isValidWeekDayRange && !isValidWeekDayName)
-    {
-      isValidWeekDayNameRange = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRange) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRange) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRangeWithStep) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRangeWithStep) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRandomized) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRandomized);
-    }
-
-    if(isValidWeekDayNameRange)
-    {
-      isValidWeekDayNameRange = isRangeInAscendingOrder(dayWeek.value, '-', rangeType.WEEKDAYNAME) || isRangeListInAscendingOrder(dayWeek.value, '~', rangeType.WEEKDAYNAME) || isRangeInAscendingOrder(dayWeek.value, '-', rangeType.WEEKDAYNAME) || isRangeInAscendingOrder(dayWeek.value, '~', rangeType.WEEKDAYNAME);
-    }
-    
-    if(isWildCardOrIsAny || isWeekDayNumberLast || isValidWeekDay || isValidWeekDayRange || isValidWeekDayName || isValidWeekDayNameRange)
-    {
+    if (isValid) {
       dayWeek.classList.remove("not-valid");
     }
-    else
-    {
+    else {
       dayWeek.classList.add("not-valid");
     }
   }
