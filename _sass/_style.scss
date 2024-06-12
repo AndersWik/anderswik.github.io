@@ -314,6 +314,10 @@ footer {
 	p.header {
 		font-size: 25px;
 	}
+	.vertical-align {
+		display: table-cell;
+    	vertical-align: middle;
+	}
 	table td.text-left {
 		text-align: left;
 	}

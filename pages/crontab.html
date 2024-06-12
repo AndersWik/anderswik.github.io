@@ -13,7 +13,7 @@ nonav: true
   </div>
   <div class="row mt-3">
     <div class="col-sm-12">
-      <div class="col-sm-12 rounded bw">
+      <div class="col-sm-12 rounded bw vertical-align">
         <input class="text-center" type="text" name="input" value="*" id="minute">
         <input class="text-center" type="text" name="input" value="*" id="hour">
         <input class="text-center" type="text" name="input" value="*" id="day-month">
@@ -467,7 +467,7 @@ nonav: true
     DEC: "DEC"
   }
 
-  const weekName = {
+  const weekDayName = {
     MON: "MON",
     TUE: "TUE",
     WED: "WED",
@@ -477,13 +477,21 @@ nonav: true
     SUN: "SUN"
   }
 
+  const fieldName = {
+    MINUTE: "minute",
+    HOUR: "hour",
+    DAYMONTH: "day-month",
+    MONTH: "month",
+    DAYWEEK: "day-week"
+  }
+
   const validationRegex = {
     isWildcard: /^([\*])$/,
     isWildcardWithStep: /^([\*][\/][0-9]+)$/,
     isAny: /^([\?])$/,
     isMinute: /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])$/,
     isMinuteRange: /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])[\-]([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])$/,
-    isMinuteRangeWithStep: /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])[\-]([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])[\/][0-9]+$/,
+    isMinuteRangeWithStep: /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])([\-])([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])([\/][0-9]+)$/,
     isMinuteRandomized: /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])[\~]([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0])$/,
     isHour: /^([0-9]|1[0-9]|2[0-3])$/,
     isHourRange: /^([0-9]|1[0-9]|2[0-3])[\-]([0-9]|1[0-9]|2[0-3])$/,
@@ -540,23 +548,23 @@ nonav: true
   const show = function (option) {
 
     switch (option) {
-      case "minute":
+      case fieldName.MINUTE:
         minuteHeader.style.display = "block";
         minuteTxt.style.display = "block";
         break;
-      case "hour":
+      case fieldName.HOUR:
         hourHeader.style.display = "block";
         hourTxt.style.display = "block";
         break;
-      case "day-month":
+      case fieldName.DAYMONTH:
         dayMonthHeader.style.display = "block";
         dayMonthTxt.style.display = "block";
         break;
-      case "month":
+      case fieldName.MONTH:
         monthHeader.style.display = "block";
         monthTxt.style.display = "block";
         break;
-      case "day-week":
+      case fieldName.DAYWEEK:
         dayWeekHeader.style.display = "block";
         dayWeekTxt.style.display = "block";
     }
@@ -569,7 +577,7 @@ nonav: true
       case monthName.JAN:
         monthNumber = 1;
         break;
-      case monthName: FEB:
+      case monthName.FEB:
         monthNumber = 2;
         break;
       case monthName.MAR:
@@ -610,25 +618,25 @@ nonav: true
 
     let weekNumber = 1;
     switch (option) {
-      case weekName.MON:
+      case weekDayName.MON:
         weekNumber = 1;
         break;
-      case weekName.TUE:
+      case weekDayName.TUE:
         weekNumber = 2;
         break;
-      case weekName.WED:
+      case weekDayName.WED:
         weekNumber = 3;
         break;
-      case weekName.THU:
+      case weekDayName.THU:
         weekNumber = 4;
         break;
-      case weekName.FRI:
+      case weekDayName.FRI:
         weekNumber = 5;
         break;
-      case weekName.SAT:
+      case weekDayName.SAT:
         weekNumber = 6;
         break;
-      case weekName.SUN:
+      case weekDayName.SUN:
         weekNumber = 0;
         break;
     }
@@ -709,7 +717,6 @@ nonav: true
         isAsc = true;
       }
     }
-
     return isAsc;
   }
 
@@ -900,60 +907,60 @@ nonav: true
 
   minute.addEventListener("focus", function () {
     hide();
-    show("minute");
+    show(fieldName.MINUTE);
   });
 
   minute.addEventListener("keyup", function () {
     hide();
-    show("minute");
+    show(fieldName.MINUTE);
     clearTimeout(queValidateMinute);
     queValidateMinute = setTimeout(validateMinute, 500);
   });
 
   hour.addEventListener("focus", function () {
     hide();
-    show("hour");
+    show(fieldName.HOUR);
   });
 
   hour.addEventListener("keyup", function () {
     hide();
-    show("hour");
+    show(fieldName.HOUR);
     clearTimeout(queValidateHour);
     queValidateHour = setTimeout(validateHour, 500);
   });
 
   dayMonth.addEventListener("focus", function () {
     hide();
-    show("day-month");
+    show(fieldName.DAYMONTH);
   });
 
   dayMonth.addEventListener("keyup", function () {
     hide();
-    show("day-month");
+    show(fieldName.DAYMONTH);
     clearTimeout(queValidateDayMonth);
     queValidateDayMonth = setTimeout(validateDayMonth, 500);
   });
 
   month.addEventListener("focus", function () {
     hide();
-    show("month");
+    show(fieldName.MONTH);
   });
 
   month.addEventListener("keyup", function () {
     hide();
-    show("month");
+    show(fieldName.MONTH);
     clearTimeout(queValidateMonth);
     queValidateMonth = setTimeout(validateMonth, 500);
   });
 
   dayWeek.addEventListener("focus", function () {
     hide();
-    show("day-week");
+    show(fieldName.DAYWEEK);
   });
 
   dayWeek.addEventListener("keyup", function () {
     hide();
-    show("day-week");
+    show(fieldName.DAYWEEK);
     clearTimeout(queValidateDayWeek);
     queValidateDayWeek = setTimeout(validateDayWeek, 500);
   });

@@ -221,6 +221,10 @@ footer .social img {
 .crontab p.header {
   font-size: 25px;
 }
+.crontab .vertical-align {
+  display: table-cell;
+  vertical-align: middle;
+}
 .crontab table td.text-left {
   text-align: left;
 }
