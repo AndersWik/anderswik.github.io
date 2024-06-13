@@ -222,6 +222,7 @@ footer .social img {
   font-size: 25px;
 }
 .crontab .vertical-align {
+  height: 60px;
   display: table-cell;
   vertical-align: middle;
 }
