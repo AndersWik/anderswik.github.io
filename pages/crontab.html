@@ -666,6 +666,32 @@ nonav: true
     return allItemsMatchRegex;
   }
 
+  // We need this incase of times where one regex wont match
+  // every item. If we have a list where one item is a range
+  // without step and one item a range with step. So we check
+  // all items against a list of regex. If all items matched
+  // with one but not necessairly the same regex. We return true
+  // Example 5-9,10-20/2
+  const isValueListOfDifferent = function (val, regex) {
+
+    let allItemsMatchOneRegex = [];
+    if (val.indexOf(',') > -1 && Array.isArray(regex)) {
+      let list = val.split(',');
+      for (let i = 0; i < list.length; i++) {
+        let temp = false;
+        for (let j = 0; j < regex.length; j++) {
+          if (regex[j].test(list[i])) {
+            temp = true;
+            break;
+          }
+        }
+        allItemsMatchOneRegex.push(temp);
+      }
+    }
+    const isAllTrue = (v) => v === true;
+    return allItemsMatchOneRegex.every(isAllTrue);
+  }
+
   const splitRangeToObject = function (val, divider) {
 
     let values = null;
@@ -677,13 +703,20 @@ nonav: true
       if (items.length == 2) {
         rangeValues['first'] = items[0];
         rangeValues['last'] = items[1];
-      }
 
-      let temp = rangeValues['last'].split("/");
+        let temp = rangeValues['first'].split("/");
 
-      if (temp.length == 2) {
-        rangeValues['last'] = temp[0];
-        rangeValues['step'] = temp[1];
+        if (temp.length == 2) {
+          rangeValues['first'] = temp[0];
+          rangeValues['first-step'] = temp[1];
+        }
+
+        temp = rangeValues['last'].split("/");
+
+        if (temp.length == 2) {
+          rangeValues['last'] = temp[0];
+          rangeValues['last-step'] = temp[1];
+        }
       }
 
       if (rangeValues['first'] && rangeValues['last']) {
@@ -747,7 +780,19 @@ nonav: true
     }
 
     if (!isValid) {
-      isValid = testValueAgainstRegex(minute.value, validationRegex.isMinuteRange) || isValueListOfRegex(minute.value, validationRegex.isMinuteRange) || testValueAgainstRegex(minute.value, validationRegex.isMinuteRangeWithStep) || isValueListOfRegex(minute.value, validationRegex.isMinuteRangeWithStep) || testValueAgainstRegex(minute.value, validationRegex.isMinuteRandomized) || isValueListOfRegex(minute.value, validationRegex.isMinuteRandomized);
+      isValid = testValueAgainstRegex(minute.value, validationRegex.isMinuteRange) || isValueListOfRegex(minute.value, validationRegex.isMinuteRange);
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(minute.value, validationRegex.isMinuteRangeWithStep) || isValueListOfRegex(minute.value, validationRegex.isMinuteRangeWithStep);
+      }
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(minute.value, validationRegex.isMinuteRandomized) || isValueListOfRegex(minute.value, validationRegex.isMinuteRandomized);
+      }
+
+      if(!isValid) {
+        isValid = isValueListOfDifferent(minute.value, [validationRegex.isMinuteRange, validationRegex.isMinuteRangeWithStep]);
+      }
 
       if (isValid) {
         // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
@@ -772,11 +817,23 @@ nonav: true
     }
 
     if (!isValid) {
-      isValid = testValueAgainstRegex(hour.value, validationRegex.isHourRange) || isValueListOfRegex(hour.value, validationRegex.isHourRange) || testValueAgainstRegex(hour.value, validationRegex.isHourRangeWithStep) || isValueListOfRegex(hour.value, validationRegex.isHourRangeWithStep) || testValueAgainstRegex(hour.value, validationRegex.isHourRandomized) || isValueListOfRegex(hour.value, validationRegex.isHourRandomized);
+      isValid = testValueAgainstRegex(hour.value, validationRegex.isHourRange) || isValueListOfRegex(hour.value, validationRegex.isHourRange);
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(hour.value, validationRegex.isHourRangeWithStep) || isValueListOfRegex(hour.value, validationRegex.isHourRangeWithStep)
+      }
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(hour.value, validationRegex.isHourRandomized) || isValueListOfRegex(hour.value, validationRegex.isHourRandomized);
+      }
+
+      if(!isValid) {
+        isValid = isValueListOfDifferent(hour.value, [validationRegex.isHourRange, validationRegex.isHourRangeWithStep]);
+      }
 
       if (isValid) {
         // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
-        isValidHourRange = isRangeListInAscendingOrder(hour.value, '-') || isRangeListInAscendingOrder(hour.value, '~') || isRangeInAscendingOrder(hour.value, '-') || isRangeInAscendingOrder(hour.value, '~');
+        isValid = isRangeListInAscendingOrder(hour.value, '-') || isRangeListInAscendingOrder(hour.value, '~') || isRangeInAscendingOrder(hour.value, '-') || isRangeInAscendingOrder(hour.value, '~');
       }
     }
 
@@ -809,7 +866,19 @@ nonav: true
     }
 
     if (!isValid) {
-      isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized);
+      isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRange) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRange);
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRangeWithStep);
+      }
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized) || isValueListOfRegex(dayMonth.value, validationRegex.isMonthDayNumberRandomized);
+      }
+
+      if(!isValid) {
+        isValid = isValueListOfDifferent(dayMonth.value, [validationRegex.isMonthDayNumberRange, validationRegex.isMonthDayNumberRangeWithStep]);
+      }
 
       if (isValid) {
         // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
@@ -835,11 +904,23 @@ nonav: true
     }
 
     if (!isValid) {
-      isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNumberRange) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRange) || testValueAgainstRegex(month.value, validationRegex.isMonthNumberRangeWithStep) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRangeWithStep) || testValueAgainstRegex(month.value, validationRegex.isMonthNumberRandomized) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRandomized);
+      isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNumberRange) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRange);
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNumberRangeWithStep) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRangeWithStep);
+      }
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNumberRandomized) || isValueListOfRegex(month.value, validationRegex.isMonthNumberRandomized);
+      }
+
+      if(!isValid) {
+        isValid = isValueListOfDifferent(month.value, [validationRegex.isMonthNumberRange, validationRegex.isMonthNumberRangeWithStep]);
+      }
 
       if (isValid) {
         // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
-        isValidMonthNumberRange = isRangeListInAscendingOrder(month.value, '-') || isRangeListInAscendingOrder(month.value, '~') || isRangeInAscendingOrder(month.value, '-') || isRangeInAscendingOrder(month.value, '~');
+        isValid = isRangeListInAscendingOrder(month.value, '-') || isRangeListInAscendingOrder(month.value, '~') || isRangeInAscendingOrder(month.value, '-') || isRangeInAscendingOrder(month.value, '~');
       }
     }
 
@@ -848,10 +929,22 @@ nonav: true
     }
 
     if (!isValid) {
-      isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNameRange) || isValueListOfRegex(month.value, validationRegex.isMonthNameRange) || testValueAgainstRegex(month.value, validationRegex.isMonthNameRangeWithStep) || isValueListOfRegex(month.value, validationRegex.isMonthNameRangeWithStep) || testValueAgainstRegex(month.value, validationRegex.isMonthNameRandomized) || isValueListOfRegex(month.value, validationRegex.isMonthNameRandomized);
+      isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNameRange) || isValueListOfRegex(month.value, validationRegex.isMonthNameRange);
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNameRangeWithStep) || isValueListOfRegex(month.value, validationRegex.isMonthNameRangeWithStep);
+      }
+
+      if(!isValid) {
+        isValid = testValueAgainstRegex(month.value, validationRegex.isMonthNameRandomized) || isValueListOfRegex(month.value, validationRegex.isMonthNameRandomized);
+      }
+
+      if(!isValid) {
+        isValid = isValueListOfDifferent(month.value, [validationRegex.isMonthNameRange, validationRegex.isMonthNameRangeWithStep]);
+      }
 
       if (isValid) {
-        isValidMonthNameRange = isRangeInAscendingOrder(month.value, '-', rangeType.MONTHNAME) || isRangeListInAscendingOrder(month.value, '~', rangeType.MONTHNAME) || isRangeInAscendingOrder(month.value, '-', rangeType.MONTHNAME) || isRangeInAscendingOrder(month.value, '~', rangeType.MONTHNAME);
+        isValid = isRangeInAscendingOrder(month.value, '-', rangeType.MONTHNAME) || isRangeListInAscendingOrder(month.value, '-', rangeType.MONTHNAME) || isRangeInAscendingOrder(month.value, '~', rangeType.MONTHNAME) || isRangeListInAscendingOrder(month.value, '~', rangeType.MONTHNAME);
       }
     }
 
@@ -876,7 +969,20 @@ nonav: true
     }
 
     if (!isValid) {
-      isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRange) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRange) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRangeWithStep) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRangeWithStep) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRandomized) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRandomized);
+      isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRange) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRange);
+
+      if (!isValid) {
+
+        isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRangeWithStep) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRangeWithStep);
+      }
+
+      if (!isValid) {
+        isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNumberRandomized) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNumberRandomized);
+      }
+
+      if(!isValid) {
+        isValid = isValueListOfDifferent(dayWeek.value, [validationRegex.isWeekDayNumberRange, validationRegex.isWeekDayNumberRangeWithStep]);
+      }
 
       if (isValid) {
         // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
@@ -889,11 +995,23 @@ nonav: true
     }
 
     if (!isValid) {
-      isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRange) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRange) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRangeWithStep) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRangeWithStep) || testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRandomized) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRandomized);
+      isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRange) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRange);
+
+      if (!isValid) {
+        isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRangeWithStep) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRangeWithStep);
+      }
+
+      if (!isValid) {
+        isValid = testValueAgainstRegex(dayWeek.value, validationRegex.isWeekDayNameRandomized) || isValueListOfRegex(dayWeek.value, validationRegex.isWeekDayNameRandomized);
+      }
+
+      if(!isValid) {
+        isValid = isValueListOfDifferent(dayWeek.value, [validationRegex.isWeekDayNameRange, validationRegex.isWeekDayNameRangeWithStep]);
+      }
 
       if (isValid) {
         // Incase the item is a range or a list of ranges we need to make additional checks to see if the items are in ASC order.
-        isValid = isRangeInAscendingOrder(dayWeek.value, '-', rangeType.WEEKDAYNAME) || isRangeListInAscendingOrder(dayWeek.value, '~', rangeType.WEEKDAYNAME) || isRangeInAscendingOrder(dayWeek.value, '-', rangeType.WEEKDAYNAME) || isRangeInAscendingOrder(dayWeek.value, '~', rangeType.WEEKDAYNAME);
+        isValid = isRangeInAscendingOrder(dayWeek.value, '-', rangeType.WEEKDAYNAME) || isRangeListInAscendingOrder(dayWeek.value, '-', rangeType.WEEKDAYNAME) || isRangeInAscendingOrder(dayWeek.value, '~', rangeType.WEEKDAYNAME) || isRangeListInAscendingOrder(dayWeek.value, '~', rangeType.WEEKDAYNAME);
       }
     }
 
