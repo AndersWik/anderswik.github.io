@@ -16,7 +16,8 @@ nonav: true
 
     <div class="col-sm-12 form-group mt-3 py-2">
       <label class="pt-2" for="url-list">Enter comma-separated URLs:</label>
-      <textarea class="form-control form-control-lg" id="url-list" rows="5" placeholder="http://example.com, http://example2.com"></textarea>
+      <textarea class="form-control form-control-lg" id="url-list" rows="5"
+        placeholder="http://example.com, http://example2.com"></textarea>
     </div>
 
     <div class="col-sm-12 col-md-6 mt-3">
@@ -69,12 +70,12 @@ nonav: true
     <div class="col-sm-12 form-group mt-3 py-2">
       <iframe style="height: 500px; width: 100%;" id="iframe-loader"></iframe>
     </div>
-    
+
   </div>
 </div>
 
 <script>
-function startMatching() {
+  function startMatching() {
     const urlText = document.getElementById('url-list').value;
     const regexInput = document.getElementById('regex-input').value;
     const pageDelay = document.getElementById('page-delay').value;
@@ -87,8 +88,8 @@ function startMatching() {
     resultsDiv.innerHTML = '';
 
     if (!urlText.trim() || !regexInput.trim()) {
-        resultsDiv.innerHTML = '<p class="loading">Please provide both URLs and a regex pattern.</p>';
-        return;
+      resultsDiv.innerHTML = '<p class="loading">Please provide both URLs and a regex pattern.</p>';
+      return;
     }
 
     // Convert comma-separated URLs into an array
@@ -97,62 +98,63 @@ function startMatching() {
     // Validate the regular expression
     let regex;
     try {
-        regex = new RegExp(regexInput);
+      regex = new RegExp(regexInput);
     } catch (e) {
-        resultsDiv.innerHTML = '<p class="loading">Invalid regular expression.</p>';
-        return;
+      resultsDiv.innerHTML = '<p class="loading">Invalid regular expression.</p>';
+      return;
     }
 
     // Iterate over the URLs and load them into the iframe one by one
     let currentIndex = 0;
 
     function loadNextUrl() {
-        if (currentIndex >= urls.length) {
-            resultsDiv.innerHTML += '<p class="loading">All URLs processed.</p>';
-            iframe.style.display = 'none';
-            return;
-        }
 
-        const currentUrl = urls[currentIndex];
-        resultsDiv.innerHTML += `<p class="loading">Loading: ${currentUrl}</p>`;
-        iframe.src = currentUrl;
-        iframe.style.display = 'block';
+      if (pageLimit !== "*" && (parseInt(pageLimit) === NaN) && currentIndex >= parseInt(pageLimit)) {
+        return;
+      }
+
+      if (currentIndex >= urls.length) {
+        resultsDiv.innerHTML += '<p class="loading">All URLs processed.</p>';
+        iframe.style.display = 'none';
+        return;
+      }
+
+      const currentUrl = urls[currentIndex];
+      resultsDiv.innerHTML += `<p class="loading">Loading: ${currentUrl}</p>`;
+      iframe.src = currentUrl;
+      iframe.style.display = 'block';
+
+      let delayMili = parseInt(pageDelay) === NaN ? 0 : parseInt(pageDelay) * 1000;
+
+      setTimeout(function () {
 
         iframe.onload = () => {
 
-            if(pageDelay !== "*") {
+          // Wait for the iframe to fully load and then search for matches
+          const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+          const bodyText = iframeDocument.body.innerText || iframeDocument.body.textContent;
 
-            }
+          const matches = bodyText.match(regex);
 
-            // Wait for the iframe to fully load and then search for matches
-            const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-            const bodyText = iframeDocument.body.innerText || iframeDocument.body.textContent;
+          if (matches && matches.length > 0) {
+            resultsDiv.innerHTML += `<p>Matches found on ${currentUrl}: ${matches.join(', ')}</p>`;
+          } else {
+            resultsDiv.innerHTML += `<p>No matches found on ${currentUrl}.</p>`;
+          }
 
-            const matches = bodyText.match(regex);
-
-            if (matches && matches.length > 0) {
-                resultsDiv.innerHTML += `<p>Matches found on ${currentUrl}: ${matches.join(', ')}</p>`;
-            } else {
-                resultsDiv.innerHTML += `<p>No matches found on ${currentUrl}.</p>`;
-            }
-
-            if(pageLimit !== "*") {
-
-            }
-
-            currentIndex++;
-            loadNextUrl();  // Load the next URL
+          currentIndex++;
+          loadNextUrl();  // Load the next URL
         };
 
         iframe.onerror = () => {
-            resultsDiv.innerHTML += `<p>Error loading ${currentUrl}. Skipping...</p>`;
-            currentIndex++;
-            loadNextUrl();  // Skip to the next URL on error
+          resultsDiv.innerHTML += `<p>Error loading ${currentUrl}. Skipping...</p>`;
+          currentIndex++;
+          loadNextUrl();  // Skip to the next URL on error
         };
+
+      }, delayMili);
     }
 
     loadNextUrl();  // Start loading the first URL
-}
+  }
 </script>
-
-
