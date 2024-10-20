@@ -1,0 +1,158 @@
+---
+layout: default
+title: Url search
+permalink: /url-search/
+nonav: true
+---
+
+
+<div class="url-search container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Url Search</h2>
+    </div>
+  </div>
+  <div class="row">
+
+    <div class="col-sm-12 form-group mt-3 py-2">
+      <label class="pt-2" for="url-list">Enter comma-separated URLs:</label>
+      <textarea class="form-control form-control-lg" id="url-list" rows="5" placeholder="http://example.com, http://example2.com"></textarea>
+    </div>
+
+    <div class="col-sm-12 col-md-6 mt-3">
+      <label class="pt-2" for="page-delay">Delay on page load:</label>
+      <select class="form-select mt-3" aria-label="Delay on page load" id="page-delay">
+        <option value="*">*</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+    </div>
+
+    <div class="col-sm-12 col-md-6 mt-3">
+      <label class="pt-2" for="page-limit">Limit page loads:</label>
+      <select class="form-select mt-3" aria-label="Limit page loads" id="page-limit">
+        <option value="*">*</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+    </div>
+
+    <div class="col-sm-12 form-group mt-3 py-2">
+      <label class="pt-2" for="regex-input">Enter your Regular Expression:</label>
+      <input class="form-control form-control-lg" type="text" id="regex-input" placeholder="e.g. \\btest\\b">
+    </div>
+
+    <div class="col-sm-12 form-group mt-3 py-2">
+      <button class="btn btn-secondary" onclick="startMatching()">Start Matching</button>
+    </div>
+
+    <div class="col-sm-12 form-group mt-3 py-2">
+      <div id="results"></div>
+    </div>
+
+    <div class="col-sm-12 form-group mt-3 py-2">
+      <iframe style="height: 500px; width: 100%;" id="iframe-loader"></iframe>
+    </div>
+    
+  </div>
+</div>
+
+<script>
+function startMatching() {
+    const urlText = document.getElementById('url-list').value;
+    const regexInput = document.getElementById('regex-input').value;
+    const pageDelay = document.getElementById('page-delay').value;
+    const pageLimit = document.getElementById('page-limit').value;
+    const resultsDiv = document.getElementById('results');
+    const iframe = document.getElementById('iframe-loader');
+    const startSearch = document.getElementById('start-search');
+
+    // Clear previous results
+    resultsDiv.innerHTML = '';
+
+    if (!urlText.trim() || !regexInput.trim()) {
+        resultsDiv.innerHTML = '<p class="loading">Please provide both URLs and a regex pattern.</p>';
+        return;
+    }
+
+    // Convert comma-separated URLs into an array
+    const urls = urlText.split(',').map(url => url.trim()).filter(url => url.length > 0);
+
+    // Validate the regular expression
+    let regex;
+    try {
+        regex = new RegExp(regexInput);
+    } catch (e) {
+        resultsDiv.innerHTML = '<p class="loading">Invalid regular expression.</p>';
+        return;
+    }
+
+    // Iterate over the URLs and load them into the iframe one by one
+    let currentIndex = 0;
+
+    function loadNextUrl() {
+        if (currentIndex >= urls.length) {
+            resultsDiv.innerHTML += '<p class="loading">All URLs processed.</p>';
+            iframe.style.display = 'none';
+            return;
+        }
+
+        const currentUrl = urls[currentIndex];
+        resultsDiv.innerHTML += `<p class="loading">Loading: ${currentUrl}</p>`;
+        iframe.src = currentUrl;
+        iframe.style.display = 'block';
+
+        iframe.onload = () => {
+
+            if(pageDelay !== "*") {
+
+            }
+
+            // Wait for the iframe to fully load and then search for matches
+            const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+            const bodyText = iframeDocument.body.innerText || iframeDocument.body.textContent;
+
+            const matches = bodyText.match(regex);
+
+            if (matches && matches.length > 0) {
+                resultsDiv.innerHTML += `<p>Matches found on ${currentUrl}: ${matches.join(', ')}</p>`;
+            } else {
+                resultsDiv.innerHTML += `<p>No matches found on ${currentUrl}.</p>`;
+            }
+
+            if(pageLimit !== "*") {
+
+            }
+
+            currentIndex++;
+            loadNextUrl();  // Load the next URL
+        };
+
+        iframe.onerror = () => {
+            resultsDiv.innerHTML += `<p>Error loading ${currentUrl}. Skipping...</p>`;
+            currentIndex++;
+            loadNextUrl();  // Skip to the next URL on error
+        };
+    }
+
+    loadNextUrl();  // Start loading the first URL
+}
+</script>
+
+
