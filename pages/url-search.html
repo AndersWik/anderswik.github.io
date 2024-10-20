@@ -21,42 +21,33 @@ nonav: true
     </div>
 
     <div class="col-sm-12 col-md-6 mt-3">
-      <label class="pt-2" for="page-delay">Delay on page load:</label>
-      <select class="form-select mt-3" aria-label="Delay on page load" id="page-delay">
-        <option value="*">*</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
+      <label class="pt-2" for="delay-time">Select delay (in seconds) before searching the page:</label><br>
+      <select class="form-select mt-3" aria-label="Delay search after loading page" id="delay-time">
+          <option value="0">No Delay</option>
+          <option value="1">1 Second</option>
+          <option value="3">3 Seconds</option>
+          <option value="5">5 Seconds</option>
+          <option value="10">10 Seconds</option>
+          <option value="15">15 Seconds</option>
+          <option value="20">20 Seconds</option>
       </select>
     </div>
 
     <div class="col-sm-12 col-md-6 mt-3">
-      <label class="pt-2" for="page-limit">Limit page loads:</label>
-      <select class="form-select mt-3" aria-label="Limit page loads" id="page-limit">
-        <option value="*">*</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
+      <label class="pt-2" for="limit-pages">Limit the number of pages to search:</label>
+      <select class="form-select mt-3" aria-label="Limit page loads" id="limit-pages">
+          <option value="all">All</option>
+          <option value="1">1</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
       </select>
     </div>
 
     <div class="col-sm-12 form-group mt-3 py-2">
       <label class="pt-2" for="regex-input">Enter your Regular Expression:</label>
-      <input class="form-control form-control-lg" type="text" id="regex-input" placeholder="e.g. \\btest\\b">
+      <input class="form-control form-control-lg" type="text" id="regex-input" placeholder="e.g. \bTest\b">
     </div>
 
     <div class="col-sm-12 form-group mt-3 py-2">
@@ -78,11 +69,10 @@ nonav: true
   function startMatching() {
     const urlText = document.getElementById('url-list').value;
     const regexInput = document.getElementById('regex-input').value;
-    const pageDelay = document.getElementById('page-delay').value;
-    const pageLimit = document.getElementById('page-limit').value;
     const resultsDiv = document.getElementById('results');
     const iframe = document.getElementById('iframe-loader');
-    const startSearch = document.getElementById('start-search');
+    const limitPages = document.getElementById('limit-pages').value;
+    const delayTime = document.getElementById('delay-time').value * 1000; // Convert seconds to milliseconds
 
     // Clear previous results
     resultsDiv.innerHTML = '';
@@ -94,6 +84,12 @@ nonav: true
 
     // Convert comma-separated URLs into an array
     const urls = urlText.split(',').map(url => url.trim()).filter(url => url.length > 0);
+
+    // Apply limit on the number of URLs to search
+    let limitedUrls = urls;
+    if (limitPages !== 'all') {
+      limitedUrls = urls.slice(0, parseInt(limitPages, 10));
+    }
 
     // Validate the regular expression
     let regex;
@@ -108,31 +104,22 @@ nonav: true
     let currentIndex = 0;
 
     function loadNextUrl() {
-
-      if (pageLimit !== "*" && (parseInt(pageLimit) === NaN) && currentIndex >= parseInt(pageLimit)) {
-        return;
-      }
-
-      if (currentIndex >= urls.length) {
+      if (currentIndex >= limitedUrls.length) {
         resultsDiv.innerHTML += '<p class="loading">All URLs processed.</p>';
         iframe.style.display = 'none';
         return;
       }
 
-      const currentUrl = urls[currentIndex];
+      const currentUrl = limitedUrls[currentIndex];
       resultsDiv.innerHTML += `<p class="loading">Loading: ${currentUrl}</p>`;
       iframe.src = currentUrl;
       iframe.style.display = 'block';
 
-      let delayMili = parseInt(pageDelay) === NaN ? 0 : parseInt(pageDelay) * 1000;
-
-      setTimeout(function () {
-
-        iframe.onload = () => {
-
+      iframe.onload = () => {
+        // Wait for the specified delay before running the regex search
+        setTimeout(() => {
           // Wait for the iframe to fully load and then search for matches
-          const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-          const bodyText = iframeDocument.body.innerText || iframeDocument.body.textContent;
+          const bodyText = iframe.contentWindow.document.body.innerHTML;
 
           const matches = bodyText.match(regex);
 
@@ -144,15 +131,14 @@ nonav: true
 
           currentIndex++;
           loadNextUrl();  // Load the next URL
-        };
+        }, delayTime); // Apply the delay here after the iframe has loaded
+      };
 
-        iframe.onerror = () => {
-          resultsDiv.innerHTML += `<p>Error loading ${currentUrl}. Skipping...</p>`;
-          currentIndex++;
-          loadNextUrl();  // Skip to the next URL on error
-        };
-
-      }, delayMili);
+      iframe.onerror = () => {
+        resultsDiv.innerHTML += `<p>Error loading ${currentUrl}. Skipping...</p>`;
+        currentIndex++;
+        loadNextUrl();  // Skip to the next URL on error
+      };
     }
 
     loadNextUrl();  // Start loading the first URL
