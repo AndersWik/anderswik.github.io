@@ -74,7 +74,6 @@ nonav: true
     const limitPages = document.getElementById('limit-pages').value;
     const delayTime = document.getElementById('delay-time').value * 1000; // Convert seconds to milliseconds
 
-    // Clear previous results
     resultsDiv.innerHTML = '';
 
     if (!urlText.trim() || !regexInput.trim()) {
@@ -82,16 +81,13 @@ nonav: true
       return;
     }
 
-    // Convert comma-separated URLs into an array
     const urls = urlText.split(',').map(url => url.trim()).filter(url => url.length > 0);
 
-    // Apply limit on the number of URLs to search
     let limitedUrls = urls;
     if (limitPages !== 'all') {
       limitedUrls = urls.slice(0, parseInt(limitPages, 10));
     }
 
-    // Validate the regular expression
     let regex;
     try {
       regex = new RegExp(regexInput);
@@ -100,7 +96,6 @@ nonav: true
       return;
     }
 
-    // Iterate over the URLs and load them into the iframe one by one
     let currentIndex = 0;
 
     function loadNextUrl() {
@@ -116,11 +111,10 @@ nonav: true
       iframe.style.display = 'block';
 
       iframe.onload = () => {
-        // Wait for the specified delay before running the regex search
+        
         setTimeout(() => {
-          // Wait for the iframe to fully load and then search for matches
+          
           const bodyText = iframe.contentWindow.document.body.innerHTML;
-
           const matches = bodyText.match(regex);
 
           if (matches && matches.length > 0) {
@@ -130,17 +124,17 @@ nonav: true
           }
 
           currentIndex++;
-          loadNextUrl();  // Load the next URL
-        }, delayTime); // Apply the delay here after the iframe has loaded
+          loadNextUrl();
+        }, delayTime);
       };
 
       iframe.onerror = () => {
         resultsDiv.innerHTML += `<p>Error loading ${currentUrl}. Skipping...</p>`;
         currentIndex++;
-        loadNextUrl();  // Skip to the next URL on error
+        loadNextUrl();
       };
     }
 
-    loadNextUrl();  // Start loading the first URL
+    loadNextUrl();
   }
 </script>
