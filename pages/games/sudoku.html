@@ -1,0 +1,68 @@
+---
+layout: default
+title: Suduko
+permalink: /games/sudoku/
+nonav: true
+---
+
+<div class="suduko container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Suduko</h2>
+    </div>
+  </div>
+  <div class="row align-items-start">
+    <div class="col-12 col-lg-6 text-center">
+      <div class="puzzle-header pb-3">
+        <p id="timer">00:00</p>
+        <button id="purge" type="button" class="btn btn-primary">Delete all</button>
+        <button id="correct" type="button" class="btn btn-primary">Correct</button>
+        <button id="pause" type="button" class="btn btn-primary">Pause</button>
+        <button id="help" type="button" class="btn btn-primary">Help</button>
+      </div>
+      <div>
+        <select name="difficulty" id="difficulty">
+          <option value="xtraEasy">Extra easy</option>
+          <option value="easy" selected>Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Difficult</option>
+          <option value="xtraHard">Extra difficult</option>
+        </select>
+        <select name="highlight" id="highlight">
+          <option value="no">No</option>
+          <option value="rowcolumn" selected>Row & column</option>
+          <option value="section">Section</option>
+          <option value="rowcolumnsection">Row, column & section</option>
+        </select>
+      </div>
+      <div id="puzzle-container" class="puzzle-container mx-auto pt-3"></div>
+    </div>
+    <div class="col-12 col-lg-6 text-center">
+      <div class="keyboard-container mx-auto pt-3">
+        <button id="btn1" type="button" class="btn btn-primary">1</button>
+        <button id="btn2" type="button" class="btn btn-primary">2</button>
+        <button id="btn3" type="button" class="btn btn-primary">3</button>
+        <button id="btn4" type="button" class="btn btn-primary">4</button>
+        <button id="btn5" type="button" class="btn btn-primary">5</button>
+        <button id="btn6" type="button" class="btn btn-primary">6</button>
+        <button id="btn7" type="button" class="btn btn-primary">7</button>
+        <button id="btn8" type="button" class="btn btn-primary">8</button>
+        <button id="btn9" type="button" class="btn btn-primary">9</button>
+        <button id="btnX" type="button" class="btn btn-primary">X</button>
+      </div>
+    </div>
+    <div id="overlay" class="overlay">
+      <div class="content">
+        <div>
+          <button id="closeOverlay" type="button" class="btn btn-primary">Close</button>
+          <img id="win" src="{{ site.url }}/assets/images/star.svg" alr="star" />
+          <p>Winner!</p>
+          <button id="playAgain" type="button" class="btn btn-primary">Play again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<link rel="stylesheet" href="{{ site.url }}/css/games/sudoku.css">
+<script type="text/javascript" src="{{ site.url }}/js/games/sudoku.js"></script>
