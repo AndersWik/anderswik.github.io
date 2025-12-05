@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Base 64 decode
-permalink: /decode/base64/
+permalink: /utils/decode-base64/
 nonav: true
 ---
 
@@ -26,17 +26,4 @@ nonav: true
     </div>
   </div>
 </div>
-
-<script>
-document.getElementById("decode-btn").addEventListener("click", function(){
-    var text = document.getElementById("encoded-text").value;
-    document.getElementById("decoded-text").value = atob(text);
-});
-
-document.getElementById("encode-btn").addEventListener("click", function(){
-    var text = document.getElementById("decoded-text").value;
-    document.getElementById("encoded-text").value = btoa(text);
-});
-</script>
-
-
+<script type="text/javascript" src="{{ site.url }}/js/utils/decode-base64.js"></script>
