@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Url encode
-permalink: /encode/url/
+permalink: /utils/encode-url/
 nonav: true
 ---
 
@@ -37,21 +37,4 @@ nonav: true
     </div>
   </div>
 </div>
-<script>
-document.getElementById("encode-btn").addEventListener("click", function(){
-var text = document.getElementById("decoded-text").value;
-var escapedText = encodeURI(text);
-document.getElementById("encoded-text").value = escapedText;
-
-document.getElementById("escaped-css").value = ".myImage:before {" +
-    "    background-image: url('data:image/svg+xml;charset=US-ASCII,"+escapedText+");" +
-    "    background-size: 100% 100%;"+
-    "    background-repeat: no-repeat;" +
-    "}";
-});
-
-document.getElementById("decode-btn").addEventListener("click", function(){
-    var text = document.getElementById("encoded-text").value;
-    document.getElementById("decoded-text").value = decodeURI(text);
-});
-</script>
+<script type="text/javascript" src="{{ site.url }}/js/utils/encode-url.js"></script>

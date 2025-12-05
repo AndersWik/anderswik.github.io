@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Url decode
-permalink: /decode/url/
+permalink: /utils/decode-url/
 nonav: true
 ---
 
@@ -28,16 +28,4 @@ nonav: true
     </div>
   </div>
 </div>
-
-<script>
-document.getElementById("encode-btn").addEventListener("click", function(){
-var text = document.getElementById("decoded-text").value;
-var escapedText = encodeURI(text);
-document.getElementById("encoded-text").value = escapedText;
-});
-
-document.getElementById("decode-btn").addEventListener("click", function(){
-    var text = document.getElementById("encoded-text").value;
-    document.getElementById("decoded-text").value = decodeURI(text);
-});
-</script>
+<script type="text/javascript" src="{{ site.url }}/js/utils/decode-url.js"></script>
