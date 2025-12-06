@@ -156,11 +156,11 @@ ui.baseSelect.addEventListener("change", function () {
     updateUI(true);
 });
 
-ui.inputField.addEventListener("keyup", function() {
+ui.inputField.addEventListener("keyup", function () {
     updateUI(true);
 });
 
-ui.outputField.addEventListener("keyup", function() {
+ui.outputField.addEventListener("keyup", function () {
     updateUI(false);
 });
 

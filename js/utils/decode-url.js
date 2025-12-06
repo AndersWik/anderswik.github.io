@@ -6,7 +6,7 @@ const ui = {
     escapedCss: document.getElementById("escaped-css")
 }
 
-ui.encodeBtn.addEventListener("click", function () {    
+ui.encodeBtn.addEventListener("click", function () {
     let text = ui.decodedText.value;
     ui.encodedText.value = encodeURI(text);
 });
