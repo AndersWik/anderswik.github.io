@@ -1,7 +1,7 @@
 ---
 layout: default
 title: MyIp
-permalink: /myip/
+permalink: /other/myip/
 ---
 
 <div class="myip container-sm mt-3 mb-3 pt-5 pb-5 text-center">
@@ -17,12 +17,5 @@ permalink: /myip/
     </div>
   </div>
 </div>
-
-<script>
-  function getIP(json) {
-    let i = document.getElementById("ip");
-    i.innerHTML = json.ip;
-  }
-</script>
-
+<script type="text/javascript" src="{{ site.url }}/js/other/myip.js"></script>
 <script src="https://api.ipify.org?format=jsonp&callback=getIP"></script>
