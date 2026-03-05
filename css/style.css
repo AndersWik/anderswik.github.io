@@ -37,6 +37,15 @@ header {
   font-size: 45px;
 }
 
+.po-certification {
+  position: absolute;
+  top: 25px;
+  right: 66px;
+}
+.po-certification img {
+  width: 110px;
+}
+
 footer {
   background-color: #808080;
 }
