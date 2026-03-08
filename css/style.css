@@ -37,13 +37,16 @@ header {
   font-size: 45px;
 }
 
-.po-certification {
+.certifications {
   position: absolute;
   top: 25px;
   right: 66px;
 }
-.po-certification img {
+.certifications .po-img {
   width: 110px;
+}
+.certifications .ma-img {
+  width: 56px;
 }
 
 footer {
