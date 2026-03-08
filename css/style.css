@@ -38,9 +38,8 @@ header {
 }
 
 .certifications {
-  position: absolute;
-  top: 25px;
-  right: 66px;
+  text-align: center;
+  padding-top: 10px;
 }
 .certifications .po-img {
   width: 110px;
