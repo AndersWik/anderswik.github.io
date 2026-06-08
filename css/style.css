@@ -41,11 +41,15 @@ header {
   text-align: center;
   padding-top: 10px;
 }
+.certifications .sm-img {
+  width: 110px;
+}
 .certifications .po-img {
   width: 110px;
 }
 .certifications .ma-img {
   width: 56px;
+  margin: 0 10px 0 10px;
 }
 
 footer {

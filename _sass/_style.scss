@@ -72,11 +72,15 @@ header {
 .certifications {
 	text-align: center;
 	padding-top: 10px;
+	.sm-img {
+		width: 110px;
+	}
 	.po-img {
 		width: 110px;
 	}
 	.ma-img {
 		width: 56px;
+		margin: 0 10px 0 10px;
 	}
 }
 
