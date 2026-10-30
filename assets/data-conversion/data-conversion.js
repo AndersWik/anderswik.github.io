@@ -1,167 +1,83 @@
-const ui = {
-    inputSelect: document.getElementById("input-select"),
-    inputField: document.getElementById("input-field"),
-    outputSelect: document.getElementById("output-select"),
-    outputField: document.getElementById("output-field"),
-    baseSelect: document.getElementById("base-select")
+/*
+ * Data size converter: bit, byte, KB, MB, GB and TB.
+ *
+ * The trick: turn every value into bits first, then from bits into the
+ * unit we want. That way we need one rule per unit instead of one rule
+ * for every pair of units.
+ *
+ *   1 byte = 8 bits
+ *   1 KB   = 1000 bytes (decimal) or 1024 bytes (binary)
+ *   1 MB   = 1000 KB or 1024 KB, and so on.
+ *
+ * You can type in either field; the other one is updated.
+ */
+
+// --- Elements on the page ------------------------------------------------
+
+const leftUnit = document.getElementById("input-select");
+const leftValue = document.getElementById("input-field");
+const rightUnit = document.getElementById("output-select");
+const rightValue = document.getElementById("output-field");
+const baseSelect = document.getElementById("base-select");
+
+// --- Helpers -------------------------------------------------------------
+
+// How many times we multiply by 1000 (or 1024) to get from bytes to the unit.
+const steps = {
+    byte: 0,
+    KB: 1,
+    MB: 2,
+    GB: 3,
+    TB: 4
+};
+
+// How many bits there are in one of the unit, e.g. "KB" -> 8000.
+function bitsIn(unit) {
+    if (unit === "bit") {
+        return 1;
+    }
+    const base = baseSelect.value === "binary" ? 1024 : 1000;
+    return 8 * base ** steps[unit];  // "**" means "to the power of"
 }
 
-const unit = {
-    bit: "bit",
-    byte: "byte",
-    kb: "KB",
-    mb: "MB",
-    gb: "GB",
-    tb: "TB"
+function convert(value, fromUnit, toUnit) {
+    const bits = value * bitsIn(fromUnit);
+    return bits / bitsIn(toUnit);
 }
 
-const quantities = {
-    decimal: 1000,
-    binary: 1024
+// Hide floating point noise like 0.30000000000000004,
+// but keep very small and very large numbers.
+function tidy(number) {
+    return Number(number.toPrecision(12));
 }
 
-let bit = 0;
-let size = 1000;
+// Read the value in one field, convert it, and write it into the other.
+function update(fromValue, fromUnit, toValue, toUnit) {
+    const value = Number(fromValue.value);
 
-const setSize = function (value) {
-    if (value === "decimal") {
-        size = quantities.decimal;
+    if (fromValue.value === "" || isNaN(value)) {
+        toValue.value = "";
+        return;
     }
-    else {
-        size = quantities.binary;
-    }
+
+    toValue.value = tidy(convert(value, fromUnit.value, toUnit.value));
 }
 
-const setBytes = function (value, selectedUnit) {
-
-    let isNumber = !isNaN(value);
-    let b = 0;
-
-    if (isNumber && selectedUnit === unit.bit) {
-
-        b = parseFloat(value);
-    }
-    else if (isNumber && selectedUnit === unit.byte) {
-
-        b = 8 * parseFloat(value);
-    }
-    else if (isNumber && selectedUnit === unit.kb) {
-
-        b = 8 * size * parseFloat(value);
-    }
-    else if (isNumber && selectedUnit === unit.mb) {
-
-        b = 8 * size * size * parseFloat(value);
-    }
-    else if (isNumber && selectedUnit === unit.gb) {
-
-        b = 8 * size * size * size * parseFloat(value);
-    }
-    else if (isNumber && selectedUnit === unit.tb) {
-
-        b = 8 * size * size * size * size * parseFloat(value);
-    }
-    return b;
+function updateRight() {
+    update(leftValue, leftUnit, rightValue, rightUnit);
 }
 
-const getOutput = function (b, selectedUnit) {
-
-    let isNumber = !isNaN(b);
-    let output = 0;
-
-    if (isNumber && selectedUnit === unit.bit) {
-        output = b;
-    }
-    else if (isNumber && selectedUnit === unit.byte) {
-
-        output = b / 8;
-    }
-    else if (isNumber && selectedUnit === unit.kb) {
-
-        output = b / 8 / size;
-    }
-    else if (isNumber && selectedUnit === unit.mb) {
-
-        output = b / 8 / size / size;
-    }
-    else if (isNumber && selectedUnit === unit.gb) {
-
-        output = b / 8 / size / size / size;
-    }
-    else if (isNumber && selectedUnit === unit.tb) {
-
-        output = b / 8 / size / size / size / size;
-    }
-    return output;
+function updateLeft() {
+    update(rightValue, rightUnit, leftValue, leftUnit);
 }
 
-const leftToRightUpdateUI = function () {
+// --- Connect the page ----------------------------------------------------
 
-    let b = setBytes(ui.inputField.value, ui.inputSelect.value);
+// "input" fires on every change: typing, pasting, deleting...
+leftValue.addEventListener("input", updateRight);
+rightValue.addEventListener("input", updateLeft);
 
-    if (b !== null) {
-        bit = b;
-    }
-
-    let o = getOutput(bit, ui.outputSelect.value);
-
-    if (o !== null) {
-        ui.outputField.value = o;
-    }
-}
-
-const rightToLeftUpdateUI = function () {
-
-    let b = setBytes(ui.outputField.value, ui.outputSelect.value);
-
-    if (b !== null) {
-        bit = b;
-    }
-
-    let o = getOutput(bit, ui.inputSelect.value);
-
-    if (o !== null) {
-        ui.inputField.value = o;
-    }
-}
-
-const updateUI = function (leftToRight) {
-
-    if (leftToRight) {
-        leftToRightUpdateUI();
-    }
-    else {
-        rightToLeftUpdateUI();
-    }
-}
-
-ui.inputSelect.addEventListener("change", function () {
-    updateUI(true);
-});
-
-ui.inputField.addEventListener("change", function () {
-    updateUI(true);
-});
-
-ui.outputSelect.addEventListener("change", function () {
-    updateUI(true);
-});
-
-ui.outputField.addEventListener("change", function () {
-    updateUI(false);
-});
-
-ui.baseSelect.addEventListener("change", function () {
-    setSize(ui.baseSelect.value);
-    updateUI(true);
-});
-
-ui.inputField.addEventListener("keyup", function () {
-    updateUI(true);
-});
-
-ui.outputField.addEventListener("keyup", function () {
-    updateUI(false);
-});
-
-setSize(ui.baseSelect.value);
+// Changing a unit or the base keeps the left value and recalculates the right.
+leftUnit.addEventListener("change", updateRight);
+rightUnit.addEventListener("change", updateRight);
+baseSelect.addEventListener("change", updateRight);
