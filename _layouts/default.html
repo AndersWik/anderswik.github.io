@@ -5,6 +5,9 @@
 <body>
   {% include header.html %}
   {{ content }}
+  {% for script in page.js %}
+  <script src="{{ script | relative_url }}"></script>
+  {% endfor %}
   {% include footer.html %}
 </body>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>

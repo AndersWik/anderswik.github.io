@@ -15,5 +15,8 @@
 
     <link rel="stylesheet" href="{{ " /css/main.css" | prepend: site.baseurl }}">
     <link rel="stylesheet" href="{{ " /css/style.css" | prepend: site.baseurl }}">
+    {% for stylesheet in page.css %}
+    <link rel="stylesheet" href="{{ stylesheet | relative_url }}">
+    {% endfor %}
     <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
 </head>
