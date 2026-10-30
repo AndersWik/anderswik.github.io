@@ -1,57 +1,76 @@
-const Http = new XMLHttpRequest();
+/*
+ * Vagrantfile maker.
+ *
+ * The Vagrantfile templates on the server contain two placeholders:
+ *
+ *   vagrantip   replaced with the IP the user types
+ *   vagranturl  replaced with the URL the user types
+ *
+ * Steps:
+ *   1. Download the template the user picked (fetch).
+ *   2. Replace the placeholders and show the result.
+ *   3. Let the user download the result as a file.
+ */
 
-const ui = {
-    fileSelect: document.getElementById("vagrant-file-select"),
-    file: document.getElementById("vagrant-file"),
-    ip: document.getElementById("vagrant-ip"),
-    url: document.getElementById("vagrant-url"),
-    download: document.getElementById("download"),
-    content: document.getElementById("download-content")
+// --- State ---------------------------------------------------------------
+
+// The template exactly as downloaded, with the placeholders still in it.
+let template = "";
+
+// --- Elements on the page ------------------------------------------------
+
+const templateSelect = document.getElementById("vagrant-file-select");
+const ipInput = document.getElementById("vagrant-ip");
+const urlInput = document.getElementById("vagrant-url");
+const fileText = document.getElementById("vagrant-file");
+const downloadButton = document.getElementById("download");
+const downloadLink = document.getElementById("download-content");
+
+// --- Actions -------------------------------------------------------------
+
+// Download the chosen template. "async" lets us use "await", which waits
+// for the network without freezing the page.
+async function loadTemplate() {
+    fileText.value = "Loading...";
+
+    try {
+        const response = await fetch(templateSelect.value);
+        template = await response.text();
+        showFile();
+    } catch (error) {
+        fileText.value = "Could not load the Vagrantfile.";
+    }
 }
 
-let currentContent = "";
+// Fill in the placeholders and show the finished file.
+function showFile() {
+    let content = template;
 
-Http.onreadystatechange = (e) => {
-    currentContent = Http.responseText;
-    ui.file.value = currentContent
-}
-
-function updateVagrantFile() {
-    Http.open("Get", ui.fileSelect.value);
-    Http.send();
-}
-
-function updateUI() {
-
-    let content = currentContent;
-
-    if (ui.ip.value !== "") {
-        content = content.replaceAll("vagrantip", ui.ip.value);
+    if (ipInput.value !== "") {
+        content = content.replaceAll("vagrantip", ipInput.value);
+    }
+    if (urlInput.value !== "") {
+        content = content.replaceAll("vagranturl", urlInput.value);
     }
 
-    if (ui.url.value !== "") {
-        content = content.replaceAll("vagranturl", ui.url.value);
-    }
-
-    ui.file.value = content;
+    fileText.value = content;
 }
 
-ui.ip.addEventListener("keyup", function () {
-    updateUI();
-});
+// Put the text into the hidden <a download="Vagrantfile"> link and click it.
+// A "data:" URL holds the file's content in the link itself.
+function downloadFile() {
+    downloadLink.href = "data:text/plain;charset=utf-8," + encodeURIComponent(fileText.value);
+    downloadLink.click();
+}
 
-ui.url.addEventListener("keyup", function () {
-    updateUI();
-});
+// --- Connect the page ----------------------------------------------------
 
-ui.fileSelect.addEventListener("change", function () {
-    updateVagrantFile();
-    updateUI();
-});
+// "input" fires on every change: typing, pasting, deleting...
+ipInput.addEventListener("input", showFile);
+urlInput.addEventListener("input", showFile);
+templateSelect.addEventListener("change", loadTemplate);
+downloadButton.addEventListener("click", downloadFile);
 
-ui.download.addEventListener("click", function () {
-    ui.content.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(ui.file.value));
-    ui.content.click();
-});
+// --- Start ---------------------------------------------------------------
 
-updateVagrantFile();
+loadTemplate();
