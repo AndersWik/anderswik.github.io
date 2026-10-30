@@ -1,137 +1,102 @@
-const urlParams = new URLSearchParams(window.location.search);
+/*
+ * Countdown to a date given in the page address, e.g.
+ *
+ *   /other/countdown/?to=2026-12-24T15:00:00&title=Christmas&url=https://.../tree.jpg
+ *
+ *   to     the date and time to count down to (required)
+ *   title  text shown as the heading (optional)
+ *   url    an image to show when the countdown is done (optional)
+ *
+ * Every second we work out how long is left and split it into
+ * days, hours, minutes and seconds.
+ */
+
+// --- Elements on the page ------------------------------------------------
+
+const titleText = document.getElementById("countdown-title");
+const daysText = document.getElementById("output-days");
+const hoursText = document.getElementById("output-hours");
+const minutesText = document.getElementById("output-minutes");
+const secondsText = document.getElementById("output-seconds");
 const imageContainer = document.getElementById("image-container");
-const countdownTitle = document.getElementById("countdown-title");
-const outputDays = document.getElementById("output-days");
-const outputHours = document.getElementById("output-hours");
-const outputMinutes = document.getElementById("output-minutes");
-const outputSeconds = document.getElementById("output-seconds");
-let runningInterval = null;
-let url = null;
-let startDate = new Date();
-let stopDate = new Date();
-let delta = 0;
 
-const isDate = function (date) {
+// --- Settings from the address -------------------------------------------
 
-return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
+// URLSearchParams reads the "?to=...&title=..." part of the address.
+const params = new URLSearchParams(window.location.search);
+const endDate = new Date(params.get("to"));
+const imageUrl = params.get("url");
+
+// --- State ---------------------------------------------------------------
+
+let timer = null;
+
+// --- Helpers -------------------------------------------------------------
+
+// 7 -> "07"
+function twoDigits(number) {
+    return String(number).padStart(2, "0");
 }
 
-const padString = function (value) {
-
-value = value + "";
-if (value.length < 2) {
-    value = "0" + value;
-}
-return value;
+// new Date("not a date") gives an "Invalid Date" whose time is NaN.
+function isValidDate(date) {
+    return !isNaN(date.getTime());
 }
 
-const removeAfter = function (value) {
+// --- Actions -------------------------------------------------------------
 
-value = value + "";
-value = value.substring(0, value.indexOf("."));
-return value;
+function showTimeLeft(totalSeconds) {
+    const days = Math.floor(totalSeconds / (24 * 60 * 60));
+    const hours = Math.floor(totalSeconds / (60 * 60)) % 24;
+    const minutes = Math.floor(totalSeconds / 60) % 60;
+    const seconds = totalSeconds % 60;
+
+    daysText.textContent = twoDigits(days);
+    hoursText.textContent = twoDigits(hours);
+    minutesText.textContent = twoDigits(minutes);
+    secondsText.textContent = twoDigits(seconds);
 }
 
-const getTotalSeconds = function (stopDateTime, startDateTime) {
+function finish() {
+    clearInterval(timer);
 
-return Math.abs(stopDateTime - startDateTime) / 1000;
+    // The "blink" class has a CSS animation.
+    [daysText, hoursText, minutesText, secondsText].forEach(function (element) {
+        element.classList.add("blink");
+    });
+
+    if (imageUrl) {
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.style.width = "100%";
+        imageContainer.appendChild(image);
+    }
 }
 
-const setDays = function (delta) {
+// Called once every second.
+function tick() {
+    // Subtracting two dates gives the difference in milliseconds.
+    const secondsLeft = Math.ceil((endDate - new Date()) / 1000);
 
-let days = Math.floor(delta / 86400);
-delta -= days * 86400;
-outputDays.innerHTML = padString(days);
-return delta;
+    if (secondsLeft <= 0) {
+        showTimeLeft(0);
+        finish();
+    } else {
+        showTimeLeft(secondsLeft);
+    }
 }
 
-const setHours = function (delta) {
+// --- Start ---------------------------------------------------------------
 
-let hours = Math.floor(delta / 3600) % 24;
-delta -= hours * 3600;
-hours = (hours + "".length < 2 ? "0" + hours : hours);
-outputHours.innerHTML = padString(hours);
-return delta;
+if (params.has("title")) {
+    // textContent (not innerHTML) so nobody can put HTML or scripts
+    // into the page through the address.
+    titleText.textContent = params.get("title");
 }
 
-const setMinutes = function (delta) {
-
-let minutes = Math.floor(delta / 60) % 60;
-delta -= minutes * 60;
-minutes = (minutes + "".length < 2 ? "0" + minutes : minutes);
-outputMinutes.innerHTML = padString(minutes);
-return delta;
+if (isValidDate(endDate)) {
+    timer = setInterval(tick, 1000);
+    tick(); // show the time right away instead of after one second
+} else {
+    titleText.textContent = "Add a date to the address, e.g. ?to=1999-12-31T23:59:00";
 }
-
-const setSeconds = function (delta) {
-
-let seconds = delta % 60;
-seconds = removeAfter(seconds);
-outputSeconds.innerHTML = padString(seconds);
-return delta;
-}
-
-const startBlinking = function () {
-
-outputDays.classList.add("blink");
-outputHours.classList.add("blink");
-outputMinutes.classList.add("blink");
-outputSeconds.classList.add("blink");
-}
-
-const displayImage = function () {
-
-if (url !== null) {
-    const img = document.createElement("img");
-    img.setAttribute("src", url);
-    img.style.width = '100%';
-    imageContainer.appendChild(img);
-}
-}
-
-const updateUI = function () {
-
-if (startDate < stopDate) {
-
-    let startDateTime = startDate.getTime();
-    let stopDateTime = stopDate.getTime();
-    let delta = getTotalSeconds(stopDateTime, startDateTime);
-    delta = setDays(delta);
-    delta = setHours(delta);
-    delta = setMinutes(delta);
-    delta = setSeconds(delta);
-    startDate = new Date();
-}
-else {
-    startBlinking();
-    displayImage();
-    clearInterval(runningInterval);
-}
-}
-
-const init = function () {
-
-stopDate.setDate(stopDate.getDate() + 1);
-
-if (urlParams.has("title")) {
-
-    countdownTitle.innerHTML = urlParams.get("title");
-}
-
-if (urlParams.has("url")) {
-
-    url = decodeURI(urlParams.get("url"));
-}
-
-if (urlParams.has("to") && isDate(urlParams.get("to"))) {
-
-    stopDate = new Date(urlParams.get("to"));
-    runningInterval = setInterval(updateUI, 1000);
-}
-else {
-
-    output.innerHTML = "You must supplie the date in a valid format ex 1999-12-31T23:59:00";
-}
-}
-
-init();
