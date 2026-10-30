@@ -17,10 +17,57 @@
 //<editor-fold desc="-- FONTS --">
 ///////////////////////////////////////////////////
 
+// Display font (bold), used for headings and big numbers.
 @font-face {
 	font-family: 'ubuntu';
 	src: URL('/assets/fonts/Ubuntu/Ubuntu-Bold.ttf') format('truetype');
+	font-display: swap;
 }
+
+// Text font, used for body copy.
+@font-face {
+	font-family: 'ubuntu-text';
+	src: URL('/assets/fonts/Ubuntu/Ubuntu-Regular.ttf') format('truetype');
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'ubuntu-text';
+	src: URL('/assets/fonts/Ubuntu/Ubuntu-Medium.ttf') format('truetype');
+	font-weight: 500;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'ubuntu-text';
+	src: URL('/assets/fonts/Ubuntu/Ubuntu-Bold.ttf') format('truetype');
+	font-weight: 700;
+	font-display: swap;
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- VARIABLES --">
+///////////////////////////////////////////////////
+
+$color-accent:      #e8b455;  // amber, for dark backgrounds
+$color-accent-dark: #a86a0c;  // amber with enough contrast on light backgrounds
+$color-ink:         #1f2328;
+$color-muted:       #6b7280;
+$color-bg:          #f3f4f6;
+$color-surface:     #fff;
+$color-border:      #e2e4e8;
+$color-dark:        #1b1d21;
+$color-dark-muted:  #9ca3af;
+
+$font-text:    'ubuntu-text', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+$font-display: ubuntu, $font-text;
+$font-mono:    ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+
+$radius: 12px;
+$shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 6px 24px rgba(0, 0, 0, .06);
 
 //</editor-fold>
 
@@ -29,24 +76,31 @@
 ///////////////////////////////////////////////////
 
 body {
-	background-color: #efefef;
+	background-color: $color-bg;
+	color: $color-ink;
+	font-family: $font-text;
+	-webkit-font-smoothing: antialiased;
 }
 
 a {
-	color: #e8b455;
+	color: $color-accent-dark;
 	text-decoration: none;
+	transition: color .15s ease-in-out;
 
 	&:hover {
-		color: #000;
+		color: $color-ink;
 	}
 }
 
 h2, h3 {
-	font-family: ubuntu;
+	font-family: $font-display;
+	color: $color-ink;
+	letter-spacing: -.01em;
 }
 
 h2 {
 	font-size: 35px;
+	margin-bottom: 1.25rem;
 }
 
 h3 {
@@ -54,7 +108,116 @@ h3 {
 }
 
 .bw {
-	background-color: #fff;
+	background-color: $color-surface;
+	border-radius: $radius;
+	box-shadow: $shadow;
+}
+
+::selection {
+	background-color: $color-accent;
+	color: $color-ink;
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- PAGE PANELS --">
+///////////////////////////////////////////////////
+
+// Every tool page is a .container-sm directly under body.
+// Turn it into a card so the content stands out from the background.
+body > .container-sm {
+	background-color: $color-surface;
+	border: 1px solid $color-border;
+	border-radius: $radius;
+	box-shadow: $shadow;
+	margin-top: 2.5rem !important;
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+}
+
+.list-group {
+	max-width: 420px;
+	margin: 0 auto;
+	border-radius: $radius;
+
+	.list-group-item {
+		border-color: $color-border;
+		padding: 0;
+		transition: background-color .15s ease-in-out;
+
+		a {
+			display: block;
+			padding: .75rem 1.25rem;
+			color: $color-ink;
+			font-weight: 500;
+		}
+
+		&:hover {
+			background-color: lighten($color-accent, 30%);
+
+			a {
+				color: $color-accent-dark;
+			}
+		}
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- FORMS & BUTTONS --">
+///////////////////////////////////////////////////
+
+textarea,
+input[type="text"],
+input[type="number"],
+input[type="url"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+select {
+	border: 1px solid $color-border;
+	border-radius: 8px;
+	padding: .5rem .75rem;
+	background-color: #fafbfc;
+	transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+
+	&:focus {
+		outline: none;
+		border-color: $color-accent;
+		box-shadow: 0 0 0 .2rem rgba($color-accent, .3);
+		background-color: $color-surface;
+	}
+}
+
+textarea {
+	font-family: $font-mono;
+	font-size: .9rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+	border-color: $color-accent;
+	box-shadow: 0 0 0 .2rem rgba($color-accent, .3);
+}
+
+.btn {
+	border-radius: 8px;
+	font-weight: 500;
+	padding: .5rem 1.25rem;
+}
+
+.btn-secondary {
+	background-color: $color-ink;
+	border-color: $color-ink;
+
+	&:hover,
+	&:focus {
+		background-color: $color-accent;
+		border-color: $color-accent;
+		color: $color-ink;
+	}
 }
 
 //</editor-fold>
@@ -63,25 +226,102 @@ h3 {
 //<editor-fold desc="-- HEADER --">
 ///////////////////////////////////////////////////
 
-header {
-	background-color: #808080;
-	font-family: ubuntu;
-	font-size: 45px;
+body > header {
+	background-color: $color-dark;
+	border-bottom: 3px solid $color-accent;
+	font-family: $font-display;
+
+	h1 {
+		font-size: 2rem;
+		margin: .25rem 0;
+		letter-spacing: .02em;
+	}
+
+	a {
+		color: $color-accent;
+
+		// Small shell prompt in front of the site name, to match the terminal.
+		&::before {
+			content: '~/ ';
+			color: $color-dark-muted;
+		}
+
+		&:hover {
+			color: #fff;
+		}
+	}
 }
 
 .certifications {
+	margin: 0 auto;
+	padding: 56px 15px 0;
+	max-width: 620px;
 	text-align: center;
-	padding-top: 10px;
-	max-width: 490px;
-	.sm-img {
-		width: 110px;
+
+	.certifications-title {
+		font-family: $font-text;
+		font-size: .8rem;
+		font-weight: 500;
+		letter-spacing: .15em;
+		text-transform: uppercase;
+		color: $color-muted;
+		margin-bottom: 1.25rem;
+
+		// Thin lines on both sides of the title.
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		&::before,
+		&::after {
+			content: '';
+			flex: 1;
+			height: 1px;
+			background-color: $color-border;
+		}
 	}
-	.po-img {
-		width: 110px;
+
+	.badges {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 1rem;
+		list-style: none;
+		margin: 0;
+		padding: 0;
 	}
-	.ma-img {
-		width: 56px;
-		margin: 0 10px 0 10px;
+
+	.badge-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: 170px;
+		padding: 1.25rem 1rem 1rem;
+		background-color: $color-surface;
+		border: 1px solid $color-border;
+		border-radius: $radius;
+		box-shadow: $shadow;
+		transition: transform .2s ease-in-out, box-shadow .2s ease-in-out, border-color .2s ease-in-out;
+
+		img {
+			// Same box for every badge, regardless of the image's shape.
+			height: 120px;
+			width: 100%;
+			object-fit: contain;
+		}
+
+		.badge-name {
+			margin-top: .9rem;
+			font-size: .8rem;
+			font-weight: 500;
+			line-height: 1.3;
+			color: $color-muted;
+		}
+
+		&:hover {
+			transform: translateY(-4px);
+			border-color: $color-accent;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 12px 32px rgba(0, 0, 0, .1);
+		}
 	}
 }
 
@@ -92,19 +332,29 @@ header {
 ///////////////////////////////////////////////////
 
 footer {
-	background-color: #808080;
+	background-color: $color-dark;
+	color: $color-dark-muted;
+	font-size: .9rem;
 	a {
-		color: #000;
+		color: $color-dark-muted;
 		text-decoration: none;
 		&:hover {
-			color: #e8b455;
+			color: $color-accent;
 		}
 	}
 
 	.social {
 		img {
 			width: 100%;
-			max-width: 60px;
+			max-width: 32px;
+			// The icons are black, invert them for the dark footer.
+			filter: invert(1);
+			opacity: .6;
+			transition: opacity .15s ease-in-out, transform .15s ease-in-out;
+		}
+		&:hover img {
+			opacity: 1;
+			transform: translateY(-2px);
 		}
 	}
 }
@@ -122,6 +372,8 @@ footer {
 	.terminal {
 		margin: auto;
 		max-width: 500px;
+		border-radius: 5px;
+		box-shadow: 0 10px 40px rgba(0, 0, 0, .25);
 
 		.menu {
 			border-radius: 5px 5px 0 0;
@@ -173,7 +425,10 @@ footer {
 			border-radius: 0 0 5px 5px;
 			background-color: #181818;
 			color: #3bfc34;
-			padding: 0px 5px;
+			padding: 8px 10px 10px;
+			font-family: $font-mono;
+			font-size: 14px;
+			line-height: 1.6;
 
 			.terminal-row {
 				display: block;
