@@ -1,0 +1,137 @@
+const urlParams = new URLSearchParams(window.location.search);
+const imageContainer = document.getElementById("image-container");
+const countdownTitle = document.getElementById("countdown-title");
+const outputDays = document.getElementById("output-days");
+const outputHours = document.getElementById("output-hours");
+const outputMinutes = document.getElementById("output-minutes");
+const outputSeconds = document.getElementById("output-seconds");
+let runningInterval = null;
+let url = null;
+let startDate = new Date();
+let stopDate = new Date();
+let delta = 0;
+
+const isDate = function (date) {
+
+return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
+}
+
+const padString = function (value) {
+
+value = value + "";
+if (value.length < 2) {
+    value = "0" + value;
+}
+return value;
+}
+
+const removeAfter = function (value) {
+
+value = value + "";
+value = value.substring(0, value.indexOf("."));
+return value;
+}
+
+const getTotalSeconds = function (stopDateTime, startDateTime) {
+
+return Math.abs(stopDateTime - startDateTime) / 1000;
+}
+
+const setDays = function (delta) {
+
+let days = Math.floor(delta / 86400);
+delta -= days * 86400;
+outputDays.innerHTML = padString(days);
+return delta;
+}
+
+const setHours = function (delta) {
+
+let hours = Math.floor(delta / 3600) % 24;
+delta -= hours * 3600;
+hours = (hours + "".length < 2 ? "0" + hours : hours);
+outputHours.innerHTML = padString(hours);
+return delta;
+}
+
+const setMinutes = function (delta) {
+
+let minutes = Math.floor(delta / 60) % 60;
+delta -= minutes * 60;
+minutes = (minutes + "".length < 2 ? "0" + minutes : minutes);
+outputMinutes.innerHTML = padString(minutes);
+return delta;
+}
+
+const setSeconds = function (delta) {
+
+let seconds = delta % 60;
+seconds = removeAfter(seconds);
+outputSeconds.innerHTML = padString(seconds);
+return delta;
+}
+
+const startBlinking = function () {
+
+outputDays.classList.add("blink");
+outputHours.classList.add("blink");
+outputMinutes.classList.add("blink");
+outputSeconds.classList.add("blink");
+}
+
+const displayImage = function () {
+
+if (url !== null) {
+    const img = document.createElement("img");
+    img.setAttribute("src", url);
+    img.style.width = '100%';
+    imageContainer.appendChild(img);
+}
+}
+
+const updateUI = function () {
+
+if (startDate < stopDate) {
+
+    let startDateTime = startDate.getTime();
+    let stopDateTime = stopDate.getTime();
+    let delta = getTotalSeconds(stopDateTime, startDateTime);
+    delta = setDays(delta);
+    delta = setHours(delta);
+    delta = setMinutes(delta);
+    delta = setSeconds(delta);
+    startDate = new Date();
+}
+else {
+    startBlinking();
+    displayImage();
+    clearInterval(runningInterval);
+}
+}
+
+const init = function () {
+
+stopDate.setDate(stopDate.getDate() + 1);
+
+if (urlParams.has("title")) {
+
+    countdownTitle.innerHTML = urlParams.get("title");
+}
+
+if (urlParams.has("url")) {
+
+    url = decodeURI(urlParams.get("url"));
+}
+
+if (urlParams.has("to") && isDate(urlParams.get("to"))) {
+
+    stopDate = new Date(urlParams.get("to"));
+    runningInterval = setInterval(updateUI, 1000);
+}
+else {
+
+    output.innerHTML = "You must supplie the date in a valid format ex 1999-12-31T23:59:00";
+}
+}
+
+init();
