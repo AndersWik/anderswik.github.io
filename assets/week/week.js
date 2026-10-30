@@ -1,16 +1,43 @@
-const ui = {
-    number: document.getElementById("number")
+/*
+ * What week is it?
+ *
+ * Sweden (and most of Europe) uses ISO week numbers:
+ *   - weeks start on Monday
+ *   - week 1 is the week that has the year's first Thursday in it
+ *
+ * So the easy way to find the week number of a date is:
+ *   1. find the Thursday in the same week (Monday-Sunday)
+ *   2. count which Thursday of its year that is
+ */
+
+// --- Elements on the page ------------------------------------------------
+
+const weekNumber = document.getElementById("number");
+
+// --- Helpers -------------------------------------------------------------
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+function getWeekNumber(date) {
+    // Copy the date (at midnight) so we don't change the original.
+    const thursday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    // getDay() gives Sunday = 0 ... Saturday = 6.
+    // Change it to Monday = 0 ... Sunday = 6.
+    const dayOfWeek = (thursday.getDay() + 6) % 7;
+
+    // Step back to Monday, then forward 3 days to Thursday.
+    thursday.setDate(thursday.getDate() - dayOfWeek + 3);
+
+    // How many days after January 1st is that Thursday?
+    // (Math.round smooths over summer/winter time changes.)
+    const januaryFirst = new Date(thursday.getFullYear(), 0, 1);
+    const daysIntoYear = Math.round((thursday - januaryFirst) / DAY_IN_MS);
+
+    // Every 7 days is a new week, and we count from 1, not 0.
+    return Math.floor(daysIntoYear / 7) + 1;
 }
 
-Date.prototype.getWeek = function () {
-    var date = new Date(this.getTime());
-    date.setHours(0, 0, 0, 0);
-    // Thursday in current week decides the year.
-    date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-    // January 4 is always in week 1.
-    var week1 = new Date(date.getFullYear(), 0, 4);
-    // Adjust to Thursday in week 1 and count number of weeks from date to week1.
-    return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-}
+// --- Start ---------------------------------------------------------------
 
-ui.number.innerHTML = new Date().getWeek();
+weekNumber.textContent = getWeekNumber(new Date());
