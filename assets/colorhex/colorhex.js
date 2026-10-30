@@ -1,225 +1,200 @@
-const ui = {
-    panelRgba: document.getElementById("color-panel-rgba"),
-    panelTextRgba: document.getElementById("color-panel-text-rgba"),
-    panelRgb: document.getElementById("color-panel-rgb"),
-    panelTextRgb: document.getElementById("color-panel-text-rgb"),
-    panelHex: document.getElementById("color-panel-hex"),
-    panelTextHex: document.getElementById("color-panel-text-hex"),
-    panelInverted: document.getElementById("color-panel-inverted"),
-    panelTextInverted: document.getElementById("color-panel-text-inverted"),
-    lighterColorContainer: document.getElementById("lighter-color-container"),
-    darkerColorContainer: document.getElementById("darker-color-container"),
-    favoriteColorContainer: document.getElementById("favorite-color-container"),
-    inputHex: document.getElementById("hex"),
-    inputAlpha: document.getElementById("alpha"),
-    inputRed: document.getElementById("red"),
-    inputGreen: document.getElementById("green"),
-    inputBlue: document.getElementById("blue")
+/*
+ * Color Hex: pick a color with sliders and see it in different formats.
+ *
+ * A screen color is made of red, green and blue light, each 0-255.
+ * The same color can be written in different ways:
+ *
+ *   rgb(255, 136, 0)          three numbers
+ *   #ff8800                   the same three numbers in hexadecimal
+ *   rgba(255, 136, 0, 0.5)    plus alpha: how see-through it is (0-1)
+ *
+ * The sliders on the page are the "state": every time one moves we read
+ * them all and redraw everything from scratch (the render function).
+ *
+ * Lighter/darker/favorite colors are links like <a href="#ff8800">.
+ * Clicking one changes the "#..." part of the page address, and we
+ * listen for that change to load the color.
+ */
+
+// --- Elements on the page ------------------------------------------------
+
+const redSlider = document.getElementById("red");
+const greenSlider = document.getElementById("green");
+const blueSlider = document.getElementById("blue");
+const alphaSlider = document.getElementById("alpha");
+const hexInput = document.getElementById("hex");
+
+const rgbPanel = document.getElementById("color-panel-rgb");
+const rgbText = document.getElementById("color-panel-text-rgb");
+const rgbaPanel = document.getElementById("color-panel-rgba");
+const rgbaText = document.getElementById("color-panel-text-rgba");
+const hexPanel = document.getElementById("color-panel-hex");
+const hexText = document.getElementById("color-panel-text-hex");
+const invertedPanel = document.getElementById("color-panel-inverted");
+const invertedText = document.getElementById("color-panel-text-inverted");
+
+const lighterList = document.getElementById("lighter-color-container");
+const darkerList = document.getElementById("darker-color-container");
+const favoriteList = document.getElementById("favorite-color-container");
+
+const favorites = ["#afc0bc", "#7c878f", "#253746", "#8db9ca", "#ca9a8e",
+                   "#d9c89e", "#899064", "#6ba4b8", "#d9d9d6", "#caffca"];
+
+// --- Color helpers -------------------------------------------------------
+// A color is an object like { red: 255, green: 136, blue: 0 }.
+
+// Keep a value inside 0-255 and make it a whole number.
+function clamp(value) {
+    return Math.min(255, Math.max(0, Math.round(value)));
 }
 
-const favorites = ["#afc0bc", "#7c878f", "#253746;", "#8dB9ca;", "#ca9a8e;", "#d9c89e", "#899064", "#6ba4B8", "#d9d9d6", "#caffca"];
-
-let lighterColors = [];
-let darkerColors = [];
-
-let rgbaColor = {}
-let rgbColor = {}
-let invertedColor = {}
-
-const rgbToHex = function (red, green, blue) {
-
-    r = Math.max(Math.min(255, red), 0).toString(16)
-    g = Math.max(Math.min(255, green), 0).toString(16)
-    b = Math.max(Math.min(255, blue), 0).toString(16)
-
-    const rr = (r.length < 2 ? '0' : '') + r
-    const gg = (g.length < 2 ? '0' : '') + g
-    const bb = (b.length < 2 ? '0' : '') + b
-
-    return `#${rr}${gg}${bb}`
+// { red: 255, green: 136, blue: 0 } -> "#ff8800"
+function toHex(color) {
+    const parts = [color.red, color.green, color.blue].map(function (value) {
+        return clamp(value).toString(16).padStart(2, "0");
+    });
+    return "#" + parts.join("");
 }
 
-const rgbaToRgb = function (rgbaIn, rgbOut) {
+// "#ff8800" -> { red: 255, green: 136, blue: 0 }, or null if not valid.
+function fromHex(hex) {
+    hex = hex.replace("#", "");
 
-    rgbOut.red = Math.round((1 - rgbaIn.alpha) * 255 + rgbaIn.alpha * rgbaIn.red);
-    rgbOut.green = Math.round((1 - rgbaIn.alpha) * 255 + rgbaIn.alpha * rgbaIn.green);
-    rgbOut.blue = Math.round((1 - rgbaIn.alpha) * 255 + rgbaIn.alpha * rgbaIn.blue);
-    rgbOut.hex = rgbToHex(rgbOut.red, rgbOut.green, rgbOut.blue);
-    rgbToHex(rgbOut.red, rgbOut.green, rgbOut.blue);
-    return rgbOut;
-}
-
-const invertRgb = function (rgbIn, rgbOut) {
-
-    rgbOut.red = (255 - rgbIn.red);
-    rgbOut.green = (255 - rgbIn.green);
-    rgbOut.blue = (255 - rgbIn.blue);
-    rgbOut.hex = rgbToHex(rgbOut.red, rgbOut.green, rgbOut.blue);
-    return rgbOut;
-}
-
-const hexToRgba = function (hexIn, rgbaOut) {
-
-    hexIn = hexIn.replace("#", '');
-
-    if (hexIn.match(/^[0-9A-Fa-f]{6}$/)) {
-
-        let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexIn);
-        rgbaOut.alpha = 1;
-        rgbaOut.red = parseInt(result[1], 16);
-        rgbaOut.green = parseInt(result[2], 16);
-        rgbaOut.blue = parseInt(result[3], 16);
+    if (!/^[0-9a-f]{6}$/i.test(hex)) {
+        return null;
     }
-    return rgbaOut;
+    return {
+        red: parseInt(hex.slice(0, 2), 16),
+        green: parseInt(hex.slice(2, 4), 16),
+        blue: parseInt(hex.slice(4, 6), 16)
+    };
 }
 
-const initUIfromHex = function (hexIn) {
-
-    hexIn = hexIn.replace("#", '');
-
-    if (hexIn.match(/^[0-9A-Fa-f]{6}$/)) {
-
-        let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexIn);
-        ui.inputAlpha.value = 100;
-        ui.inputRed.value = parseInt(result[1], 16);
-        ui.inputGreen.value = parseInt(result[2], 16);
-        ui.inputBlue.value = parseInt(result[3], 16);
+// A see-through color on a white page looks like a lighter solid color.
+// Mix each part with white (255) depending on alpha.
+function onWhite(color, alpha) {
+    function mix(value) {
+        return clamp(alpha * value + (1 - alpha) * 255);
     }
+    return { red: mix(color.red), green: mix(color.green), blue: mix(color.blue) };
 }
 
-const fillRgbaFromUI = function (rgbaOut) {
-
-    rgbaOut.red = ui.inputRed.value;
-    rgbaOut.green = ui.inputGreen.value;
-    rgbaOut.blue = ui.inputBlue.value;
-    rgbaOut.alpha = (ui.inputAlpha.value / 100);
-    return rgbaOut;
+// The opposite color: black <-> white, red <-> cyan...
+function invert(color) {
+    return { red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue };
 }
 
-const setPanelAndText = function (panel, text, color, invColor) {
-
-    panel.setAttribute("style", "color: " + invColor + "; background-color:" + color + ";");
-    text.innerHTML = "background-color:" + color + ";";
+// Add the same amount to every part. Positive = lighter, negative = darker.
+function shade(color, amount) {
+    return {
+        red: clamp(color.red + amount),
+        green: clamp(color.green + amount),
+        blue: clamp(color.blue + amount)
+    };
 }
 
-const createGoToHref = function (hex, hexInverted) {
+// --- Drawing -------------------------------------------------------------
 
-    let a = document.createElement('a');
-    a.setAttribute('href', hex);
-    a.setAttribute('class', 'go-to-color col-sm-6 col-md-3');
-    a.setAttribute('style', 'color:' + hexInverted + '; background-color:' + hex + ';');
-    a.innerHTML = "<span>" + hex + "</span>";
-    return a;
+function paintPanel(panel, text, background, textColor) {
+    panel.style.backgroundColor = background;
+    panel.style.color = textColor;
+    text.textContent = "background-color: " + background + ";";
 }
 
-const emptyArray = function (array) {
-    while (array.length > 0) {
-        array.pop();
+// Fill a list with color links, e.g. <a href="#ff8800">#ff8800</a>.
+function showSwatches(list, hexColors) {
+    list.innerHTML = "";
+
+    hexColors.forEach(function (hex) {
+        const link = document.createElement("a");
+        link.href = hex;
+        link.className = "go-to-color col-sm-6 col-md-3";
+        link.style.backgroundColor = hex;
+        link.style.color = toHex(invert(fromHex(hex)));
+
+        const label = document.createElement("span");
+        label.textContent = hex;
+        link.appendChild(label);
+
+        list.appendChild(link);
+    });
+}
+
+// Read the sliders and redraw the whole page from them.
+function render() {
+    const color = {
+        red: Number(redSlider.value),
+        green: Number(greenSlider.value),
+        blue: Number(blueSlider.value)
+    };
+    const alpha = Number(alphaSlider.value) / 100;
+
+    const solid = onWhite(color, alpha);
+    const solidHex = toHex(solid);
+    const invertedHex = toHex(invert(solid));
+
+    const rgb = "rgb(" + solid.red + ", " + solid.green + ", " + solid.blue + ")";
+    const rgba = "rgba(" + color.red + ", " + color.green + ", " + color.blue + ", " + alpha + ")";
+
+    paintPanel(rgbPanel, rgbText, rgb, invertedHex);
+    paintPanel(rgbaPanel, rgbaText, rgba, invertedHex);
+    paintPanel(hexPanel, hexText, solidHex, invertedHex);
+    paintPanel(invertedPanel, invertedText, invertedHex, solidHex);
+
+    hexInput.value = toHex(color);
+
+    // 10 lighter and 10 darker versions, 5 steps apart.
+    const lighter = [];
+    const darker = [];
+    for (let step = 0; step < 50; step += 5) {
+        lighter.push(toHex(shade(color, step)));
+        darker.push(toHex(shade(color, -step)));
     }
+    showSwatches(lighterList, lighter);
+    showSwatches(darkerList, darker);
 }
 
-// https://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color-or-rgb-and-blend-colors
+// Move the sliders to a hex color (fully solid) and redraw.
+function loadHex(hex) {
+    const color = fromHex(hex);
 
-const colorShade = (col, amt) => {
-  col = col.replace(/^#/, '')
-  if (col.length === 3) col = col[0] + col[0] + col[1] + col[1] + col[2] + col[2]
-
-  let [r, g, b] = col.match(/.{2}/g);
-  ([r, g, b] = [parseInt(r, 16) + amt, parseInt(g, 16) + amt, parseInt(b, 16) + amt])
-
-  return rgbToHex(r, g, b);
-}
-
-const setLighterColors = function () {
-
-    emptyArray(lighterColors);
-    let inputHex = rgbToHex(rgbaColor.red, rgbaColor.green, rgbaColor.blue);
-    for (var i = 0; i < 50; i = i + 5) {
-        let hex = colorShade(inputHex, i);
-        lighterColors.push(hex);
+    if (color === null) {
+        return;
     }
+    redSlider.value = color.red;
+    greenSlider.value = color.green;
+    blueSlider.value = color.blue;
+    alphaSlider.value = 100;
+    render();
 }
 
-const setDarkerColors = function () {
+// --- Connect the page ----------------------------------------------------
 
-    emptyArray(darkerColors);
-    let inputHex = rgbToHex(rgbaColor.red, rgbaColor.green, rgbaColor.blue);
-    for (var i = 0; i < 50; i = i + 5) {
-        let hex = colorShade(inputHex, -i);
-        darkerColors.push(hex);
+// "input" fires all the time while a slider is dragged.
+redSlider.addEventListener("input", render);
+greenSlider.addEventListener("input", render);
+blueSlider.addEventListener("input", render);
+alphaSlider.addEventListener("input", render);
+
+// A valid hex typed in the box goes into the address, e.g. ".../colorhex/#ff8800".
+// That makes the color easy to share, and triggers "hashchange" below.
+hexInput.addEventListener("input", function () {
+    if (fromHex(hexInput.value) !== null) {
+        window.location.hash = hexInput.value.replace("#", "");
     }
-}
-
-const fillColorContainer = function (colors, colorContainer) {
-
-    let rgbaColorClone = JSON.parse(JSON.stringify(rgbaColor));
-    colorContainer.innerHTML = "";
-
-    for (var i = 0; i < colors.length; i++) {
-
-        hexToRgba(colors[i], rgbaColorClone);
-        let newRgb = rgbaToRgb(rgbaColorClone, {});
-        let newInverted = invertRgb(newRgb, {});
-
-        let goToColorHref = createGoToHref(colors[i], newInverted.hex);
-        goToColorHref.addEventListener("click", function (event) {
-            initUIfromHex(newRgb.hex);
-            updateUI();
-        });
-        colorContainer.appendChild(goToColorHref);
-    }
-}
-
-const updateUI = function () {
-
-    fillRgbaFromUI(rgbaColor)
-    rgbaToRgb(rgbaColor, rgbColor);
-    invertRgb(rgbColor, invertedColor);
-
-    let backgroundRgba = "rgb(" + rgbaColor.red + "," + rgbaColor.green + "," + rgbaColor.blue + "," + rgbaColor.alpha + ")";
-    let backgroundRgb = "rgb(" + rgbColor.red + "," + rgbColor.green + "," + rgbColor.blue + ")";
-
-    setPanelAndText(ui.panelRgba, ui.panelTextRgba, backgroundRgba, invertedColor.hex);
-    setPanelAndText(ui.panelRgb, ui.panelTextRgb, backgroundRgb, invertedColor.hex);
-    setPanelAndText(ui.panelHex, ui.panelTextHex, rgbColor.hex, invertedColor.hex);
-    setPanelAndText(ui.panelInverted, ui.panelTextInverted, invertedColor.hex, rgbColor.hex);
-
-    setLighterColors();
-    fillColorContainer(lighterColors, ui.lighterColorContainer);
-    setDarkerColors();
-    fillColorContainer(darkerColors, ui.darkerColorContainer);
-}
-
-ui.inputAlpha.addEventListener("change", function () {
-
-    updateUI();
 });
 
-ui.inputRed.addEventListener("change", function () {
-
-    updateUI();
+// The "#..." part of the address changed (typed hex or clicked swatch).
+window.addEventListener("hashchange", function () {
+    loadHex(window.location.hash);
 });
 
-ui.inputGreen.addEventListener("change", function () {
+// --- Start ---------------------------------------------------------------
 
-    updateUI();
-});
+showSwatches(favoriteList, favorites);
 
-ui.inputBlue.addEventListener("change", function () {
-
-    updateUI();
-});
-
-ui.inputHex.addEventListener("keypress", function (event) {
-
-    if (event.key === "Enter" && /^#[0-9A-F]{6}$/i.test(ui.inputHex.value)) {
-        window.location.hash = ui.inputHex.value;
-    }
-
-    initUIfromHex(ui.inputHex.value);
-    updateUI();
-});
-
-initUIfromHex(window.location.hash);
-fillColorContainer(favorites, ui.favoriteColorContainer);
-updateUI();
+if (fromHex(window.location.hash) !== null) {
+    loadHex(window.location.hash);
+} else {
+    render();
+}
