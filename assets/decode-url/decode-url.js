@@ -1,17 +1,36 @@
-const ui = {
-    decodeBtn: document.getElementById("decode-btn"),
-    encodeBtn: document.getElementById("encode-btn"),
-    decodedText: document.getElementById("decoded-text"),
-    encodedText: document.getElementById("encoded-text"),
-    escapedCss: document.getElementById("escaped-css")
+/*
+ * URL decode / encode.
+ *
+ * Some characters (spaces, åäö, quotes, < >...) are not allowed in a URL.
+ * URL encoding replaces each of them with "%" and a code:
+ *
+ *   "hello world"  <->  "hello%20world"
+ */
+
+// --- Elements on the page ------------------------------------------------
+
+const encodedText = document.getElementById("encoded-text");
+const plainText = document.getElementById("decoded-text");
+const decodeButton = document.getElementById("decode-btn");
+const encodeButton = document.getElementById("encode-btn");
+
+// --- What the buttons do -------------------------------------------------
+
+function decode() {
+    // decodeURIComponent() decodes every "%" code.
+    // It throws an error on broken codes like "%E0%A4%A", so catch that.
+    try {
+        plainText.value = decodeURIComponent(encodedText.value);
+    } catch (error) {
+        plainText.value = "That is not a valid URL encoded text.";
+    }
 }
 
-ui.encodeBtn.addEventListener("click", function () {
-    let text = ui.decodedText.value;
-    ui.encodedText.value = encodeURI(text);
-});
+function encode() {
+    encodedText.value = encodeURI(plainText.value);
+}
 
-ui.decodeBtn.addEventListener("click", function () {
-    let text = ui.encodedText.value;
-    ui.decodedText.value = decodeURI(text);
-});
+// --- Connect the buttons -------------------------------------------------
+
+decodeButton.addEventListener("click", decode);
+encodeButton.addEventListener("click", encode);
