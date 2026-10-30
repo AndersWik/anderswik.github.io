@@ -1,105 +1,101 @@
-const ui = {
-    outputMinutes: document.getElementById("output-minutes"),
-    outputSeconds: document.getElementById("output-seconds"),
-    buttonStart: document.getElementById("button-start"),
-    buttonStop: document.getElementById("button-stop"),
-    increaseMinutes: document.getElementById("increase-minutes"),
-    decreaseMinutes: document.getElementById("decrease-minutes"),
-    increaseSeconds: document.getElementById("increase-seconds"),
-    decreaseSeconds: document.getElementById("decrease-seconds"),
-    beepSound: document.getElementById("beep-sound")
+/*
+ * Egg clock: count down from a chosen time and beep when it reaches zero.
+ *
+ * State:
+ *   secondsLeft  how much time is left, in seconds
+ *   timer        the running countdown (null when stopped)
+ *   beeper       the repeating beep (null when quiet)
+ *
+ * setInterval(fn, 1000) calls fn once every second until clearInterval()
+ * stops it. It returns an id that we keep so we can stop it later.
+ */
+
+// --- State ---------------------------------------------------------------
+
+let secondsLeft = 0;
+let timer = null;
+let beeper = null;
+
+const MAX_SECONDS = 60 * 60; // one hour
+
+// --- Elements on the page ------------------------------------------------
+
+const minutesText = document.getElementById("output-minutes");
+const secondsText = document.getElementById("output-seconds");
+const startButton = document.getElementById("button-start");
+const stopButton = document.getElementById("button-stop");
+const addMinuteButton = document.getElementById("increase-minutes");
+const removeMinuteButton = document.getElementById("decrease-minutes");
+const addSecondButton = document.getElementById("increase-seconds");
+const removeSecondButton = document.getElementById("decrease-seconds");
+const beepSound = document.getElementById("beep-sound");
+
+// --- Helpers -------------------------------------------------------------
+
+// 7 -> "07"
+function twoDigits(number) {
+    return String(number).padStart(2, "0");
 }
 
-let seconds = 0;
-let runningInterval = null;
-let soundInterval = null;
-
-const padString = function (value) {
-    value = value + "";
-    if (value.length < 2) {
-        value = "0" + value;
-    }
-    return value;
+// 125 seconds -> "02" minutes and "05" seconds
+function showTime() {
+    minutesText.textContent = twoDigits(Math.floor(secondsLeft / 60));
+    secondsText.textContent = twoDigits(secondsLeft % 60);
 }
 
-const removeAfter = function (value) {
-    value = value + "";
-    value = value.substring(0, value.indexOf("."));
-    return value;
+function beep() {
+    beepSound.currentTime = 0; // rewind, in case it is still playing
+    beepSound.play();
 }
 
-const setMinutes = function (delta) {
-    let minutes = Math.floor(delta / 60);
-    minutes = (minutes + "".length < 2 ? "0" + minutes : minutes);
-    ui.outputMinutes.innerHTML = padString(minutes);
-}
+// --- Actions -------------------------------------------------------------
 
-const setSeconds = function (delta) {
-    let seconds = delta % 60;
-    ui.outputSeconds.innerHTML = padString(seconds);
-}
+// Add (positive) or remove (negative) time, but stay within 0 and one hour.
+function changeTime(seconds) {
+    const newTime = secondsLeft + seconds;
 
-const beep = function () {
-    ui.beepSound.play();
-}
-
-const running = function () {
-    if (seconds > 0) {
-        seconds -= 1;
-        setMinutes(seconds);
-        setSeconds(seconds);
-    }
-    else {
-        soundInterval = setInterval(beep, 1000);
-        clearInterval(runningInterval);
-    }
-}
-
-const addSeconds = function (val) {
-    if (seconds <= 3600 && (seconds + val) <= 3600) {
-        seconds += val;
-        setMinutes(seconds);
-        setSeconds(seconds);
+    if (newTime >= 0 && newTime <= MAX_SECONDS) {
+        secondsLeft = newTime;
+        showTime();
     }
 }
 
-const removeSeconds = function (val) {
-    if (seconds >= 0 && (seconds - val) >= 0) {
-        seconds -= val;
-        setMinutes(seconds);
-        setSeconds(seconds);
+// Called once every second while the clock runs.
+function tick() {
+    secondsLeft = secondsLeft - 1;
+    showTime();
+
+    if (secondsLeft === 0) {
+        clearInterval(timer);
+        timer = null;
+        beep();
+        beeper = setInterval(beep, 1000);
     }
 }
 
-ui.buttonStart.addEventListener("click", function () {
-    runningInterval = setInterval(running, 1000);
-});
-
-ui.buttonStop.addEventListener("click", function () {
-    if (runningInterval !== null) {
-        clearInterval(runningInterval);
-        runningInterval = null;
+function start() {
+    // Don't start twice (the clock would run at double speed),
+    // and there is nothing to count down from 0.
+    if (timer !== null || secondsLeft === 0) {
+        return;
     }
-    if (soundInterval !== null) {
-        clearInterval(soundInterval);
-        soundInterval = null;
-    }
-    setMinutes(seconds);
-    setSeconds(seconds);
-});
+    timer = setInterval(tick, 1000);
+}
 
-ui.increaseMinutes.addEventListener("click", function () {
-    addSeconds(60);
-});
+// Pause the countdown and stop any beeping.
+function stop() {
+    clearInterval(timer);
+    clearInterval(beeper);
+    timer = null;
+    beeper = null;
+}
 
-ui.decreaseMinutes.addEventListener("click", function () {
-    removeSeconds(60);
-});
+// --- Connect the buttons -------------------------------------------------
 
-ui.increaseSeconds.addEventListener("click", function () {
-    addSeconds(1);
-});
+startButton.addEventListener("click", start);
+stopButton.addEventListener("click", stop);
 
-ui.decreaseSeconds.addEventListener("click", function () {
-    removeSeconds(1);
-});
+addMinuteButton.addEventListener("click", function () { changeTime(60); });
+removeMinuteButton.addEventListener("click", function () { changeTime(-60); });
+addSecondButton.addEventListener("click", function () { changeTime(1); });
+removeSecondButton.addEventListener("click", function () { changeTime(-1); });
