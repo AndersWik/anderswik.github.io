@@ -3,6 +3,10 @@ layout: default
 title: Egg Clock
 permalink: /other/egg-clock/
 nonav: true
+css:
+  - /assets/egg-clock/egg-clock.css
+js:
+  - /assets/egg-clock/egg-clock.js
 ---
 
 <div class="egg-clock container-sm mt-3 mb-3 pt-5 pb-5 text-center">
@@ -43,6 +47,5 @@ nonav: true
   </div>
 </div>
 <audio id="beep-sound">
-  <source src="{{ site.url }}/assets/sounds/beep.m4v">
+  <source src="{{ site.baseurl }}/assets/sounds/beep.m4v">
 </audio>
-<script type="text/javascript" src="{{ site.url }}/js/other/egg-clock.js"></script>

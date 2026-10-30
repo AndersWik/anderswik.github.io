@@ -1,0 +1,76 @@
+.colorhex .panel-container {
+  background-color: #fff;
+}
+
+.colorhex #color-panel-rgb,
+.colorhex #color-panel-rgba,
+.colorhex #color-panel-hex,
+.colorhex #color-panel-inverted {
+  height: 150px;
+  font-family: ubuntu;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.colorhex #color-panel-rgb p,
+.colorhex #color-panel-rgba p,
+.colorhex #color-panel-hex p,
+.colorhex #color-panel-inverted p {
+  text-align: center;
+}
+
+.colorhex #color-panel-rgb,
+.colorhex #color-panel-rgba,
+.colorhex #color-panel-hex {
+  font-size: 20px;
+}
+
+.colorhex #color-panel-inverted {
+  font-size: 45px;
+}
+
+.colorhex #alpha {
+  background-image: linear-gradient(to right, #ffffff, #000000);
+}
+
+.colorhex #red {
+  background-image: linear-gradient(to right, #000000, #ff0000);
+}
+
+.colorhex #green {
+  background-image: linear-gradient(to right, #000000, #00ff00);
+}
+
+.colorhex #blue {
+  background-image: linear-gradient(to right, #000000, #0000ff);
+}
+
+.colorhex .settings .form-group {
+  clear: both;
+  border-radius: 10px;
+  background-color: #fff;
+  font-family: ubuntu;
+}
+
+.colorhex .settings .form-group label {
+  float: left;
+  width: 10%;
+}
+
+.colorhex .settings .form-group input {
+  float: left;
+  width: 90%;
+  font-family: arial;
+}
+
+.colorhex .go-to-color {
+  height: 100px;
+}
+
+.colorhex .go-to-color span {
+  position: relative;
+  top: 25px;
+  font-family: ubuntu;
+  font-size: 30px;
+}

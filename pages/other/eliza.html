@@ -1,0 +1,25 @@
+---
+layout: default
+title: Eliza
+permalink: /other/eliza/
+css:
+  - /assets/eliza/eliza.css
+js:
+  - /assets/eliza/doctor.js
+  - /assets/eliza/eliza.js
+  - /assets/eliza/eliza-page.js
+---
+
+<div class="eliza container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Eliza</h2>
+      <p class="sub">Joseph Weizenbaum, MIT, 1966 &mdash; running the DOCTOR script</p>
+      <div id="log" aria-live="polite"></div>
+      <form id="form" autocomplete="off">
+        <input id="input" placeholder="Type here and press Enter" autofocus>
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+</div>

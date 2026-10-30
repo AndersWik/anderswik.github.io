@@ -1,8 +1,12 @@
 ---
 layout: default
 title: Calculator
-permalink: /calculator/
+permalink: /utils/calculator/
 nonav: true
+css:
+  - /assets/calculator/calculator.css
+js:
+  - /assets/calculator/calculator.js
 ---
 
 <div class="calculator container-sm mt-3 mb-3 pt-5 pb-5 text-center" style="max-width: 720px !important;">
@@ -140,105 +144,3 @@ nonav: true
         </div>
     </div>
 </div>
-<script>
-
-const output = document.getElementById("output");
-const calcButtons = document.getElementsByClassName("calc-button");
-
-const calculatePercentResult = function(input, operator) {
-    
-    let result = "";
-    let numbers = input.split(operator)
-    if (numbers.length > 1 && !isNaN(numbers[0]) && !isNaN(numbers[1])) {
-
-        let number = parseFloat(numbers[0]);
-        let percentage = parseFloat(numbers[1]);
-
-        if(operator === "/") {
-            
-            result = (number / percentage) * 100;
-        }
-        else if(operator === "*") {
-
-            result = number * (percentage/100);
-        }
-        else if(operator === "+") {
-
-            result = number + (number * (percentage/100));
-        }
-        else if(operator === "-") {
-            
-            result = number - (number * (percentage/100));
-        }
-    }
-    return result;
-}
-
-const onlyOnePercentageOperator = function(input, operator, operators) {
-
-    return input.includes(operator) && 
-    !input.includes(operators[0]) &&
-    !input.includes(operators[1]) &&
-    !input.includes(operators[2]) && 
-    input.split(operator).length < 3;
-}
-
-const attributeIsPercentage = function(value) {
-
-    let percentage = null;
-
-    if(onlyOnePercentageOperator(value, "/", ["*","+","-"])) {
-        
-        percentage = calculatePercentResult(value, "/");
-    }
-    else if(onlyOnePercentageOperator(value, "*", ["/","+","-"])) {
-        
-        percentage = calculatePercentResult(value, "*");
-    }
-    else if(onlyOnePercentageOperator(value, "+", ["/","*","-"])) {
-        
-        percentage = calculatePercentResult(value, "+");
-    }
-    else if(onlyOnePercentageOperator(value, "-", ["/","*","+"])) {
-        
-        percentage = calculatePercentResult(value, "-");
-    }
-
-    return percentage;
-}
-
-const calcButtonFunction = function() {
-
-    let attribute = this.getAttribute("data-val");
-    let value = output.value.replaceAll('X', '*');
-
-    if(attribute === "ac") {
-
-        output.value = "";
-    }
-    else if(attribute === "<") {
-
-        output.value = output.value.substring(0, output.value.length - 1);
-    }
-    else if(attribute === "=") {
-
-        output.value = eval(value);
-    }
-    else if(attribute === "%") {
-
-        let percentage = attributeIsPercentage(output.value);
-
-        if(percentage) {
-            output.value = percentage;
-        }
-    }
-    else {
-
-        output.value = output.value + attribute;
-    }
-};
-
-for (var i = 0; i < calcButtons.length; i++) {
-    calcButtons[i].addEventListener('click', calcButtonFunction, false);
-}
-</script>
