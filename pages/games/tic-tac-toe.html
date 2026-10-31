@@ -1,0 +1,36 @@
+---
+layout: game
+title: Tic Tac Toe
+permalink: /games/tic-tac-toe/
+nonav: true
+css:
+  - /assets/tic-tac-toe/tic-tac-toe.css
+js:
+  - /assets/tic-tac-toe/tic-tac-toe.js
+---
+<div class="container">
+  <h1>Tic Tac Toe</h1>
+  <div class="board" id="board">
+    <button class="square"></button>
+    <button class="square"></button>
+    <button class="square"></button>
+    <button class="square"></button>
+    <button class="square"></button>
+    <button class="square"></button>
+    <button class="square"></button>
+    <button class="square"></button>
+    <button class="square"></button>
+  </div>
+  <div class="status" id="status">Player X turn</div>
+  <button id="reset">Reset Game</button>
+  <div class="controls">
+    <select id="players">
+      <option value="1">1 Player</option>
+      <option value="2">2 Player</option>
+    </select>
+    <select id="difficulty">
+      <option value="normal">Normal CPU</option>
+      <option value="smart" selected>Smart CPU</option>
+    </select>
+  </div>
+</div>
