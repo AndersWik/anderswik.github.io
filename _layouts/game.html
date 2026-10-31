@@ -1,0 +1,18 @@
+---
+layout: default
+---
+<div class="game">
+  {{ content }}
+</div>
+
+<script>
+  document.addEventListener("keydown", function (event) {
+    const scrollKeys = [" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+    const tag = event.target.tagName;
+    const isFormField = ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(tag);
+
+    if (scrollKeys.includes(event.key) && !isFormField) {
+      event.preventDefault();
+    }
+  });
+</script>
