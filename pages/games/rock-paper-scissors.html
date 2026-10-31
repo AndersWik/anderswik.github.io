@@ -1,0 +1,41 @@
+---
+layout: game
+title: Rock Paper Scissors
+permalink: /games/rock-paper-scissors/
+nonav: true
+css:
+  - /assets/rock-paper-scissors/rock-paper-scissors.css
+js:
+  - /assets/rock-paper-scissors/rock-paper-scissors.js
+---
+<div class="container">
+  <h1>Rock Paper Scissors</h1>
+  <div class="score">
+    <div id="player">
+      <p>Player</p>
+      <p id="playerScore">0</p>
+      <img
+        id="playerImage"
+        src="{{ site.baseurl }}/assets/rock-paper-scissors/images/Rock.svg"
+        alr=""
+      />
+      <div id="playerChoice">Rock</div>
+    </div>
+    <div id="cpu">
+      <p>CPU</p>
+      <p id="computerScore">0</p>
+      <img
+        id="computerImage"
+        src="{{ site.baseurl }}/assets/rock-paper-scissors/images/Scissors.svg"
+        alr=""
+      />
+      <div id="computerChoice">Scissors</div>
+    </div>
+  </div>
+  <p id="result"></p>
+  <div>
+    <button id="rockBtn">Rock</button>
+    <button id="paperBtn">Paper</button>
+    <button id="scissorsBtn">Scissors</button>
+  </div>
+</div>
