@@ -1,0 +1,34 @@
+---
+layout: game
+title: Hangman
+permalink: /games/hangman/
+nonav: true
+css:
+  - /assets/hangman/hangman.css
+js:
+  - /assets/hangman/hangman.js
+---
+<div class="container">
+  <h1>Hangman</h1>
+  <div class="word-display" id="wordDisplay">_ _ _</div>
+  <div class="wrong-guesses" id="wrongGuesses">Wrong guesses: 0</div>
+  <img id="hangmanImage" src="{{ site.baseurl }}/assets/hangman/images/hangman.svg" alr="" />
+  <div class="answers-container">
+    <div class="answers" id="correctLetters">
+      <h3>Correct Letters:</h3>
+      <p id="correctList"></p>
+    </div>
+    <div class="answers" id="wrongLetters">
+      <h3>Wrong Letters:</h3>
+      <p id="wrongList"></p>
+    </div>
+  </div>
+  <div class="keyboard" id="keyboard"></div>
+  <div id="overlay">
+    <div id="info">
+      <img id="resultImage" src="{{ site.baseurl }}/assets/hangman/images/star.svg" alr="" />
+      <div id="result"></div>
+      <button id="restart">Restart</button>
+    </div>
+  </div>
+</div>
