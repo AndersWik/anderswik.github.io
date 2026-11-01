@@ -1,0 +1,32 @@
+.crontab {
+	font-family: ubuntu;	
+}
+
+.crontab input {
+    font-size: 30px;
+    width:18%;
+    margin-left: 1%;
+    border: none;
+}
+
+.crontab p {
+    font-size: 15px;
+}
+
+.crontab p.header {
+    font-size: 25px;
+}
+
+.crontab .vertical-align {
+    height: 60px;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.crontab table td.text-left {
+    text-align: left;
+}
+
+.crontab .not-valid {
+    border: 3px dashed #ff0000;
+}
