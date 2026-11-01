@@ -1,0 +1,29 @@
+---
+layout: game
+title: Dice Roller
+permalink: /games/choose-dice/
+nonav: true
+css:
+  - /assets/choose-dice/choose-dice.css
+js:
+  - /assets/choose-dice/choose-dice.js
+---
+<div class="container">
+  <h1>Dice Roller</h1>
+  <div id="dice-preview">
+    <span id="preview-text">4</span>
+  </div>
+  <div class="dice-options">
+    <select id="dice-type">
+      <option value="4" selected>D4 (4 sides)</option>
+      <option value="6">D6 (6 sides)</option>
+      <option value="8">D8 (8 sides)</option>
+      <option value="10">D10 (10 sides)</option>
+      <option value="12">D12 (12 sides)</option>
+      <option value="20">D20 (20 sides)</option>
+    </select>
+  </div>
+  <button id="roll-dice-btn">Roll Dice</button>
+  <div class="dice-selected" id="dice-selected"></div>
+  <div class="dice-result" id="dice-result"></div>
+</div>
