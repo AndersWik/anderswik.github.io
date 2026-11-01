@@ -1,0 +1,15 @@
+body {
+  background-color: #222;
+}
+
+.game {
+  text-align: center;
+  background: #222;
+  color: white;
+}
+
+.game canvas {
+  background: #000;
+  display: block;
+  margin: auto;
+}
