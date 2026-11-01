@@ -1,0 +1,29 @@
+---
+layout: game
+title: Memory Game
+permalink: /games/memory/
+nonav: true
+css:
+  - /assets/memory/memory.css
+js:
+  - /assets/memory/memory.js
+---
+<div class="container">
+  <h1>Memory Game</h1>
+  <div class="grid" id="board"></div>
+  <div class="controls">
+    <select id="size">
+      <option value="xs">XS</option>
+      <option value="s">S</option>
+      <option value="m">M</option>
+      <option value="l">L</option>
+    </select>
+  </div>
+  <div id="overlay">
+    <div id="info">
+      <img id="resultImage" src="{{ site.baseurl }}/assets/memory/images/star.svg" alr="" />
+      <div id="resultMessage"></div>
+      <button id="restart">Restart</button>
+    </div>
+  </div>
+</div>
