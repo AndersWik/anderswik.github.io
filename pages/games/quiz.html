@@ -1,0 +1,28 @@
+---
+layout: game
+title: Quiz
+permalink: /games/quiz/
+nonav: true
+css:
+  - /assets/quiz/quiz.css
+js:
+  - /assets/quiz/quiz.js
+---
+<div class="container">
+  <h1>Quiz!</h1>
+  <div class="info">Score: <span id="score">0</span></div>
+  <div class="question" id="question"></div>
+  <div id="answers"></div>
+  <div id="overlay">
+    <div id="modal">
+      <div id="result"></div>
+      <img
+        id="star"
+        src="{{ site.baseurl }}/assets/quiz/images/star.svg"
+        alt=""
+        style="display: none"
+      />
+      <button id="restart">Play Again</button>
+    </div>
+  </div>
+</div>
