@@ -7,9 +7,9 @@
 }
 
 .game .container {
+  box-sizing: border-box;
   text-align: center;
-  min-width: 250px;
-  max-width: 250px;
+  width: min(100% - 40px, 450px);
   padding: 20px;
   background-color: white;
   border-radius: 10px;
@@ -27,8 +27,11 @@
 }
 
 .game .score {
-  font-size: 24px;
-  margin: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  font-size: clamp(18px, 5vw, 24px);
+  margin: 20px 0;
 }
 
 .game .score img {
@@ -38,13 +41,8 @@
 }
 
 .game .score #player, .game .score #cpu {
-  display: block;
-  float: left;
-  width: 50%;
-}
-
-.game .score #player span, .game .score #cpu span {
-  width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .game .score #cpu img {
@@ -52,14 +50,7 @@
   transform: scaleX(-1);
 }
 
-.game .score::after {
-  content: "";
-  clear: both;
-  display: table;
-}
-
 .game #result {
-  clear: both;
   font-size: 1.5em;
   line-height: 2;
   background-color: #3498db;
@@ -67,9 +58,17 @@
   margin: 0px;
 }
 
-.game button {
-  padding: 15px 30px;
+.game .choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
   margin-top: 20px;
+}
+
+.game button {
+  flex: 1 1 auto;
+  padding: 15px 20px;
   font-size: 18px;
   background-color: #3498db;
   color: #fff;

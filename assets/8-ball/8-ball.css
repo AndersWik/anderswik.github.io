@@ -7,9 +7,9 @@
 }
 
 .game .container {
+  box-sizing: border-box;
   text-align: center;
-  min-width: 250px;
-  max-width: 250px;
+  width: min(100% - 40px, 400px);
   padding: 20px;
   background-color: white;
   border-radius: 10px;
@@ -18,7 +18,10 @@
 }
 
 .game img {
-  margin-bottom: 10px;
+  display: block;
+  width: min(100%, 260px);
+  height: auto;
+  margin: 0 auto 10px;
 }
 
 .game .shake-ball {
@@ -63,7 +66,8 @@
 }
 
 .game input {
-  width: calc(100% - 20px);
+  box-sizing: border-box;
+  width: 100%;
   padding: 10px;
   font-size: 16px;
   margin-bottom: 10px;
@@ -78,6 +82,7 @@
   border: 5px solid #3d3b3b;
   border-radius: 5px;
   cursor: pointer;
+  max-width: 100%;
 }
 
 .game button:hover {
