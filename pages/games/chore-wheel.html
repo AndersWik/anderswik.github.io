@@ -1,0 +1,37 @@
+---
+layout: game
+title: Chore Wheel
+permalink: /games/chore-wheel/
+nonav: true
+css:
+  - /assets/chore-wheel/chore-wheel.css
+js:
+  - /assets/chore-wheel/chore-wheel.js
+---
+<div class="container">
+  <h1>Chore Wheel</h1>
+  <div class="input-row">
+    <input type="text" id="choreInput" placeholder="Enter Chore" />
+    <button id="choreButton">Add Chore</button>
+  </div>
+  <div class="input-row">
+    <input type="text" id="personInput" placeholder="Enter Person" />
+    <button id="personButton">Add Person</button>
+  </div>
+  <div id="wheel-container">
+    <canvas id="wheel" width="300" height="300"></canvas>
+    <div id="names-container"></div>
+  </div>
+  <button id="spinButton">Spin Wheel</button>
+  <p id="result"></p>
+  <div class="list-container">
+    <div>
+      <h2>Chores</h2>
+      <ul id="choreList"></ul>
+    </div>
+    <div>
+      <h2>People</h2>
+      <ul id="peopleList"></ul>
+    </div>
+  </div>
+</div>
