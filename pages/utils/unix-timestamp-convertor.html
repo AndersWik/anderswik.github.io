@@ -1,0 +1,134 @@
+---
+layout: default
+title: Unix Timestamp Convertor
+permalink: /utils/unix-timestamp-convertor/
+nonav: true
+css:
+  - /assets/unix-timestamp-convertor/unix-timestamp-convertor.css
+js:
+  - /assets/unix-timestamp-convertor/unix-timestamp-convertor.js
+---
+
+<div class="unix-timestamp-convertor container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Unix Timestamp Convertor</h2>
+      <p>Seconds, milliseconds, date/time and ISO 8601</p>
+      <p class="now">
+        Current Unix timestamp: <span id="now-seconds"></span>
+        <button type="button" class="btn btn-outline-primary btn-sm ms-2" id="now-button">Use now</button>
+      </p>
+    </div>
+  </div>
+  <div class="row align-items-start">
+    <div class="col-sm-12 col-md-6 mt-3">
+      <p>From:</p>
+      <select class="form-select mt-3" aria-label="From what format" id="input-select">
+        <option value="seconds" selected>Unix timestamp (seconds)</option>
+        <option value="milliseconds">Unix timestamp (milliseconds)</option>
+        <option value="datetime">Date/Time (YYYY-MM-DD HH:MM:SS)</option>
+        <option value="iso">ISO 8601 (UTC)</option>
+      </select>
+      <input class="form-control form-control-lg mt-3" type="text" name="input" id="input-field" placeholder="1700000000">
+    </div>
+    <div class="col-sm-12 col-md-6 mt-3">
+      <p>To:</p>
+      <select class="form-select mt-3" aria-label="To what format" id="output-select">
+        <option value="seconds">Unix timestamp (seconds)</option>
+        <option value="milliseconds">Unix timestamp (milliseconds)</option>
+        <option value="datetime" selected>Date/Time (YYYY-MM-DD HH:MM:SS)</option>
+        <option value="iso">ISO 8601 (UTC)</option>
+      </select>
+      <input class="form-control form-control-lg mt-3" type="text" name="input" id="output-field">
+    </div>
+    <div class="col-sm-12 col-md-6 mt-3">
+      <p>Time zone:</p>
+      <select class="form-select mt-3" aria-label="Select time zone" id="zone-select">
+        <option value="local" id="local-option">Local</option>
+        <option value="utc">UTC</option>
+      </select>
+    </div>
+    <div class="col-sm-12 col-md-6 mt-3">
+      <p>Details:</p>
+      <p class="details mt-3" id="details">&ndash;</p>
+    </div>
+  </div>
+  <div class="accordion mt-3" id="convertion-table">
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#durations"
+          aria-expanded="false" aria-controls="durations">
+          Durations in seconds
+        </button>
+      </h2>
+      <div id="durations" class="accordion-collapse collapse" data-bs-parent="#convertion-table">
+        <div class="accordion-body">
+          <table class="table table-striped">
+            <tbody>
+              <tr>
+                <td>1 Minute</td>
+                <td>60 Seconds</td>
+              </tr>
+              <tr>
+                <td>1 Hour</td>
+                <td>3600 Seconds</td>
+              </tr>
+              <tr>
+                <td>1 Day</td>
+                <td>86400 Seconds</td>
+              </tr>
+              <tr>
+                <td>1 Week</td>
+                <td>604800 Seconds</td>
+              </tr>
+              <tr>
+                <td>1 Month (30.44 days)</td>
+                <td>2629743 Seconds</td>
+              </tr>
+              <tr>
+                <td>1 Year (365.24 days)</td>
+                <td>31556926 Seconds</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#notable"
+          aria-expanded="false" aria-controls="notable">
+          Notable timestamps
+        </button>
+      </h2>
+      <div id="notable" class="accordion-collapse collapse" data-bs-parent="#convertion-table">
+        <div class="accordion-body">
+          <table class="table table-striped">
+            <tbody>
+              <tr>
+                <td>0</td>
+                <td>1970-01-01 00:00:00 UTC (the Unix epoch)</td>
+              </tr>
+              <tr>
+                <td>1000000000</td>
+                <td>2001-09-09 01:46:40 UTC</td>
+              </tr>
+              <tr>
+                <td>1234567890</td>
+                <td>2009-02-13 23:31:30 UTC</td>
+              </tr>
+              <tr>
+                <td>2000000000</td>
+                <td>2033-05-18 03:33:20 UTC</td>
+              </tr>
+              <tr>
+                <td>2147483647</td>
+                <td>2038-01-19 03:14:07 UTC (largest signed 32-bit value, the "Year 2038 problem")</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
