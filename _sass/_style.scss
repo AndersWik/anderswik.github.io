@@ -252,13 +252,17 @@ body > header {
 	}
 }
 
-.certifications {
+// The notes page reuses the certification cards.
+.certifications,
+.notes,
+.apps,
+.projects {
 	margin: 0 auto;
 	padding: 56px 15px 0;
 	max-width: 620px;
 	text-align: center;
 
-	.certifications-title {
+	.certifications-title, .category-title {
 		font-family: $font-text;
 		font-size: .8rem;
 		font-weight: 500;
@@ -321,6 +325,28 @@ body > header {
 			transform: translateY(-4px);
 			border-color: $color-accent;
 			box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 12px 32px rgba(0, 0, 0, .1);
+		}
+	}
+}
+
+.notes, .apps, .projects {
+	padding-bottom: 56px;
+
+	// Here the whole card is a link with an SVG icon instead of an image.
+	a.badge-card {
+		height: 100%;
+		color: $color-accent-dark;
+		text-decoration: none;
+
+		svg {
+			height: 120px;
+			width: 72px;
+		}
+
+		&:focus-visible {
+			transform: translateY(-4px);
+			border-color: $color-accent;
+			outline: none;
 		}
 	}
 }
@@ -461,280 +487,6 @@ footer {
 //</editor-fold>
 
 ///////////////////////////////////////////////////
-//<editor-fold desc="-- Ascii--">
-///////////////////////////////////////////////////
-
-.ascii {
-	background-color: #fff;
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Calculator--">
-///////////////////////////////////////////////////
-
-.calculator {
-	.components {
-		background-color: #202020
-	}
-	.calc-button-container {
-		height: 60px;
-		font-family: ubuntu;
-  		font-size: 25px;
-		background-color:#424242;
-		color: #bdbdbd;
-		border: 1px solid #bdbdbd;
-		&:hover {
-			background-color:#555555;
-		}
-		.calc-button {
-			width: 100%;
-			height: 100%;
-			margin: 0px;
-			line-height: 55px;
-		}
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- ColorHex--">
-///////////////////////////////////////////////////
-
-.colorhex {
-	.panel-container {
-		background-color:#fff;
-	}
-	#color-panel-rgb, #color-panel-rgba, #color-panel-hex, #color-panel-inverted {
-		height: 150px;
-		font-family: ubuntu;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		p {
-			text-align: center;
-		}
-	}
-	#color-panel-rgb, #color-panel-rgba, #color-panel-hex {
-		font-size: 20px;
-	}
-	#color-panel-inverted {
-		font-size: 45px;
-	}
-	#alpha {
-		background-image: linear-gradient(to right, #ffffff , #000000);
-	}
-	#red {
-		background-image: linear-gradient(to right, #000000 , #ff0000);
-	}
-	#green {
-		background-image: linear-gradient(to right, #000000 , #00ff00);
-	}
-	#blue {
-		background-image: linear-gradient(to right, #000000 , #0000ff);
-	}
-	.settings {
-		.form-group {
-			clear: both;
-			border-radius: 10px;
-			background-color: #fff;
-			font-family: ubuntu;
-
-			label {
-				float: left;
-				width: 10%;
-			}
-			input {
-				float: left;
-				width: 90%;
-				font-family: arial;
-			}
-		}
-	}
-	.go-to-color {
-		height: 100px;
-		span {
-			position: relative;
-			top: 25px;
-			font-family: ubuntu;
-			font-size: 30px;
-		}
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Crontab--">
-///////////////////////////////////////////////////
-
-.crontab {
-	font-family: ubuntu;
-	input {
-		font-size: 30px;
-		width:18%;
-		margin-left: 1%;
-		border: none;
-	}
-	p {
-		font-size: 15px;
-	}
-	p.header {
-		font-size: 25px;
-	}
-	.vertical-align {
-		height: 60px;
-		display: table-cell;
-    	vertical-align: middle;
-	}
-	table td.text-left {
-		text-align: left;
-	}
-	.not-valid {
-		border: 3px dashed #ff0000;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Decode Base64-">
-///////////////////////////////////////////////////
-
-.countdown {
-	.countdown-title {
-
-	}
-
-	#countdown-days, #countdown-hours, #countdown-minutes, #countdown-seconds {
-
-		color: #fdbc40;
-		font-family: ubuntu;
-		font-size: 30px;
-	}
-	
-	#output-days, #output-hours, #output-minutes, #output-seconds {
-
-		font-family: ubuntu;
-		font-size: 30px;
-	}
-
-	.blink {
-		animation-duration: 400ms;
-		animation-name: blink;
-		animation-iteration-count: infinite;
-		animation-direction: alternate;
-	 }
-
-	 @keyframes blink {
-		from {
-		   opacity: 1;
-		}
-		to {
-		   opacity: 0;
-		}
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Data Conversion-">
-///////////////////////////////////////////////////
-
-.data-conversion {
-
-	p {
-		font-family: ubuntu;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Decode Base64-">
-///////////////////////////////////////////////////
-
-.decode-base64 {
-	textarea {
-		width: 100%;
-		height: 150px;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Decode Url-">
-///////////////////////////////////////////////////
-
-.decode-url {
-	textarea {
-		width: 100%;
-		height: 150px;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Egg clock-">
-///////////////////////////////////////////////////
-
-.egg-clock {
-
-	#clock-minutes, #clock-seconds {
-
-		color: #fdbc40;
-		font-family: ubuntu;
-		font-size: 30px;
-	}
-	
-	#output-minutes, #output-seconds {
-
-		font-family: ubuntu;
-		font-size: 56px;
-	}
-
-	button {
-		font-family: ubuntu;
-		width: 100%;
-		height: 70px;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Encode base64-">
-///////////////////////////////////////////////////
-
-.encode-base64 {
-	textarea {
-		width: 100%;
-		height: 150px;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Encode Url-">
-///////////////////////////////////////////////////
-
-.encode-url {
-	textarea {
-		width: 100%;
-		height: 150px;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
 //<editor-fold desc="-- Jump Car--">
 ///////////////////////////////////////////////////
 
@@ -747,160 +499,12 @@ footer {
 //</editor-fold>
 
 ///////////////////////////////////////////////////
-//<editor-fold desc="-- Make Request--">
-///////////////////////////////////////////////////
-
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- MyIp--">
-///////////////////////////////////////////////////
-
-.myip {
-	#ip {
-		font-size: 4rem;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
 //<editor-fold desc="-- Projects --">
 ///////////////////////////////////////////////////
 
 .projects {
 	img {
 		width: 100%;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Sudoku --">
-///////////////////////////////////////////////////
-
-.suduko {
-	.overlay {
-		position: fixed;
-		display: none;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.5);
-		z-index: 2;
-		cursor: pointer;
-
-		.content {
-			position: relative;
-			top: 50px;
-			width: 90%;
-			max-width: 200px;
-			min-height: 200px;
-			border-radius: 5px;
-			background-color: #fff;
-			margin-left: auto;
-			margin-right: auto;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			padding: 10px;
-
-			p {
-				font-size: 2rem;
-			}
-		}
-	}
-
-	.keyboard-container {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: 10px;
-		max-width: 260px;
-
-		& > button {
-			flex: 1 1 30%;
-			height: 50px;
-		}
-	}
-
-	.puzzle-container {
-		min-width: 270px;
-		max-width: 270px;
-
-		.cell {
-			min-width: 30px;
-			max-width: 30px;
-			min-height: 30px;
-			max-height: 30px;
-			border: 1px solid black;
-			float: left;
-		}
-	}
-
-	.selected,
-	.sectionHighlight.selected {
-		background-color: #ffff00;
-	}
-
-	.helped,
-	.sectionHighlight.helped {
-		background-color: #00ff00;
-	}
-
-	.helped.selected,
-	.sectionHighlight.helped.selected {
-		background-color: #00ff00;
-	}
-
-	.wrong,
-	.sectionHighlight.wrong {
-		background-color: #ff0000;
-	}
-
-	.wrong.selected,
-	.sectionHighlight.wrong.selected {
-		background-color: #ff0000;
-	}
-
-	.sectionHighlight {
-		background-color: #e4d8d8;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Vagrant--">
-///////////////////////////////////////////////////
-
-.vagrant {
-	label {
-		background-color: #808080;
-  		width: 100%;
-		border-radius: 15px 50px 0px 0px;
-		color: #fff;
-	}
-	#vagrant-ip, #vagrant-url, #vagrant-file-select {
-		border-radius: 0px 0px 6px 6px;
-	}
-}
-
-//</editor-fold>
-
-///////////////////////////////////////////////////
-//<editor-fold desc="-- Week--">
-///////////////////////////////////////////////////
-
-.week {
-	#number {
-		font-size: 10rem;
 	}
 }
 
@@ -922,6 +526,3 @@ footer {
 }
 
 //</editor-fold>
-
-
-

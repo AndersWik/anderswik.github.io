@@ -173,13 +173,22 @@ body > header a:hover {
   color: #fff;
 }
 
-.certifications {
+.certifications,
+.notes,
+.apps,
+.projects {
   margin: 0 auto;
   padding: 56px 15px 0;
   max-width: 620px;
   text-align: center;
 }
-.certifications .certifications-title {
+.certifications .certifications-title, .certifications .category-title,
+.notes .certifications-title,
+.notes .category-title,
+.apps .certifications-title,
+.apps .category-title,
+.projects .certifications-title,
+.projects .category-title {
   font-family: "ubuntu-text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 0.8rem;
   font-weight: 500;
@@ -191,13 +200,28 @@ body > header a:hover {
   align-items: center;
   gap: 1rem;
 }
-.certifications .certifications-title::before, .certifications .certifications-title::after {
+.certifications .certifications-title::before, .certifications .certifications-title::after, .certifications .category-title::before, .certifications .category-title::after,
+.notes .certifications-title::before,
+.notes .certifications-title::after,
+.notes .category-title::before,
+.notes .category-title::after,
+.apps .certifications-title::before,
+.apps .certifications-title::after,
+.apps .category-title::before,
+.apps .category-title::after,
+.projects .certifications-title::before,
+.projects .certifications-title::after,
+.projects .category-title::before,
+.projects .category-title::after {
   content: "";
   flex: 1;
   height: 1px;
   background-color: #e2e4e8;
 }
-.certifications .badges {
+.certifications .badges,
+.notes .badges,
+.apps .badges,
+.projects .badges {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -206,7 +230,10 @@ body > header a:hover {
   margin: 0;
   padding: 0;
 }
-.certifications .badge-card {
+.certifications .badge-card,
+.notes .badge-card,
+.apps .badge-card,
+.projects .badge-card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -218,22 +245,49 @@ body > header a:hover {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 24px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
-.certifications .badge-card img {
+.certifications .badge-card img,
+.notes .badge-card img,
+.apps .badge-card img,
+.projects .badge-card img {
   height: 120px;
   width: 100%;
   object-fit: contain;
 }
-.certifications .badge-card .badge-name {
+.certifications .badge-card .badge-name,
+.notes .badge-card .badge-name,
+.apps .badge-card .badge-name,
+.projects .badge-card .badge-name {
   margin-top: 0.9rem;
   font-size: 0.8rem;
   font-weight: 500;
   line-height: 1.3;
   color: #6b7280;
 }
-.certifications .badge-card:hover {
+.certifications .badge-card:hover,
+.notes .badge-card:hover,
+.apps .badge-card:hover,
+.projects .badge-card:hover {
   transform: translateY(-4px);
   border-color: #e8b455;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+.notes, .apps, .projects {
+  padding-bottom: 56px;
+}
+.notes a.badge-card, .apps a.badge-card, .projects a.badge-card {
+  height: 100%;
+  color: #a86a0c;
+  text-decoration: none;
+}
+.notes a.badge-card svg, .apps a.badge-card svg, .projects a.badge-card svg {
+  height: 120px;
+  width: 72px;
+}
+.notes a.badge-card:focus-visible, .apps a.badge-card:focus-visible, .projects a.badge-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: #e8b455;
+  outline: none;
 }
 
 footer {
@@ -338,280 +392,12 @@ footer .social:hover img {
   }
 }
 
-.ascii {
-  background-color: #fff;
-}
-
-.calculator .components {
-  background-color: #202020;
-}
-.calculator .calc-button-container {
-  height: 60px;
-  font-family: ubuntu;
-  font-size: 25px;
-  background-color: #424242;
-  color: #bdbdbd;
-  border: 1px solid #bdbdbd;
-}
-.calculator .calc-button-container:hover {
-  background-color: #555555;
-}
-.calculator .calc-button-container .calc-button {
-  width: 100%;
-  height: 100%;
-  margin: 0px;
-  line-height: 55px;
-}
-
-.colorhex .panel-container {
-  background-color: #fff;
-}
-.colorhex #color-panel-rgb, .colorhex #color-panel-rgba, .colorhex #color-panel-hex, .colorhex #color-panel-inverted {
-  height: 150px;
-  font-family: ubuntu;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.colorhex #color-panel-rgb p, .colorhex #color-panel-rgba p, .colorhex #color-panel-hex p, .colorhex #color-panel-inverted p {
-  text-align: center;
-}
-.colorhex #color-panel-rgb, .colorhex #color-panel-rgba, .colorhex #color-panel-hex {
-  font-size: 20px;
-}
-.colorhex #color-panel-inverted {
-  font-size: 45px;
-}
-.colorhex #alpha {
-  background-image: linear-gradient(to right, #ffffff, #000000);
-}
-.colorhex #red {
-  background-image: linear-gradient(to right, #000000, #ff0000);
-}
-.colorhex #green {
-  background-image: linear-gradient(to right, #000000, #00ff00);
-}
-.colorhex #blue {
-  background-image: linear-gradient(to right, #000000, #0000ff);
-}
-.colorhex .settings .form-group {
-  clear: both;
-  border-radius: 10px;
-  background-color: #fff;
-  font-family: ubuntu;
-}
-.colorhex .settings .form-group label {
-  float: left;
-  width: 10%;
-}
-.colorhex .settings .form-group input {
-  float: left;
-  width: 90%;
-  font-family: arial;
-}
-.colorhex .go-to-color {
-  height: 100px;
-}
-.colorhex .go-to-color span {
-  position: relative;
-  top: 25px;
-  font-family: ubuntu;
-  font-size: 30px;
-}
-
-.crontab {
-  font-family: ubuntu;
-}
-.crontab input {
-  font-size: 30px;
-  width: 18%;
-  margin-left: 1%;
-  border: none;
-}
-.crontab p {
-  font-size: 15px;
-}
-.crontab p.header {
-  font-size: 25px;
-}
-.crontab .vertical-align {
-  height: 60px;
-  display: table-cell;
-  vertical-align: middle;
-}
-.crontab table td.text-left {
-  text-align: left;
-}
-.crontab .not-valid {
-  border: 3px dashed #ff0000;
-}
-
-.countdown #countdown-days, .countdown #countdown-hours, .countdown #countdown-minutes, .countdown #countdown-seconds {
-  color: #fdbc40;
-  font-family: ubuntu;
-  font-size: 30px;
-}
-.countdown #output-days, .countdown #output-hours, .countdown #output-minutes, .countdown #output-seconds {
-  font-family: ubuntu;
-  font-size: 30px;
-}
-.countdown .blink {
-  animation-duration: 400ms;
-  animation-name: blink;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
-}
-@keyframes blink {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-.data-conversion p {
-  font-family: ubuntu;
-}
-
-.decode-base64 textarea {
-  width: 100%;
-  height: 150px;
-}
-
-.decode-url textarea {
-  width: 100%;
-  height: 150px;
-}
-
-.egg-clock #clock-minutes, .egg-clock #clock-seconds {
-  color: #fdbc40;
-  font-family: ubuntu;
-  font-size: 30px;
-}
-.egg-clock #output-minutes, .egg-clock #output-seconds {
-  font-family: ubuntu;
-  font-size: 56px;
-}
-.egg-clock button {
-  font-family: ubuntu;
-  width: 100%;
-  height: 70px;
-}
-
-.encode-base64 textarea {
-  width: 100%;
-  height: 150px;
-}
-
-.encode-url textarea {
-  width: 100%;
-  height: 150px;
-}
-
 .jumpcar .bw {
   padding: 15px;
 }
 
-.myip #ip {
-  font-size: 4rem;
-}
-
 .projects img {
   width: 100%;
-}
-
-.suduko .overlay {
-  position: fixed;
-  display: none;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 2;
-  cursor: pointer;
-}
-.suduko .overlay .content {
-  position: relative;
-  top: 50px;
-  width: 90%;
-  max-width: 200px;
-  min-height: 200px;
-  border-radius: 5px;
-  background-color: #fff;
-  margin-left: auto;
-  margin-right: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px;
-}
-.suduko .overlay .content p {
-  font-size: 2rem;
-}
-.suduko .keyboard-container {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  max-width: 260px;
-}
-.suduko .keyboard-container > button {
-  flex: 1 1 30%;
-  height: 50px;
-}
-.suduko .puzzle-container {
-  min-width: 270px;
-  max-width: 270px;
-}
-.suduko .puzzle-container .cell {
-  min-width: 30px;
-  max-width: 30px;
-  min-height: 30px;
-  max-height: 30px;
-  border: 1px solid black;
-  float: left;
-}
-.suduko .selected,
-.suduko .sectionHighlight.selected {
-  background-color: #ffff00;
-}
-.suduko .helped,
-.suduko .sectionHighlight.helped {
-  background-color: #00ff00;
-}
-.suduko .helped.selected,
-.suduko .sectionHighlight.helped.selected {
-  background-color: #00ff00;
-}
-.suduko .wrong,
-.suduko .sectionHighlight.wrong {
-  background-color: #ff0000;
-}
-.suduko .wrong.selected,
-.suduko .sectionHighlight.wrong.selected {
-  background-color: #ff0000;
-}
-.suduko .sectionHighlight {
-  background-color: #e4d8d8;
-}
-
-.vagrant label {
-  background-color: #808080;
-  width: 100%;
-  border-radius: 15px 50px 0px 0px;
-  color: #fff;
-}
-.vagrant #vagrant-ip, .vagrant #vagrant-url, .vagrant #vagrant-file-select {
-  border-radius: 0px 0px 6px 6px;
-}
-
-.week #number {
-  font-size: 10rem;
 }
 
 .notfound h2 {
