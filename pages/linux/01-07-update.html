@@ -11,13 +11,13 @@ keywords: [linux, update, upgrade, apt-get, apt, reboot, security]
   <h1>Update</h1>
   <p>Keeping the system updated gives you bug fixes and security patches. On Debian and Ubuntu this is done with <code>apt-get</code> (or <code>apt</code>), and it is a good habit to update regularly.</p>
   <p>Fetches the list of available updates</p>
-  <pre><code class="language-bash">sudo apt-get update</code></pre>
+  <pre><code class="language-bash">$ sudo apt-get update</code></pre>
   <p>Strictly upgrades the current packages</p>
-  <pre><code class="language-bash">sudo apt-get upgrade</code></pre>
+  <pre><code class="language-bash">$ sudo apt-get upgrade</code></pre>
   <p>Installs updates (new ones). <code>dist-upgrade</code> can also install new dependencies and remove packages when needed, for example for a new kernel.</p>
-  <pre><code class="language-bash">sudo apt-get dist-upgrade</code></pre>
+  <pre><code class="language-bash">$ sudo apt-get dist-upgrade</code></pre>
   <p>Reboot</p>
-  <pre><code class="language-bash">sudo reboot</code></pre>
+  <pre><code class="language-bash">$ sudo reboot</code></pre>
   <h2>Do it all at once</h2>
   <p><code>&amp;&amp;</code> runs the next command only if the previous succeeded, and <code>-y</code> answers yes to all questions.</p>
   <pre><code class="language-bash">$ sudo apt-get update &amp;&amp; sudo apt-get upgrade -y</code></pre>
