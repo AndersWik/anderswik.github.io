@@ -1,0 +1,43 @@
+---
+layout: default
+title: Tar
+permalink: /linux/tar/
+chapter: "12"
+chapter_title: "Compression"
+keywords: [linux, tar, archive, compression, backup, gzip]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tar</h1>
+  <p><code>tar</code> (tape archive) bundles files and directories into one archive file and extracts them again. Together with a compression flag it creates compressed archives like <code>.tar.gz</code>.</p>
+  <h2>Create an archive</h2>
+  <pre><code class="language-bash">$ tar</code></pre>
+  <p><code>-c</code> creates, <code>-z</code> compresses with gzip, <code>-v</code> lists the files and <code>-f</code> gives the archive name, which must come right after <code>-f</code>.</p>
+  <pre><code class="language-bash">$ tar -czvf backup.tar.gz Documents/</code></pre>
+  <h2>Extract an archive</h2>
+  <pre><code class="language-bash">$ tar -xzvf backup.tar.gz
+$ tar -xzvf backup.tar.gz -C /tmp/restore   # extract to another directory</code></pre>
+  <p>Modern versions of <code>tar</code> detect the compression by themselves.</p>
+  <pre><code class="language-bash">$ tar -xf archive.tar.xz</code></pre>
+  <h2>List the content</h2>
+  <pre><code class="language-bash">$ tar -tzvf backup.tar.gz</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>tar</code> and all its options. <code>-h</code> does not show help, it follows symbolic links.</p>
+  <pre><code class="language-bash">$ tar --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>tar</code> is installed. <code>-v</code> does not show the version, it makes <code>tar</code> list the files it handles (verbose).</p>
+  <pre><code class="language-bash">$ tar --version</code></pre>
+  <h2>More about tar</h2>
+  <ul>
+    <li><code>-j</code> uses bzip2 (<code>.tar.bz2</code>) and <code>-J</code> uses xz (<code>.tar.xz</code>)</li>
+    <li><code>--exclude="node_modules"</code> leaves out files</li>
+    <li>Remember: c = create, x = extract, t = list</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/tar.txt">man tar</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, tar, archive, compression, backup, gzip</p>
+  {% include linux-trail.html %}
+</div>

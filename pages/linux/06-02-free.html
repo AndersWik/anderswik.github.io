@@ -1,0 +1,43 @@
+---
+layout: default
+title: Free
+permalink: /linux/free/
+chapter: "06"
+chapter_title: "Memory"
+keywords: [linux, free, memory, ram, swap]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Free</h1>
+  <p><code>free</code> shows how much memory and swap is used and free. The <code>available</code> column is an estimate of how much memory can be used by new programs without swapping.</p>
+  <h2>Show memory usage</h2>
+  <pre><code class="language-bash">$ free</code></pre>
+  <p><code>-h</code> prints the values in human readable units like MB and GB.</p>
+  <pre><code class="language-bash">$ free -h
+               total        used        free      shared  buff/cache   available
+Mem:            15Gi       4.1Gi       6.2Gi       512Mi       5.1Gi        10Gi
+Swap:          2.0Gi          0B       2.0Gi</code></pre>
+  <h2>Update continuously</h2>
+  <pre><code class="language-bash">$ free -h -s 2    # print every 2 seconds
+$ watch free -h</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>free</code> and all its options. <code>-h</code> does not show help, it shows the sizes in human readable form.</p>
+  <pre><code class="language-bash">$ free --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>free</code> is installed.</p>
+  <pre><code class="language-bash">$ free --version
+$ free -V</code></pre>
+  <h2>More about free</h2>
+  <ul>
+    <li><code>buff/cache</code> is memory used for caching files; it is freed when programs need it</li>
+    <li>The numbers come from <code>/proc/meminfo</code></li>
+    <li><code>vmstat</code> shows memory, swap and CPU activity over time</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/free.txt">man free</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, free, memory, ram, swap</p>
+  {% include linux-trail.html %}
+</div>

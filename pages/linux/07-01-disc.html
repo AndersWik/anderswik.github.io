@@ -1,0 +1,36 @@
+---
+layout: default
+title: Disc
+permalink: /linux/disc/
+chapter: "07"
+chapter_title: "Disc"
+keywords: [linux, disc, disk, storage, partitions, mount]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Disc</h1>
+  <p>Disks in Linux show up as device files in <code>/dev</code>, for example <code>/dev/sda</code> or <code>/dev/nvme0n1</code>, and each partition gets its own file like <code>/dev/sda1</code>. To use a partition it is mounted to a directory in the file system tree. Partitions mounted at boot are listed in <code>/etc/fstab</code>.</p>
+  <h2>List disks and partitions</h2>
+  <p>To list disks and partitions use <code>lsblk</code>, and <code>df</code> to see how full they are.</p>
+  <pre><code class="language-bash">$ lsblk
+$ df -h</code></pre>
+  <h2>Mount a disk</h2>
+  <pre><code class="language-bash">$ sudo mount /dev/sdb1 /mnt
+$ sudo umount /mnt</code></pre>
+  <h2>Commands in this chapter</h2>
+  <ul>
+    <li><code>df</code> — how much space is used and free on each file system</li>
+    <li><code>du</code> — how much space files and directories use</li>
+    <li><code>lsblk</code> — list disks and partitions</li>
+  </ul>
+  {% include linux-chapter.html %}
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/df.txt">man df</a></li>
+    <li><a href="{{ site.baseurl }}/pages/man/du.txt">man du</a></li>
+    <li><a href="{{ site.baseurl }}/pages/man/lsblk.txt">man lsblk</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, disc, disk, storage, partitions, mount</p>
+  {% include linux-trail.html %}
+</div>

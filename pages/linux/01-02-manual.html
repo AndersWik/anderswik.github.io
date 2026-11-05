@@ -1,0 +1,50 @@
+---
+layout: default
+title: Man
+permalink: /linux/man/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [linux, man, manual, help, documentation]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Man</h1>
+  <p><code>man</code> shows the manual page for a command. Almost every program on Linux ships with a manual describing what it does, every flag it accepts and often examples. When you are unsure how a command works, the manual is the first place to look.</p>
+  <h2>Read a manual</h2>
+  <p>Give the name of the command you want to read about. The page opens in a pager, so use the arrow keys or Space to scroll, <code>/</code> to search and <code>q</code> to quit.</p>
+  <pre><code class="language-bash">$ man</code></pre>
+  <pre><code class="language-bash">$ man ls</code></pre>
+  <h2>Search the manuals</h2>
+  <p>If you don't remember the name of a command, <code>-k</code> searches the short descriptions of all manual pages. This is the same as the <code>apropos</code> command.</p>
+  <pre><code class="language-bash">$ man -k copy</code></pre>
+  <h2>Manual sections</h2>
+  <p>The manual is divided into numbered sections, for example 1 for user commands, 5 for file formats and 8 for system administration. If the same name exists in several sections, give the section number first.</p>
+  <pre><code class="language-bash">$ man 5 crontab</code></pre>
+  <h2>Quick help</h2>
+  <p>Many commands also print a short summary of their flags with <code>--help</code>.</p>
+  <pre><code class="language-bash">$ ls --help</code></pre>
+  <h2>Export a manual to a text file</h2>
+  <p>A manual page can be saved as plain text. <code>col -bx</code> strips the bold and underline formatting. This is how the pages under <a href="/man/">Man pages</a> are made.</p>
+  <pre><code class="language-bash">$ MANWIDTH=80 man mokutil 2&gt;/dev/null | col -bx &gt; mokutil.txt</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>man</code> and all its options.</p>
+  <pre><code class="language-bash">$ man --help
+$ man -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>man</code> is installed.</p>
+  <pre><code class="language-bash">$ man --version
+$ man -V</code></pre>
+  <h2>More about man</h2>
+  <ul>
+    <li><a href="/linux/tldr/">tldr</a> — community maintained, example based cheat sheets for commands</li>
+    <li><a href="/linux/info/">info</a> — longer GNU documentation for some programs, for example <code>info coreutils</code></li>
+    <li><a href="/man/">Man pages</a> on this site</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/man.txt">man man</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, man, manual, help, documentation</p>
+  {% include linux-trail.html %}
+</div>

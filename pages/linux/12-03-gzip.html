@@ -1,0 +1,45 @@
+---
+layout: default
+title: Gzip
+permalink: /linux/gzip/
+chapter: "12"
+chapter_title: "Compression"
+keywords: [linux, gzip, gunzip, compression, gz]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Gzip</h1>
+  <p><code>gzip</code> compresses single files. The compressed file gets the extension <code>.gz</code> and replaces the original. To compress directories, first put them in an archive with <a href="/linux/tar/">tar</a>.</p>
+  <h2>Compress a file</h2>
+  <pre><code class="language-bash">$ gzip</code></pre>
+  <pre><code class="language-bash">$ gzip access.log         # creates access.log.gz
+$ gzip -k access.log      # keep the original file
+$ gzip -9 access.log      # best compression</code></pre>
+  <h2>Decompress</h2>
+  <pre><code class="language-bash">$ gunzip access.log.gz
+$ gzip -d access.log.gz</code></pre>
+  <h2>Read without decompressing</h2>
+  <pre><code class="language-bash">$ zcat access.log.gz
+$ zgrep "404" access.log.gz
+$ zless access.log.gz</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>gzip</code> and all its options.</p>
+  <pre><code class="language-bash">$ gzip --help
+$ gzip -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>gzip</code> is installed. <code>-v</code> does not show the version, it makes <code>gzip</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ gzip --version
+$ gzip -V</code></pre>
+  <h2>More about gzip</h2>
+  <ul>
+    <li><code>-l</code> shows the compression ratio of a file</li>
+    <li>Old log files in <code>/var/log</code> are often gzipped</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/gzip.txt">man gzip</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, gzip, gunzip, compression, gz</p>
+  {% include linux-trail.html %}
+</div>

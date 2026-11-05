@@ -1,0 +1,41 @@
+---
+layout: default
+title: Touch
+permalink: /linux/touch/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, touch, create file, timestamp, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Touch</h1>
+  <p><code>touch</code> updates the access and modification time of a file. If the file does not exist it creates a new, empty file, which is what it is most often used for.</p>
+  <h2>Create an empty file</h2>
+  <pre><code class="language-bash">$ touch notes.txt</code></pre>
+  <p>Several files can be created at once.</p>
+  <pre><code class="language-bash">$ touch one.txt two.txt three.txt
+$ touch file{1..5}.txt</code></pre>
+  <h2>Update the timestamp</h2>
+  <p>Running <code>touch</code> on an existing file sets its modification time to now without changing its content. <code>-d</code> sets a specific date instead.</p>
+  <pre><code class="language-bash">$ touch existing.txt
+$ touch -d "2024-01-01 12:00" existing.txt</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>touch</code> and all its options. <code>-h</code> does not show help, it changes a symbolic link instead of the file it points to.</p>
+  <pre><code class="language-bash">$ touch --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>touch</code> is installed.</p>
+  <pre><code class="language-bash">$ touch --version</code></pre>
+  <h2>More about touch</h2>
+  <ul>
+    <li><code>-c</code> only updates existing files and never creates new ones</li>
+    <li><code>-r other.txt</code> copies the timestamp from another file</li>
+    <li>Use <code>ls -l</code> or <code>stat</code> to see the timestamps of a file</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/touch.txt">man touch</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, touch, create file, timestamp, files</p>
+  {% include linux-trail.html %}
+</div>

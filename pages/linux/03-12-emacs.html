@@ -1,0 +1,40 @@
+---
+layout: default
+title: Emacs
+permalink: /linux/emacs/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, emacs, text editor, editor, gnu]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Emacs</h1>
+  <p><code>emacs</code> is an extensible text editor from the GNU project. It can run in the terminal or as a graphical program, and with its built in Lisp language it can be turned into almost anything: a mail client, a file manager or a full development environment. It is usually not installed by default.</p>
+  <h2>Install and start</h2>
+  <pre><code class="language-bash">$ sudo apt install emacs</code></pre>
+  <pre><code class="language-bash">emacs</code></pre>
+  <p>Open a file directly in the terminal, without the graphical window.</p>
+  <pre><code class="language-bash">$ emacs -nw notes.txt</code></pre>
+  <h2>Keys</h2>
+  <p>In Emacs <code>C-</code> means the Ctrl key and <code>M-</code> means the Alt key.</p>
+  <pre><code class="language-bash">C-x C-f   open a file
+C-x C-s   save
+C-x C-c   quit
+C-s       search
+C-g       cancel the current command
+C-x u     undo</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>emacs</code> and all its options.</p>
+  <pre><code class="language-bash">$ emacs --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>emacs</code> is installed.</p>
+  <pre><code class="language-bash">$ emacs --version</code></pre>
+  <h2>More about emacs</h2>
+  <ul>
+    <li><code>C-h t</code> opens the built in tutorial</li>
+    <li><a href="https://www.gnu.org/software/emacs/">The GNU Emacs website</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, emacs, text editor, editor, gnu</p>
+  {% include linux-trail.html %}
+</div>

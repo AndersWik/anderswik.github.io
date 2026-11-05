@@ -1,0 +1,38 @@
+---
+layout: default
+title: 7zip
+permalink: /linux/7z/
+chapter: "12"
+chapter_title: "Compression"
+keywords: [linux, 7zip, 7z, compression, archive]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>7zip</h1>
+  <p><code>7z</code> is the command line version of 7-Zip. It creates and extracts <code>.7z</code> archives, which compress well, and can also extract many other formats like zip, rar and iso. Install it with <code>sudo apt install p7zip-full</code> (or <code>7zip</code> on newer systems).</p>
+  <h2>Extract archives</h2>
+  <p><code>x</code> extracts with full paths. The quotes make 7z, not the shell, expand the wildcard, so all <code>.7z</code> files in the directory are extracted.</p>
+  <pre><code class="language-bash">$ 7z x "*.7z"</code></pre>
+  <pre><code class="language-bash">$ 7z x archive.7z -o/tmp/output   # extract to another directory</code></pre>
+  <h2>Create an archive</h2>
+  <pre><code class="language-bash">$ 7z a archive.7z folder/
+$ 7z a -p archive.7z secret/      # protect with a password</code></pre>
+  <h2>List the content</h2>
+  <pre><code class="language-bash">$ 7z l archive.7z</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a list of all commands and switches. <code>7z</code> has no version option, but the version is printed at the top of every output.</p>
+  <pre><code class="language-bash">$ 7z --help
+$ 7z -h</code></pre>
+  <h2>More about 7zip</h2>
+  <ul>
+    <li><a href="/open-source/7zip/">7zip</a> on this site</li>
+    <li><a href="https://www.7-zip.org/">The 7-Zip website</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/7z.txt">man 7z</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, 7zip, 7z, compression, archive</p>
+  {% include linux-trail.html %}
+</div>

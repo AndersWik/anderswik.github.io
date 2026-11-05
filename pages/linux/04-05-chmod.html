@@ -1,0 +1,46 @@
+---
+layout: default
+title: Chmod
+permalink: /linux/chmod/
+chapter: "04"
+chapter_title: "Users"
+keywords: [linux, chmod, permissions, execute, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Chmod</h1>
+  <p><code>chmod</code> stands for change mode. It changes the permissions of files and directories: who may read (<code>r</code>), write (<code>w</code>) and execute (<code>x</code>) them. Permissions are set for the owner (<code>u</code>), the group (<code>g</code>) and others (<code>o</code>).</p>
+  <h2>Make a file executable</h2>
+  <pre><code class="language-bash">$ chmod +x script.sh
+$ ./script.sh</code></pre>
+  <h2>Symbolic mode</h2>
+  <pre><code class="language-bash">$ chmod u+w notes.txt    # give the owner write permission
+$ chmod go-r secret.txt  # take away read for group and others
+$ chmod a+r public.txt   # everyone can read</code></pre>
+  <h2>Numeric mode</h2>
+  <p>Each permission has a number: read is 4, write is 2 and execute is 1. Add them up for owner, group and others.</p>
+  <pre><code class="language-bash">$ chmod 755 script.sh   # rwxr-xr-x
+$ chmod 644 notes.txt   # rw-r--r--
+$ chmod 600 id_rsa      # rw------- only the owner</code></pre>
+  <h2>Change a directory recursively</h2>
+  <pre><code class="language-bash">$ chmod -R 755 public_html</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>chmod</code> and all its options.</p>
+  <pre><code class="language-bash">$ chmod --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>chmod</code> is installed. <code>-v</code> does not show the version, it makes <code>chmod</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ chmod --version</code></pre>
+  <h2>More about chmod</h2>
+  <ul>
+    <li><code>chown</code> changes the owner of a file, for example <code>sudo chown anders:anders file.txt</code></li>
+    <li><code>ls -l</code> shows the current permissions</li>
+    <li>SSH refuses to use private keys that others can read, so they should be <code>600</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/chmod.txt">man chmod</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, chmod, permissions, execute, files</p>
+  {% include linux-trail.html %}
+</div>

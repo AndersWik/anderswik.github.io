@@ -1,0 +1,42 @@
+---
+layout: default
+title: Lspci
+permalink: /linux/lspci/
+chapter: "08"
+chapter_title: "System"
+keywords: [linux, lspci, pci, hardware, drivers, graphics card]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lspci</h1>
+  <p><code>lspci</code> lists the devices connected to the PCI bus, such as graphics cards, network cards, sound cards and USB controllers. It is useful to find out what hardware a computer has and which driver it uses.</p>
+  <h2>List devices</h2>
+  <pre><code class="language-bash">$ lspci</code></pre>
+  <h2>Show drivers</h2>
+  <p><code>-k</code> shows the kernel driver in use for each device.</p>
+  <pre><code class="language-bash">$ lspci -k</code></pre>
+  <h2>Find a device</h2>
+  <pre><code class="language-bash">$ lspci | grep -i vga        # graphics card
+$ lspci | grep -i network</code></pre>
+  <h2>More details</h2>
+  <pre><code class="language-bash">$ lspci -v     # verbose
+$ lspci -nn    # show vendor and device ids, useful when searching for drivers</code></pre>
+  <h2>Help</h2>
+  <p><code>lspci</code> has no help option, but any option it does not know, for example <code>--help</code>, makes it print a list of all options.</p>
+  <pre><code class="language-bash">$ lspci --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>lspci</code> is installed. <code>-v</code> does not show the version, it makes <code>lspci</code> show more details (verbose).</p>
+  <pre><code class="language-bash">$ lspci --version</code></pre>
+  <h2>More about lspci</h2>
+  <ul>
+    <li><code>lsusb</code> does the same for USB devices</li>
+    <li><code>lshw</code> shows a full overview of the hardware</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/lspci.txt">man lspci</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, lspci, pci, hardware, drivers, graphics card</p>
+  {% include linux-trail.html %}
+</div>

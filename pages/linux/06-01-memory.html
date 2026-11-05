@@ -1,0 +1,24 @@
+---
+layout: default
+title: Memory
+permalink: /linux/memory/
+chapter: "06"
+chapter_title: "Memory"
+keywords: [linux, memory, ram, swap, cache]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Memory</h1>
+  <p>Memory (RAM) is where running programs keep their data. Linux uses memory that programs don't need as a cache for files, which makes the system faster. That is why free memory often looks low; the cache is given back as soon as a program needs it, so "available" memory is the number to watch.</p>
+  <h2>Swap</h2>
+  <p>When RAM runs out, Linux can move memory that hasn't been used for a while to swap, a file or partition on disk. Swap is much slower than RAM, so a system that swaps a lot needs more memory.</p>
+  <pre><code class="language-bash">$ swapon --show</code></pre>
+  <h2>See memory usage</h2>
+  <pre><code class="language-bash">$ free -h
+$ cat /proc/meminfo</code></pre>
+  <p>To see which programs use the most memory, sort the process list in <a href="/linux/top/">top</a> with <code>M</code> or use <a href="/linux/ps/">ps</a>.</p>
+  {% include linux-chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, memory, ram, swap, cache</p>
+  {% include linux-trail.html %}
+</div>

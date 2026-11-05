@@ -1,0 +1,46 @@
+---
+layout: default
+title: Lshw
+permalink: /linux/lshw/
+chapter: "08"
+chapter_title: "System"
+keywords: [linux, lshw, hardware, cpu, memory, devices]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lshw</h1>
+  <p><code>lshw</code> stands for list hardware. It shows a detailed overview of the hardware in the computer, such as the motherboard, CPU, memory, disks, network cards and graphics card. Run it with <code>sudo</code> to get complete information.</p>
+  <h2>Show all hardware</h2>
+  <pre><code class="language-bash">$ sudo lshw</code></pre>
+  <h2>Short overview</h2>
+  <p><code>-short</code> shows one line per device, which is much easier to read.</p>
+  <pre><code class="language-bash">$ sudo lshw -short</code></pre>
+  <h2>Show one type of hardware</h2>
+  <p><code>-class</code> (or <code>-C</code>) shows only one class of devices.</p>
+  <pre><code class="language-bash">$ sudo lshw -C network     # network cards
+$ sudo lshw -C display     # graphics cards
+$ sudo lshw -C memory      # memory
+$ sudo lshw -C disk        # disks</code></pre>
+  <h2>Save as a report</h2>
+  <pre><code class="language-bash">$ sudo lshw -html > hardware.html
+$ sudo lshw -json > hardware.json</code></pre>
+  <h2>Help</h2>
+  <p><code>lshw</code> uses options with a single dash. <code>-help</code> prints a short summary of how to use it.</p>
+  <pre><code class="language-bash">$ lshw -help</code></pre>
+  <h2>Version</h2>
+  <p><code>-version</code> shows which version of <code>lshw</code> is installed.</p>
+  <pre><code class="language-bash">$ lshw -version</code></pre>
+  <h2>More about lshw</h2>
+  <ul>
+    <li><code>lspci</code> lists PCI devices</li>
+    <li><code>lsusb</code> lists USB devices</li>
+    <li><code>lsblk</code> lists disks and partitions</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/lshw.txt">man lshw</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, lshw, hardware, cpu, memory, devices</p>
+  {% include linux-trail.html %}
+</div>

@@ -1,0 +1,51 @@
+---
+layout: default
+title: OpenSSL
+permalink: /linux/openssl-encrypt/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, openssl, encryption, decryption, aes, certificates, security]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>OpenSSL</h1>
+  <p><code>openssl</code> is a toolkit for encryption, certificates and TLS. It can, among many other things, encrypt and decrypt files with a password.</p>
+  <h2>Encrypting file</h2>
+  <p>The basic form is the encryption type, the file to encrypt and the output file. You will be asked for a password.</p>
+  <pre><code class="language-bash">$ openssl [encryption type] -in [file to encrypt]</code></pre>
+  <pre><code class="language-bash">$ openssl des3 -in file.txt -out encrypted.txt</code></pre>
+  <p>DES3 is old. A stronger choice is AES-256 together with <code>-pbkdf2</code>, which makes the password much harder to guess.</p>
+  <pre><code class="language-bash">$ openssl enc -aes-256-cbc -pbkdf2 -salt -in file.txt -out file.txt.enc</code></pre>
+  <h2>Decrypting files with OpenSSL</h2>
+  <p><code>-d</code> decrypts. Use the same encryption type and options as when the file was encrypted.</p>
+  <pre><code class="language-bash">$ openssl des3 -d -in encrypted.txt -out normal.txt</code></pre>
+  <pre><code class="language-bash">$ openssl enc -d -aes-256-cbc -pbkdf2 -in file.txt.enc -out file.txt</code></pre>
+  <h2>Set md5 on decrypt</h2>
+  <p>Older versions of OpenSSL used MD5 to turn the password into a key, while newer versions use SHA-256. To decrypt a file made with an old version, add this option.</p>
+  <pre><code class="language-bash">-md md5</code></pre>
+  <pre><code class="language-bash">$ openssl des3 -d -md md5 -in encrypted.txt -out normal.txt</code></pre>
+  <h2>Other useful commands</h2>
+  <pre><code class="language-bash">$ openssl rand -base64 32                           # random password
+$ openssl s_client -connect example.com:443         # test a TLS connection
+$ openssl x509 -in cert.pem -noout -dates           # show certificate dates</code></pre>
+  <h2>Help</h2>
+  <p><code>openssl help</code> lists all subcommands. Each subcommand has its own help with <code>-help</code>.</p>
+  <pre><code class="language-bash">$ openssl help
+$ openssl enc -help</code></pre>
+  <h2>Version</h2>
+  <p>The version is shown with the subcommand <code>version</code>. <code>-a</code> shows more details.</p>
+  <pre><code class="language-bash">$ openssl version
+$ openssl version -a</code></pre>
+  <h2>More about OpenSSL</h2>
+  <ul>
+    <li><a href="https://www.openssl.org/">The OpenSSL website</a></li>
+    <li>For encrypting files to other people, <code>gpg</code> is often a better tool</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/openssl.txt">man openssl</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, openssl, encryption, decryption, aes, certificates, security</p>
+  {% include linux-trail.html %}
+</div>

@@ -1,0 +1,46 @@
+---
+layout: default
+title: Find
+permalink: /linux/find/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, find, search, files, directories]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Find</h1>
+  <p><code>find</code> searches for files and directories in a directory tree. You can search by name, type, size, modification time and more, and run a command on every match.</p>
+  <h2>Find files by name</h2>
+  <p>Search the current directory (<code>.</code>) and everything below it. Quote the pattern so the shell doesn't expand it. <code>-iname</code> ignores case.</p>
+  <pre><code class="language-bash">$ find . -name "*.txt"
+$ find /home -iname "readme*"</code></pre>
+  <h2>Find by type</h2>
+  <p><code>-type f</code> only matches files and <code>-type d</code> only directories.</p>
+  <pre><code class="language-bash">$ find . -type d -name "node_modules"</code></pre>
+  <h2>Find by size and time</h2>
+  <pre><code class="language-bash">$ find . -size +100M        # larger than 100 MB
+$ find . -mtime -7          # modified in the last 7 days</code></pre>
+  <h2>Run a command on the matches</h2>
+  <p><code>-exec</code> runs a command for every file found; <code>{}</code> is replaced by the file name. <code>-delete</code> removes the matches, so test the search without it first.</p>
+  <pre><code class="language-bash">$ find . -name "*.log" -exec ls -lh {} \;
+$ find /tmp -name "*.tmp" -delete</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>find</code> and all its options.</p>
+  <pre><code class="language-bash">$ find --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>find</code> is installed.</p>
+  <pre><code class="language-bash">$ find --version</code></pre>
+  <h2>More about find</h2>
+  <ul>
+    <li><code>2&gt;/dev/null</code> hides "Permission denied" errors, for example <code>find / -name nginx.conf 2&gt;/dev/null</code></li>
+    <li><code>locate</code> searches a prebuilt database and is much faster, but may be out of date</li>
+    <li>To search inside files use <a href="/linux/grep/">grep</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/find.txt">man find</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, find, search, files, directories</p>
+  {% include linux-trail.html %}
+</div>

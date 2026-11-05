@@ -1,0 +1,37 @@
+---
+layout: default
+title: Navigating
+permalink: /linux/navigating/
+chapter: "02"
+chapter_title: "Navigating"
+keywords: [linux, navigating, file system, directories, path]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Navigating</h1>
+  <p>Everything in Linux lives in one big tree of directories that starts at the root, <code>/</code>. There are no drive letters as in Windows; extra disks are mounted somewhere in the tree instead. Navigating means moving around in this tree and looking at what is in it.</p>
+  <h2>Important directories</h2>
+  <ul>
+    <li><code>/</code> — the root of the file system</li>
+    <li><code>/home</code> — the home directories of the users, for example <code>/home/anders</code></li>
+    <li><code>/etc</code> — system wide configuration files</li>
+    <li><code>/var</code> — files that change, such as logs in <code>/var/log</code></li>
+    <li><code>/usr</code> — installed programs and libraries</li>
+    <li><code>/tmp</code> — temporary files, often emptied on reboot</li>
+  </ul>
+  <h2>Paths</h2>
+  <p>An absolute path starts at the root, like <code>/home/anders/Documents</code>. A relative path starts where you are right now, like <code>Documents</code>. A few shortcuts are used all the time.</p>
+  <pre><code class="language-bash">~     # your home directory
+.     # the current directory
+..    # the parent directory
+-     # the previous directory (with cd)</code></pre>
+  <h2>Commands in this chapter</h2>
+  <p>The three commands you need to get around are <code>pwd</code> to see where you are, <code>ls</code> to see what is there and <code>cd</code> to move.</p>
+  <pre><code class="language-bash">$ pwd
+$ ls
+$ cd Documents</code></pre>
+  {% include linux-chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, navigating, file system, directories, path</p>
+  {% include linux-trail.html %}
+</div>

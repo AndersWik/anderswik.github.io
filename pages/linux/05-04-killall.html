@@ -1,0 +1,41 @@
+---
+layout: default
+title: Killall
+permalink: /linux/killall/
+chapter: "05"
+chapter_title: "Processes"
+keywords: [linux, killall, processes, signals]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Killall</h1>
+  <p><code>killall</code> sends a signal to all processes with a given name. It is handy when you don't want to look up the PID first, or when a program has started many processes.</p>
+  <h2>Stop processes by name</h2>
+  <p>Stop all running <code>node</code> processes, for example a development server that is stuck.</p>
+  <pre><code class="language-bash"># /usr/local/bin/
+$ killall node</code></pre>
+  <h2>Force and confirm</h2>
+  <pre><code class="language-bash">$ killall -9 node        # force stop with SIGKILL
+$ killall -i node        # ask before each process
+$ killall -u anders node # only processes owned by anders</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>killall</code> and all its options.</p>
+  <pre><code class="language-bash">$ killall --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>killall</code> is installed. <code>-v</code> does not show the version, it makes <code>killall</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ killall --version
+$ killall -V</code></pre>
+  <h2>More about killall</h2>
+  <ul>
+    <li>The name must match exactly; <code>pkill</code> matches part of the name</li>
+    <li>On Linux <code>killall</code> comes from the <code>psmisc</code> package</li>
+    <li>See also <a href="/linux/kill/">kill</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/killall.txt">man killall</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, killall, processes, signals</p>
+  {% include linux-trail.html %}
+</div>

@@ -1,0 +1,53 @@
+---
+layout: default
+title: Package Managers
+permalink: /linux/package-manager/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [linux, package managers, apt, apt-get, dpkg, install, software]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Package Managers</h1>
+  <p>A package manager installs, updates and removes software on Linux. Instead of downloading programs from websites, you install them from the distribution's repositories, and the package manager takes care of dependencies and updates. Debian and Ubuntu use <code>apt</code>, Fedora uses <code>dnf</code>, and Arch uses <code>pacman</code>.</p>
+  <h2>Apt</h2>
+  <p><code>apt</code> is package management on Debian and Ubuntu.</p>
+  <pre><code class="language-bash">$ apt</code></pre>
+  <p>Update the list of packages and then upgrade the installed ones.</p>
+  <pre><code class="language-bash">$ sudo apt update
+$ sudo apt upgrade</code></pre>
+  <h2>Search, install and remove</h2>
+  <pre><code class="language-bash">$ apt search vlc
+$ sudo apt install vlc
+$ sudo apt remove vlc</code></pre>
+  <p><code>purge</code> also removes the configuration files of the package.</p>
+  <pre><code class="language-bash">$ sudo apt purge vlc</code></pre>
+  <h2>Information about a package</h2>
+  <pre><code class="language-bash">$ apt show vlc
+$ apt list --installed</code></pre>
+  <h2>Install a .deb file</h2>
+  <p>A downloaded <code>.deb</code> file can be installed with apt, which also installs its dependencies.</p>
+  <pre><code class="language-bash">$ sudo apt install ./package.deb</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>apt</code> and all its options.</p>
+  <pre><code class="language-bash">$ apt --help
+$ apt -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-v</code> show which version of <code>apt</code> is installed.</p>
+  <pre><code class="language-bash">$ apt --version
+$ apt -v</code></pre>
+  <h2>More about Package Managers</h2>
+  <ul>
+    <li><code>apt-get</code> — the older, script friendly version of <code>apt</code>, see <a href="/linux/update/">Update</a></li>
+    <li><code>dpkg</code> — the low level tool that installs single <code>.deb</code> files</li>
+    <li><code>snap</code> and <code>flatpak</code> — package formats that work across distributions</li>
+    <li><a href="/linux/build-deb/">Build a .deb package</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/apt-get.txt">man apt-get</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, package managers, apt, apt-get, dpkg, install, software</p>
+  {% include linux-trail.html %}
+</div>

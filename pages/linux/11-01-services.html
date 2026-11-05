@@ -1,0 +1,25 @@
+---
+layout: default
+title: Services
+permalink: /linux/services/
+chapter: "11"
+chapter_title: "Services"
+keywords: [linux, services, systemd, daemons, logs]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Services</h1>
+  <p>A service, or daemon, is a program that runs in the background, like a web server, database or SSH server. On most modern distributions services are started and supervised by systemd, which also collects their logs.</p>
+  <h2>Units</h2>
+  <p>systemd calls the things it manages units. Services end in <code>.service</code> and their configuration files are found in <code>/lib/systemd/system/</code> and <code>/etc/systemd/system/</code>.</p>
+  <pre><code class="language-bash">$ systemctl list-units --type=service</code></pre>
+  <h2>Commands in this chapter</h2>
+  <ul>
+    <li><code>systemctl</code> — start, stop and enable services</li>
+    <li><code>journalctl</code> — read the logs</li>
+  </ul>
+  {% include linux-chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, services, systemd, daemons, logs</p>
+  {% include linux-trail.html %}
+</div>

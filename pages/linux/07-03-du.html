@@ -1,0 +1,42 @@
+---
+layout: default
+title: Disc usage
+permalink: /linux/du/
+chapter: "07"
+chapter_title: "Disc"
+keywords: [linux, du, disc usage, disk usage, storage]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Disc usage</h1>
+  <p><code>du</code> stands for disk usage. It shows how much space files and directories use, which helps you find what is filling up a disk.</p>
+  <h2>Print disc usage</h2>
+  <p><code>-h</code> prints sizes in human readable units. Without a path it lists every subdirectory of the current directory.</p>
+  <pre><code class="language-bash">du -h</code></pre>
+  <h2>Total size of a directory</h2>
+  <p><code>-s</code> only prints the summary for each argument.</p>
+  <pre><code class="language-bash">$ du -sh Downloads
+$ du -sh *</code></pre>
+  <h2>Find the largest directories</h2>
+  <pre><code class="language-bash">$ du -h --max-depth=1 | sort -hr | head
+$ sudo du -xh / --max-depth=1 | sort -hr</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>du</code> and all its options. <code>-h</code> does not show help, it shows the sizes in human readable form.</p>
+  <pre><code class="language-bash">$ du --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>du</code> is installed.</p>
+  <pre><code class="language-bash">$ du --version</code></pre>
+  <h2>More about du</h2>
+  <ul>
+    <li><code>-x</code> stays on one file system and skips other mounted disks</li>
+    <li><code>ncdu</code> is an interactive alternative (<code>sudo apt install ncdu</code>)</li>
+    <li>For free space per disk use <a href="/linux/df/">df</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/du.txt">man du</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, du, disc usage, disk usage, storage</p>
+  {% include linux-trail.html %}
+</div>

@@ -1,0 +1,46 @@
+---
+layout: default
+title: Wget
+permalink: /linux/wget/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, wget, download, http, network]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Wget</h1>
+  <p><code>wget</code> downloads files from the web over HTTP, HTTPS and FTP. It works without a user interface, can resume broken downloads and can even download whole websites.</p>
+  <h2>Download a file</h2>
+  <p>The file is saved in the current directory with its original name.</p>
+  <pre><code class="language-bash">$ wget &lt;url&gt;</code></pre>
+  <pre><code class="language-bash">$ wget https://www.anderswik.se/assets/images/github.svg</code></pre>
+  <h2>Save with another name</h2>
+  <pre><code class="language-bash">$ wget -O octocat.svg https://www.anderswik.se/assets/images/github.svg</code></pre>
+  <h2>Resume and run in the background</h2>
+  <pre><code class="language-bash">$ wget -c https://example.com/big.iso   # continue a broken download
+$ wget -b https://example.com/big.iso   # download in the background</code></pre>
+  <h2>Download many files</h2>
+  <p>Put one URL per line in a file.</p>
+  <pre><code class="language-bash">$ wget -i urls.txt</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>wget</code> and all its options.</p>
+  <pre><code class="language-bash">$ wget --help
+$ wget -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>wget</code> is installed. <code>-v</code> does not show the version, it makes <code>wget</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ wget --version
+$ wget -V</code></pre>
+  <h2>More about wget</h2>
+  <ul>
+    <li><code>-q</code> makes wget quiet</li>
+    <li><code>--mirror</code> downloads a website for offline use</li>
+    <li>For working with APIs, <a href="/linux/curl/">curl</a> is usually a better fit</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/wget.txt">man wget</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, wget, download, http, network</p>
+  {% include linux-trail.html %}
+</div>

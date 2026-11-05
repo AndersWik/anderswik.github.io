@@ -1,0 +1,34 @@
+---
+layout: default
+title: Shell
+permalink: /linux/shell/
+chapter: "14"
+chapter_title: "Shell"
+keywords: [linux, shell, bash, scripts, variables, terminal]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Shell</h1>
+  <p>The shell is the program that reads the commands you type and runs them. The most common shell is Bash; others are Zsh and Fish. The shell is also a programming language, so commands can be saved in a script and run again.</p>
+  <h2>Which shell am I using?</h2>
+  <pre><code class="language-bash">$ echo $SHELL</code></pre>
+  <h2>Variables</h2>
+  <pre><code class="language-bash">$ name="Anders"
+$ echo "Hello $name"
+$ export PATH="$HOME/bin:$PATH"</code></pre>
+  <h2>A first script</h2>
+  <p>A script starts with a shebang line that tells which shell should run it. Make it executable with <a href="/linux/chmod/">chmod</a>.</p>
+  <pre><code class="language-bash">#!/bin/bash
+echo "Backup started"
+tar -czf ~/backup.tar.gz ~/Documents
+echo "Backup done"</code></pre>
+  <pre><code class="language-bash">$ chmod +x backup.sh
+$ ./backup.sh</code></pre>
+  <h2>Configuration</h2>
+  <p>Settings and aliases for Bash are kept in <code>~/.bashrc</code>.</p>
+  <pre><code class="language-bash">alias ll='ls -lah'</code></pre>
+  {% include linux-chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, shell, bash, scripts, variables, terminal</p>
+  {% include linux-trail.html %}
+</div>

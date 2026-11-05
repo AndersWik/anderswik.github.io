@@ -1,0 +1,48 @@
+---
+layout: default
+title: Less
+permalink: /linux/less/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, less, pager, read file, files, logs]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Less</h1>
+  <p><code>less</code> is a pager. It shows a file one screen at a time and lets you scroll and search in it. It does not load the whole file at once, so it works well even for very large log files. Manual pages are shown with <code>less</code>.</p>
+  <h2>Open a file</h2>
+  <pre><code class="language-bash">$ less /var/log/syslog</code></pre>
+  <h2>Keys</h2>
+  <ul>
+    <li><code>Space</code> or <code>Page Down</code> — next page</li>
+    <li><code>b</code> or <code>Page Up</code> — previous page</li>
+    <li><code>g</code> / <code>G</code> — go to the start / end of the file</li>
+    <li><code>/word</code> — search forward, <code>n</code> for the next match, <code>N</code> for the previous</li>
+    <li><code>q</code> — quit</li>
+  </ul>
+  <h2>Read output from a command</h2>
+  <pre><code class="language-bash">$ ps aux | less</code></pre>
+  <h2>Follow a growing file</h2>
+  <p><code>+F</code> makes <code>less</code> follow the end of the file like <code>tail -f</code>. Press <code>Ctrl + c</code> to stop following and <code>q</code> to quit.</p>
+  <pre><code class="language-bash">$ less +F /var/log/syslog</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>less</code> and all its options. <code>-h</code> is not help in <code>less</code>. While a file is open, press <code>h</code> to see all keys.</p>
+  <pre><code class="language-bash">$ less --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>less</code> is installed.</p>
+  <pre><code class="language-bash">$ less --version
+$ less -V</code></pre>
+  <h2>More about less</h2>
+  <ul>
+    <li><code>-N</code> shows line numbers</li>
+    <li><code>-S</code> turns off line wrapping for wide files</li>
+    <li><code>more</code> is the older, simpler pager</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/less.txt">man less</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, less, pager, read file, files, logs</p>
+  {% include linux-trail.html %}
+</div>

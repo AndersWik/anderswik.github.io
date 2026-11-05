@@ -1,0 +1,46 @@
+---
+layout: default
+title: Lsusb
+permalink: /linux/lsusb/
+chapter: "08"
+chapter_title: "System"
+keywords: [linux, lsusb, usb, hardware, devices]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lsusb</h1>
+  <p><code>lsusb</code> lists the USB buses and the devices connected to them, such as keyboards, mice, webcams, USB sticks and external disks. It is useful to check that a device is detected when you plug it in.</p>
+  <h2>List devices</h2>
+  <pre><code class="language-bash">$ lsusb</code></pre>
+  <p>Each line shows the bus, the device number, the vendor and product id (for example <code>046d:c52b</code>) and a name.</p>
+  <h2>Show as a tree</h2>
+  <p><code>-t</code> shows how the devices are connected to hubs and ports, and which driver each one uses.</p>
+  <pre><code class="language-bash">$ lsusb -t</code></pre>
+  <h2>Find a device</h2>
+  <pre><code class="language-bash">$ lsusb | grep -i logitech
+$ lsusb -d 046d:          # only devices from vendor id 046d</code></pre>
+  <h2>More details</h2>
+  <pre><code class="language-bash">$ lsusb -v                 # verbose, use sudo to see everything
+$ sudo lsusb -v -d 046d:c52b</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>lsusb</code> and all its options.</p>
+  <pre><code class="language-bash">$ lsusb --help
+$ lsusb -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>lsusb</code> is installed. <code>-v</code> does not show the version, it shows more details about each device.</p>
+  <pre><code class="language-bash">$ lsusb --version
+$ lsusb -V</code></pre>
+  <h2>More about lsusb</h2>
+  <ul>
+    <li><code>lspci</code> does the same for PCI devices</li>
+    <li><code>lshw</code> shows a full overview of the hardware</li>
+    <li><code>dmesg</code> shows kernel messages when a USB device is plugged in</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/lsusb.txt">man lsusb</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, lsusb, usb, hardware, devices</p>
+  {% include linux-trail.html %}
+</div>

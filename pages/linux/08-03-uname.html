@@ -1,0 +1,39 @@
+---
+layout: default
+title: Uname
+permalink: /linux/uname/
+chapter: "08"
+chapter_title: "System"
+keywords: [linux, uname, kernel, system, architecture]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Uname</h1>
+  <p><code>uname</code> prints information about the system: the kernel name and version, the machine's host name and the hardware architecture.</p>
+  <h2>Show system information</h2>
+  <pre><code class="language-bash">$ uname</code></pre>
+  <p><code>-a</code> prints everything.</p>
+  <pre><code class="language-bash">$ uname -a</code></pre>
+  <h2>Print one value</h2>
+  <pre><code class="language-bash">$ uname -r    # kernel release, for example 6.8.0-45-generic
+$ uname -m    # architecture, for example x86_64 or aarch64
+$ uname -n    # host name</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>uname</code> and all its options.</p>
+  <pre><code class="language-bash">$ uname --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>uname</code> is installed. <code>-v</code> does not show the version of <code>uname</code>, it shows when the kernel was built.</p>
+  <pre><code class="language-bash">$ uname --version</code></pre>
+  <h2>More about uname</h2>
+  <ul>
+    <li>Use <code>lsb_release -a</code> or <code>cat /etc/os-release</code> to see the distribution, see <a href="/linux/introduction/">Linux</a></li>
+    <li><code>uname -r</code> is useful when installing kernel modules or headers, for example <code>sudo apt install linux-headers-$(uname -r)</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/uname.txt">man uname</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, uname, kernel, system, architecture</p>
+  {% include linux-trail.html %}
+</div>

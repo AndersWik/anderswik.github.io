@@ -1,0 +1,48 @@
+---
+layout: default
+title: tldr
+permalink: /linux/tldr/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [linux, tldr, help, examples, cheat sheet, documentation]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>tldr</h1>
+  <p><code>tldr</code> shows short, example based help pages for commands. The name comes from "too long; didn't read". Where a <a href="/linux/man/">man</a> page describes every flag, a tldr page only shows the most common ways to use a command. The pages are written and maintained by the community.</p>
+  <h2>Install tldr</h2>
+  <p><code>tldr</code> is usually not installed by default. On Debian and Ubuntu it can be installed with the <a href="/linux/package-manager/">package manager</a>.</p>
+  <pre><code class="language-bash">$ sudo apt install tldr</code></pre>
+  <h2>Update the pages</h2>
+  <p>The pages are downloaded to a local cache. Update the cache the first time you use <code>tldr</code>, and now and then to get new and corrected pages.</p>
+  <pre><code class="language-bash">$ tldr --update</code></pre>
+  <h2>Show a page</h2>
+  <p>Give the name of the command you want examples for.</p>
+  <pre><code class="language-bash">$ tldr tar</code></pre>
+  <h2>List all pages</h2>
+  <pre><code class="language-bash">$ tldr --list</code></pre>
+  <h2>Pages for another platform</h2>
+  <p>Some commands work differently on other systems. <code>-p</code> shows the page for a specific platform, for example <code>linux</code>, <code>osx</code> or <code>windows</code>.</p>
+  <pre><code class="language-bash">$ tldr -p osx ls</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>tldr</code> and all its options.</p>
+  <pre><code class="language-bash">$ tldr --help
+$ tldr -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-v</code> show which version of <code>tldr</code> is installed.</p>
+  <pre><code class="language-bash">$ tldr --version
+$ tldr -v</code></pre>
+  <h2>More about tldr</h2>
+  <ul>
+    <li><code>tldr</code> is a good start, but use <a href="/linux/man/">man</a> when you need all the details</li>
+    <li>The pages can also be read online at <a href="https://tldr.inbrowser.app/">tldr.inbrowser.app</a></li>
+    <li>There are several tldr clients, so the flags can differ a little between them. Check <code>tldr --help</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/tldr.txt">man tldr</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, tldr, help, examples, cheat sheet, documentation</p>
+  {% include linux-trail.html %}
+</div>

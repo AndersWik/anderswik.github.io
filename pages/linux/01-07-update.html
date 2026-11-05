@@ -1,0 +1,52 @@
+---
+layout: default
+title: Update
+permalink: /linux/update/
+chapter: "08"
+chapter_title: "System"
+keywords: [linux, update, upgrade, apt-get, apt, reboot, security]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Update</h1>
+  <p>Keeping the system updated gives you bug fixes and security patches. On Debian and Ubuntu this is done with <code>apt-get</code> (or <code>apt</code>), and it is a good habit to update regularly.</p>
+  <p>Fetches the list of available updates</p>
+  <pre><code class="language-bash">sudo apt-get update</code></pre>
+  <p>Strictly upgrades the current packages</p>
+  <pre><code class="language-bash">sudo apt-get upgrade</code></pre>
+  <p>Installs updates (new ones). <code>dist-upgrade</code> can also install new dependencies and remove packages when needed, for example for a new kernel.</p>
+  <pre><code class="language-bash">sudo apt-get dist-upgrade</code></pre>
+  <p>Reboot</p>
+  <pre><code class="language-bash">sudo reboot</code></pre>
+  <h2>Do it all at once</h2>
+  <p><code>&amp;&amp;</code> runs the next command only if the previous succeeded, and <code>-y</code> answers yes to all questions.</p>
+  <pre><code class="language-bash">$ sudo apt-get update &amp;&amp; sudo apt-get upgrade -y</code></pre>
+  <h2>Check if a reboot is needed</h2>
+  <p>On Ubuntu this file exists when an update requires a reboot.</p>
+  <pre><code class="language-bash">$ cat /var/run/reboot-required</code></pre>
+  <h2>Clean up</h2>
+  <pre><code class="language-bash">$ sudo apt-get autoremove
+$ sudo apt-get autoclean</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>apt-get</code> and all its options.</p>
+  <pre><code class="language-bash">$ apt-get --help
+$ apt-get -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-v</code> show which version of <code>apt-get</code> is installed.</p>
+  <pre><code class="language-bash">$ apt-get --version
+$ apt-get -v</code></pre>
+  <h2>More about update</h2>
+  <ul>
+    <li><code>unattended-upgrades</code> installs security updates automatically, see <a href="https://help.ubuntu.com/community/AutomaticSecurityUpdates">Automatic Security Updates</a></li>
+    <li><code>apt list --upgradable</code> shows which packages have updates</li>
+    <li>See also <a href="/linux/package-manager/">Package Managers</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/apt-get.txt">man apt-get</a></li>
+    <li><a href="{{ site.baseurl }}/pages/man/reboot.txt">man reboot</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, update, upgrade, apt-get, apt, reboot, security</p>
+  {% include linux-trail.html %}
+</div>

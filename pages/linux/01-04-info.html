@@ -1,0 +1,57 @@
+---
+layout: default
+title: Info
+permalink: /linux/info/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [linux, info, gnu, help, documentation]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Info</h1>
+  <p><code>info</code> reads documentation in the Info format, which is used by the GNU project. Info documents are often longer and more detailed than <a href="/linux/man/">man</a> pages, and are divided into nodes that link to each other, a bit like web pages. If a program has no Info document, <code>info</code> shows its man page instead.</p>
+  <h2>Read a document</h2>
+  <p>Without arguments <code>info</code> opens the directory of all installed documents. Give a name to open a specific one.</p>
+  <pre><code class="language-bash">$ info</code></pre>
+  <pre><code class="language-bash">$ info coreutils</code></pre>
+  <h2>Go to a node</h2>
+  <p>Give more names to jump directly to a node inside a document, for example the section about <a href="/linux/ls/">ls</a> in the coreutils manual.</p>
+  <pre><code class="language-bash">$ info coreutils ls</code></pre>
+  <h2>Move around</h2>
+  <ul>
+    <li><code>Space</code> and <code>Backspace</code> — scroll forward and back</li>
+    <li><code>n</code> and <code>p</code> — next and previous node</li>
+    <li><code>u</code> — up to the parent node</li>
+    <li><code>Tab</code> and <code>Enter</code> — move to a link and follow it</li>
+    <li><code>l</code> — go back to the last visited node</li>
+    <li><code>s</code> — search for text</li>
+    <li><code>h</code> — show help</li>
+    <li><code>q</code> — quit</li>
+  </ul>
+  <h2>Search the documents</h2>
+  <p><code>-k</code> searches the indexes of all Info documents, similar to <code>man -k</code>.</p>
+  <pre><code class="language-bash">$ info -k copy</code></pre>
+  <h2>Export a document to a text file</h2>
+  <p><code>-o</code> writes the document to a file instead of opening it.</p>
+  <pre><code class="language-bash">$ info coreutils -o coreutils.txt</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>info</code> and all its options.</p>
+  <pre><code class="language-bash">$ info --help
+$ info -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>info</code> is installed.</p>
+  <pre><code class="language-bash">$ info --version</code></pre>
+  <h2>More about info</h2>
+  <ul>
+    <li>Programs from the GNU project, such as <code>bash</code>, <code>grep</code>, <code>sed</code> and <code>coreutils</code>, have the most complete Info documents</li>
+    <li>The GNU manuals can also be read online at <a href="https://www.gnu.org/manual/">gnu.org/manual</a></li>
+    <li>For short examples, see <a href="/linux/tldr/">tldr</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/info.txt">man info</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, info, gnu, help, documentation</p>
+  {% include linux-trail.html %}
+</div>

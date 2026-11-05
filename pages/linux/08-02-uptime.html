@@ -1,0 +1,41 @@
+---
+layout: default
+title: Uptime
+permalink: /linux/uptime/
+chapter: "08"
+chapter_title: "System"
+keywords: [linux, uptime, load average, system]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Uptime</h1>
+  <p><code>uptime</code> prints the current time, how long the system has been running, how many users are logged in, and the load average for the last 1, 5 and 15 minutes.</p>
+  <h2>Show uptime</h2>
+  <pre><code class="language-bash">$ uptime
+ 14:02:11 up 12 days,  3:41,  2 users,  load average: 0.52, 0.48, 0.45</code></pre>
+  <h2>Readable output</h2>
+  <pre><code class="language-bash">$ uptime -p    # up 1 week, 5 days, 3 hours
+$ uptime -s    # the time the system started</code></pre>
+  <h2>Load average</h2>
+  <p>The load average is the number of processes running or waiting for the CPU. As a rule of thumb, a load higher than the number of CPU cores (see <code>nproc</code>) means the system is overloaded.</p>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>uptime</code> and all its options.</p>
+  <pre><code class="language-bash">$ uptime --help
+$ uptime -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>uptime</code> is installed.</p>
+  <pre><code class="language-bash">$ uptime --version
+$ uptime -V</code></pre>
+  <h2>More about uptime</h2>
+  <ul>
+    <li>The same load numbers are shown at the top of <a href="/linux/top/">top</a></li>
+    <li>The values come from <code>/proc/loadavg</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/uptime.txt">man uptime</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, uptime, load average, system</p>
+  {% include linux-trail.html %}
+</div>

@@ -1,0 +1,47 @@
+---
+layout: default
+title: Journalctl
+permalink: /linux/journalctl/
+chapter: "11"
+chapter_title: "Services"
+keywords: [linux, journalctl, systemd, logs, troubleshooting]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Journalctl</h1>
+  <p><code>journalctl</code> reads the logs collected by systemd's journal: messages from services, the kernel and the system since boot.</p>
+  <h2>Show logs</h2>
+  <pre><code class="language-bash">$ journalctl</code></pre>
+  <h2>Logs for a service</h2>
+  <p><code>-u</code> selects a unit, <code>-f</code> follows new messages and <code>-e</code> jumps to the end.</p>
+  <pre><code class="language-bash">$ journalctl -u nginx
+$ journalctl -u nginx -f
+$ journalctl -u ssh -e</code></pre>
+  <h2>Filter by time and boot</h2>
+  <pre><code class="language-bash">$ journalctl -b                    # since the last boot
+$ journalctl -b -1                 # the boot before that
+$ journalctl --since "1 hour ago"
+$ journalctl -p err                # only errors</code></pre>
+  <h2>Clean up old logs</h2>
+  <pre><code class="language-bash">$ journalctl --disk-usage
+$ sudo journalctl --vacuum-time=2weeks</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>journalctl</code> and all its options.</p>
+  <pre><code class="language-bash">$ journalctl --help
+$ journalctl -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>journalctl</code> is installed.</p>
+  <pre><code class="language-bash">$ journalctl --version</code></pre>
+  <h2>More about journalctl</h2>
+  <ul>
+    <li><code>-k</code> shows only kernel messages, like <a href="/linux/dmesg/">dmesg</a></li>
+    <li>Some programs still write their own logs to <code>/var/log</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/journalctl.txt">man journalctl</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, journalctl, systemd, logs, troubleshooting</p>
+  {% include linux-trail.html %}
+</div>

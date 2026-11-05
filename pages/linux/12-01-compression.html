@@ -1,0 +1,33 @@
+---
+layout: default
+title: Compression
+permalink: /linux/compression/
+chapter: "12"
+chapter_title: "Compression"
+keywords: [linux, compression, archives, tar, gzip, zip]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Compression</h1>
+  <p>Compression makes files smaller, and archiving bundles many files into one. On Linux these are often two steps: <code>tar</code> puts files in one archive and <code>gzip</code> or another tool compresses it, which gives files like <code>backup.tar.gz</code>.</p>
+  <h2>Common formats</h2>
+  <ul>
+    <li><code>.tar</code> — an archive, not compressed</li>
+    <li><code>.gz</code> and <code>.tar.gz</code> (<code>.tgz</code>) — gzip compression</li>
+    <li><code>.bz2</code>, <code>.xz</code> and <code>.zst</code> — other compressions that are often smaller</li>
+    <li><code>.zip</code> and <code>.7z</code> — archive and compression in one, common on Windows</li>
+  </ul>
+  <h2>Zip files</h2>
+  <pre><code class="language-bash">$ zip -r archive.zip folder
+$ unzip archive.zip</code></pre>
+  <h2>Commands in this chapter</h2>
+  <ul>
+    <li><code>tar</code> — create and extract archives</li>
+    <li><code>gzip</code> — compress single files</li>
+    <li><code>7z</code> — 7-Zip archives</li>
+  </ul>
+  {% include linux-chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, compression, archives, tar, gzip, zip</p>
+  {% include linux-trail.html %}
+</div>

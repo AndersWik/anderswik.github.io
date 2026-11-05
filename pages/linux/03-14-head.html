@@ -1,0 +1,38 @@
+---
+layout: default
+title: Head
+permalink: /linux/head/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, head, read file, first lines, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Head</h1>
+  <p><code>head</code> prints the first lines of a file, by default the first 10. It is useful to get a quick look at a large file or the start of a command's output.</p>
+  <h2>Print the first lines</h2>
+  <pre><code class="language-bash">$ head notes.txt</code></pre>
+  <p><code>-n</code> sets the number of lines.</p>
+  <pre><code class="language-bash">$ head -n 5 notes.txt</code></pre>
+  <h2>Use with other commands</h2>
+  <pre><code class="language-bash">$ ls -lt | head -n 5     # the five newest files</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>head</code> and all its options.</p>
+  <pre><code class="language-bash">$ head --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>head</code> is installed. <code>-v</code> does not show the version, it prints the file name above the output.</p>
+  <pre><code class="language-bash">$ head --version</code></pre>
+  <h2>More about head</h2>
+  <ul>
+    <li><code>-c 100</code> prints the first 100 bytes instead of lines</li>
+    <li><code>head -n -5</code> prints everything except the last 5 lines</li>
+    <li>The opposite command is <a href="/linux/tail/">tail</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/head.txt">man head</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, head, read file, first lines, files</p>
+  {% include linux-trail.html %}
+</div>

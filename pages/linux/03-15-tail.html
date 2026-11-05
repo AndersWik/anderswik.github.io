@@ -1,0 +1,40 @@
+---
+layout: default
+title: Tail
+permalink: /linux/tail/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, tail, read file, last lines, logs, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tail</h1>
+  <p><code>tail</code> prints the last lines of a file, by default the last 10. It is often used to look at the newest entries in log files, and it can follow a file as new lines are written to it.</p>
+  <h2>Print the last lines</h2>
+  <pre><code class="language-bash">$ tail /var/log/syslog
+$ tail -n 50 /var/log/syslog</code></pre>
+  <h2>Follow a file</h2>
+  <p><code>-f</code> keeps the file open and prints new lines as they are added. Press <code>Ctrl + c</code> to stop.</p>
+  <pre><code class="language-bash">$ tail -f /var/log/nginx/access.log</code></pre>
+  <p>Combine with <a href="/linux/grep/">grep</a> to only follow lines you care about.</p>
+  <pre><code class="language-bash">$ tail -f /var/log/syslog | grep -i error</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>tail</code> and all its options.</p>
+  <pre><code class="language-bash">$ tail --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>tail</code> is installed. <code>-v</code> does not show the version, it prints the file name above the output.</p>
+  <pre><code class="language-bash">$ tail --version</code></pre>
+  <h2>More about tail</h2>
+  <ul>
+    <li><code>tail -n +20</code> prints everything from line 20 to the end</li>
+    <li><code>-F</code> keeps following the file even if it is rotated or recreated</li>
+    <li>The opposite command is <a href="/linux/head/">head</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/tail.txt">man tail</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, tail, read file, last lines, logs, files</p>
+  {% include linux-trail.html %}
+</div>

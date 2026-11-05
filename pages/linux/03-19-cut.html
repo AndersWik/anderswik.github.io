@@ -1,0 +1,39 @@
+---
+layout: default
+title: Cut
+permalink: /linux/cut/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, cut, columns, csv, text]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Cut</h1>
+  <p><code>cut</code> extracts parts of each line: selected fields separated by a delimiter, or selected characters. It is useful for picking columns out of CSV files and other structured text.</p>
+  <h2>Cut fields</h2>
+  <p><code>-d</code> sets the delimiter and <code>-f</code> chooses which fields to keep. This prints the user names from <code>/etc/passwd</code>, where fields are separated by <code>:</code>.</p>
+  <pre><code class="language-bash">$ cut -d ':' -f 1 /etc/passwd</code></pre>
+  <p>Several fields or a range.</p>
+  <pre><code class="language-bash">$ cut -d ',' -f 1,3 data.csv
+$ cut -d ',' -f 2-4 data.csv</code></pre>
+  <h2>Cut characters</h2>
+  <pre><code class="language-bash">$ cut -c 1-10 notes.txt</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>cut</code> and all its options.</p>
+  <pre><code class="language-bash">$ cut --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>cut</code> is installed.</p>
+  <pre><code class="language-bash">$ cut --version</code></pre>
+  <h2>More about cut</h2>
+  <ul>
+    <li><code>cut</code> only handles a single character delimiter; for columns separated by several spaces use <a href="/linux/awk/">awk</a></li>
+    <li><a href="/linux/paste/">paste</a> does the opposite and joins files column by column</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/cut.txt">man cut</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, cut, columns, csv, text</p>
+  {% include linux-trail.html %}
+</div>

@@ -1,0 +1,37 @@
+---
+layout: default
+title: Pwd
+permalink: /linux/pwd/
+chapter: "02"
+chapter_title: "Navigating"
+keywords: [linux, pwd, print working directory, path, navigating]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Pwd</h1>
+  <p><code>pwd</code> stands for print working directory. It prints the absolute path of the directory you are in right now.</p>
+  <h2>Print working directory</h2>
+  <pre><code class="language-bash">$ pwd
+/home/anders/Documents</code></pre>
+  <h2>Show the real path</h2>
+  <p>If you have moved into a directory through a symbolic link, <code>pwd</code> shows the path of the link. <code>-P</code> shows the physical path with all links resolved.</p>
+  <pre><code class="language-bash">$ pwd -P</code></pre>
+  <h2>Help</h2>
+  <p><code>pwd</code> is built into the shell. <code>--help</code> prints a short summary, the same as <code>help pwd</code>.</p>
+  <pre><code class="language-bash">$ pwd --help</code></pre>
+  <h2>Version</h2>
+  <p>The <code>pwd</code> built into the shell has no version, but the program <code>/bin/pwd</code> from GNU coreutils does.</p>
+  <pre><code class="language-bash">$ /bin/pwd --version</code></pre>
+  <h2>More about pwd</h2>
+  <ul>
+    <li>The current directory is also stored in the <code>$PWD</code> variable, for example <code>echo $PWD</code></li>
+    <li>The previous directory is stored in <code>$OLDPWD</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/pwd.txt">man pwd</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, pwd, print working directory, path, navigating</p>
+  {% include linux-trail.html %}
+</div>

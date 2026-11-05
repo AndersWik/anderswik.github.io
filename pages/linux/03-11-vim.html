@@ -1,0 +1,76 @@
+---
+layout: default
+title: Vim
+permalink: /linux/vim/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, vim, vi, text editor, editor, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Vim</h1>
+  <p><code>vim</code> is a powerful text editor that runs in the terminal and is installed on almost every Linux system, often as <code>vi</code>. It is modal: in normal mode keys are commands, in insert mode you type text, and in command mode you give commands that start with <code>:</code>. It takes a while to learn but makes editing very fast.</p>
+  <h2>Open file</h2>
+  <pre><code class="language-bash">vim &lt;file name&gt;</code></pre>
+  <h2>Insert mode</h2>
+  <p>Press <code>i</code> to start typing text where the cursor is. <code>a</code> starts after the cursor and <code>o</code> opens a new line below.</p>
+  <h2>Command mode</h2>
+  <p>Hit the Esc key to leave insert and enter command mode.</p>
+  <h3>Help</h3>
+  <pre><code class="language-bash">:help</code></pre>
+  <p>Same as help.</p>
+  <pre><code class="language-bash">:h</code></pre>
+  <h3>Write</h3>
+  <p>Write (save) the file without quitting. Give a file name to save as a new file.</p>
+  <pre><code class="language-bash">:w</code></pre>
+  <pre><code class="language-bash">:w newfile.txt</code></pre>
+  <h3>Quit</h3>
+  <p>Quit if no changes are made. If the document is edited it will give an error. E37: No write since last change (add ! to override)</p>
+  <pre><code class="language-bash">:quit</code></pre>
+  <pre><code class="language-bash">:q</code></pre>
+  <p>If changes are made and you want to quit without saving you can add "!" to suppress the error.</p>
+  <pre><code class="language-bash">:quit!</code></pre>
+  <pre><code class="language-bash">:q!</code></pre>
+  <h4>Write and quit</h4>
+  <p>Will write and quit. It will write even if there are no changes to the file. Gives an error if the file does not have write permission.</p>
+  <pre><code class="language-bash">:wq</code></pre>
+  <p>Will write and quit. If the file does not have write permission it will try to force the write.</p>
+  <pre><code class="language-bash">:wq!</code></pre>
+  <p>Will only write if there are changes made to the file.</p>
+  <pre><code class="language-bash">:exit</code></pre>
+  <p>Same as exit.</p>
+  <pre><code class="language-bash">:x</code></pre>
+  <h4>Quitall</h4>
+  <p>Quit all open windows and files.</p>
+  <pre><code class="language-bash">:quitall</code></pre>
+  <p>Same as quitall.</p>
+  <pre><code class="language-bash">:qa</code></pre>
+  <h2>Common normal mode commands</h2>
+  <pre><code class="language-bash">dd      delete (cut) the current line
+yy      copy (yank) the current line
+p       paste below the cursor
+u       undo
+ctrl+r  redo
+/word   search for word
+gg / G  go to the first / last line</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>vim</code> and all its options.</p>
+  <pre><code class="language-bash">$ vim --help
+$ vim -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>vim</code> is installed. <code>-v</code> does not show the version, it starts Vim in Vi mode. Inside Vim, <code>:version</code> shows the same information and <code>:help</code> opens the built in help.</p>
+  <pre><code class="language-bash">$ vim --version</code></pre>
+  <h2>More about vim</h2>
+  <ul>
+    <li>Run <code>vimtutor</code> in the terminal for an interactive 30 minute lesson</li>
+    <li>Settings are saved in <code>~/.vimrc</code>, for example <code>set number</code></li>
+    <li><a href="https://www.vim.org/">The vim website</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/vim.txt">man vim</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, vim, vi, text editor, editor, files</p>
+  {% include linux-trail.html %}
+</div>

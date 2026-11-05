@@ -1,0 +1,45 @@
+---
+layout: default
+title: Sed
+permalink: /linux/sed/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, sed, stream editor, search and replace, regex, text]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Sed</h1>
+  <p><code>sed</code> is a stream editor. It reads text line by line, applies editing commands such as search and replace or delete, and prints the result. It is often used in scripts to change configuration files.</p>
+  <h2>Search and replace</h2>
+  <pre><code class="language-bash">$ sed</code></pre>
+  <p><code>s/old/new/</code> replaces the first match on each line; add <code>g</code> to replace every match. The result is printed and the file is not changed.</p>
+  <pre><code class="language-bash">$ sed 's/cat/dog/' pets.txt
+$ sed 's/cat/dog/g' pets.txt</code></pre>
+  <h2>Edit the file in place</h2>
+  <p><code>-i</code> writes the changes back to the file. <code>-i.bak</code> keeps a backup of the original.</p>
+  <pre><code class="language-bash">$ sed -i 's/localhost/127.0.0.1/g' config.conf
+$ sed -i.bak 's/localhost/127.0.0.1/g' config.conf</code></pre>
+  <h2>Delete and print lines</h2>
+  <pre><code class="language-bash">$ sed '/^#/d' config.conf     # delete comment lines
+$ sed '/^$/d' notes.txt       # delete empty lines
+$ sed -n '10,20p' notes.txt   # print only lines 10 to 20</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>sed</code> and all its options.</p>
+  <pre><code class="language-bash">$ sed --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>sed</code> is installed.</p>
+  <pre><code class="language-bash">$ sed --version</code></pre>
+  <h2>More about sed</h2>
+  <ul>
+    <li>Any character can be used as separator, which helps with paths: <code>sed 's|/usr/local|/opt|g'</code></li>
+    <li><code>-E</code> enables extended regular expressions</li>
+    <li><a href="https://www.gnu.org/software/sed/manual/">The GNU sed manual</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/sed.txt">man sed</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, sed, stream editor, search and replace, regex, text</p>
+  {% include linux-trail.html %}
+</div>

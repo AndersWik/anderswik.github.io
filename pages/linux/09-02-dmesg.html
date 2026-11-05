@@ -1,0 +1,43 @@
+---
+layout: default
+title: Dmesg
+permalink: /linux/dmesg/
+chapter: "09"
+chapter_title: "Kernel"
+keywords: [linux, dmesg, kernel, logs, hardware, troubleshooting]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Dmesg</h1>
+  <p><code>dmesg</code> prints the kernel's message buffer. It shows what the kernel has detected and done since boot: hardware, drivers, disks, USB devices and errors. It is the first place to look when hardware doesn't work.</p>
+  <h2>Show kernel messages</h2>
+  <pre><code class="language-bash">dmesg</code></pre>
+  <p>On many systems reading the buffer requires root.</p>
+  <pre><code class="language-bash">$ sudo dmesg</code></pre>
+  <h2>Readable output</h2>
+  <pre><code class="language-bash">$ sudo dmesg -T          # human readable time stamps
+$ sudo dmesg -H          # pager and colours
+$ sudo dmesg -l err,warn # only errors and warnings</code></pre>
+  <h2>Follow new messages</h2>
+  <p>Run this and plug in a USB device to see how the kernel detects it.</p>
+  <pre><code class="language-bash">$ sudo dmesg -w</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>dmesg</code> and all its options.</p>
+  <pre><code class="language-bash">$ dmesg --help
+$ dmesg -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>dmesg</code> is installed.</p>
+  <pre><code class="language-bash">$ dmesg --version
+$ dmesg -V</code></pre>
+  <h2>More about dmesg</h2>
+  <ul>
+    <li><code>journalctl -k</code> shows the kernel messages kept by systemd, see <a href="/linux/journalctl/">journalctl</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/dmesg.txt">man dmesg</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, dmesg, kernel, logs, hardware, troubleshooting</p>
+  {% include linux-trail.html %}
+</div>

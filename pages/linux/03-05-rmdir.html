@@ -1,0 +1,45 @@
+---
+layout: default
+title: Rmdir
+permalink: /linux/rmdir/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, rmdir, remove directory, delete, directories, folders]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Rmdir</h1>
+  <p><code>rmdir</code> stands for remove directory. It deletes one or more directories, but only if they are empty. This makes it a safe way to clean up, since it never removes any files.</p>
+  <h2>Remove a directory</h2>
+  <pre><code class="language-bash">$ rmdir projects
+$ rmdir one two three</code></pre>
+  <p>If the directory is not empty, <code>rmdir</code> refuses and leaves it alone.</p>
+  <pre><code class="language-bash">$ rmdir projects
+rmdir: failed to remove 'projects': Directory not empty</code></pre>
+  <h2>Remove parent directories</h2>
+  <p><code>-p</code> removes the directory and then each parent in the path, as long as they become empty. It is the opposite of <code>mkdir -p</code>.</p>
+  <pre><code class="language-bash">$ rmdir -p projects/website/css</code></pre>
+  <h2>Ignore directories that are not empty</h2>
+  <p><code>--ignore-fail-on-non-empty</code> skips directories that still contain files without printing an error. Useful in scripts.</p>
+  <pre><code class="language-bash">$ rmdir --ignore-fail-on-non-empty projects</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>rmdir</code> and all its options.</p>
+  <pre><code class="language-bash">$ rmdir --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>rmdir</code> is installed. <code>-v</code> does not show the version, it makes <code>rmdir</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ rmdir --version</code></pre>
+  <h2>More about rmdir</h2>
+  <ul>
+    <li><code>-v</code> prints a message for every directory removed</li>
+    <li>Create directories with <a href="/linux/mkdir/">mkdir</a></li>
+    <li>To remove a directory and everything in it, use <a href="/linux/rm/">rm</a> with <code>-r</code></li>
+    <li>Remove all empty directories below the current one with <a href="/linux/find/">find</a>: <code>find . -type d -empty -delete</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/rmdir.txt">man rmdir</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, rmdir, remove directory, delete, directories, folders</p>
+  {% include linux-trail.html %}
+</div>

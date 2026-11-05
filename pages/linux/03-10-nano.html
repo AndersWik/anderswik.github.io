@@ -1,0 +1,50 @@
+---
+layout: default
+title: Nano
+permalink: /linux/nano/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, nano, text editor, editor, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Nano</h1>
+  <p><code>nano</code> is a small, easy to use text editor that runs in the terminal. The most important shortcuts are always shown at the bottom of the screen, where <code>^</code> means the Ctrl key. It is a good editor to start with.</p>
+  <h2>Open a file</h2>
+  <pre><code class="language-bash">$ nano notes.txt</code></pre>
+  <h2>Options and shortcuts</h2>
+  <p><code>-c</code> constantly shows the cursor position (line and column) at the bottom of the screen. <code>Ctrl + c</code> shows the current cursor position once, and <code>Ctrl + k</code> cuts the current line.</p>
+  <pre><code class="language-bash">nano -c [filename]	show line numbers
+
+ctrl + c		display line numbers
+ctrl + k 		delete lines</code></pre>
+  <p>To show real line numbers in the left margin, use <code>-l</code>.</p>
+  <pre><code class="language-bash">$ nano -l notes.txt</code></pre>
+  <h2>More shortcuts</h2>
+  <pre><code class="language-bash">ctrl + o      save (write out)
+ctrl + x      exit
+ctrl + w      search
+ctrl + \      search and replace
+ctrl + u      paste the cut line
+ctrl + _      go to line number</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>nano</code> and all its options.</p>
+  <pre><code class="language-bash">$ nano --help
+$ nano -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>nano</code> is installed.</p>
+  <pre><code class="language-bash">$ nano --version
+$ nano -V</code></pre>
+  <h2>More about Nano</h2>
+  <ul>
+    <li>Settings can be saved in <code>~/.nanorc</code>, for example <code>set linenumbers</code></li>
+    <li><a href="https://www.nano-editor.org/">The nano website</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/nano.txt">man nano</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, nano, text editor, editor, files</p>
+  {% include linux-trail.html %}
+</div>

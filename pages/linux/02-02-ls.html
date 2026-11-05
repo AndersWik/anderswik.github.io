@@ -1,0 +1,51 @@
+---
+layout: default
+title: Ls
+permalink: /linux/ls/
+chapter: "02"
+chapter_title: "Navigating"
+keywords: [linux, ls, list, files, directories, hidden files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Ls</h1>
+  <p><code>ls</code> lists the contents of a directory. Without arguments it lists the current directory. Flags control how much information is shown and in which order.</p>
+  <h2>List all files</h2>
+  <pre><code class="language-bash">$ ls</code></pre>
+  <p><code>-l</code> uses the long listing format, showing permissions, owner, group, size and modification date for each file.</p>
+  <pre><code class="language-bash">$ ls -l</code></pre>
+  <p>Give a file name to only show that file.</p>
+  <pre><code class="language-bash">$ ls -l file.txt</code></pre>
+  <h2>List all files including hidden</h2>
+  <p>Files whose names start with a dot, like <code>.bashrc</code>, are hidden. <code>-a</code> shows all files, including the hidden ones.</p>
+  <pre><code class="language-bash">$ ls -la</code></pre>
+  <p>List all files including hidden with size in human readable form.</p>
+  <pre><code class="language-bash">$ ls -lah</code></pre>
+  <h2>Sort the list</h2>
+  <p><code>-t</code> sorts by modification time, newest first, and <code>-S</code> sorts by size, largest first. <code>-r</code> reverses the order.</p>
+  <pre><code class="language-bash">$ ls -lt
+$ ls -lS
+$ ls -ltr</code></pre>
+  <h2>List another directory</h2>
+  <pre><code class="language-bash">$ ls /etc
+$ ls -R Documents   # list subdirectories recursively</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>ls</code> and all its options. <code>-h</code> does not show help, it shows sizes in human readable form.</p>
+  <pre><code class="language-bash">$ ls --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>ls</code> is installed.</p>
+  <pre><code class="language-bash">$ ls --version</code></pre>
+  <h2>More about ls</h2>
+  <ul>
+    <li><code>ls -1</code> prints one file per line, which is handy in scripts</li>
+    <li><code>ls -d */</code> lists only directories</li>
+    <li><code>tree</code> shows a directory and its subdirectories as a tree (install it with <code>sudo apt install tree</code>)</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/ls.txt">man ls</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, ls, list, files, directories, hidden files</p>
+  {% include linux-trail.html %}
+</div>

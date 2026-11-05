@@ -1,0 +1,41 @@
+---
+layout: default
+title: Cat
+permalink: /linux/cat/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, cat, concatenate, read file, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Cat</h1>
+  <p><code>cat</code> stands for concatenate. It reads one or more files and prints their content to the terminal. It is the quickest way to look at a short file, and it can join several files into one.</p>
+  <h2>Print a file</h2>
+  <pre><code class="language-bash">$ cat notes.txt</code></pre>
+  <h2>Join files</h2>
+  <pre><code class="language-bash">$ cat part1.txt part2.txt &gt; whole.txt</code></pre>
+  <h2>Show line numbers</h2>
+  <pre><code class="language-bash">$ cat -n notes.txt</code></pre>
+  <h2>Write a file from the terminal</h2>
+  <p><code>cat</code> reads from the keyboard when no file is given. Type the text and finish with <code>Ctrl + d</code>.</p>
+  <pre><code class="language-bash">$ cat &gt; notes.txt</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>cat</code> and all its options.</p>
+  <pre><code class="language-bash">$ cat --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>cat</code> is installed. <code>-v</code> does not show the version, it makes non-printing characters visible.</p>
+  <pre><code class="language-bash">$ cat --version</code></pre>
+  <h2>More about cat</h2>
+  <ul>
+    <li>For long files use <a href="/linux/less/">less</a> instead, so you can scroll</li>
+    <li><code>tac</code> prints a file with the lines in reverse order</li>
+    <li><code>-A</code> shows hidden characters such as tabs and line endings</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/cat.txt">man cat</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, cat, concatenate, read file, files</p>
+  {% include linux-trail.html %}
+</div>

@@ -1,0 +1,57 @@
+---
+layout: default
+title: Ssh
+permalink: /linux/ssh/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, ssh, ssh-keygen, remote, keys, github, security]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Ssh</h1>
+  <p><code>ssh</code> (Secure Shell) connects to another computer over an encrypted connection and gives you a terminal on it. It is the standard way to manage Linux servers. Logging in with keys instead of passwords is both safer and more convenient.</p>
+  <h2>Connect to a server</h2>
+  <pre><code class="language-bash">$ ssh user@example.com
+$ ssh -p 2222 user@example.com   # other port</code></pre>
+  <h2>Generate Key</h2>
+  <p><code>ssh-keygen</code> creates a key pair: a private key that stays on your computer and a public key (<code>.pub</code>) that you give to servers and services like GitHub. <code>-C</code> adds a comment, usually your email.</p>
+  <pre><code class="language-bash">$ ssh-keygen -t rsa -b 4096 -C "user@dev.se"</code></pre>
+  <p>Ed25519 keys are shorter and are recommended today.</p>
+  <pre><code class="language-bash">$ ssh-keygen -t ed25519 -C "user@dev.se"</code></pre>
+  <p>Copy Public to clipboard. <code>pbcopy</code> is a macOS command; on Linux use <code>xclip</code> or just <code>cat</code> the file and copy the text.</p>
+  <pre><code class="language-bash">$ pbcopy &lt; ~/.ssh/id_rsa.pub</code></pre>
+  <pre><code class="language-bash">$ xclip -selection clipboard &lt; ~/.ssh/id_rsa.pub</code></pre>
+  <p>Copy Private to clipboard. Never share the private key with anyone.</p>
+  <pre><code class="language-bash">$ pbcopy &lt; ~/.ssh/id_rsa</code></pre>
+  <p>Generate Second Key, for example for a second GitHub account. <code>-f</code> sets the file name.</p>
+  <pre><code class="language-bash">$ ssh-keygen -t rsa -f ~/.ssh/accountB -C "userk@dev.se"</code></pre>
+  <h2>Copy the key to a server</h2>
+  <p><code>ssh-copy-id</code> adds your public key to <code>~/.ssh/authorized_keys</code> on the server, so you can log in without a password.</p>
+  <pre><code class="language-bash">$ ssh-copy-id user@example.com</code></pre>
+  <h2>SSH config</h2>
+  <p>Edit SSH config. The file <code>~/.ssh/config</code> stores settings for hosts you connect to often, like which user, port and key to use.</p>
+  <pre><code class="language-bash">$ ~/.ssh/config</code></pre>
+  <pre><code class="language-bash">$ nano ~/.ssh/config</code></pre>
+  <pre><code class="language-bash">Host myserver
+    HostName example.com
+    User anders
+    Port 2222
+    IdentityFile ~/.ssh/accountB</code></pre>
+  <p>After that <code>ssh myserver</code> is enough to connect.</p>
+  <h2>Version</h2>
+  <p><code>ssh</code> has no <code>--version</code>. <code>-V</code> shows which version of OpenSSH is installed. <code>-v</code> does not show the version, it prints debug messages while connecting.</p>
+  <pre><code class="language-bash">$ ssh -V</code></pre>
+  <h2>More about ssh</h2>
+  <ul>
+    <li><a href="https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/">https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/</a></li>
+    <li>Copy files over ssh with <a href="/linux/scp/">scp</a> or <a href="/linux/rsync/">rsync</a></li>
+    <li>The private key must only be readable by you: <code>chmod 600 ~/.ssh/id_rsa</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/ssh.txt">man ssh</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, ssh, ssh-keygen, remote, keys, github, security</p>
+  {% include linux-trail.html %}
+</div>

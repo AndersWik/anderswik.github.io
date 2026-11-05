@@ -1,0 +1,42 @@
+---
+layout: default
+title: History
+permalink: /linux/history/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [linux, history, bash, shell, commands]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>History</h1>
+  <p><code>history</code> lists the commands you have typed in the shell, each with a number. Bash saves the history in <code>~/.bash_history</code>, so it is kept between sessions.</p>
+  <h2>Show history</h2>
+  <pre><code class="language-bash">$ history</code></pre>
+  <p>Only show the last 10 commands.</p>
+  <pre><code class="language-bash">$ history 10</code></pre>
+  <h2>Search history</h2>
+  <p>Pipe the history to <a href="/linux/grep/">grep</a> to find a command you ran before.</p>
+  <pre><code class="language-bash">$ history | grep ssh</code></pre>
+  <p>You can also press <code>Ctrl + r</code> and start typing to search the history interactively. Press <code>Ctrl + r</code> again to step to older matches.</p>
+  <h2>Run a command again</h2>
+  <p><code>!!</code> runs the previous command again. It is often used to repeat a command with <a href="/linux/sudo/">sudo</a>. <code>!</code> followed by a number runs that line from the history.</p>
+  <pre><code class="language-bash">$ sudo !!
+$ !42</code></pre>
+  <h2>Clear history</h2>
+  <pre><code class="language-bash">$ history -c</code></pre>
+  <h2>Help</h2>
+  <p><code>history</code> is built into the shell, so it has no <code>-h</code> option. <code>--help</code> prints a short summary, the same as <code>help history</code>.</p>
+  <pre><code class="language-bash">$ history --help</code></pre>
+  <h2>More about history</h2>
+  <ul>
+    <li>The size of the history is set by the <code>HISTSIZE</code> and <code>HISTFILESIZE</code> variables in <code>~/.bashrc</code></li>
+    <li><code>history</code> is a shell builtin, so its documentation is also found with <code>help history</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/history.txt">man history</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, history, bash, shell, commands</p>
+  {% include linux-trail.html %}
+</div>

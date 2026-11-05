@@ -1,0 +1,40 @@
+---
+layout: default
+title: Crontab
+permalink: /linux/crontab/
+chapter: "15"
+chapter_title: "Scheduling"
+keywords: [linux, crontab, cron, scheduling, automation]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Crontab</h1>
+  <p><code>crontab</code> edits the table of scheduled jobs that the cron daemon runs. Each line is a schedule and a command, for example to run a backup every night.</p>
+  <h2>Edit your jobs</h2>
+  <p>The first time you will be asked which editor to use.</p>
+  <pre><code class="language-bash">$ crontab -e
+$ crontab -l    # list your jobs</code></pre>
+  <h2>The schedule</h2>
+  <p>Five fields set when the command runs: minute, hour, day of month, month and day of week. <code>*</code> means every.</p>
+  <pre><code class="language-bash"># m  h  dom mon dow  command
+  0  3  *   *   *    /home/anders/backup.sh          # every night at 03:00
+ */5 *  *   *   *    /home/anders/check.sh           # every 5 minutes
+  0  9  *   *   1-5  /home/anders/report.sh          # weekdays at 09:00
+@reboot              /home/anders/start.sh           # at boot</code></pre>
+  <h2>Save the output</h2>
+  <p>Cron has no terminal, so send the output to a log file to see what happened.</p>
+  <pre><code class="language-bash">0 3 * * * /home/anders/backup.sh &gt;&gt; /home/anders/backup.log 2&gt;&amp;1</code></pre>
+  <h2>More about crontab</h2>
+  <ul>
+    <li><code>sudo crontab -e</code> edits root's jobs</li>
+    <li>Cron uses a minimal <code>PATH</code>, so use full paths to commands and scripts</li>
+    <li>Build and explain schedules with the <a href="/utils/crontab/">Crontab</a> tool on this site</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/crontab.txt">man crontab</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, crontab, cron, scheduling, automation</p>
+  {% include linux-trail.html %}
+</div>

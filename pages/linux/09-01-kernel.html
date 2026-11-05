@@ -1,0 +1,28 @@
+---
+layout: default
+title: Kernel
+permalink: /linux/kernel/
+chapter: "09"
+chapter_title: "Kernel"
+keywords: [linux, kernel, modules, drivers]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Kernel</h1>
+  <p>The kernel is the core of the operating system. It talks to the hardware, manages memory and processes, and gives programs access to files and the network. Linux itself is really the name of the kernel.</p>
+  <h2>Kernel version</h2>
+  <pre><code class="language-bash">$ uname -r</code></pre>
+  <h2>Kernel modules</h2>
+  <p>Drivers are often built as kernel modules that can be loaded and unloaded while the system runs. <code>lsmod</code> lists the modules that are loaded.</p>
+  <pre><code class="language-bash">$ lsmod
+$ modinfo snd_hda_intel</code></pre>
+  <h2>Commands in this chapter</h2>
+  <ul>
+    <li><code>dmesg</code> — read the kernel's messages</li>
+    <li><code>modprobe</code> — load and remove kernel modules</li>
+  </ul>
+  {% include linux-chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, kernel, modules, drivers</p>
+  {% include linux-trail.html %}
+</div>

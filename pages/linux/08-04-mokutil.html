@@ -1,0 +1,41 @@
+---
+layout: default
+title: Mokutil
+permalink: /linux/mokutil/
+chapter: "08"
+chapter_title: "System"
+keywords: [linux, mokutil, secure boot, mok, uefi, kernel modules, drivers]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Mokutil</h1>
+  <p><code>mokutil</code> manages Machine Owner Keys (MOK) used by Secure Boot on UEFI systems. With Secure Boot enabled, the computer only loads kernels and kernel modules signed with a trusted key. Drivers you build yourself, like Nvidia or VirtualBox modules, must be signed with a key you enroll with <code>mokutil</code>.</p>
+  <h2>Check Secure Boot</h2>
+  <p>Shows whether Secure Boot is enabled.</p>
+  <pre><code class="language-bash">mokutil --sb-state</code></pre>
+  <h2>List enrolled keys</h2>
+  <pre><code class="language-bash">$ mokutil --list-enrolled</code></pre>
+  <h2>Enroll a key</h2>
+  <p>Enrolling a key asks for a one time password. On the next reboot the blue MOK manager screen appears, where you choose "Enroll MOK" and type the same password.</p>
+  <pre><code class="language-bash">$ sudo mokutil --import /var/lib/shim-signed/mok/MOK.der</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>mokutil</code> and all its options.</p>
+  <pre><code class="language-bash">$ mokutil --help
+$ mokutil -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-v</code> show which version of <code>mokutil</code> is installed.</p>
+  <pre><code class="language-bash">$ mokutil --version
+$ mokutil -v</code></pre>
+  <h2>More about mokutil</h2>
+  <ul>
+    <li>DKMS signs modules with the key in <code>/var/lib/shim-signed/mok/</code> on Ubuntu</li>
+    <li><a href="https://wiki.ubuntu.com/UEFI/SecureBoot">Secure Boot on the Ubuntu wiki</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/mokutil.txt">man mokutil</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, mokutil, secure boot, mok, uefi, kernel modules, drivers</p>
+  {% include linux-trail.html %}
+</div>

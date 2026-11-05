@@ -1,0 +1,73 @@
+---
+layout: default
+title: Linux From Scratch
+permalink: /linux/linuxfromscratch/
+chapter: "20"
+chapter_title: "Building"
+keywords: [linux, linux from scratch, lfs, blfs, build, compile, source, toolchain]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Linux From Scratch</h1>
+  <p><a href="https://www.linuxfromscratch.org/">Linux From Scratch</a> (LFS) is a free book with step by step instructions for building your own Linux system, entirely from source code. Instead of installing a ready made distribution, you compile every part yourself: the compiler, the C library, the shell, the core tools and the <a href="/linux/kernel/">kernel</a>. It takes time, but it is one of the best ways to learn how a Linux system really works.</p>
+  <h2>Two editions</h2>
+  <p>The book comes in two versions that differ in how the system starts and manages <a href="/linux/services/">services</a>. Pick one and follow it all the way.</p>
+  <ul>
+    <li><strong>SysVinit</strong> — the classic init system with simple shell scripts</li>
+    <li><strong>systemd</strong> — the init system used by most distributions today</li>
+  </ul>
+  <h2>What you need</h2>
+  <ul>
+    <li>A working Linux system to build from, called the host. A normal desktop distribution or a virtual machine works fine</li>
+    <li>An empty partition for the new system. The book asks for at least 10 GB, but around 30 GB gives room to grow</li>
+    <li>Basic knowledge of the <a href="/linux/shell/">shell</a> and of commands like <a href="/linux/tar/">tar</a>, <a href="/linux/cd/">cd</a> and <a href="/linux/sudo/">sudo</a></li>
+    <li>Time. A full build takes many hours, and the book measures build times in SBU (Standard Build Unit), the time it takes to build the first package on your machine</li>
+  </ul>
+  <h2>Check the host system</h2>
+  <p>The book starts with a small script, <code>version-check.sh</code>, that checks the host has the tools and versions needed, such as <code>gcc</code>, <code>make</code>, <code>bison</code> and <code>python3</code>. Copy it from the book and run it.</p>
+  <pre><code class="language-bash">$ bash version-check.sh</code></pre>
+  <h2>Prepare the partition</h2>
+  <p>Find the partition with <a href="/linux/lsblk/">lsblk</a>, create a file system on it and mount it. The book uses the variable <code>LFS</code> for the mount point in every command, so set it in every new shell.</p>
+  <pre><code class="language-bash">$ export LFS=/mnt/lfs
+$ sudo mkfs -v -t ext4 /dev/sdb1
+$ sudo mkdir -pv $LFS
+$ sudo mount -v -t ext4 /dev/sdb1 $LFS</code></pre>
+  <p>Make sure <code>/dev/sdb1</code> is the right partition. <code>mkfs</code> erases everything on it.</p>
+  <h2>Download the sources</h2>
+  <p>The book has a list of all packages and patches. <a href="/linux/wget/">wget</a> downloads them all, and <code>md5sum</code> checks that nothing is broken.</p>
+  <pre><code class="language-bash">$ sudo mkdir -v $LFS/sources
+$ sudo chmod -v a+wt $LFS/sources
+$ wget --input-file=wget-list-sysv --continue --directory-prefix=$LFS/sources
+$ cd $LFS/sources
+$ md5sum -c md5sums</code></pre>
+  <h2>The build steps</h2>
+  <p>The rest of the book is a long list of packages to unpack, configure, compile and install, in a specific order. Most packages follow the same pattern.</p>
+  <pre><code class="language-bash">$ tar -xf package-1.0.tar.xz
+$ cd package-1.0
+$ ./configure --prefix=/usr
+$ make
+$ make install</code></pre>
+  <p>The work is done in these stages:</p>
+  <ol>
+    <li>Create a user called <code>lfs</code> with a clean environment, so the host's settings do not leak into the build</li>
+    <li>Build a cross toolchain: <code>binutils</code>, <code>gcc</code> and <code>glibc</code> that compile programs for the new system</li>
+    <li>Build temporary tools with the cross toolchain</li>
+    <li>Enter the new system with <code>chroot</code>, so it runs separated from the host</li>
+    <li>Build the final system, package by package</li>
+    <li>Configure the system: boot scripts, network, locale and <code>/etc/fstab</code></li>
+    <li>Compile the kernel and install the GRUB boot loader</li>
+    <li>Reboot into your own Linux system</li>
+  </ol>
+  <h2>More about Linux From Scratch</h2>
+  <ul>
+    <li><a href="https://www.linuxfromscratch.org/lfs/read.html">Read the LFS book</a> online</li>
+    <li><a href="https://www.linuxfromscratch.org/blfs/">Beyond Linux From Scratch</a> (BLFS) continues where LFS ends, with a graphical desktop, networking tools and much more</li>
+    <li><a href="https://www.linuxfromscratch.org/alfs/">Automated Linux From Scratch</a> (ALFS) runs the build steps from the book automatically</li>
+    <li>LFS has no help or version command of its own, since it is a book and not a program. Each package you build has its own <code>--help</code> and <code>--version</code></li>
+    <li>For a smaller build, see <a href="/linux/build-deb/">Build a .deb package</a></li>
+  </ul>
+  {% include linux-chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, linux from scratch, lfs, blfs, build, compile, source, toolchain</p>
+  {% include linux-trail.html %}
+</div>

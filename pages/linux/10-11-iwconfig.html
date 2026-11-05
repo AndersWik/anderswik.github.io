@@ -1,0 +1,39 @@
+---
+layout: default
+title: Iwconfig
+permalink: /linux/iwconfig/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, iwconfig, wifi, wireless, network]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Iwconfig</h1>
+  <p><code>iwconfig</code> shows and sets the settings of wireless network interfaces, like the network name (ESSID), frequency, bit rate and signal quality.</p>
+  <h2>Show wireless interfaces</h2>
+  <pre><code class="language-bash">$ iwconfig</code></pre>
+  <pre><code class="language-bash">$ iwconfig wlan0</code></pre>
+  <h2>Change settings</h2>
+  <pre><code class="language-bash">$ sudo iwconfig wlan0 power off    # turn off power saving
+$ sudo iwconfig wlan0 txpower 15   # set transmit power in dBm</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>iwconfig</code> and all its options.</p>
+  <pre><code class="language-bash">$ iwconfig --help
+$ iwconfig -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-v</code> show which version of <code>iwconfig</code> is installed.</p>
+  <pre><code class="language-bash">$ iwconfig --version
+$ iwconfig -v</code></pre>
+  <h2>More about iwconfig</h2>
+  <ul>
+    <li><code>iwconfig</code> comes from the <code>wireless-tools</code> package and is deprecated; <code>iw</code> is its replacement, for example <code>iw dev wlan0 link</code></li>
+    <li><code>nmcli dev wifi</code> lists and connects to networks with NetworkManager</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/iwconfig.txt">man iwconfig</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, iwconfig, wifi, wireless, network</p>
+  {% include linux-trail.html %}
+</div>

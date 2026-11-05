@@ -1,0 +1,26 @@
+---
+layout: default
+title: Playonlinux
+permalink: /linux/playonlinux/
+chapter: "19"
+chapter_title: "Gaming"
+keywords: [linux, playonlinux, wine, windows, games, python]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Playonlinux</h1>
+  <p>PlayOnLinux is a graphical front end for Wine that makes it easier to install and run Windows programs and games on Linux. Each program gets its own Wine setup, so they don't interfere with each other.</p>
+  <h2>Fix missing asyncore</h2>
+  <p>PlayOnLinux uses the Python module <code>asyncore</code>, which was removed from Python 3.12. On newer distributions, install the package that brings it back.</p>
+  <pre><code class="language-bash">$ apt install python3-pyasyncore</code></pre>
+  <h2>Install PlayOnLinux</h2>
+  <pre><code class="language-bash">$ sudo apt install playonlinux</code></pre>
+  <h2>More about Playonlinux</h2>
+  <ul>
+    <li><a href="https://www.playonlinux.com/">The PlayOnLinux website</a></li>
+    <li>Steam with Proton and Lutris are other popular ways to run Windows games on Linux</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, playonlinux, wine, windows, games, python</p>
+  {% include linux-trail.html %}
+</div>
