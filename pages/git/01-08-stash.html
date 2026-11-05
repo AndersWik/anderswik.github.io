@@ -1,0 +1,42 @@
+---
+layout: default
+title: Stash
+permalink: /git/stash/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [git, stash, pop, apply, save, temporary, work in progress]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Stash</h1>
+  <p><code>git stash</code> puts your uncommitted changes aside and gives you a clean working folder. Useful when you need to switch branch quickly but are not ready to commit.</p>
+  <h2>Stash and bring back</h2>
+  <pre><code class="language-bash">$ git stash
+$ git stash pop</code></pre>
+  <p><code>pop</code> brings back the latest stash and removes it from the list.</p>
+  <h2>Give the stash a name</h2>
+  <pre><code class="language-bash">$ git stash push -m "half done login page"</code></pre>
+  <h2>Include new files</h2>
+  <p>By default only tracked files are stashed. <code>-u</code> includes new, untracked files too.</p>
+  <pre><code class="language-bash">$ git stash -u</code></pre>
+  <h2>Several stashes</h2>
+  <pre><code class="language-bash">$ git stash list
+stash@{0}: On main: half done login page
+stash@{1}: WIP on main: a1b2c3d Add notes</code></pre>
+  <p><code>apply</code> brings back a stash but keeps it in the list, and <code>drop</code> deletes it.</p>
+  <pre><code class="language-bash">$ git stash show -p stash@{1}
+$ git stash apply stash@{1}
+$ git stash drop stash@{1}</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git stash</code>. <code>--help</code> opens the full manual page, the same as <code>git help stash</code>.</p>
+  <pre><code class="language-bash">$ git stash -h
+$ git stash --help</code></pre>
+  <h2>More about stash</h2>
+  <ul>
+    <li><a href="https://www.freecodecamp.org/news/useful-tricks-you-might-not-know-about-git-stash-e8a9490f0a1a/">Useful tricks you might not know about git stash</a></li>
+    <li><a href="https://git-scm.com/docs/git-stash">git stash</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

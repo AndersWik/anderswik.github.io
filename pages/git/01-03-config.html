@@ -1,0 +1,46 @@
+---
+layout: default
+title: Config
+permalink: /git/config/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [git, config, configuration, user, name, email, global, editor, default branch]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Config</h1>
+  <p>Git stores your settings with <code>git config</code>. The most important ones are your name and email, which are saved in every commit you make.</p>
+  <h2>Set your name and email</h2>
+  <p><code>--global</code> saves the setting for all repositories on the computer, in the file <code>~/.gitconfig</code>.</p>
+  <pre><code class="language-bash">$ git config --global user.name "Your Name"
+$ git config --global user.email "you@example.com"</code></pre>
+  <h2>Show a setting</h2>
+  <pre><code class="language-bash">$ git config --global user.name
+$ git config --global user.email</code></pre>
+  <p>List all settings and where they come from.</p>
+  <pre><code class="language-bash">$ git config --list --show-origin</code></pre>
+  <h2>Settings for one repository</h2>
+  <p>Without <code>--global</code> the setting only applies to the current repository. Useful if you use a different email for work.</p>
+  <pre><code class="language-bash">$ git config user.email "you@work.example.com"</code></pre>
+  <h2>Other useful settings</h2>
+  <pre><code class="language-bash">$ git config --global init.defaultBranch main
+$ git config --global core.editor nano
+$ git config --global pull.rebase false</code></pre>
+  <ul>
+    <li><code>init.defaultBranch</code> — the name of the first branch in new repositories</li>
+    <li><code>core.editor</code> — the editor Git opens for commit messages, see <a href="/linux/nano/">nano</a> or <a href="/linux/vim/">vim</a></li>
+    <li><code>pull.rebase</code> — whether <code>git pull</code> merges or rebases</li>
+  </ul>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git config</code>. <code>--help</code> opens the full manual page, the same as <code>git help config</code>.</p>
+  <pre><code class="language-bash">$ git config -h
+$ git config --help</code></pre>
+  <h2>More about config</h2>
+  <ul>
+    <li>Shortcuts for long commands, see <a href="/git/alias/">Alias</a></li>
+    <li><a href="https://git-scm.com/docs/git-config">git config</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

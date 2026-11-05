@@ -1,0 +1,28 @@
+---
+layout: default
+title: Advanced
+permalink: /git/advanced/
+chapter: "03"
+chapter_title: "Advanced"
+keywords: [git, advanced, tag, rebase, history]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Advanced</h1>
+  <p>The commands in this chapter are used less often, but are very useful once you know the basics. Tags mark important commits such as releases, and rebase lets you clean up the history before you share it.</p>
+  <h2>Commands in this chapter</h2>
+  <ul>
+    <li><a href="/git/tagging/">Tagging</a> — give a commit a permanent name, like <code>v1.0</code></li>
+    <li><a href="/git/rebase/">Rebase</a> — move, combine and edit commits</li>
+  </ul>
+  <h2>Rewriting history</h2>
+  <p>Several commands, such as <a href="/git/amend/">amend</a>, <a href="/git/reset/">reset</a> and <a href="/git/rebase/">rebase</a>, change commits that already exist. That is fine for commits only you have. Once commits are pushed and others have them, changing them causes problems for everyone else.</p>
+  <h2>More about advanced Git</h2>
+  <ul>
+    <li><a href="https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History">Rewriting history</a> in Pro Git</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

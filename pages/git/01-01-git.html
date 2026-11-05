@@ -1,0 +1,48 @@
+---
+layout: default
+title: Git
+permalink: /git/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [git, introduction, version control, source code management, install, help, version]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Git</h1>
+  <p>Git is a version control system. It keeps track of every change to the files in a project.</p>
+  <h2>Basic ideas</h2>
+  <ul>
+    <li><strong>Repository</strong> — a project folder that Git keeps track of. The history is stored in the hidden folder <code>.git</code></li>
+    <li><strong>Commit</strong> — a saved snapshot of the files, with a message that explains the change</li>
+    <li><strong>Branch</strong> — a separate line of work, so you can try things without touching the main code</li>
+    <li><strong>Merge</strong> — bring the changes from one branch into another</li>
+    <li><strong>Remote</strong> — a copy of the repository on another computer, for example on GitHub or GitLab</li>
+  </ul>
+  <h2>Install on Linux</h2>
+  <pre><code class="language-bash">$ sudo apt install git</code></pre>
+  <h2>Install on macOS</h2>
+  <p>macOS asks to install the Xcode Command Line Tools, which include Git, the first time you run <code>git</code>. For a newer version, use <a href="https://brew.sh/">Homebrew</a>.</p>
+  <pre><code class="language-bash">$ brew install git</code></pre>
+  <h2>Install on Windows</h2>
+  <p>Download <a href="https://git-scm.com/downloads">Git for Windows</a>, or use <code>winget</code>. It includes Git Bash, a terminal where the commands on these pages work the same way.</p>
+  <pre><code class="language-powershell">&gt; winget install Git.Git</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> lists the most common commands. <code>git help</code> followed by a command opens its manual page, and <code>-h</code> after a command prints a short summary of its options.</p>
+  <pre><code class="language-bash">$ git --help
+$ git help commit
+$ git commit -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of Git is installed.</p>
+  <pre><code class="language-bash">$ git --version</code></pre>
+  <h2>More about Git</h2>
+  <ul>
+    <li><a href="https://git-scm.com/">git-scm.com</a> and the <a href="https://git-scm.com/docs">Git documentation</a></li>
+    <li><a href="https://nvie.com/posts/a-successful-git-branching-model/">A successful Git branching model</a></li>
+    <li><a href="https://jeffkreeftmeijer.com/git-flow/">Using git-flow to automate your Git branching workflow</a></li>
+    <li>See <a href="/git/books/">Books</a> for longer reading</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

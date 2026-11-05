@@ -1,0 +1,36 @@
+---
+layout: default
+title: Push and pull
+permalink: /git/push/
+chapter: "02"
+chapter_title: "Branches"
+keywords: [git, push, pull, fetch, remote, origin, upstream, force]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Push and pull</h1>
+  <p><code>git push</code> sends your commits to the remote. <code>git pull</code> gets the commits others have pushed.</p>
+  <h2>Push a new branch</h2>
+  <p>The first time you push a branch, <code>-u</code> connects it to the branch on the remote. After that, a plain <code>git push</code> is enough.</p>
+  <pre><code class="language-bash">$ git push -u origin new-feature
+$ git push</code></pre>
+  <h2>Get changes from the remote</h2>
+  <p><code>fetch</code> downloads new commits but does not change your files. <code>pull</code> downloads and merges them into your branch.</p>
+  <pre><code class="language-bash">$ git fetch
+$ git pull</code></pre>
+  <h2>Force push</h2>
+  <p>After <a href="/git/amend/">amend</a> or <a href="/git/rebase/">rebase</a> the history is different from the remote, and a normal push is refused. <code>--force-with-lease</code> overwrites the remote, but only if nobody else has pushed in the meantime.</p>
+  <pre><code class="language-bash">$ git push --force-with-lease</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git push</code>. <code>--help</code> opens the full manual page, the same as <code>git help push</code>. The same works for <code>pull</code> and <code>fetch</code>.</p>
+  <pre><code class="language-bash">$ git push -h
+$ git push --help</code></pre>
+  <h2>More about push and pull</h2>
+  <ul>
+    <li>If <code>git push</code> is refused, run <code>git pull</code> first to get the new commits</li>
+    <li><a href="https://git-scm.com/docs/git-push">git push</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

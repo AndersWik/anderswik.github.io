@@ -1,0 +1,46 @@
+---
+layout: default
+title: Multiple ssh keys
+permalink: /git/multiple-ssh/
+chapter: "03"
+chapter_title: "SSH"
+keywords: [git, ssh, keys, multiple accounts, github, work, ssh config, identityfile]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Multiple ssh keys</h1>
+  <p>If you have several accounts on the same service, for example a private and a work account on GitHub, each needs its own SSH key. An SSH config file tells Git which key to use.</p>
+  <h2>Create a key for each account</h2>
+  <pre><code class="language-bash">$ ssh-keygen -t ed25519 -C "you@example.com" -f ~/.ssh/id_ed25519_private
+$ ssh-keygen -t ed25519 -C "you@work.example.com" -f ~/.ssh/id_ed25519_work</code></pre>
+  <p>Add the <code>.pub</code> file of each key to the matching account.</p>
+  <h2>Add the keys to the SSH config</h2>
+  <p>Each <code>Host</code> is a nickname that points to the same server, but with a different key. <code>IdentitiesOnly</code> makes SSH use only that key.</p>
+  <pre><code class="language-bash">$ nano ~/.ssh/config</code></pre>
+  <pre><code class="language-bash">Host github-private
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_private
+  IdentitiesOnly yes
+
+Host github-work
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_work
+  IdentitiesOnly yes</code></pre>
+  <h2>Use the nickname</h2>
+  <p>Replace <code>github.com</code> with the nickname when you clone or set the remote.</p>
+  <pre><code class="language-bash">$ git clone git@github-work:company/project.git
+$ git remote set-url origin git@github-private:user/project.git</code></pre>
+  <p>Test that the right account answers.</p>
+  <pre><code class="language-bash">$ ssh -T git@github-work</code></pre>
+  <h2>More about multiple keys</h2>
+  <ul>
+    <li>Also set the right email in each repository, see <a href="/git/config/">Config</a></li>
+    <li>More about <a href="/linux/ssh/">ssh</a> on this site</li>
+    <li><a href="https://gist.github.com/jexchan/2351996">Multiple SSH keys settings for different GitHub accounts</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

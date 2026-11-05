@@ -1,0 +1,47 @@
+---
+layout: default
+title: Log
+permalink: /git/log/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [git, log, history, graph, oneline, commits, pretty, format]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Log</h1>
+  <p><code>git log</code> shows the history of commits, newest first. Press <code>q</code> to quit, it uses the same keys as <a href="/linux/less/">less</a>.</p>
+  <h2>Show the history</h2>
+  <pre><code class="language-bash">$ git log</code></pre>
+  <p>Only the latest commit, or the latest five.</p>
+  <pre><code class="language-bash">$ git log -1
+$ git log -5</code></pre>
+  <h2>Short history</h2>
+  <p>One line per commit.</p>
+  <pre><code class="language-bash">$ git log --oneline</code></pre>
+  <h2>Show the branches as a graph</h2>
+  <p><code>--all</code> includes all branches, not just the current one.</p>
+  <pre><code class="language-bash">$ git log --oneline --graph --all</code></pre>
+  <h2>Show which files changed</h2>
+  <pre><code class="language-bash">$ git log --name-only
+$ git log --stat</code></pre>
+  <h2>Search the history</h2>
+  <pre><code class="language-bash">$ git log --author="Anders"
+$ git log --grep="login"
+$ git log -- notes.txt</code></pre>
+  <h2>Pretty format</h2>
+  <p><code>--pretty=format</code> chooses what to show and in which color: <code>%h</code> is the short hash, <code>%d</code> the branch names, <code>%s</code> the message and <code>%an</code> the author.</p>
+  <pre><code class="language-bash">$ git log --graph --all --pretty=format:"%C(red)%h%C(reset) %C(green)%d%C(reset) %s %C(yellow)(%an)%C(reset)"</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git log</code>. <code>--help</code> opens the full manual page, the same as <code>git help log</code>.</p>
+  <pre><code class="language-bash">$ git log -h
+$ git log --help</code></pre>
+  <h2>More about log</h2>
+  <ul>
+    <li>Save a long log command as an <a href="/git/alias/">alias</a></li>
+    <li><code>git show</code> followed by a hash shows what changed in that commit</li>
+    <li><a href="https://git-scm.com/docs/git-log">git log</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

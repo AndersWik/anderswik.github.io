@@ -1,0 +1,58 @@
+---
+layout: default
+title: Rebase
+permalink: /git/rebase/
+chapter: "03"
+chapter_title: "Advanced"
+keywords: [git, rebase, interactive, squash, reword, pick, fixup, history, author]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Rebase</h1>
+  <p><code>git rebase</code> moves commits so they start from another point. It gives a straight history instead of merge commits. Interactive rebase also lets you edit, combine and reorder commits.</p>
+  <h2>Update a branch with main</h2>
+  <p>Move the commits of your branch so they start from the latest <code>main</code>.</p>
+  <pre><code class="language-bash">$ git switch new-feature
+$ git rebase main</code></pre>
+  <h2>Interactive rebase</h2>
+  <p>Edit the last three commits. Git opens an editor with one line per commit.</p>
+  <pre><code class="language-bash">$ git rebase -i HEAD~3</code></pre>
+  <pre><code class="language-bash">pick a1b2c3d Add login page
+pick e4f5a6b Fix typo
+pick c7d8e9f Add logout button</code></pre>
+  <p>Change the word at the start of a line to decide what happens to that commit, then save and close the editor.</p>
+  <ul>
+    <li><code>pick</code> — keep the commit as it is</li>
+    <li><code>reword</code> — keep the commit but change the message</li>
+    <li><code>edit</code> — stop at the commit so you can change it</li>
+    <li><code>squash</code> — combine with the commit above and edit the message</li>
+    <li><code>fixup</code> — combine with the commit above and keep its message</li>
+    <li><code>drop</code> — remove the commit</li>
+  </ul>
+  <h2>Change the author of an older commit</h2>
+  <p>Start an interactive rebase from the commit before the one to change, and mark it with <code>edit</code>. When Git stops, amend the author and continue.</p>
+  <pre><code class="language-bash">$ git rebase -i a1b2c3d
+$ git commit --amend --author="Your Name &lt;you@example.com&gt;" --no-edit
+$ git rebase --continue</code></pre>
+  <h2>Conflicts</h2>
+  <p>Resolve them as when <a href="/git/merging/">merging</a>, then continue. You can always cancel and get back to where you started.</p>
+  <pre><code class="language-bash">$ git add notes.txt
+$ git rebase --continue
+$ git rebase --abort</code></pre>
+  <h2>Push after a rebase</h2>
+  <p>Rebase rewrites the commits, so you have to force push. Only rebase commits that others have not based their work on.</p>
+  <pre><code class="language-bash">$ git push --force-with-lease</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git rebase</code>. <code>--help</code> opens the full manual page, the same as <code>git help rebase</code>.</p>
+  <pre><code class="language-bash">$ git rebase -h
+$ git rebase --help</code></pre>
+  <h2>More about rebase</h2>
+  <ul>
+    <li>The editor is often <a href="/linux/vim/">vim</a>. Press <code>i</code> to type, <code>Esc</code> and then <code>:wq</code> to save and close. Or choose another editor in <a href="/git/config/">config</a></li>
+    <li><a href="https://blog.verslu.is/git/git-rebase/">Git rebase explained</a></li>
+    <li><a href="https://stackoverflow.com/questions/3042437/how-to-change-the-commit-author-for-one-specific-commit">How to change the commit author for one specific commit</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

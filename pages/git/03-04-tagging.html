@@ -1,0 +1,42 @@
+---
+layout: default
+title: Tagging
+permalink: /git/tagging/
+chapter: "03"
+chapter_title: "Advanced"
+keywords: [git, tag, tagging, release, version, annotated, lightweight]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tagging</h1>
+  <p>A tag is a name for a specific commit that never moves, unlike a branch. Tags are mostly used to mark releases, like <code>v1.0</code>.</p>
+  <h2>Create a tag</h2>
+  <p>An annotated tag stores who made it, when, and a message. It is the kind to use for releases.</p>
+  <pre><code class="language-bash">$ git tag -a v1.0 -m "First release"</code></pre>
+  <p>A lightweight tag is only a name.</p>
+  <pre><code class="language-bash">$ git tag v1.0</code></pre>
+  <p>Tag an older commit by giving its hash.</p>
+  <pre><code class="language-bash">$ git tag -a v0.9 a1b2c3d -m "Beta"</code></pre>
+  <h2>List and show tags</h2>
+  <pre><code class="language-bash">$ git tag
+$ git show v1.0</code></pre>
+  <h2>Push tags</h2>
+  <p>Tags are not pushed automatically.</p>
+  <pre><code class="language-bash">$ git push origin v1.0
+$ git push --tags</code></pre>
+  <h2>Delete a tag</h2>
+  <pre><code class="language-bash">$ git tag -d v1.0
+$ git push origin --delete v1.0</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git tag</code>. <code>--help</code> opens the full manual page, the same as <code>git help tag</code>.</p>
+  <pre><code class="language-bash">$ git tag -h
+$ git tag --help</code></pre>
+  <h2>More about tagging</h2>
+  <ul>
+    <li>Look at the code of a release with <code>git checkout v1.0</code></li>
+    <li><a href="https://semver.org/">Semantic Versioning</a> explains a common way to number releases</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,40 @@
+---
+layout: default
+title: Checkout
+permalink: /git/checkout/
+chapter: "02"
+chapter_title: "Branches"
+keywords: [git, checkout, switch, branch, create, restore, discard changes]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Checkout</h1>
+  <p><code>git checkout</code> moves between branches. Newer versions of Git split it into two simpler commands: <code>git switch</code> for branches and <code>git restore</code> for files. Both ways work.</p>
+  <h2>Switch branch</h2>
+  <pre><code class="language-bash">$ git switch main
+$ git checkout main</code></pre>
+  <h2>Create a branch and switch to it</h2>
+  <pre><code class="language-bash">$ git switch -c new-feature
+$ git checkout -b new-feature</code></pre>
+  <h2>Go back to the previous branch</h2>
+  <pre><code class="language-bash">$ git switch -</code></pre>
+  <h2>Discard changes in a file</h2>
+  <p>Put the file back to how it was in the last commit. The changes are lost.</p>
+  <pre><code class="language-bash">$ git restore notes.txt
+$ git checkout -- notes.txt</code></pre>
+  <h2>Look at an old commit</h2>
+  <p>Checking out a commit hash lets you look at the files as they were. Git calls this a detached HEAD. Go back with <code>git switch main</code>.</p>
+  <pre><code class="language-bash">$ git checkout a1b2c3d</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git switch</code>. <code>--help</code> opens the full manual page, the same as <code>git help switch</code>. The same works for <code>checkout</code> and <code>restore</code>.</p>
+  <pre><code class="language-bash">$ git switch -h
+$ git switch --help</code></pre>
+  <h2>More about checkout</h2>
+  <ul>
+    <li>Commit or <a href="/git/stash/">stash</a> your changes before switching branch</li>
+    <li><a href="https://git-scm.com/docs/git-switch">git switch</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

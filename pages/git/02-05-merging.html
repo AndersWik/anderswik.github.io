@@ -1,0 +1,44 @@
+---
+layout: default
+title: Merging
+permalink: /git/merging/
+chapter: "02"
+chapter_title: "Branches"
+keywords: [git, merge, merging, branches, conflict, conflicts, fast-forward, abort]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Merging</h1>
+  <p><code>git merge</code> brings the changes from another branch into the current one. A typical flow is to finish a feature on its own branch and then merge it into <code>main</code>.</p>
+  <h2>Merge a branch</h2>
+  <p>Switch to the branch that should receive the changes, then merge.</p>
+  <pre><code class="language-bash">$ git switch main
+$ git merge new-feature</code></pre>
+  <p>If <code>main</code> has no new commits, Git just moves it forward, this is called a fast-forward. <code>--no-ff</code> always creates a merge commit, which keeps a record of the branch in the history.</p>
+  <pre><code class="language-bash">$ git merge --no-ff new-feature</code></pre>
+  <h2>Resolve conflicts</h2>
+  <p>If both branches changed the same lines, Git cannot choose and stops with a conflict. <code>git status</code> shows which files have conflicts. In the file, Git marks both versions:</p>
+  <pre><code class="language-bash">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+The text on main
+=======
+The text on new-feature
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; new-feature</code></pre>
+  <p>Edit the file so it looks the way you want and remove the markers. Then stage the file and commit to finish the merge.</p>
+  <pre><code class="language-bash">$ git add notes.txt
+$ git commit</code></pre>
+  <h2>Cancel a merge</h2>
+  <pre><code class="language-bash">$ git merge --abort</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git merge</code>. <code>--help</code> opens the full manual page, the same as <code>git help merge</code>.</p>
+  <pre><code class="language-bash">$ git merge -h
+$ git merge --help</code></pre>
+  <h2>More about merging</h2>
+  <ul>
+    <li>Delete the branch when it is merged, see <a href="/git/branch/">Branch</a></li>
+    <li>An alternative to merging is <a href="/git/rebase/">rebase</a></li>
+    <li><a href="https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging">Basic branching and merging</a> in Pro Git</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

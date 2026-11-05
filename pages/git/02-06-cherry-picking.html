@@ -1,0 +1,40 @@
+---
+layout: default
+title: Cherry-picking
+permalink: /git/cherry-picking/
+chapter: "02"
+chapter_title: "Branches"
+keywords: [git, cherry-pick, cherry-picking, commit, copy, branch, hotfix]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Cherry-picking</h1>
+  <p><code>git cherry-pick</code> copies a single commit from another branch to the current one. Useful when you need one fix from a branch, but not the rest of it.</p>
+  <h2>Pick a commit</h2>
+  <p>Find the hash with <a href="/git/log/">git log</a>, switch to the branch that should get the commit and pick it.</p>
+  <pre><code class="language-bash">$ git log --oneline new-feature
+$ git switch main
+$ git cherry-pick a1b2c3d</code></pre>
+  <h2>Pick several commits</h2>
+  <pre><code class="language-bash">$ git cherry-pick a1b2c3d e4f5a6b</code></pre>
+  <h2>Note where it came from</h2>
+  <p><code>-x</code> adds a line to the message with the hash of the original commit.</p>
+  <pre><code class="language-bash">$ git cherry-pick -x a1b2c3d</code></pre>
+  <h2>Conflicts</h2>
+  <p>Conflicts are resolved the same way as when <a href="/git/merging/">merging</a>. Then continue, or cancel.</p>
+  <pre><code class="language-bash">$ git add notes.txt
+$ git cherry-pick --continue
+$ git cherry-pick --abort</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git cherry-pick</code>. <code>--help</code> opens the full manual page, the same as <code>git help cherry-pick</code>.</p>
+  <pre><code class="language-bash">$ git cherry-pick -h
+$ git cherry-pick --help</code></pre>
+  <h2>More about cherry-picking</h2>
+  <ul>
+    <li>The copy gets a new hash, so the same change exists twice in the history</li>
+    <li><a href="https://git-scm.com/docs/git-cherry-pick">git cherry-pick</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
