@@ -1,0 +1,55 @@
+{% comment %}Chapter list with keyword search for a section index page, e.g. pages/linux/index.html.{% endcomment %}
+{% assign path_parts = page.path | split: "/" %}{% assign index_section = path_parts[1] %}
+{% assign index_folder = "pages/" | append: index_section | append: "/" %}
+<div class="mt-4">
+    <label for="section-search" class="visually-hidden">Search by keyword</label>
+    <input type="search" id="section-search" class="form-control form-control-lg" placeholder="{{ include.placeholder | default: 'Search by keyword' }}" autocomplete="off">
+    <p id="section-search-status" class="text-muted small mt-2 mb-0" aria-live="polite"></p>
+</div>
+{% assign section_pages = site.pages | where_exp: "p", "p.path contains index_folder" | where_exp: "p", "p.chapter != nil" | sort: "path" %}
+{% assign chapters = section_pages | group_by: "chapter" %}
+{% for chapter in chapters %}
+<section class="section-chapter">
+    <h2 class="h4 mt-4">{% if chapter.name != "99" %}{{ chapter.name | plus: 0 }}. {% endif %}{{ chapter.items.first.chapter_title }}</h2>
+    <ul class="list-group">
+        {% for p in chapter.items %}
+        <li class="list-group-item" data-keywords="{{ p.title | downcase | escape }} {{ p.keywords | join: ',' | downcase | escape }}">
+            <a href="{{ p.url | relative_url }}">{{ p.title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endfor %}
+<p id="section-search-empty" class="text-center mt-4" hidden>No articles found.</p>
+
+<script>
+(function () {
+    var input = document.getElementById('section-search');
+    var status = document.getElementById('section-search-status');
+    var empty = document.getElementById('section-search-empty');
+    var chapters = document.querySelectorAll('.section-chapter');
+
+    function search() {
+        // Every word typed must be found in the title or keywords of an article.
+        var words = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+        var total = 0;
+
+        chapters.forEach(function (chapter) {
+            var shown = 0;
+            chapter.querySelectorAll('li[data-keywords]').forEach(function (item) {
+                var keywords = item.getAttribute('data-keywords');
+                var match = words.every(function (word) { return keywords.indexOf(word) !== -1; });
+                item.hidden = !match;
+                if (match) shown++;
+            });
+            chapter.hidden = shown === 0;
+            total += shown;
+        });
+
+        empty.hidden = total > 0;
+        status.textContent = words.length ? total + (total === 1 ? ' article found' : ' articles found') : '';
+    }
+
+    input.addEventListener('input', search);
+})();
+</script>

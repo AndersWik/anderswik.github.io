@@ -1,0 +1,13 @@
+{% comment %}Lists the other pages in the same chapter of a section.{% endcomment %}
+{% assign path_parts = page.path | split: "/" %}{% assign chapter_section = path_parts[1] %}
+{% assign chapter_folder = "pages/" | append: chapter_section | append: "/" %}
+{% assign current_chapter = page.chapter %}
+{% assign chapter_pages = site.pages | where_exp: "p", "p.path contains chapter_folder" | where_exp: "p", "p.chapter == current_chapter" | sort: "path" %}
+{% if chapter_pages.size > 1 %}
+  <h2>In this chapter</h2>
+  <ul>
+    {% for p in chapter_pages %}{% if p.url != page.url %}
+    <li><a href="{{ p.url | relative_url }}">{{ p.title }}</a></li>
+    {% endif %}{% endfor %}
+  </ul>
+{% endif %}
