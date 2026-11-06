@@ -1,0 +1,62 @@
+---
+layout: default
+title: Lscpu
+permalink: /linux/lscpu/
+chapter: "08"
+chapter_title: "System"
+keywords: [linux, lscpu, cpu, processor, cores, threads, cache, virtualization, architecture]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lscpu</h1>
+  <p><code>lscpu</code> stands for list CPU. It shows information about the processor: the model, architecture, number of cores and threads, speed, cache sizes and if it supports virtualization. It does not need <code>sudo</code>.</p>
+  <h2>Show CPU information</h2>
+  <pre><code class="language-bash">$ lscpu
+Architecture:            x86_64
+CPU(s):                  12
+Model name:              12th Gen Intel(R) Core(TM) i5-12400F
+Thread(s) per core:      2
+Core(s) per socket:      6
+Socket(s):               1
+CPU max MHz:             4400,0000
+Virtualization:          VT-x
+L3 cache:                18 MiB (1 instance)</code></pre>
+  <p><code>CPU(s)</code> is the number of threads the system can run at the same time. It is cores per socket × threads per core × sockets, here 6 × 2 × 1 = 12.</p>
+  <h2>Find one value</h2>
+  <pre><code class="language-bash">$ lscpu | grep "Model name"
+$ lscpu | grep Virtualization</code></pre>
+  <h2>One line per CPU</h2>
+  <p><code>-e</code> shows a table with one line for each CPU, which core and socket it belongs to and its current speed.</p>
+  <pre><code class="language-bash">$ lscpu -e
+CPU NODE SOCKET CORE L1d:L1i:L2:L3 ONLINE    MAXMHZ   MINMHZ      MHZ
+  0    0      0    0 0:0:0:0          yes 4400,0000 800,0000 3615.907
+  1    0      0    0 0:0:0:0          yes 4400,0000 800,0000 3731.043</code></pre>
+  <h2>Caches</h2>
+  <p><code>-C</code> shows details about the CPU caches.</p>
+  <pre><code class="language-bash">$ lscpu -C</code></pre>
+  <h2>JSON output</h2>
+  <p><code>-J</code> prints the information as JSON, which is useful in scripts.</p>
+  <pre><code class="language-bash">$ lscpu -J</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>lscpu</code> and all its options.</p>
+  <pre><code class="language-bash">$ lscpu --help
+$ lscpu -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>lscpu</code> is installed.</p>
+  <pre><code class="language-bash">$ lscpu --version
+$ lscpu -V</code></pre>
+  <h2>More about lscpu</h2>
+  <ul>
+    <li><code>nproc</code> prints only the number of CPUs</li>
+    <li>The values come from <code>/proc/cpuinfo</code> and <code>/sys</code></li>
+    <li>In a virtual machine, <code>lscpu</code> shows the virtual CPU, not the real one</li>
+    <li><code>lshw</code> shows the CPU together with the rest of the hardware</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/lscpu.txt">man lscpu</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, lscpu, cpu, processor, cores, threads, cache, virtualization, architecture</p>
+  {% include trail.html %}
+</div>
