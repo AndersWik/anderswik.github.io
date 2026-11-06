@@ -1,0 +1,38 @@
+---
+layout: default
+title: Ssh
+permalink: /vagrant/ssh/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, ssh, login, ssh-config, key, password, authorized_keys]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Ssh</h1>
+  <p><code>vagrant ssh</code> logs you in to the machine. You are logged in as the user <code>vagrant</code>, which can use <code>sudo</code> without a password. Type <code>exit</code> to leave.</p>
+  <pre><code class="language-bash">$ vagrant ssh
+$ exit</code></pre>
+  <h2>Run a single command</h2>
+  <pre><code class="language-bash">$ vagrant ssh -c "uptime"</code></pre>
+  <h2>Connect with ordinary ssh</h2>
+  <p><code>ssh-config</code> prints the address, port and key to use. Save it to a file to connect with <a href="/linux/ssh/">ssh</a>, <a href="/linux/scp/">scp</a> or your editor.</p>
+  <pre><code class="language-bash">$ vagrant ssh-config &gt; vagrant-ssh.conf
+$ ssh -F vagrant-ssh.conf default</code></pre>
+  <h2>Password and your own key</h2>
+  <p>If you are asked for a password, the default is <code>vagrant</code>. To log in with your own key, add your public key to the end of <code>authorized_keys</code> inside the machine.</p>
+  <pre><code class="language-bash">$ vagrant ssh
+$ nano ~/.ssh/authorized_keys</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> show all options for <code>ssh</code>.</p>
+  <pre><code class="language-bash">$ vagrant ssh --help
+$ vagrant ssh -h</code></pre>
+  <h2>More about ssh</h2>
+  <ul>
+    <li>With <a href="/vagrant/multi-machine/">several machines</a>, give the name: <code>vagrant ssh web</code></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/boxes/base">Default user and password</a> for boxes</li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/cli/ssh">vagrant ssh</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

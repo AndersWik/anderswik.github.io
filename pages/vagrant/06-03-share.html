@@ -1,0 +1,40 @@
+---
+layout: default
+title: Share
+permalink: /vagrant/share/
+chapter: "06"
+chapter_title: "Networking"
+keywords: [vagrant, share, vagrant-share, ngrok, http, url, port forwarding, internet]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Share</h1>
+  <p><code>vagrant share</code> gives your machine a public URL, so someone else can see the web site you are working on. It is a <a href="/vagrant/plugins/">plugin</a> that uses <a href="https://ngrok.com/">ngrok</a> to open the connection.</p>
+  <h2>Install</h2>
+  <p>Install the plugin, then download ngrok and put it in a folder in your <code>PATH</code>, for example <code>/usr/local/bin</code>.</p>
+  <pre><code class="language-bash">$ vagrant plugin install vagrant-share</code></pre>
+  <h2>Share a machine</h2>
+  <p>Run the command on the host, not inside the machine. It prints a URL that others can open. Press <code>Ctrl + c</code> to stop sharing.</p>
+  <pre><code class="language-bash">$ vagrant share</code></pre>
+  <h2>No HTTP port found</h2>
+  <p>If Vagrant says <em>"Vagrant was unable to detect an HTTP port for your machine"</em>, it could not find a web server. Check that the web server is running in the machine, then tell Vagrant which port to use.</p>
+  <pre><code class="language-bash">$ vagrant share --http 80</code></pre>
+  <p>Or <a href="/vagrant/networking/">forward the port</a> in the Vagrantfile, so Vagrant can find it by itself.</p>
+  <pre><code class="language-ruby">config.vm.network "forwarded_port", guest: 80, host: 8080</code></pre>
+  <h2>Without the plugin</h2>
+  <p>If the plugin does not work with your version of Vagrant, forward the port as above and run ngrok yourself.</p>
+  <pre><code class="language-bash">$ ngrok http 8080</code></pre>
+  <h2>Help</h2>
+  <p>When the plugin is installed, <code>--help</code> and <code>-h</code> show all options for <code>share</code>.</p>
+  <pre><code class="language-bash">$ vagrant share --help
+$ vagrant share -h</code></pre>
+  <h2>More about share</h2>
+  <ul>
+    <li><code>vagrant share --ssh</code> lets others log in to the machine with ssh</li>
+    <li>Anyone with the URL can reach the machine, so only share what you mean to</li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/share">Vagrant Share</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

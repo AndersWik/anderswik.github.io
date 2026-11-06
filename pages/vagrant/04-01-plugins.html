@@ -1,0 +1,46 @@
+---
+layout: default
+title: Plugins
+permalink: /vagrant/plugins/
+chapter: "04"
+chapter_title: "Plugins"
+keywords: [vagrant, plugin, plugins, install, uninstall, update, extension, vbguest, hostmanager]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Plugins</h1>
+  <p>Plugins add new features to Vagrant, such as more <a href="/vagrant/providers/">providers</a>, commands or provisioners.</p>
+  <h2>Install a plugin</h2>
+  <pre><code class="language-bash">$ vagrant plugin install vagrant-hostmanager</code></pre>
+  <h2>List, update and remove plugins</h2>
+  <pre><code class="language-bash">$ vagrant plugin list
+$ vagrant plugin update
+$ vagrant plugin uninstall vagrant-hostmanager</code></pre>
+  <h2>Require plugins in the Vagrantfile</h2>
+  <p>List the plugins a project needs in the Vagrantfile. Vagrant offers to install any that are missing when someone runs it.</p>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vagrant.plugins = ["vagrant-hostmanager"]
+end</code></pre>
+  <p>Many plugins also add their own settings to the Vagrantfile. Check the plugin's documentation.</p>
+  <h2>Useful plugins</h2>
+  <ul>
+    <li><code>vagrant-libvirt</code> — run machines with KVM on Linux</li>
+    <li><code>vagrant-vmware-desktop</code> — run machines with <a href="/vagrant/vmware/">VMware</a></li>
+    <li><code>vagrant-parallels</code> — run machines with Parallels on macOS</li>
+    <li><code>vagrant-hostmanager</code> — keeps <code>/etc/hosts</code> updated with the names of your machines</li>
+    <li><code>vagrant-share</code> — <a href="/vagrant/share/">share a machine</a> over the internet</li>
+  </ul>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> list all <code>plugin</code> subcommands.</p>
+  <pre><code class="language-bash">$ vagrant plugin --help
+$ vagrant plugin -h
+$ vagrant plugin install -h</code></pre>
+  <h2>More about plugins</h2>
+  <ul>
+    <li>If plugins stop working after a Vagrant upgrade, run <code>vagrant plugin repair</code>, or <code>vagrant plugin expunge</code> to remove them all</li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/plugins">Plugins</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

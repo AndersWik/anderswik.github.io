@@ -1,0 +1,46 @@
+---
+layout: default
+title: Docker
+permalink: /vagrant/docker/
+chapter: "05"
+chapter_title: "Providers"
+keywords: [vagrant, docker, provider, container, image, dockerfile, build_dir, ports, docker-logs, docker-exec]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Docker</h1>
+  <p>The Docker provider runs containers instead of virtual machines. Containers start in seconds and use less memory, but they share the host's Linux kernel. Support for Docker is built into Vagrant, so no plugin is needed.</p>
+  <h2>Install</h2>
+  <p>Install Docker, see <a href="https://docs.docker.com/get-docker/">Get Docker</a>. Check that it works.</p>
+  <pre><code class="language-bash">$ docker run hello-world</code></pre>
+  <h2>Run an image</h2>
+  <p>The Docker provider does not use a <a href="/vagrant/boxes/">box</a>. Set a Docker image instead.</p>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vm.provider "docker" do |d|
+    d.image = "nginx"
+    d.name = "web"
+    d.ports = ["8080:80"]
+  end
+end</code></pre>
+  <pre><code class="language-bash">$ vagrant up --provider=docker</code></pre>
+  <p>The web server is now open at <a href="http://localhost:8080">http://localhost:8080</a>.</p>
+  <h2>Build from a Dockerfile</h2>
+  <p><code>build_dir</code> builds the image from a <code>Dockerfile</code> in the given folder.</p>
+  <pre><code class="language-ruby">config.vm.provider "docker" do |d|
+  d.build_dir = "."
+end</code></pre>
+  <h2>Commands</h2>
+  <p>Most containers have no SSH server, so <code>vagrant ssh</code> does not work. Use the Docker commands instead.</p>
+  <pre><code class="language-bash">$ vagrant docker-logs
+$ vagrant docker-exec -it -- bash</code></pre>
+  <p>If the image has an SSH server, set <code>d.has_ssh = true</code> to use <code>vagrant ssh</code> and <a href="/vagrant/provisioning/">provisioning</a>.</p>
+  <h2>More about Docker</h2>
+  <ul>
+    <li>Docker containers run Linux. On Windows and macOS, Docker Desktop runs them in a small virtual machine</li>
+    <li>For only containers, plain Docker or Docker Compose is often simpler than Vagrant</li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/providers/docker">Docker provider</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

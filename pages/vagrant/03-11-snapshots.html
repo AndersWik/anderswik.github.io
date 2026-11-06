@@ -1,0 +1,40 @@
+---
+layout: default
+title: Snapshots
+permalink: /vagrant/snapshots/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, snapshot, snapshots, save, restore, backup, push, pop, rollback]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Snapshots</h1>
+  <p>A snapshot saves the exact state of a machine so you can go back to it later. Take one before trying something risky, and restore it if things go wrong. Snapshots are built into Vagrant and work with most providers.</p>
+  <h2>Save a snapshot</h2>
+  <pre><code class="language-bash">$ vagrant snapshot save clean</code></pre>
+  <h2>List snapshots</h2>
+  <pre><code class="language-bash">$ vagrant snapshot list</code></pre>
+  <h2>Restore a snapshot</h2>
+  <pre><code class="language-bash">$ vagrant snapshot restore clean</code></pre>
+  <h2>Delete a snapshot</h2>
+  <pre><code class="language-bash">$ vagrant snapshot delete clean</code></pre>
+  <h2>Quick snapshots</h2>
+  <p><code>push</code> takes a snapshot without a name, and <code>pop</code> restores the latest one and deletes it. Do not mix <code>push</code> and <code>pop</code> with <code>save</code> and <code>restore</code>.</p>
+  <pre><code class="language-bash">$ vagrant snapshot push
+$ vagrant snapshot pop</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> list all <code>snapshot</code> subcommands.</p>
+  <pre><code class="language-bash">$ vagrant snapshot --help
+$ vagrant snapshot -h
+$ vagrant snapshot save -h</code></pre>
+  <h2>More about snapshots</h2>
+  <ul>
+    <li>With <a href="/vagrant/multi-machine/">several machines</a>, give the name first: <code>vagrant snapshot save web clean</code></li>
+    <li>Snapshots take up disk space. Delete the ones you no longer need</li>
+    <li>Older guides use the plugin <code>vagrant-vbox-snapshot</code>. It is no longer needed</li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/cli/snapshot">vagrant snapshot</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

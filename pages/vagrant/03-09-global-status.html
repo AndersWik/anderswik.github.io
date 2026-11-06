@@ -1,0 +1,36 @@
+---
+layout: default
+title: Global status
+permalink: /vagrant/global-status/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, global-status, status, prune, id, all machines]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Global status</h1>
+  <p><code>vagrant global-status</code> lists all Vagrant machines on the computer, no matter which folder they are in.</p>
+  <pre><code class="language-bash">$ vagrant global-status
+id       name    provider   state    directory
+-----------------------------------------------------------
+1a2b3c4  default virtualbox running  /home/user/my-vm</code></pre>
+  <h2>Use the id</h2>
+  <p>The id can be used with other commands, so you do not have to go to the folder first.</p>
+  <pre><code class="language-bash">$ vagrant ssh 1a2b3c4
+$ vagrant halt 1a2b3c4</code></pre>
+  <h2>Clean up the list</h2>
+  <p>The list is a cache. If a machine or its folder was removed without <code>vagrant destroy</code>, it can still show up. <code>--prune</code> removes entries that no longer exist.</p>
+  <pre><code class="language-bash">$ vagrant global-status --prune</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> show all options for <code>global-status</code>.</p>
+  <pre><code class="language-bash">$ vagrant global-status --help
+$ vagrant global-status -h</code></pre>
+  <h2>More about global status</h2>
+  <ul>
+    <li>See only the machines in the current folder with <a href="/vagrant/status/">status</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/cli/global-status">vagrant global-status</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

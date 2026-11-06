@@ -1,0 +1,41 @@
+---
+layout: default
+title: Parallels
+permalink: /vagrant/parallels/
+chapter: "05"
+chapter_title: "Providers"
+keywords: [vagrant, parallels, parallels desktop, provider, macos, apple silicon, vagrant-parallels, arm64]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Parallels</h1>
+  <p>Parallels Desktop is a hypervisor for macOS that works well on Macs with Apple silicon. It needs the <code>vagrant-parallels</code> <a href="/vagrant/plugins/">plugin</a>, and Parallels Desktop Pro or Business edition. The Standard edition does not work with Vagrant.</p>
+  <h2>Install</h2>
+  <ol>
+    <li>Install <a href="https://www.parallels.com/products/desktop/">Parallels Desktop</a></li>
+    <li>Install the plugin</li>
+  </ol>
+  <pre><code class="language-bash">$ vagrant plugin install vagrant-parallels</code></pre>
+  <h2>Start a machine</h2>
+  <pre><code class="language-bash">$ vagrant up --provider=parallels</code></pre>
+  <h2>Settings</h2>
+  <pre><code class="language-ruby">config.vm.provider "parallels" do |prl|
+  prl.name = "dev"
+  prl.memory = 2048
+  prl.cpus = 2
+  prl.update_guest_tools = true
+end</code></pre>
+  <ul>
+    <li><code>update_guest_tools</code> — update Parallels Tools in the machine when it starts. They are needed for <a href="/vagrant/synced-folders/">synced folders</a></li>
+  </ul>
+  <h2>Apple silicon</h2>
+  <p>On Macs with Apple silicon, the <a href="/vagrant/boxes/">box</a> must be built for ARM (<code>arm64</code>). The <code>bento</code> boxes have ARM versions for Parallels.</p>
+  <h2>More about Parallels</h2>
+  <ul>
+    <li>The box must support <code>parallels</code></li>
+    <li><a href="https://parallels.github.io/vagrant-parallels/docs/">vagrant-parallels documentation</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

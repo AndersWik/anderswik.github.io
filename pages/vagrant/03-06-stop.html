@@ -1,0 +1,38 @@
+---
+layout: default
+title: Stop
+permalink: /vagrant/stop/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, stop, halt, suspend, resume, destroy, shutdown, delete]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Stop</h1>
+  <p>There are three ways to stop a machine. Run the commands in the folder with the Vagrantfile.</p>
+  <h2>Pause the machine</h2>
+  <p><code>suspend</code> saves the state of the machine. It starts quickly and the machine is in the same state. The downside is the saved memory takes up disk space.</p>
+  <pre><code class="language-bash">$ vagrant suspend
+$ vagrant resume</code></pre>
+  <h2>Shut down the machine</h2>
+  <p><code>halt</code> shuts the machine down completely. Start it again with <a href="/vagrant/up/">vagrant up</a>. <code>-f</code> turns it off at once, like pulling the power cord.</p>
+  <pre><code class="language-bash">$ vagrant halt
+$ vagrant halt -f</code></pre>
+  <h2>Delete the machine</h2>
+  <p><code>destroy</code> stops the machine and deletes it. Files in <a href="/vagrant/synced-folders/">synced folders</a>, the Vagrantfile and the box are kept. <code>vagrant up</code> creates a new machine. <code>-f</code> skips the question.</p>
+  <pre><code class="language-bash">$ vagrant destroy
+$ vagrant destroy -f</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> show the options for each command.</p>
+  <pre><code class="language-bash">$ vagrant halt --help
+$ vagrant destroy -h</code></pre>
+  <h2>More about stopping</h2>
+  <ul>
+    <li><code>vagrant suspend --all-global</code> pauses every running machine on the computer</li>
+    <li>See which machines are running with <a href="/vagrant/global-status/">global-status</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/cli/halt">vagrant halt</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

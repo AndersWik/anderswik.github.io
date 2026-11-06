@@ -1,0 +1,40 @@
+---
+layout: default
+title: Install on Debian
+permalink: /vagrant/install-debian/
+chapter: "02"
+chapter_title: "Install"
+keywords: [vagrant, install, debian, linux, libvirt, kvm, apt]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Install on Debian</h1>
+  <p>Debian has Vagrant in its own repositories. Together with libvirt it uses KVM, the hypervisor built into the Linux kernel, so you do not need VirtualBox.</p>
+  <h2>Install Vagrant and libvirt</h2>
+  <pre><code class="language-bash">$ sudo apt install vagrant vagrant-libvirt libvirt-daemon-system</code></pre>
+  <h2>Give your user access</h2>
+  <p>Add your user to the <a href="/vagrant/libvirt/">libvirt</a> group, then log out and in again for it to take effect.</p>
+  <pre><code class="language-bash">$ sudo usermod --append --groups libvirt $USER</code></pre>
+  <p>Check that you are in the group. The command should print <a href="/vagrant/libvirt/">libvirt</a>.</p>
+  <pre><code class="language-bash">$ groups | grep -o libvirt</code></pre>
+  <h2>Start a machine</h2>
+  <pre><code class="language-bash">$ vagrant init debian/bookworm64
+$ vagrant up --provider=libvirt
+$ vagrant ssh</code></pre>
+  <p>To skip <code>--provider</code> every time, make libvirt the default provider in <code>~/.bashrc</code>.</p>
+  <pre><code class="language-bash">export VAGRANT_DEFAULT_PROVIDER=libvirt</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-v</code> show which version of Vagrant is installed.</p>
+  <pre><code class="language-bash">$ vagrant --version
+$ vagrant -v</code></pre>
+  <h2>More about Vagrant on Debian</h2>
+  <ul>
+    <li><a href="https://wiki.debian.org/Vagrant">Vagrant on the Debian wiki</a></li>
+    <li>For a newer version, use HashiCorp's own repository, see <a href="/vagrant/install-ubuntu/">Install on Ubuntu</a></li>
+    <li>Not every box supports libvirt. See <a href="/vagrant/boxes/">Boxes</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

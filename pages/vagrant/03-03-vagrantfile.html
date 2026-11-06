@@ -1,0 +1,63 @@
+---
+layout: default
+title: Vagrantfile
+permalink: /vagrant/vagrantfile/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, vagrantfile, init, configuration, ruby, box, memory, cpu, validate]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Vagrantfile</h1>
+  <p>The Vagrantfile describes the virtual machine. Which box to use, how much memory it gets, its network, shared folders and what software to install. Vagrant looks for it in the folder you run the command from. The file is written in Ruby.</p>
+  <h2>Create a Vagrantfile</h2>
+  <p>Make a folder for the project and run <code>init</code>. It creates a Vagrantfile with lots of comments that explain the most common settings.</p>
+  <pre><code class="language-bash">$ mkdir my-vm
+$ cd my-vm
+$ vagrant init bento/ubuntu-24.04</code></pre>
+  <p><code>-m</code> creates a minimal file without the comments.</p>
+  <pre><code class="language-bash">$ vagrant init -m bento/ubuntu-24.04</code></pre>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+end</code></pre>
+  <p>The <code>"2"</code> is the version of the configuration format, not of Vagrant. All settings go between <code>do |config|</code> and <code>end</code>.</p>
+  <h2>A more complete example</h2>
+  <p>This machine gets a host name, a fixed IP address, 2 GB of memory and 2 CPUs.</p>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+  config.vm.hostname = "dev"
+  config.vm.network "private_network", ip: "192.168.56.10"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 2048
+    vb.cpus = 2
+  end
+end</code></pre>
+  <h2>Common settings</h2>
+  <ul>
+    <li><code>config.vm.box</code> — the <a href="/vagrant/boxes/">box</a> to build the machine from</li>
+    <li><code>config.vm.box_version</code> — use a specific version of the box, for example <code>"1.1.0"</code></li>
+    <li><code>config.vm.hostname</code> — the host name inside the machine</li>
+    <li><code>config.vm.network</code> — <a href="/vagrant/networking/">networking</a> and port forwarding</li>
+    <li><code>config.vm.synced_folder</code> — <a href="/vagrant/synced-folders/">folders shared</a> with the host</li>
+    <li><code>config.vm.provider</code> — settings for the <a href="/vagrant/providers/">provider</a>, such as memory and CPUs</li>
+    <li><code>config.vm.provision</code> — <a href="/vagrant/provisioning/">install software</a> when the machine is created</li>
+  </ul>
+  <h2>Check the file</h2>
+  <p><code>validate</code> checks the Vagrantfile for mistakes without starting anything. After changing the file, run <code>vagrant reload</code> to apply the changes to a running machine.</p>
+  <pre><code class="language-bash">$ vagrant validate
+$ vagrant reload</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> show all options for <code>init</code>.</p>
+  <pre><code class="language-bash">$ vagrant init --help
+$ vagrant init -h</code></pre>
+  <h2>More about the Vagrantfile</h2>
+  <ul>
+    <li>Build a Vagrantfile in the browser with the <a href="/utils/vagrant/">Vagrantfile Maker</a></li>
+    <li><code>-f</code> overwrites an existing Vagrantfile</li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/vagrantfile">Vagrantfile</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,49 @@
+---
+layout: default
+title: libvirt
+permalink: /vagrant/libvirt/
+chapter: "05"
+chapter_title: "Providers"
+keywords: [vagrant, libvirt, kvm, qemu, provider, linux, vagrant-libvirt, nfs, virtiofs, virt-manager]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>libvirt</h1>
+  <p>libvirt lets Vagrant use KVM, the hypervisor built into the Linux kernel. It is fast and free, and a good choice on Linux. It needs the <code>vagrant-libvirt</code> <a href="/vagrant/plugins/">plugin</a>.</p>
+  <h2>Install</h2>
+  <p>On Debian and Ubuntu the plugin is a normal package, see <a href="/vagrant/install-debian/">Install on Debian</a>.</p>
+  <pre><code class="language-bash">$ sudo apt install vagrant-libvirt libvirt-daemon-system
+$ sudo usermod --append --groups libvirt $USER</code></pre>
+  <p>With Vagrant from HashiCorp's repository, install the plugin with Vagrant instead. It needs the libvirt development files to build.</p>
+  <pre><code class="language-bash">$ sudo apt install libvirt-dev
+$ vagrant plugin install vagrant-libvirt</code></pre>
+  <h2>Start a machine</h2>
+  <pre><code class="language-bash">$ vagrant up --provider=libvirt</code></pre>
+  <p>To make libvirt the default provider, add this to <code>~/.bashrc</code>.</p>
+  <pre><code class="language-bash">export VAGRANT_DEFAULT_PROVIDER=libvirt</code></pre>
+  <h2>Settings</h2>
+  <pre><code class="language-ruby">config.vm.provider "libvirt" do |lv|
+  lv.memory = 2048
+  lv.cpus = 2
+  lv.nested = true
+end</code></pre>
+  <ul>
+    <li><code>nested</code> — allow virtual machines inside the machine</li>
+  </ul>
+  <h2>Synced folders</h2>
+  <p><a href="/vagrant/synced-folders/">Synced folders</a> use NFS by default, which needs an NFS server on the host. virtiofs is a faster option that needs no server.</p>
+  <pre><code class="language-ruby">config.vm.synced_folder ".", "/vagrant", type: "virtiofs"
+
+config.vm.provider "libvirt" do |lv|
+  lv.memorybacking :access, :mode => "shared"
+end</code></pre>
+  <h2>More about libvirt</h2>
+  <ul>
+    <li>The machines are normal libvirt machines and are also shown in <code>virsh list</code> and Virtual Machine Manager</li>
+    <li>The <a href="/vagrant/boxes/">box</a> must support <code>libvirt</code>, for example <code>debian/bookworm64</code></li>
+    <li><a href="https://vagrant-libvirt.github.io/vagrant-libvirt/">vagrant-libvirt documentation</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

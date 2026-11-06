@@ -1,0 +1,51 @@
+---
+layout: default
+title: Multi-machine
+permalink: /vagrant/multi-machine/
+chapter: "06"
+chapter_title: "Networking"
+keywords: [vagrant, multi-machine, multiple machines, define, web, database, cluster]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Multi-machine</h1>
+  <p>One Vagrantfile can describe several machines, for example a web server and a database server. This makes it easy to test applications that run on more than one server.</p>
+  <h2>Define the machines</h2>
+  <p>Each machine gets a name with <code>config.vm.define</code> and its own settings. Settings outside the blocks, like the box here, are shared by all machines.</p>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+
+  config.vm.define "web" do |web|
+    web.vm.hostname = "web"
+    web.vm.network "private_network", ip: "192.168.56.11"
+  end
+
+  config.vm.define "db" do |db|
+    db.vm.hostname = "db"
+    db.vm.network "private_network", ip: "192.168.56.12"
+  end
+end</code></pre>
+  <p>Both machines are on the same <a href="/vagrant/networking/">private network</a>, so <code>web</code> can reach the database at <code>192.168.56.12</code>.</p>
+  <h2>Manage the machines</h2>
+  <p>Commands without a name work on all machines. Add a name to work on one.</p>
+  <pre><code class="language-bash">$ vagrant up
+$ vagrant status
+$ vagrant ssh web
+$ vagrant halt db</code></pre>
+  <h2>Several machines with a loop</h2>
+  <p>The Vagrantfile is Ruby, so a loop can create many similar machines.</p>
+  <pre><code class="language-ruby">(1..3).each do |i|
+  config.vm.define "node#{i}" do |node|
+    node.vm.network "private_network", ip: "192.168.56.2#{i}"
+  end
+end</code></pre>
+  <h2>More about multi-machine</h2>
+  <ul>
+    <li><code>primary: true</code> makes a machine the default for commands like <code>vagrant ssh</code></li>
+    <li><code>autostart: false</code> stops a machine from starting with a plain <code>vagrant up</code></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/multi-machine">Multi-machine</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

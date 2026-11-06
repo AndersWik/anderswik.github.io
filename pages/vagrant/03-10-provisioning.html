@@ -1,0 +1,69 @@
+---
+layout: default
+title: Provisioning
+permalink: /vagrant/provisioning/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, provision, provisioning, shell, script, bootstrap, lamp, apache, mariadb, php, ansible, puppet, chef]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Provisioning</h1>
+  <p>Provisioning installs and configures software in the machine automatically. Everyone who starts the machine gets the same setup. The scripts can be kept in version control together with the code.</p>
+  <p>Provisioning runs the first time you run <code>vagrant up</code>. Later starts skip it. You can trigger it again with the <code>provision</code> parameter.</p>
+  <h2>A short shell script</h2>
+  <p>Small scripts can be written straight into the Vagrantfile. The scripts run as <code>root</code>, so <code>sudo</code> is not needed.</p>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+  config.vm.provision "shell", inline: &lt;&lt;-SHELL
+    apt-get update
+    apt-get install -y apache2
+  SHELL
+end</code></pre>
+  <h2>A script file</h2>
+  <p>Longer scripts are easier to keep in their own file, for example <code>bootstrap/setup.sh</code> next to the Vagrantfile.</p>
+  <pre><code class="language-bash">$ mkdir bootstrap
+$ nano bootstrap/setup.sh</code></pre>
+  <pre><code class="language-bash">#!/bin/bash
+echo "Vagrant setup"
+apt-get update
+apt-get install -y apache2</code></pre>
+  <pre><code class="language-ruby">config.vm.provision "shell", path: "bootstrap/setup.sh"</code></pre>
+  <h2>Run provisioning again</h2>
+  <p>After changing a script, run it on the running machine, or restart the machine and run it.</p>
+  <pre><code class="language-bash">$ vagrant provision
+$ vagrant reload --provision</code></pre>
+  <p>The output of the scripts is shown in the terminal. To run a script every time the machine starts, add <code>run: "always"</code>.</p>
+  <pre><code class="language-ruby">config.vm.provision "shell", path: "bootstrap/start.sh", run: "always"</code></pre>
+  <h2>Example: a LAMP server</h2>
+  <p>Linux, Apache, MariaDB and PHP. <code>DEBIAN_FRONTEND=noninteractive</code> stops <code>apt</code> from asking questions while installing.</p>
+  <pre><code class="language-bash">#!/bin/bash
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y apache2 mariadb-server php libapache2-mod-php php-mysql
+systemctl restart apache2</code></pre>
+  <h2>Split into several scripts</h2>
+  <p>When the setup grows, put each part in its own script. The provisioners run in the order they are written.</p>
+  <pre><code class="language-ruby">config.vm.provision "shell", path: "bootstrap/apache.sh"
+config.vm.provision "shell", path: "bootstrap/mariadb.sh"
+config.vm.provision "shell", path: "bootstrap/php.sh"</code></pre>
+  <p>Give a provisioner a name to run only that one later.</p>
+  <pre><code class="language-ruby">config.vm.provision "php", type: "shell", path: "bootstrap/php.sh"</code></pre>
+  <pre><code class="language-bash">$ vagrant provision --provision-with php</code></pre>
+  <h2>Copy files</h2>
+  <p>The <code>file</code> provisioner copies a file from the host into the machine.</p>
+  <pre><code class="language-ruby">config.vm.provision "file", source: "~/.gitconfig", destination: ".gitconfig"</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> show all options for <code>provision</code>.</p>
+  <pre><code class="language-bash">$ vagrant provision --help
+$ vagrant provision -h</code></pre>
+  <h2>More about provisioning</h2>
+  <ul>
+    <li>Vagrant also supports Ansible, Puppet, Chef, Salt and Docker as provisioners</li>
+    <li>New to shell scripts? See <a href="https://linuxcommand.org/lc3_writing_shell_scripts.php">Writing shell scripts</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/provisioning">Provisioning</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

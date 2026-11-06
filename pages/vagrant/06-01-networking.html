@@ -1,0 +1,46 @@
+---
+layout: default
+title: Networking
+permalink: /vagrant/networking/
+chapter: "06"
+chapter_title: "Networking"
+keywords: [vagrant, network, networking, port forwarding, forwarded_port, private network, host-only, public network, bridged, nat, dhcp, ip]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Networking</h1>
+  <p>Every Vagrant machine gets a NAT network. It lets the machine reach the internet and is what <code>vagrant ssh</code> uses, but other computers cannot reach the machine through it. To reach the machine, add one of the networks below to the Vagrantfile and run <code>vagrant reload</code>.</p>
+  <h2>Forward a port</h2>
+  <p>Port forwarding makes a port in the machine available on the host. Here, a web server on port 80 in the machine is opened at <a href="http://localhost:8080">http://localhost:8080</a> on the host.</p>
+  <pre><code class="language-ruby">config.vm.network "forwarded_port", guest: 80, host: 8080</code></pre>
+  <p>By default other computers on your network can reach the port too. <code>host_ip</code> limits it to your own computer.</p>
+  <pre><code class="language-ruby">config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"</code></pre>
+  <p><code>vagrant port</code> lists the forwarded ports.</p>
+  <pre><code class="language-bash">$ vagrant port</code></pre>
+  <h2>Private network</h2>
+  <p>A private network, also called host-only, gives the machine its own IP address that only the host and other machines on the same network can reach. Good for development.</p>
+  <pre><code class="language-ruby">config.vm.network "private_network", ip: "192.168.56.10"</code></pre>
+  <p>Newer versions of VirtualBox only allow addresses in <code>192.168.56.0/21</code> on Linux and macOS hosts. Other addresses must be added to <code>/etc/vbox/networks.conf</code>. You can also let the address be picked automatically.</p>
+  <pre><code class="language-ruby">config.vm.network "private_network", type: "dhcp"</code></pre>
+  <h2>Public network</h2>
+  <p>A public network, also called bridged, connects the machine directly to your real network. It gets an address from your router and appears as a separate computer that everyone on the network can reach.</p>
+  <pre><code class="language-ruby">config.vm.network "public_network"</code></pre>
+  <p>If the host has several network cards, Vagrant asks which one to use. Give the name to skip the question.</p>
+  <pre><code class="language-ruby">config.vm.network "public_network", bridge: "eth0"</code></pre>
+  <h2>Which one to use</h2>
+  <ul>
+    <li><strong>Forwarded port</strong> — reach a single service, like a web server, from the host</li>
+    <li><strong>Private network</strong> — reach the whole machine from the host, or connect <a href="/vagrant/multi-machine/">several machines</a></li>
+    <li><strong>Public network</strong> — let other computers on your network reach the machine</li>
+  </ul>
+  <h2>More about networking</h2>
+  <ul>
+    <li>Check the address inside the machine with <a href="/linux/ip/">ip</a>: <code>vagrant ssh -c "ip address"</code></li>
+    <li>Hyper-V ignores these settings, see <a href="/vagrant/hyper-v/">Hyper-V</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/networking">Networking</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

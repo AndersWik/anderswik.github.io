@@ -1,0 +1,37 @@
+---
+layout: default
+title: Status
+permalink: /vagrant/status/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, status, state, running, poweroff]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Status</h1>
+  <p><code>vagrant status</code> shows the state of the machines in the current folder.</p>
+  <pre><code class="language-bash">$ vagrant status
+Current machine states:
+
+default                   running (virtualbox)</code></pre>
+  <h2>Machine states</h2>
+  <ul>
+    <li><code>running</code> — the machine is on</li>
+    <li><code>saved</code> — paused with <code>vagrant suspend</code></li>
+    <li><code>poweroff</code> — shut down with <code>vagrant halt</code></li>
+    <li><code>not created</code> — never started, or removed with <code>vagrant destroy</code></li>
+  </ul>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> show all options for <code>status</code>.</p>
+  <pre><code class="language-bash">$ vagrant status --help
+$ vagrant status -h</code></pre>
+  <h2>More about status</h2>
+  <ul>
+    <li>With <a href="/vagrant/multi-machine/">several machines</a>, give a name to see only one: <code>vagrant status web</code></li>
+    <li>See machines in all folders with <a href="/vagrant/global-status/">global-status</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/cli/status">vagrant status</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

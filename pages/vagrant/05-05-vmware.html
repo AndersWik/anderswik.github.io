@@ -1,0 +1,38 @@
+---
+layout: default
+title: VMware
+permalink: /vagrant/vmware/
+chapter: "05"
+chapter_title: "Providers"
+keywords: [vagrant, vmware, provider, workstation, fusion, vmware_desktop, vagrant-vmware-desktop, vmware utility]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>VMware</h1>
+  <p>Vagrant can run machines with VMware Workstation on Linux and Windows, or VMware Fusion on macOS. It is a good choice on Macs with Apple silicon.</p>
+  <h2>Install</h2>
+  <ol>
+    <li>Install VMware Workstation or VMware Fusion</li>
+    <li>Install the <a href="https://developer.hashicorp.com/vagrant/install/vmware">Vagrant VMware Utility</a> from HashiCorp. It lets Vagrant talk to VMware</li>
+    <li>Install the plugin</li>
+  </ol>
+  <pre><code class="language-bash">$ vagrant plugin install vagrant-vmware-desktop</code></pre>
+  <h2>Start a machine</h2>
+  <p>The provider is called <code>vmware_desktop</code> for both Workstation and Fusion.</p>
+  <pre><code class="language-bash">$ vagrant up --provider=vmware_desktop</code></pre>
+  <h2>Settings</h2>
+  <p>VMware settings are set through <code>vmx</code>, the settings of the machine's configuration file.</p>
+  <pre><code class="language-ruby">config.vm.provider "vmware_desktop" do |v|
+  v.vmx["memsize"] = "2048"
+  v.vmx["numvcpus"] = "2"
+  v.gui = true
+end</code></pre>
+  <h2>More about VMware</h2>
+  <ul>
+    <li>The <a href="/vagrant/boxes/">box</a> must support <code>vmware_desktop</code>. The <code>bento</code> boxes do</li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/providers/vmware">VMware provider</a> in the documentation</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

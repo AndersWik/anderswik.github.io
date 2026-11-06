@@ -1,0 +1,40 @@
+---
+layout: default
+title: Install on Ubuntu
+permalink: /vagrant/install-ubuntu/
+chapter: "02"
+chapter_title: "Install"
+keywords: [vagrant, install, ubuntu, linux, mint, apt, hashicorp, virtualbox]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Install on Ubuntu</h1>
+  <p>HashiCorp has its own package repository with the latest version of Vagrant. These steps also work on Linux Mint and other distributions based on Ubuntu or Debian.</p>
+  <h2>Check for virtualization support</h2>
+  <p>The CPU needs virtualization support. If the command prints a number larger than 0, it is available.</p>
+  <pre><code class="language-bash">$ grep -E -c '(vmx|svm)' /proc/cpuinfo</code></pre>
+  <h2>Install a provider</h2>
+  <p>Vagrant needs a <a href="/vagrant/providers/">provider</a> to run the machines. VirtualBox is the most common one.</p>
+  <pre><code class="language-bash">$ sudo apt install virtualbox</code></pre>
+  <h2>Add the HashiCorp repository</h2>
+  <p>Download HashiCorp's signing key and add the repository.</p>
+  <pre><code class="language-bash">$ wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+$ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list</code></pre>
+  <h2>Install Vagrant</h2>
+  <pre><code class="language-bash">$ sudo apt update
+$ sudo apt install vagrant</code></pre>
+  <p>Vagrant is now updated together with the rest of the system.</p>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-v</code> show which version of Vagrant is installed.</p>
+  <pre><code class="language-bash">$ vagrant --version
+$ vagrant -v</code></pre>
+  <h2>More about Vagrant on Ubuntu</h2>
+  <ul>
+    <li><a href="https://developer.hashicorp.com/vagrant/install">Install Vagrant</a> at HashiCorp</li>
+    <li>On Linux Mint, use the code name of the Ubuntu version Mint is based on, for example <code>noble</code> or <code>jammy</code>, instead of <code>$(lsb_release -cs)</code></li>
+    <li>To use KVM instead of VirtualBox, see <a href="/vagrant/install-debian/">Install on Debian</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
