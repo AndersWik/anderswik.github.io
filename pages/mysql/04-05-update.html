@@ -1,0 +1,25 @@
+---
+layout: default
+title: Update
+permalink: /mysql/update/
+chapter: "04"
+chapter_title: "Data"
+keywords: [mysql, sql, update, set, where, change]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Update</h1>
+  <p><code>update</code> changes rows that already exist. <code>SET</code> gives the new values and <code>WHERE</code> chooses the rows. Without <code>WHERE</code> every row in the table is changed.</p>
+  <h2>Update</h2>
+  <pre><code class="language-sql">mysql&gt; UPDATE mytable SET column1 = 'New value' WHERE id = 1;
+mysql&gt; UPDATE mytable SET column1 = 'New value', column2 = 'Other value' WHERE id = 1;</code></pre>
+  <h2>More about update</h2>
+  <ul>
+    <li><a href="/mysql/trim-and-concat/">Trim and concat</a> has more examples of update</li>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/update.html">UPDATE</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

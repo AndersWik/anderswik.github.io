@@ -1,0 +1,25 @@
+---
+layout: default
+title: Show databases
+permalink: /mysql/show-databases/
+chapter: "02"
+chapter_title: "Databases"
+keywords: [mysql, sql, show, databases, list]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Show databases</h1>
+  <p>A MySQL server can hold many databases. <code>show databases</code> lists all databases you have access to.</p>
+  <h2>Show</h2>
+  <pre><code class="language-sql">$ mysql -u root -p
+
+mysql&gt; show databases;</code></pre>
+  <h2>More about show databases</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/show-databases.html">SHOW DATABASES</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

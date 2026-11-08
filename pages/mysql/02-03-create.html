@@ -1,0 +1,28 @@
+---
+layout: default
+title: Create database
+permalink: /mysql/create/
+chapter: "02"
+chapter_title: "Databases"
+keywords: [mysql, sql, create, database, grant, privileges, user]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Create database</h1>
+  <p><code>create database</code> makes a new, empty database.</p>
+  <h2>Create</h2>
+  <pre><code class="language-sql">mysql&gt; create database mydatabase;</code></pre>
+  <h2>Give a user access</h2>
+  <p><code>GRANT</code> gives a user rights to the database. <code>testdb.*</code> means every table in <code>testdb</code>.</p>
+  <pre><code class="language-sql">mysql&gt; create database testdb;
+mysql&gt; GRANT ALL PRIVILEGES ON testdb.* TO 'user'@'localhost';</code></pre>
+  <h2>More about create database</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/create-database.html">CREATE DATABASE</a> in the MySQL documentation</li>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/grant.html">GRANT</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

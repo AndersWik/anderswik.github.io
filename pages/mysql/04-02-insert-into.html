@@ -1,0 +1,25 @@
+---
+layout: default
+title: Insert into
+permalink: /mysql/insert-into/
+chapter: "04"
+chapter_title: "Data"
+keywords: [mysql, sql, insert, into, values, rows, data]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Insert into</h1>
+  <p><code>insert into</code> adds new rows to a table. Give the columns to fill in and a value for each of them. The values must match the <a href="/mysql/data/">data type</a> of the column.</p>
+  <h2>Insert into table</h2>
+  <pre><code class="language-sql">mysql&gt; insert into mytable (column1) values ("Some value");</code></pre>
+  <h2>Insert several rows</h2>
+  <pre><code class="language-sql">mysql&gt; insert into mytable (column1, column2) values ("First", "Value"), ("Second", "Value");</code></pre>
+  <h2>More about insert</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/insert.html">INSERT</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

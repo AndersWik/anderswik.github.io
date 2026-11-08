@@ -1,0 +1,34 @@
+---
+layout: default
+title: Trim and concat
+permalink: /mysql/trim-and-concat/
+chapter: "07"
+chapter_title: "Functions"
+keywords: [mysql, sql, trim, trailing, leading, concat, update, string, text]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Trim and concat</h1>
+  <p>MySQL has functions to change text. <code>TRIM</code> removes text from the start or end of a value, and <code>CONCAT</code> joins text together. Use them with <a href="/mysql/update/">update</a> to change many rows at once.</p>
+  <h2>Trim trailing</h2>
+  <p>Remove <code>.com</code> from the end of the value.</p>
+  <pre><code class="language-sql">mysql&gt; UPDATE `mytable` SET column1 = TRIM(TRAILING '.com' FROM column1);</code></pre>
+  <h2>Trim leading</h2>
+  <p>Remove <code>https://</code> from the start of the value.</p>
+  <pre><code class="language-sql">mysql&gt; UPDATE `mytable` SET column1 = TRIM(LEADING 'https://' FROM column1);</code></pre>
+  <p>Only change the rows that start with <code>//</code>.</p>
+  <pre><code class="language-sql">mysql&gt; UPDATE `mytable` SET column1 = TRIM(LEADING '//' FROM column1) WHERE column1 LIKE '//%';</code></pre>
+  <h2>Concat</h2>
+  <p>Add a <code>/</code> to the start of every value that does not already start with one.</p>
+  <pre><code class="language-sql">mysql&gt; UPDATE `mytable` SET column1 = CONCAT('/', column1) WHERE column1 NOT LIKE '/%';</code></pre>
+  <p><code>IGNORE</code> skips the rows that would give an error, for example when the new value already exists in a unique column.</p>
+  <pre><code class="language-sql">mysql&gt; UPDATE IGNORE `mytable` SET column1 = CONCAT('/', column1) WHERE column1 NOT LIKE '/%';</code></pre>
+  <h2>More about trim and concat</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/string-functions.html">String functions</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,69 @@
+---
+layout: default
+title: Data
+permalink: /mysql/data/
+chapter: "04"
+chapter_title: "Data"
+keywords: [mysql, sql, data, data types, row, integer, int, decimal, float, varchar, char, text, boolean, date, datetime, timestamp, json, enum, null]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Data</h1>
+  <p>Data is stored as rows in a <a href="/mysql/tables/">table</a>. Each column in a row has a data type, which decides what kind of value it can hold: a number, a text, a date or true and false. Choose the smallest type that fits the data. In this chapter you add rows with <a href="/mysql/insert-into/">insert into</a>, read them with <a href="/mysql/select/">select</a>, change them with <a href="/mysql/update/">update</a> and remove them with <a href="/mysql/delete/">delete</a>.</p>
+  <h2>Numbers</h2>
+  <ul>
+    <li><code>TINYINT</code> — small whole numbers, -128 to 127</li>
+    <li><code>INT</code> or <code>INTEGER</code> — whole numbers, about -2 billion to 2 billion</li>
+    <li><code>BIGINT</code> — very large whole numbers</li>
+    <li><code>DECIMAL(10,2)</code> — exact numbers with decimals, good for money. <code>10</code> is the total number of digits and <code>2</code> the number of decimals.</li>
+    <li><code>FLOAT</code> and <code>DOUBLE</code> — numbers with decimals that are close to the value but not always exact</li>
+  </ul>
+  <p>Add <code>UNSIGNED</code> to only allow numbers that are zero or more, for example <code>INT UNSIGNED</code>.</p>
+  <h2>Strings</h2>
+  <ul>
+    <li><code>CHAR(10)</code> — text with a fixed length, here always 10 characters</li>
+    <li><code>VARCHAR(255)</code> — text up to the given length, the most common type for names, emails and titles</li>
+    <li><code>TEXT</code> — longer text, up to about 65 000 characters</li>
+    <li><code>LONGTEXT</code> — very long text, such as whole articles</li>
+    <li><code>ENUM('small','medium','large')</code> — one value from a fixed list</li>
+  </ul>
+  <p>Strings are written inside quotes: <code>'Hello world'</code>.</p>
+  <h2>Booleans</h2>
+  <p><code>BOOLEAN</code> or <code>BOOL</code> holds true or false. MySQL stores it as <code>TINYINT(1)</code>, where <code>0</code> is false and <code>1</code> is true. You can write <code>TRUE</code> and <code>FALSE</code>, but you get <code>1</code> and <code>0</code> back.</p>
+  <h2>Dates and times</h2>
+  <ul>
+    <li><code>DATE</code> — a date, <code>'2026-11-07'</code></li>
+    <li><code>TIME</code> — a time, <code>'14:30:00'</code></li>
+    <li><code>DATETIME</code> — a date and time, <code>'2026-11-07 14:30:00'</code></li>
+    <li><code>TIMESTAMP</code> — a date and time that can be set automatically when the row is created or changed</li>
+    <li><code>YEAR</code> — a year, <code>2026</code></li>
+  </ul>
+  <h2>Other types</h2>
+  <ul>
+    <li><code>JSON</code> — a JSON document</li>
+    <li><code>BLOB</code> — binary data, such as a small file</li>
+  </ul>
+  <h2>NULL</h2>
+  <p><code>NULL</code> means that the value is missing. It is not the same as <code>0</code> or an empty string <code>''</code>. A column can hold <code>NULL</code> unless it is created with <code>NOT NULL</code>. Find missing values with <code>IS NULL</code>, see <a href="/mysql/select/">select</a>.</p>
+  <h2>Example</h2>
+  <p>A table where each row has a number, a string, a boolean, a decimal and a date.</p>
+  <pre><code class="language-sql">mysql&gt; create table products (
+    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    in_stock BOOLEAN NOT NULL DEFAULT TRUE,
+    price DECIMAL(10,2),
+    added DATE
+);
+
+mysql&gt; insert into products (name, in_stock, price, added) values ('Lamp', TRUE, 199.90, '2026-11-07');
+
+mysql&gt; select * from products;</code></pre>
+  <h2>More about data types</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/data-types.html">Data types</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

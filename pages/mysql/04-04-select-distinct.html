@@ -1,0 +1,35 @@
+---
+layout: default
+title: Select distinct
+permalink: /mysql/select-distinct/
+chapter: "04"
+chapter_title: "Data"
+keywords: [mysql, sql, select, distinct, unique, duplicates, order by, where, count]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Select distinct</h1>
+  <p><code>SELECT DISTINCT</code> works like <a href="/mysql/select/">select</a>, but removes duplicates so every value is returned only once. <code>ORDER BY</code>, <code>WHERE</code>, <code>AND</code>, <code>OR</code>, <code>NOT</code>, <code>IS NULL</code> and <code>LIMIT</code> work the same way.</p>
+  <h2>SELECT DISTINCT FROM table</h2>
+  <pre><code class="language-sql">mysql&gt; SELECT DISTINCT column1 FROM mytable;</code></pre>
+  <h2>ORDER BY</h2>
+  <pre><code class="language-sql">mysql&gt; SELECT DISTINCT column1 FROM mytable ORDER BY column1 ASC;
+mysql&gt; SELECT DISTINCT column1 FROM mytable ORDER BY column1 DESC;</code></pre>
+  <h2>WHERE</h2>
+  <pre><code class="language-sql">mysql&gt; SELECT DISTINCT column1 FROM mytable WHERE column2 = 'a';
+mysql&gt; SELECT DISTINCT column1 FROM mytable WHERE column2 = 'a' AND column1 IS NOT NULL;
+mysql&gt; SELECT DISTINCT column1 FROM mytable WHERE column2 = 'a' OR column2 = 'b';
+mysql&gt; SELECT DISTINCT column1 FROM mytable WHERE NOT column2 = 'a';</code></pre>
+  <h2>LIMIT</h2>
+  <pre><code class="language-sql">mysql&gt; SELECT DISTINCT column1 FROM mytable LIMIT 10;</code></pre>
+  <h2>Count distinct values</h2>
+  <pre><code class="language-sql">mysql&gt; SELECT COUNT(DISTINCT column1) FROM mytable;</code></pre>
+  <h2>More about select distinct</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/select.html">SELECT</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,24 @@
+---
+layout: default
+title: Troubleshooting
+permalink: /mysql/troubleshooting/
+chapter: "07"
+chapter_title: "Troubleshooting"
+keywords: [mysql, sql, troubleshooting, error, authentication plugin, caching_sha2_password, mysql_native_password, alter user]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Troubleshooting</h1>
+  <p>Some common errors and how to fix them.</p>
+  <h2>Authentication plugin 'caching_sha2_password' cannot be loaded</h2>
+  <p>Newer MySQL versions use <code>caching_sha2_password</code> to log on, which some older clients do not support. Change the user to the older <code>mysql_native_password</code>.</p>
+  <pre><code class="language-sql">mysql&gt; ALTER USER 'yourusername'@'localhost' IDENTIFIED WITH mysql_native_password BY 'yourpassword';</code></pre>
+  <h2>More about troubleshooting</h2>
+  <ul>
+    <li><a href="https://stackoverflow.com/questions/49194719/authentication-plugin-caching-sha2-password-cannot-be-loaded">Authentication plugin 'caching_sha2_password' cannot be loaded</a> on Stack Overflow</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
