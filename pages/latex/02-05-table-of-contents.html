@@ -1,0 +1,37 @@
+---
+layout: default
+title: Table of contents
+permalink: /latex/table-of-contents/
+chapter: "02"
+chapter_title: "Document"
+keywords: [latex, table of contents, toc, tableofcontents, listoffigures, listoftables, addcontentsline]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Table of contents</h1>
+  <p><code>\tableofcontents</code> prints a list of all sections with page numbers. Compile twice to fill it in.</p>
+  <h2>Table of contents</h2>
+  <pre><code class="language-latex">\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}</code></pre>
+  <h2>Lists of figures and tables</h2>
+  <pre><code class="language-latex">\listoffigures
+\listoftables</code></pre>
+  <h2>Depth</h2>
+  <pre><code class="language-latex">\setcounter{tocdepth}{1}   % only sections, no subsections</code></pre>
+  <h2>Add an unnumbered section</h2>
+  <pre><code class="language-latex">\section*{Preface}
+\addcontentsline{toc}{section}{Preface}</code></pre>
+  <h2>More about the table of contents</h2>
+  <ul>
+    <li>Load <code>hyperref</code> to make the entries clickable</li>
+    <li>Change the heading with <code>\renewcommand{\contentsname}{Index}</code>, or let <code>babel</code> translate it</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

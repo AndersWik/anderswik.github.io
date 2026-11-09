@@ -1,0 +1,43 @@
+---
+layout: default
+title: Sections
+permalink: /latex/sections/
+chapter: "02"
+chapter_title: "Document"
+keywords: [latex, sections, section, subsection, chapter, part, paragraph, headings, numbering, appendix]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Sections</h1>
+  <p>Sections split the document into parts. They are numbered automatically and added to the <a href="/latex/table-of-contents/">table of contents</a>.</p>
+  <h2>Section levels</h2>
+  <pre><code class="language-latex">\part{Part}                 % report and book
+\chapter{Chapter}           % report and book
+\section{Section}
+\subsection{Subsection}
+\subsubsection{Subsubsection}
+\paragraph{Paragraph}
+\subparagraph{Subparagraph}</code></pre>
+  <h2>Without number</h2>
+  <p>A <code>*</code> removes the number and leaves the section out of the table of contents.</p>
+  <pre><code class="language-latex">\section*{Acknowledgements}</code></pre>
+  <h2>Short title</h2>
+  <p>The text in square brackets is used in the table of contents and page header.</p>
+  <pre><code class="language-latex">\section[Short title]{A very long title for this section}</code></pre>
+  <h2>Appendix</h2>
+  <p>After <code>\appendix</code>, sections are numbered A, B, C.</p>
+  <pre><code class="language-latex">\appendix
+\section{Extra data}</code></pre>
+  <h2>Numbering depth</h2>
+  <pre><code class="language-latex">\setcounter{secnumdepth}{2}   % number down to subsection</code></pre>
+  <h2>More about sections</h2>
+  <ul>
+    <li>Refer to a section with <code>\label</code> and <code>\ref</code>, see <a href="/latex/cross-references/">cross references</a></li>
+    <li><code>\chapter</code> does not exist in <code>article</code></li>
+    <li>The <code>titlesec</code> package changes how headings look</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

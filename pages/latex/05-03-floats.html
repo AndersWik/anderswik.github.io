@@ -1,0 +1,47 @@
+---
+layout: default
+title: Floats
+permalink: /latex/floats/
+chapter: "05"
+chapter_title: "Tables and figures"
+keywords: [latex, floats, float, figure, table, placement, htbp, caption, wrapfigure]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Floats</h1>
+  <p>Figures and tables are <em>floats</em>. LaTeX moves them to where they fit best, so they do not leave big gaps on the page.</p>
+  <h2>Placement</h2>
+  <pre><code class="language-latex">\begin{figure}[htbp]</code></pre>
+  <pre><code class="language-latex">h    here, if possible
+t    top of a page
+b    bottom of a page
+p    on a page with only floats
+!    try harder
+H    exactly here, needs the float package</code></pre>
+  <h2>Exactly here</h2>
+  <pre><code class="language-latex">\usepackage{float}
+
+\begin{figure}[H]</code></pre>
+  <h2>Captions</h2>
+  <pre><code class="language-latex">\caption{A long caption shown under the figure}
+\caption[Short]{A long caption}   % short one in the list of figures
+\caption*{No number}              % with the caption package</code></pre>
+  <h2>Text around an image</h2>
+  <pre><code class="language-latex">\usepackage{wrapfig}
+
+\begin{wrapfigure}{r}{0.4\textwidth}
+  \centering
+  \includegraphics[width=0.38\textwidth]{penguin}
+  \caption{Tux}
+\end{wrapfigure}</code></pre>
+  <h2>More about floats</h2>
+  <ul>
+    <li>Write <code>\label</code> after <code>\caption</code>, or the reference gets the wrong number</li>
+    <li><code>\clearpage</code> prints all waiting floats</li>
+    <li><code>\usepackage[section]{placeins}</code> keeps floats in their own section</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

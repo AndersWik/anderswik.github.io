@@ -1,0 +1,47 @@
+---
+layout: default
+title: Page layout
+permalink: /latex/page-layout/
+chapter: "06"
+chapter_title: "More features"
+keywords: [latex, page layout, margins, geometry, paper size, landscape, page numbers, pagestyle, pagenumbering]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Page layout</h1>
+  <p>The <code>geometry</code> package sets the paper size and margins.</p>
+  <h2>Margins</h2>
+  <pre><code class="language-latex">\usepackage[margin=2.5cm]{geometry}
+\usepackage[a4paper, top=3cm, bottom=3cm, left=2cm, right=2cm]{geometry}</code></pre>
+  <h2>Paper size</h2>
+  <pre><code class="language-latex">\usepackage[a5paper]{geometry}
+\usepackage[letterpaper]{geometry}
+\usepackage[paperwidth=10cm, paperheight=15cm]{geometry}</code></pre>
+  <h2>Landscape</h2>
+  <pre><code class="language-latex">\usepackage[landscape]{geometry}       % the whole document
+
+\usepackage{pdflscape}                 % only some pages
+\begin{landscape}
+  A wide table.
+\end{landscape}</code></pre>
+  <h2>Page numbers</h2>
+  <pre><code class="language-latex">\pagestyle{plain}       % number at the bottom, default
+\pagestyle{empty}       % no number
+\thispagestyle{empty}   % no number on this page
+
+\pagenumbering{roman}   % i, ii, iii
+\pagenumbering{arabic}  % 1, 2, 3</code></pre>
+  <h2>Change the margins in the middle</h2>
+  <pre><code class="language-latex">\newgeometry{margin=1cm}
+A page with small margins.
+\restoregeometry</code></pre>
+  <h2>More about page layout</h2>
+  <ul>
+    <li>Add <code>showframe</code> to the <code>geometry</code> options to see the margins</li>
+    <li>See also <a href="/latex/headers-and-footers/">headers and footers</a> and <a href="/latex/columns/">columns</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

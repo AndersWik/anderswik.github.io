@@ -1,0 +1,41 @@
+---
+layout: default
+title: Columns
+permalink: /latex/columns/
+chapter: "06"
+chapter_title: "More features"
+keywords: [latex, columns, twocolumn, multicol, multicols, columnbreak, minipage]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Columns</h1>
+  <p>Text can be set in two or more columns, for the whole document or just a part.</p>
+  <h2>Two columns</h2>
+  <pre><code class="language-latex">\documentclass[twocolumn]{article}</code></pre>
+  <h2>multicol</h2>
+  <pre><code class="language-latex">\usepackage{multicol}
+
+\begin{multicols}{3}
+  Text in three columns.
+  \columnbreak
+  Starts in the next column.
+\end{multicols}</code></pre>
+  <h2>Side by side with minipage</h2>
+  <p><code>minipage</code> makes small boxes that can be placed next to each other.</p>
+  <pre><code class="language-latex">\begin{minipage}{0.48\textwidth}
+  Left side.
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+  Right side.
+\end{minipage}</code></pre>
+  <h2>More about columns</h2>
+  <ul>
+    <li>Space and line between columns: <code>\setlength{\columnsep}{1cm}</code> and <code>\setlength{\columnseprule}{0.4pt}</code></li>
+    <li>A figure over both columns in <code>twocolumn</code> uses <code>figure*</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

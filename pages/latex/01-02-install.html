@@ -1,0 +1,50 @@
+---
+layout: default
+title: Install
+permalink: /latex/install/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [latex, install, texlive, mactex, miktex, overleaf, debian, ubuntu, macos, windows, tlmgr]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Install</h1>
+  <p>LaTeX comes in a distribution with the programs and packages. TeX Live is used on Linux, MacTeX on macOS and MiKTeX or TeX Live on Windows. You can also write LaTeX online in Overleaf without installing anything.</p>
+  <h2>Debian and Ubuntu</h2>
+  <p><code>texlive</code> is a good start. <code>texlive-full</code> has every package but is several gigabytes.</p>
+  <pre><code class="language-bash">$ sudo apt update
+$ sudo apt install texlive
+$ sudo apt install texlive-latex-extra texlive-lang-european
+$ sudo apt install texlive-full</code></pre>
+  <h2>Fedora</h2>
+  <pre><code class="language-bash">$ sudo dnf install texlive-scheme-medium</code></pre>
+  <h2>macOS</h2>
+  <p>Download MacTeX from <a href="https://www.tug.org/mactex/">tug.org/mactex</a>, or install it with Homebrew.</p>
+  <pre><code class="language-bash">$ brew install --cask mactex</code></pre>
+  <h2>Windows</h2>
+  <p>Download <a href="https://miktex.org/">MiKTeX</a> or <a href="https://www.tug.org/texlive/">TeX Live</a>. MiKTeX installs missing packages automatically the first time they are used.</p>
+  <h2>Check the installation</h2>
+  <pre><code class="language-bash">$ pdflatex --version
+$ latexmk --version</code></pre>
+  <h2>Install packages</h2>
+  <p><code>tlmgr</code> is the TeX Live package manager. On Debian and Ubuntu, install packages with <code>apt</code> instead.</p>
+  <pre><code class="language-bash">$ tlmgr search --global --file tikz.sty
+$ sudo tlmgr install tikz
+$ sudo tlmgr update --all</code></pre>
+  <h2>Editors</h2>
+  <ul>
+    <li><strong>Overleaf</strong> — online, with collaboration and preview, <a href="https://www.overleaf.com/">overleaf.com</a></li>
+    <li><strong>TeXstudio</strong> — a full LaTeX editor, <code>sudo apt install texstudio</code></li>
+    <li><strong>VS Code and VSCodium</strong> — with the <em>LaTeX Workshop</em> extension</li>
+    <li><strong>Vim</strong> — with the <em>vimtex</em> plugin</li>
+  </ul>
+  <h2>More about installing</h2>
+  <ul>
+    <li>On Debian, find which package has a file with <code>apt-file search tikz.sty</code></li>
+    <li><a href="https://www.tug.org/texlive/">TeX Live</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

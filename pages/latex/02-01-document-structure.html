@@ -1,0 +1,61 @@
+---
+layout: default
+title: Document structure
+permalink: /latex/document-structure/
+chapter: "02"
+chapter_title: "Document"
+keywords: [latex, document, documentclass, preamble, article, report, book, letter, class, options]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Document structure</h1>
+  <p>Every LaTeX file has two parts. The <strong>preamble</strong> sets up the document: the class, packages and settings. The <strong>body</strong> between <code>\begin{document}</code> and <code>\end{document}</code> has the content.</p>
+  <h2>A typical document</h2>
+  <pre><code class="language-latex">\documentclass[a4paper,12pt]{article}
+
+% Preamble
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+
+\title{My report}
+\author{Anders Wik}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Some text.
+
+\end{document}</code></pre>
+  <h2>Document classes</h2>
+  <pre><code class="language-latex">\documentclass{article}   % short documents and papers
+\documentclass{report}    % longer documents with chapters
+\documentclass{book}      % books, with left and right pages
+\documentclass{letter}    % letters
+\documentclass{beamer}    % presentations
+\documentclass{memoir}    % flexible book class</code></pre>
+  <h2>Class options</h2>
+  <pre><code class="language-latex">\documentclass[a4paper]{article}          % paper size: a4paper, letterpaper
+\documentclass[12pt]{article}             % font size: 10pt, 11pt, 12pt
+\documentclass[twocolumn]{article}        % two columns
+\documentclass[twoside]{article}          % different left and right pages
+\documentclass[landscape]{article}        % landscape
+\documentclass[draft]{article}            % mark overfull lines, skip images</code></pre>
+  <h2>Split into several files</h2>
+  <p><code>\input</code> inserts another file where it is written. <code>\include</code> also starts a new page and is meant for chapters.</p>
+  <pre><code class="language-latex">\input{chapters/introduction}
+\include{chapters/method}</code></pre>
+  <h2>More about document structure</h2>
+  <ul>
+    <li>Everything after <code>\end{document}</code> is ignored</li>
+    <li>The <a href="/latex/packages/">packages</a> page lists useful packages for the preamble</li>
+    <li>The <a href="/latex/title-page/">title page</a> uses <code>\title</code>, <code>\author</code> and <code>\date</code> from the preamble</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

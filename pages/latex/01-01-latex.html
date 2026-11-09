@@ -1,0 +1,58 @@
+---
+layout: default
+title: LaTeX
+permalink: /latex/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [latex, tex, introduction, typesetting, document, pdf, help]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>LaTeX</h1>
+  <p>LaTeX is a system for writing documents. You write plain text with commands like <code>\section{}</code> and <code>\textbf{}</code>, and LaTeX turns it into a nicely typeset PDF. It is the standard for scientific papers, theses and anything with a lot of math.</p>
+  <p>You focus on the content and the structure. LaTeX takes care of the layout, numbering, references and table of contents.</p>
+  <h2>Quick start</h2>
+  <p>Save this as <code>hello.tex</code> and <a href="/latex/compile/">compile</a> it.</p>
+  <pre><code class="language-latex">\documentclass{article}
+
+\begin{document}
+Hello, world!
+\end{document}</code></pre>
+  <pre><code class="language-bash">$ pdflatex hello.tex
+$ xdg-open hello.pdf</code></pre>
+  <h2>Commands and environments</h2>
+  <p>Commands start with a backslash. Required arguments go in curly braces and optional ones in square brackets.</p>
+  <pre><code class="language-latex">\command
+\command{argument}
+\command[option]{argument}</code></pre>
+  <p>An environment is a block that starts with <code>\begin{name}</code> and ends with <code>\end{name}</code>.</p>
+  <pre><code class="language-latex">\begin{center}
+  This text is centered.
+\end{center}</code></pre>
+  <h2>What you will learn</h2>
+  <ul>
+    <li><a href="/latex/install/">Install</a> LaTeX and <a href="/latex/compile/">compile</a> documents</li>
+    <li><a href="/latex/document-structure/">Document structure</a>, <a href="/latex/packages/">packages</a>, <a href="/latex/sections/">sections</a> and the <a href="/latex/table-of-contents/">table of contents</a></li>
+    <li><a href="/latex/text-formatting/">Text formatting</a>, <a href="/latex/lists/">lists</a> and <a href="/latex/footnotes/">footnotes</a></li>
+    <li><a href="/latex/math-mode/">Math</a>, <a href="/latex/equations/">equations</a> and <a href="/latex/matrices/">matrices</a></li>
+    <li><a href="/latex/tables/">Tables</a>, <a href="/latex/images/">images</a> and <a href="/latex/cross-references/">cross references</a></li>
+    <li><a href="/latex/bibliography/">Bibliography</a>, <a href="/latex/page-layout/">page layout</a>, <a href="/latex/tikz/">drawing</a> and <a href="/latex/beamer/">presentations</a></li>
+  </ul>
+  <h2>Help</h2>
+  <p><code>texdoc</code> opens the documentation for a package. It is installed with TeX Live.</p>
+  <pre><code class="language-bash">$ texdoc amsmath
+$ texdoc geometry
+$ pdflatex --help</code></pre>
+  <h2>More about LaTeX</h2>
+  <ul>
+    <li><a href="https://www.latex-project.org/">latex-project.org</a></li>
+    <li><a href="https://www.overleaf.com/learn">Overleaf documentation</a> — guides for almost everything</li>
+    <li><a href="https://tex.stackexchange.com/">TeX Stack Exchange</a> — questions and answers</li>
+    <li><a href="https://ctan.org/">CTAN</a> — every LaTeX package</li>
+    <li><a href="https://detexify.kirelabs.org/classify.html">Detexify</a> — draw a symbol to find its command</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

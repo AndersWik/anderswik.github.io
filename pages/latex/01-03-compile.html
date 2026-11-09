@@ -1,0 +1,46 @@
+---
+layout: default
+title: Compile
+permalink: /latex/compile/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [latex, compile, pdflatex, xelatex, lualatex, latexmk, pdf, build, clean]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Compile</h1>
+  <p>A <code>.tex</code> file is turned into a PDF by an engine. <code>pdflatex</code> is the classic one. <code>xelatex</code> and <code>lualatex</code> support Unicode and the fonts installed on your system.</p>
+  <h2>Compile to PDF</h2>
+  <pre><code class="language-bash">$ pdflatex document.tex
+$ xelatex document.tex
+$ lualatex document.tex</code></pre>
+  <h2>Run twice</h2>
+  <p>References, the table of contents and page numbers are written to helper files the first time and used the second time. Run the engine twice if you see <code>??</code> in the PDF.</p>
+  <pre><code class="language-bash">$ pdflatex document.tex
+$ pdflatex document.tex</code></pre>
+  <h2>latexmk</h2>
+  <p><code>latexmk</code> runs the engine, the <a href="/latex/bibliography/">bibliography</a> tool and everything else as many times as needed.</p>
+  <pre><code class="language-bash">$ latexmk -pdf document.tex        # pdflatex
+$ latexmk -xelatex document.tex    # xelatex
+$ latexmk -lualatex document.tex   # lualatex
+$ latexmk -pdf -pvc document.tex   # rebuild every time the file is saved</code></pre>
+  <h2>Clean up</h2>
+  <p>Compiling creates helper files like <code>.aux</code>, <code>.log</code> and <code>.toc</code>.</p>
+  <pre><code class="language-bash">$ latexmk -c     # remove helper files, keep the PDF
+$ latexmk -C     # remove helper files and the PDF</code></pre>
+  <h2>Useful options</h2>
+  <pre><code class="language-bash">$ pdflatex -interaction=nonstopmode document.tex   # do not stop on errors
+$ pdflatex -halt-on-error document.tex             # stop at the first error
+$ pdflatex -output-directory=build document.tex    # put the files in build/
+$ pdflatex -shell-escape document.tex              # allow external programs, needed by minted</code></pre>
+  <h2>More about compiling</h2>
+  <ul>
+    <li>Errors and warnings are written to the <code>.log</code> file, see <a href="/latex/errors/">errors</a></li>
+    <li>Add helper files to <code>.gitignore</code>: <code>*.aux *.log *.out *.toc *.fls *.fdb_latexmk *.synctex.gz</code></li>
+    <li>Only use <code>-shell-escape</code> with files you trust</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,47 @@
+---
+layout: default
+title: Packages
+permalink: /latex/packages/
+chapter: "02"
+chapter_title: "Document"
+keywords: [latex, packages, usepackage, babel, inputenc, fontenc, amsmath, graphicx, hyperref, ctan]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Packages</h1>
+  <p>Packages add features to LaTeX. Load them in the preamble with <code>\usepackage</code>. Options go in square brackets.</p>
+  <h2>Load a package</h2>
+  <pre><code class="language-latex">\usepackage{graphicx}
+\usepackage[margin=2cm]{geometry}
+\usepackage{amsmath,amssymb}</code></pre>
+  <h2>Language and characters</h2>
+  <p><code>inputenc</code> and <code>fontenc</code> make letters like å, ä and ö work with <code>pdflatex</code>. <code>babel</code> sets the hyphenation and words like <em>Contents</em> and <em>Figure</em>.</p>
+  <pre><code class="language-latex">\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[swedish,english]{babel}   % the last one is the main language</code></pre>
+  <h2>Useful packages</h2>
+  <pre><code class="language-latex">\usepackage{amsmath}      % equations and align
+\usepackage{amssymb}      % more math symbols
+\usepackage{graphicx}     % images
+\usepackage{booktabs}     % nicer tables
+\usepackage{geometry}     % page margins
+\usepackage{xcolor}       % colors
+\usepackage{listings}     % source code
+\usepackage{enumitem}     % customize lists
+\usepackage{csquotes}     % quotation marks
+\usepackage{siunitx}      % numbers and units
+\usepackage{biblatex}     % bibliography
+\usepackage{tikz}         % drawing
+\usepackage{hyperref}     % clickable links, load it last</code></pre>
+  <h2>More about packages</h2>
+  <ul>
+    <li>Find packages on <a href="https://ctan.org/">CTAN</a> and read their manual with <code>texdoc name</code></li>
+    <li>Load <code>hyperref</code> after the other packages</li>
+    <li>With <code>xelatex</code> and <code>lualatex</code>, use <code>fontspec</code> instead of <code>inputenc</code> and <code>fontenc</code></li>
+    <li>A missing package gives the error <code>File `name.sty' not found</code>, see <a href="/latex/install/">install</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

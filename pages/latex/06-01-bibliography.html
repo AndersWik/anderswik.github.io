@@ -1,0 +1,83 @@
+---
+layout: default
+title: Bibliography
+permalink: /latex/bibliography/
+chapter: "06"
+chapter_title: "More features"
+keywords: [latex, bibliography, references, citations, cite, biblatex, biber, bibtex, bib, natbib]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Bibliography</h1>
+  <p>References are stored in a <code>.bib</code> file and cited with <code>\cite</code>. <code>biblatex</code> with <code>biber</code> is the modern way. Only the sources you cite are listed.</p>
+  <h2>The .bib file</h2>
+  <p>Save this as <code>references.bib</code>. The first word after the brace is the key you cite with.</p>
+  <pre><code class="language-bibtex">@book{knuth1984,
+  author    = {Donald E. Knuth},
+  title     = {The TeXbook},
+  publisher = {Addison-Wesley},
+  year      = {1984}
+}
+
+@article{doe2020,
+  author  = {Jane Doe and John Smith},
+  title   = {A study of penguins},
+  journal = {Journal of Birds},
+  volume  = {12},
+  pages   = {1--10},
+  year    = {2020}
+}
+
+@online{linux,
+  author  = &#123;{The Linux Foundation}},
+  title   = {Linux},
+  url     = {https://www.linuxfoundation.org},
+  urldate = {2026-11-08}
+}</code></pre>
+  <h2>biblatex</h2>
+  <pre><code class="language-latex">\usepackage[style=authoryear]{biblatex}
+\addbibresource{references.bib}
+
+\begin{document}
+As shown by \textcite{doe2020}, penguins are great \parencite{knuth1984}.
+
+\printbibliography
+\end{document}</code></pre>
+  <h2>Compile</h2>
+  <pre><code class="language-bash">$ pdflatex document.tex
+$ biber document
+$ pdflatex document.tex
+
+$ latexmk -pdf document.tex   # does all the steps</code></pre>
+  <h2>Cite commands</h2>
+  <pre><code class="language-latex">\cite{key}            % Doe 2020
+\parencite{key}       % (Doe 2020)
+\textcite{key}        % Doe (2020)
+\cite[p.~5]{key}      % with a page
+\cite{key1,key2}      % several sources
+\nocite{*}            % list every source, also the ones not cited</code></pre>
+  <h2>Styles</h2>
+  <pre><code class="language-latex">style=numeric       % [1]
+style=alphabetic    % [Knu84]
+style=authoryear    % Knuth 1984
+style=apa           % APA
+style=ieee          % IEEE, needs biblatex-ieee</code></pre>
+  <h2>BibTeX</h2>
+  <p>Older documents and many journal templates use BibTeX instead.</p>
+  <pre><code class="language-latex">\bibliographystyle{plain}
+\bibliography{references}</code></pre>
+  <pre><code class="language-bash">$ pdflatex document.tex
+$ bibtex document
+$ pdflatex document.tex
+$ pdflatex document.tex</code></pre>
+  <h2>More about bibliography</h2>
+  <ul>
+    <li>Google Scholar and most journals can export a citation as BibTeX</li>
+    <li><a href="https://www.zotero.org/">Zotero</a> and <a href="https://www.jabref.org/">JabRef</a> manage <code>.bib</code> files</li>
+    <li>Put names of organisations in double braces so they are not split into first and last name</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

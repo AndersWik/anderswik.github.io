@@ -1,0 +1,60 @@
+---
+layout: default
+title: Images
+permalink: /latex/images/
+chapter: "05"
+chapter_title: "Tables and figures"
+keywords: [latex, images, image, includegraphics, graphicx, figure, width, scale, subfigure, png, pdf]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Images</h1>
+  <p>The <code>graphicx</code> package adds <code>\includegraphics</code>. <code>pdflatex</code> reads PDF, PNG and JPG files.</p>
+  <h2>Image</h2>
+  <pre><code class="language-latex">\usepackage{graphicx}
+
+\includegraphics{images/penguin.png}</code></pre>
+  <h2>Size and rotation</h2>
+  <pre><code class="language-latex">\includegraphics[width=5cm]{penguin}
+\includegraphics[width=0.5\textwidth]{penguin}
+\includegraphics[height=3cm]{penguin}
+\includegraphics[scale=0.5]{penguin}
+\includegraphics[angle=90]{penguin}</code></pre>
+  <h2>Figure with caption</h2>
+  <pre><code class="language-latex">\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{penguin}
+  \caption{Tux the penguin}
+  \label{fig:tux}
+\end{figure}</code></pre>
+  <h2>Image folder</h2>
+  <p>The file extension can be left out. Set where LaTeX looks for images in the preamble.</p>
+  <pre><code class="language-latex">\graphicspath&#123;{images/}{figures/}}</code></pre>
+  <h2>Images side by side</h2>
+  <pre><code class="language-latex">\usepackage{subcaption}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{one}
+    \caption{First}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{two}
+    \caption{Second}
+  \end{subfigure}
+  \caption{Two images}
+\end{figure}</code></pre>
+  <h2>More about images</h2>
+  <ul>
+    <li>Use PDF or SVG converted to PDF for diagrams, so they stay sharp</li>
+    <li>Convert SVG with <code>inkscape file.svg --export-type=pdf</code></li>
+    <li>The <code>draft</code> class option shows boxes instead of images, which compiles faster</li>
+    <li>Draw figures in LaTeX with <a href="/latex/tikz/">TikZ</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

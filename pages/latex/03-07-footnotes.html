@@ -1,0 +1,30 @@
+---
+layout: default
+title: Footnotes
+permalink: /latex/footnotes/
+chapter: "03"
+chapter_title: "Text"
+keywords: [latex, footnotes, footnote, footnotemark, footnotetext, margin note, marginpar]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Footnotes</h1>
+  <p><code>\footnote{}</code> adds a number in the text and the note at the bottom of the page.</p>
+  <h2>Footnote</h2>
+  <pre><code class="language-latex">Linux was first released in 1991.\footnote{Version 0.01, in September.}</code></pre>
+  <h2>Footnote mark and text apart</h2>
+  <p>Useful in tables and titles, where <code>\footnote</code> does not work.</p>
+  <pre><code class="language-latex">Some text\footnotemark{} in a table.
+\footnotetext{The note.}</code></pre>
+  <h2>Margin note</h2>
+  <pre><code class="language-latex">Some text.\marginpar{A note in the margin}</code></pre>
+  <h2>More about footnotes</h2>
+  <ul>
+    <li>Put the footnote after the punctuation, with no space before it</li>
+    <li>The <code>footmisc</code> package changes the numbering and layout</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

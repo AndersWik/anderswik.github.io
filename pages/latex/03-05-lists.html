@@ -1,0 +1,66 @@
+---
+layout: default
+title: Lists
+permalink: /latex/lists/
+chapter: "03"
+chapter_title: "Text"
+keywords: [latex, lists, itemize, enumerate, description, item, nested, enumitem, bullet, numbered]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lists</h1>
+  <p>LaTeX has three list environments: <code>itemize</code> for bullets, <code>enumerate</code> for numbers and <code>description</code> for terms.</p>
+  <h2>Bullet list</h2>
+  <pre><code class="language-latex">\begin{itemize}
+  \item Apples
+  \item Pears
+  \item Plums
+\end{itemize}</code></pre>
+  <h2>Numbered list</h2>
+  <pre><code class="language-latex">\begin{enumerate}
+  \item First
+  \item Second
+  \item Third
+\end{enumerate}</code></pre>
+  <h2>Description list</h2>
+  <pre><code class="language-latex">\begin{description}
+  \item[Host] The computer that runs the virtual machine.
+  \item[Guest] The virtual machine.
+\end{description}</code></pre>
+  <h2>Nested lists</h2>
+  <p>Lists can be nested four levels deep. The bullet or number style changes on each level.</p>
+  <pre><code class="language-latex">\begin{enumerate}
+  \item Install
+  \begin{enumerate}
+    \item Download
+    \item Run the installer
+  \end{enumerate}
+  \item Configure
+  \begin{itemize}
+    \item Set the language
+  \end{itemize}
+\end{enumerate}</code></pre>
+  <h2>Custom bullet</h2>
+  <pre><code class="language-latex">\begin{itemize}
+  \item[--] With a dash
+  \item[$\star$] With a star
+\end{itemize}</code></pre>
+  <h2>enumitem</h2>
+  <p>The <code>enumitem</code> package changes the numbering and spacing.</p>
+  <pre><code class="language-latex">\usepackage{enumitem}
+
+\begin{enumerate}[label=\alph*)]   % a) b) c)
+\begin{enumerate}[label=\Roman*.]  % I. II. III.
+\begin{enumerate}[start=5]         % start at 5
+\begin{itemize}[noitemsep]         % no space between items
+\begin{enumerate}[resume]          % continue the last list</code></pre>
+  <h2>More about lists</h2>
+  <ul>
+    <li>Refer to an item with <code>\label</code> and <code>\ref</code>, see <a href="/latex/cross-references/">cross references</a></li>
+    <li>For a task list, use <code>\item[$\square$]</code> with <code>amssymb</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

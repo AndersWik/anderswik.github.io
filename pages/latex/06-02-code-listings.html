@@ -1,0 +1,63 @@
+---
+layout: default
+title: Code listings
+permalink: /latex/code-listings/
+chapter: "06"
+chapter_title: "More features"
+keywords: [latex, code, listings, verbatim, minted, lstlisting, source code, syntax highlighting, monospace]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Code listings</h1>
+  <p>Source code must be shown exactly as written. <code>verbatim</code> prints text as it is, and <code>listings</code> and <code>minted</code> add syntax highlighting.</p>
+  <h2>Verbatim</h2>
+  <pre><code class="language-latex">\begin{verbatim}
+for i in range(10):
+    print(i)
+\end{verbatim}
+
+Inline: \verb|ls -la|</code></pre>
+  <h2>listings</h2>
+  <pre><code class="language-latex">\usepackage{listings}
+
+\begin{lstlisting}[language=Python]
+for i in range(10):
+    print(i)
+\end{lstlisting}
+
+\lstinputlisting[language=Bash]{script.sh}</code></pre>
+  <h2>listings style</h2>
+  <pre><code class="language-latex">\usepackage{xcolor}
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
+  numbers=left,
+  frame=single,
+  breaklines=true,
+  showstringspaces=false
+}</code></pre>
+  <h2>minted</h2>
+  <p><code>minted</code> uses Pygments and gives the best highlighting. It needs Python and <code>-shell-escape</code>.</p>
+  <pre><code class="language-latex">\usepackage{minted}
+
+\begin{minted}{python}
+for i in range(10):
+    print(i)
+\end{minted}
+
+\mintinline{bash}{ls -la}
+\inputminted{bash}{script.sh}</code></pre>
+  <pre><code class="language-bash">$ sudo apt install python3-pygments
+$ pdflatex -shell-escape document.tex</code></pre>
+  <h2>More about code listings</h2>
+  <ul>
+    <li><code>\verb</code> cannot be used inside the argument of other commands, like <code>\footnote</code></li>
+    <li>Any character can be used around <code>\verb</code>, as long as it is not in the code</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

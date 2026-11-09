@@ -1,0 +1,52 @@
+---
+layout: default
+title: TikZ
+permalink: /latex/tikz/
+chapter: "06"
+chapter_title: "More features"
+keywords: [latex, tikz, draw, drawing, diagram, graphics, pgf, pgfplots, plot, nodes]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>TikZ</h1>
+  <p>TikZ draws figures and diagrams directly in LaTeX. Coordinates are in centimeters by default.</p>
+  <h2>Lines and shapes</h2>
+  <pre><code class="language-latex">\usepackage{tikz}
+
+\begin{tikzpicture}
+  \draw (0,0) -- (2,0) -- (2,1);
+  \draw[-&gt;] (0,0) -- (0,2);
+  \draw (3,0) rectangle (4,1);
+  \draw (5,0.5) circle (0.5);
+  \draw[red, thick, dashed] (0,0) -- (4,2);
+  \fill[blue!20] (6,0) rectangle (7,1);
+\end{tikzpicture}</code></pre>
+  <h2>Nodes</h2>
+  <p>Nodes are text boxes that can be connected.</p>
+  <pre><code class="language-latex">\begin{tikzpicture}
+  \node[draw] (a) at (0,0) {Write};
+  \node[draw] (b) at (3,0) {Commit};
+  \node[draw, circle] (c) at (6,0) {Push};
+  \draw[-&gt;] (a) -- (b);
+  \draw[-&gt;] (b) -- (c);
+\end{tikzpicture}</code></pre>
+  <h2>Plot a function</h2>
+  <pre><code class="language-latex">\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\begin{tikzpicture}
+  \begin{axis}[xlabel=$x$, ylabel=$y$]
+    \addplot[domain=-2:2, blue] {x^2};
+  \end{axis}
+\end{tikzpicture}</code></pre>
+  <h2>More about TikZ</h2>
+  <ul>
+    <li><code>texdoc tikz</code> — the manual is over 1000 pages, with many examples</li>
+    <li><a href="https://texample.net/tikz/">TeXample</a> — TikZ examples</li>
+    <li>Put a drawing in a <a href="/latex/floats/">figure</a> to give it a caption</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
