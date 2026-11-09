@@ -1,0 +1,61 @@
+---
+layout: default
+title: GitHub extras
+permalink: /markdown/github-extras/
+chapter: "06"
+chapter_title: "Extended syntax"
+keywords: [markdown, github, gfm, alerts, note, warning, emoji, mentions, issues, mermaid, diagrams, math, latex]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>GitHub extras</h1>
+  <p>GitHub adds a few things on top of GitHub Flavored Markdown. They work in README files, issues, pull requests and wikis. Some editors and sites support them too.</p>
+  <h2>Alerts</h2>
+  <p>A <a href="/markdown/blockquotes/">blockquote</a> that starts with an alert type is shown as a colored box.</p>
+  <pre><code class="language-markdown">&gt; [!NOTE]
+&gt; Useful information.
+
+&gt; [!TIP]
+&gt; A better way to do it.
+
+&gt; [!IMPORTANT]
+&gt; Needed to succeed.
+
+&gt; [!WARNING]
+&gt; Needs attention right away.
+
+&gt; [!CAUTION]
+&gt; Can cause problems.</code></pre>
+  <h2>Emoji</h2>
+  <p>Write the emoji name between colons, or paste the emoji itself.</p>
+  <pre><code class="language-markdown">:smile: :+1: :rocket: :warning: :penguin:</code></pre>
+  <h2>Mentions and references</h2>
+  <pre><code class="language-markdown">@username            mention a user
+@org/team            mention a team
+#42                  link to issue or pull request 42
+owner/repo#42        issue in another repository
+a1b2c3d              link to a commit</code></pre>
+  <h2>Diagrams</h2>
+  <p>A code block with the language <code>mermaid</code> is drawn as a diagram.</p>
+  <pre><code class="language-markdown">```mermaid
+flowchart LR
+    A[Write] --&gt; B[Commit] --&gt; C[Push]
+```</code></pre>
+  <h2>Math</h2>
+  <p>LaTeX math between dollar signs. One for inline math, two for a block.</p>
+  <pre><code class="language-markdown">The area is $\pi r^2$.
+
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$</code></pre>
+  <h2>More about GitHub extras</h2>
+  <ul>
+    <li><a href="https://docs.github.com/en/get-started/writing-on-github">Writing on GitHub</a> in the documentation</li>
+    <li><a href="https://github.com/ikatyang/emoji-cheat-sheet">Emoji cheat sheet</a></li>
+    <li><a href="https://mermaid.js.org/">Mermaid</a> — flowcharts, sequence diagrams and more</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,65 @@
+---
+layout: default
+title: Markdown
+permalink: /markdown/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [markdown, introduction, md, commonmark, gfm, kramdown, pandoc, preview, convert]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Markdown</h1>
+  <p>Markdown is a simple way to format plain text. You write normal text with a few symbols, like <code>#</code> for headers and <code>*</code> for emphasis, and a program turns it into HTML. The text is still easy to read even before it is converted.</p>
+  <p>Markdown is used for README files, documentation, wikis, notes, chat apps and static sites like Jekyll.</p>
+  <h2>Quick example</h2>
+  <pre><code class="language-markdown"># My project
+
+This is **bold** and this is *italic*.
+
+* First item
+* Second item
+
+[Read more](https://example.com)</code></pre>
+  <h2>File extensions</h2>
+  <p>Markdown files usually end in <code>.md</code>. <code>.markdown</code> also works.</p>
+  <pre><code class="language-bash">README.md
+notes.markdown</code></pre>
+  <h2>Flavors</h2>
+  <p>The original Markdown left many details open, so there are a few versions. Most of the basic syntax works everywhere. The extras, like tables and task lists, depend on the flavor.</p>
+  <ul>
+    <li><strong>CommonMark</strong> — a strict, well defined standard</li>
+    <li><strong>GitHub Flavored Markdown (GFM)</strong> — CommonMark plus tables, task lists, strikethrough and autolinks</li>
+    <li><strong>kramdown</strong> — the default in Jekyll, with footnotes, definition lists and attributes</li>
+    <li><strong>Pandoc Markdown</strong> — many extras, used to convert to almost any format</li>
+  </ul>
+  <h2>Preview</h2>
+  <p>Most editors can show a preview. In VS Code and VSCodium press <code>Ctrl+Shift+V</code>, or <code>Ctrl+K V</code> to open it to the side.</p>
+  <h2>Convert</h2>
+  <p><code>pandoc</code> converts Markdown to HTML, PDF, Word and more.</p>
+  <pre><code class="language-bash">$ sudo apt install pandoc
+$ pandoc README.md -o README.html
+$ pandoc README.md -o README.docx
+$ pandoc README.md -o README.pdf</code></pre>
+  <h2>What you will learn</h2>
+  <ul>
+    <li><a href="/markdown/headers/">Headers</a>, <a href="/markdown/line-breaks/">paragraphs and line breaks</a> and <a href="/markdown/emphasis/">emphasis</a></li>
+    <li><a href="/markdown/blockquotes/">Blockquotes</a>, <a href="/markdown/horizontal-rule/">horizontal rules</a> and <a href="/markdown/escaping/">escaping characters</a></li>
+    <li><a href="/markdown/lists/">Lists</a>, <a href="/markdown/task-lists/">task lists</a> and <a href="/markdown/tables/">tables</a></li>
+    <li><a href="/markdown/links/">Links</a>, <a href="/markdown/images/">images</a> and <a href="/markdown/youtube-videos/">YouTube videos</a></li>
+    <li><a href="/markdown/code/">Code and syntax highlighting</a></li>
+    <li><a href="/markdown/footnotes/">Footnotes</a>, <a href="/markdown/definition-lists/">definition lists</a>, <a href="/markdown/inline-html/">inline HTML</a>, <a href="/markdown/comments/">comments</a> and <a href="/markdown/github-extras/">GitHub extras</a></li>
+  </ul>
+  <h2>More about Markdown</h2>
+  <ul>
+    <li><a href="https://daringfireball.net/projects/markdown/">Markdown</a> by John Gruber, the original</li>
+    <li><a href="https://commonmark.org/help/">CommonMark</a> — reference and a 10 minute tutorial</li>
+    <li><a href="https://github.github.com/gfm/">GitHub Flavored Markdown spec</a></li>
+    <li><a href="https://kramdown.gettalong.org/syntax.html">kramdown syntax</a></li>
+    <li><a href="https://www.markdownguide.org/">Markdown Guide</a></li>
+    <li><a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown Cheatsheet</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

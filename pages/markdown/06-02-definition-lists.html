@@ -1,0 +1,42 @@
+---
+layout: default
+title: Definition lists
+permalink: /markdown/definition-lists/
+chapter: "06"
+chapter_title: "Extended syntax"
+keywords: [markdown, definition list, glossary, term, dl, dt, dd, abbreviation, kramdown]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Definition lists</h1>
+  <p>A definition list is a list of terms, each followed by its description. It works in kramdown, Pandoc and PHP Markdown Extra, but not on GitHub.</p>
+  <h2>Definition list</h2>
+  <p>Write the term on one line and the definition on the next, starting with <code>:</code> and a space.</p>
+  <pre><code class="language-markdown">Host
+: The computer that runs the virtual machine.
+
+Guest
+: The virtual machine.
+: It has its own operating system.</code></pre>
+  <h2>HTML</h2>
+  <p>Where definition lists are not supported, use <a href="/markdown/inline-html/">HTML</a>.</p>
+  <pre><code class="language-html">&lt;dl&gt;
+  &lt;dt&gt;Host&lt;/dt&gt;
+  &lt;dd&gt;The computer that runs the virtual machine.&lt;/dd&gt;
+&lt;/dl&gt;</code></pre>
+  <h2>Abbreviations</h2>
+  <p>kramdown and PHP Markdown Extra also have abbreviations. Every <code>HTML</code> in the page gets the full name as a tooltip.</p>
+  <pre><code class="language-markdown">HTML is used for web pages.
+
+*[HTML]: HyperText Markup Language</code></pre>
+  <h2>More about kramdown</h2>
+  <ul>
+    <li>kramdown can add classes and ids to any block with <code>{: .class #id}</code> on the line after it</li>
+    <li><code>* TOC</code> followed by <code>{:toc}</code> creates a table of contents from the headers</li>
+    <li><a href="https://kramdown.gettalong.org/syntax.html">kramdown syntax</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

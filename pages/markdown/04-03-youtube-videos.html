@@ -1,0 +1,38 @@
+---
+layout: default
+title: YouTube videos
+permalink: /markdown/youtube-videos/
+chapter: "04"
+chapter_title: "Links and media"
+keywords: [markdown, youtube, video, videos, embed, iframe, thumbnail]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>YouTube videos</h1>
+  <p>Markdown cannot play videos. The usual trick is to show the video thumbnail as an <a href="/markdown/images/">image</a> that links to the video. Replace <code>VIDEO_ID</code> with the id from the address, the part after <code>watch?v=</code>.</p>
+  <h2>Thumbnail that links to the video</h2>
+  <p>This works everywhere, including GitHub.</p>
+  <pre><code class="language-markdown">[![Video title](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)</code></pre>
+  <h2>Thumbnail sizes</h2>
+  <pre><code class="language-bash">https://img.youtube.com/vi/VIDEO_ID/0.jpg               # 480x360
+https://img.youtube.com/vi/VIDEO_ID/hqdefault.jpg       # 480x360
+https://img.youtube.com/vi/VIDEO_ID/mqdefault.jpg       # 320x180
+https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg   # 1280x720, if available</code></pre>
+  <h2>Embed with an iframe</h2>
+  <p>Where <a href="/markdown/inline-html/">inline HTML</a> is allowed, like Jekyll and most static sites, you can embed the player. Copy the code from <em>Share</em> → <em>Embed</em> on YouTube. GitHub removes iframes.</p>
+  <pre><code class="language-html">&lt;iframe width="560" height="315"
+  src="https://www.youtube-nocookie.com/embed/VIDEO_ID"
+  title="Video title"
+  allowfullscreen&gt;&lt;/iframe&gt;</code></pre>
+  <h2>Video files on GitHub</h2>
+  <p>On GitHub you can drag an <code>.mp4</code> or <code>.mov</code> file into an issue, pull request or README edit. It is uploaded and shown as a player.</p>
+  <h2>More about videos</h2>
+  <ul>
+    <li><code>youtube-nocookie.com</code> does not set tracking cookies until the video is played</li>
+    <li>Add <code>?start=60</code> to the embed address to start at 60 seconds</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

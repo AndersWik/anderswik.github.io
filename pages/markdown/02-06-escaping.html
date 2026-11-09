@@ -1,0 +1,52 @@
+---
+layout: default
+title: Escaping characters
+permalink: /markdown/escaping/
+chapter: "02"
+chapter_title: "Text"
+keywords: [markdown, escape, escaping, backslash, special characters, literal, entities]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Escaping characters</h1>
+  <p>Put a <code>\</code> in front of a character to show it as it is, instead of using it as Markdown.</p>
+  <h2>Backslash</h2>
+  <pre><code class="language-markdown">\*not italic\*
+\# not a header
+1986\. A great year
+\[not a link\](https://example.com)</code></pre>
+  <h2>Characters you can escape</h2>
+  <pre><code class="language-markdown">\   backslash
+`   backtick
+*   asterisk
+_   underscore
+{ } curly braces
+[ ] square brackets
+( ) parentheses
+#   hash
++   plus
+-   minus
+.   dot
+!   exclamation mark
+|   pipe
+&lt; &gt; angle brackets</code></pre>
+  <h2>HTML entities</h2>
+  <p>HTML entities also work, for characters that are hard to type or that would be read as HTML.</p>
+  <pre><code class="language-markdown">&amp;copy;    ©
+&amp;nbsp;    non-breaking space
+&amp;lt;      &lt;
+&amp;gt;      &gt;
+&amp;amp;     &amp;</code></pre>
+  <h2>Code</h2>
+  <p>Nothing is formatted inside <a href="/markdown/code/">code</a>, so backticks are another way to show symbols.</p>
+  <pre><code class="language-markdown">Use `*` for a list.</code></pre>
+  <h2>More about escaping</h2>
+  <ul>
+    <li><code>1986.</code> at the start of a line becomes a numbered list, write <code>1986\.</code></li>
+    <li>A <code>|</code> inside a <a href="/markdown/tables/">table</a> cell must be written <code>\|</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

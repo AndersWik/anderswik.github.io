@@ -1,0 +1,50 @@
+---
+layout: default
+title: Tables
+permalink: /markdown/tables/
+chapter: "03"
+chapter_title: "Lists and tables"
+keywords: [markdown, table, tables, columns, rows, align, alignment, pipe, gfm]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tables</h1>
+  <p>Tables are made with pipes <code>|</code> between the columns and a row of dashes <code>-</code> under the header. Tables are not in the original Markdown, but GitHub, kramdown, Pandoc and most editors support them.</p>
+  <h2>Table</h2>
+  <pre><code class="language-markdown">| Command | Description       |
+| ------- | ----------------- |
+| ls      | List files        |
+| cd      | Change directory  |
+| pwd     | Print directory   |</code></pre>
+  <h2>Short form</h2>
+  <p>The columns do not have to line up, and the outer pipes can be left out. Three dashes per column is enough.</p>
+  <pre><code class="language-markdown">Command | Description
+--- | ---
+ls | List files
+cd | Change directory</code></pre>
+  <h2>Align columns</h2>
+  <p>A colon <code>:</code> in the dash row sets the alignment.</p>
+  <pre><code class="language-markdown">| Left | Center | Right |
+| :--- | :----: | ----: |
+| a    |   b    |     1 |
+| aa   |   bb   |    22 |</code></pre>
+  <h2>Formatting in cells</h2>
+  <p>Emphasis, code and links work inside cells. Use <code>\|</code> for a pipe and <code>&lt;br&gt;</code> for a line break.</p>
+  <pre><code class="language-markdown">| Syntax      | Example                       |
+| ----------- | ----------------------------- |
+| Bold        | **bold**                      |
+| Code        | `grep -E "a\|b"`              |
+| Link        | [Example](https://example.com)|
+| Two lines   | First line&lt;br&gt;Second line    |</code></pre>
+  <h2>More about tables</h2>
+  <ul>
+    <li>Leave an empty line before the table</li>
+    <li>Lists, headers and code blocks cannot go inside a cell. Use an <a href="/markdown/inline-html/">HTML table</a> for that</li>
+    <li>Cells cannot span several rows or columns in standard Markdown</li>
+    <li><a href="https://www.tablesgenerator.com/markdown_tables">Tables Generator</a> makes a Markdown table from a spreadsheet</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

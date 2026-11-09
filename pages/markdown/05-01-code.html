@@ -1,0 +1,79 @@
+---
+layout: default
+title: Code and syntax highlighting
+permalink: /markdown/code/
+chapter: "05"
+chapter_title: "Code"
+keywords: [markdown, code, code block, inline code, backtick, fenced, syntax highlighting, language, diff]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Code and syntax highlighting</h1>
+  <p>Code is shown in a monospace font and nothing inside it is formatted as Markdown. Use inline code for short commands in a sentence and code blocks for longer pieces.</p>
+  <h2>Inline code</h2>
+  <p>Wrap the code in backticks.</p>
+  <pre><code class="language-markdown">Run `ls -la` to list all files.</code></pre>
+  <h2>Backticks inside inline code</h2>
+  <p>Use two backticks around the code, with a space inside if the code starts or ends with a backtick.</p>
+  <pre><code class="language-markdown">``Use `git status` here``
+`` `backticks` ``</code></pre>
+  <h2>Fenced code block</h2>
+  <p>Put three backticks on the line before and after the code. Three tildes <code>~~~</code> also work.</p>
+  <pre><code class="language-markdown">```
+sudo apt update
+sudo apt upgrade
+```
+
+~~~
+sudo apt update
+~~~</code></pre>
+  <h2>Syntax highlighting</h2>
+  <p>Write the language after the first backticks to color the code.</p>
+  <pre><code class="language-markdown">```bash
+echo "Hello"
+```
+
+```python
+def hello():
+    print("Hello")
+```
+
+```javascript
+console.log("Hello");
+```</code></pre>
+  <h2>Common language names</h2>
+  <pre><code class="language-bash">bash  sh  shell  console
+html  css  scss  javascript  js  typescript  ts  json  yaml  xml
+python  ruby  php  java  c  cpp  csharp  go  rust
+sql  markdown  diff  dockerfile  ini  text  plaintext</code></pre>
+  <h2>Show changes with diff</h2>
+  <p>Lines starting with <code>+</code> are shown as added and lines with <code>-</code> as removed.</p>
+  <pre><code class="language-markdown">```diff
+- color: red;
++ color: blue;
+```</code></pre>
+  <h2>Indented code block</h2>
+  <p>The original way to write a code block is to indent every line with four spaces or a tab. It cannot have a language, so fences are usually better.</p>
+  <pre><code class="language-markdown">Some text.
+
+    sudo apt update
+    sudo apt upgrade</code></pre>
+  <h2>Code block inside a code block</h2>
+  <p>Use more backticks on the outer fence than on the inner one.</p>
+  <pre><code class="language-markdown">````markdown
+```bash
+ls -la
+```
+````</code></pre>
+  <h2>More about code</h2>
+  <ul>
+    <li>Leave an empty line before and after a code block.</li>
+    <li>Inside a <a href="/markdown/lists/">list</a>, indent the fences as much as the item text.</li>
+    <li>GitHub uses <a href="https://github.com/github-linguist/linguist/blob/main/lib/linguist/languages.yml">Linguist</a> for the language names.</li>
+    <li>Diagrams can be written in code blocks too, see <a href="/markdown/github-extras/">GitHub extras</a>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

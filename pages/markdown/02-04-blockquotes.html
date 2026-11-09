@@ -1,0 +1,45 @@
+---
+layout: default
+title: Blockquotes
+permalink: /markdown/blockquotes/
+chapter: "02"
+chapter_title: "Text"
+keywords: [markdown, blockquote, blockquotes, quote, citation, nested]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Blockquotes</h1>
+  <p>Start a line with <code>&gt;</code> to quote it. Blockquotes are used for quotes, replies in emails and notes that should stand out.</p>
+  <h2>Quote</h2>
+  <pre><code class="language-markdown">&gt; Talk is cheap. Show me the code.</code></pre>
+  <h2>Several paragraphs</h2>
+  <p>Put a <code>&gt;</code> on the empty line between the paragraphs too.</p>
+  <pre><code class="language-markdown">&gt; The first paragraph.
+&gt;
+&gt; The second paragraph.</code></pre>
+  <h2>Lazy quotes</h2>
+  <p>Only the first line of a paragraph needs the <code>&gt;</code>.</p>
+  <pre><code class="language-markdown">&gt; This is a long quote that
+continues on the next line.</code></pre>
+  <h2>Nested quotes</h2>
+  <pre><code class="language-markdown">&gt; Did you read the manual?
+&gt;
+&gt; &gt; No, what manual?</code></pre>
+  <h2>Other markup inside</h2>
+  <p>Headers, lists, emphasis and code all work inside a blockquote.</p>
+  <pre><code class="language-markdown">&gt; ### Note
+&gt;
+&gt; * Back up your files **before** you upgrade.
+&gt; * Run `sudo apt update` first.
+&gt;
+&gt; — The admin</code></pre>
+  <h2>More about blockquotes</h2>
+  <ul>
+    <li>Leave an empty line before and after the blockquote</li>
+    <li>GitHub turns some blockquotes into colored boxes, see <a href="/markdown/github-extras/">GitHub extras</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
