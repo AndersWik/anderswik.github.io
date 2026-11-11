@@ -552,3 +552,42 @@ footer {
 }
 
 //</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- Code blocks --">
+///////////////////////////////////////////////////
+
+// Dark code blocks for the tutorials and notes. The colors come from
+// _includes/code-highlight.html, which wraps words in <span class="tok-...">
+// when the page loads. Add new sections here and in _layouts/default.html.
+.tutorials, .linux, .markdown, .git, .vagrant, .mysql, .php, .latex {
+	pre {
+		background-color: #1b1d21;
+		color: #e6e6e6;
+		border-radius: 10px;
+		padding: 1rem 1.25rem;
+		margin: 0 0 1.25rem;
+		overflow-x: auto;
+		font-size: .875rem;
+		line-height: 1.55;
+		tab-size: 4;
+
+		code {
+			color: inherit;
+			background: none;
+			padding: 0;
+			font-size: inherit;
+		}
+
+		.tok-comment  { color: #7f8b99; font-style: italic; }
+		.tok-prompt   { color: #7f8b99; user-select: none; }
+		.tok-string   { color: #a8d38f; }
+		.tok-keyword  { color: #e8b455; }
+		.tok-number   { color: #f29e74; }
+		.tok-function { color: #82b1ff; }
+		.tok-property { color: #c3a6ff; }
+		.tok-tag      { color: #ff8b8b; }
+	}
+}
+
+//</editor-fold>

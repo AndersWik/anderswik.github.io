@@ -8,6 +8,9 @@
   {% for script in page.js %}
   <script src="{{ script | relative_url }}"></script>
   {% endfor %}
+  {% assign highlight_sections = "tutorials,linux,markdown,git,vagrant,mysql,php,latex" | split: "," %}
+  {% assign path_parts = page.path | split: "/" %}
+  {% if path_parts[0] == "pages" and highlight_sections contains path_parts[1] %}{% include code-highlight.html %}{% endif %}
   {% include footer.html %}
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>

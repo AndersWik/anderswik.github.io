@@ -1,0 +1,182 @@
+{% comment %}
+Small syntax highlighter for <pre><code class="language-..."> blocks.
+Wraps comments, strings, keywords, numbers etc. in <span class="tok-...">.
+The colors are in _sass/_style.scss under "Code blocks".
+Loaded by _layouts/default.html for the sections listed there.
+{% endcomment %}
+<script>
+(function () {
+    var STRING = /"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'/;
+    var NUMBER = /\b\d+(?:\.\d+)?\b/;
+
+    // Terminal sessions: "$ command --option", "> command" (PowerShell) and output lines.
+    var SHELL = {
+        rules: [
+            ['comment', /(?:^|[ \t])#[^\n]*/],
+            ['prompt', /^(?:\$|>|PS [^>\n]*>)(?= )/],
+            ['function', /(?<=^(?:\$|>|PS [^>\n]*>) +(?:sudo +)?)[\w.\/~-]+/],
+            ['string', STRING],
+            ['number', /\$\{?\w+\}?/],
+            ['property', /(?<=\s)--?[\w-]+/],
+            ['word', /[A-Za-z_][\w-]*/]
+        ],
+        keywords: 'if then else elif fi for in do done while case esac function export sudo'
+    };
+
+    var MARKUP = [
+        ['comment', /<!--[\s\S]*?-->/],
+        ['tag', /<[\/?!]?[\w:.-]+|\??\/?>/],
+        ['property', /[\w:@.-]+(?==)/],
+        ['string', /(?<==)(?:"[^"]*"|'[^']*')/]
+    ];
+
+    // Each language is a list of [token class, pattern]. Where two patterns
+    // match at the same spot, the first one in the list wins.
+    var LANGUAGES = {
+        javascript: {
+            rules: [
+                ['comment', /\/\/[^\n]*|\/\*[\s\S]*?\*\//],
+                ['string', /"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`/],
+                ['number', NUMBER],
+                ['word', /[A-Za-z_$][\w$]*/]
+            ],
+            keywords: 'const let var function return if else for while do break continue new class extends this null undefined true false typeof instanceof in of try catch finally throw switch case default async await import export from'
+        },
+        php: {
+            rules: [
+                ['tag', /<\?php|<\?=|\?>/],
+                ['comment', /\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\//],
+                ['string', STRING],
+                ['property', /\$\w+/],
+                ['number', NUMBER],
+                ['word', /[A-Za-z_\\][\w\\]*/]
+            ],
+            keywords: 'echo print return if else elseif endif for foreach as while do break continue switch case default function fn class interface trait extends implements new public private protected static abstract final const use namespace require require_once include include_once try catch finally throw true false null array isset unset empty list match readonly enum self parent and or'
+        },
+        css: {
+            rules: [
+                ['comment', /\/\*[\s\S]*?\*\//],
+                ['string', STRING],
+                ['keyword', /@[\w-]+|!important/],
+                ['property', /[\w-]+(?=\s*:[^:{}]*;)/],
+                ['number', /#[0-9a-fA-F]{3,8}\b|-?\b\d+(?:\.\d+)?(?:px|em|rem|%|s|ms|vh|vw|deg|fr)?/],
+                ['function', /[\w-]+(?=\()/]
+            ]
+        },
+        sql: {
+            rules: [
+                ['comment', /--[^\n]*|\/\*[\s\S]*?\*\//],
+                ['prompt', /^(?:mysql|MariaDB \[[^\]\n]*\])>|^ +->/],
+                ['string', /"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`[^`\n]*`/],
+                ['number', NUMBER],
+                ['word', /[A-Za-z_]\w*/]
+            ],
+            keywords: 'select from where and or not in is null like between order by group having limit offset insert into values update set delete create drop alter table database databases schema index view primary key foreign references unique auto_increment default if exists show use describe desc asc as join left right inner outer on distinct union all grant revoke to identified user privileges flush integer int varchar char text boolean date datetime timestamp float double decimal true false count sum avg min max concat trim',
+            ignoreCase: true
+        },
+        latex: {
+            rules: [
+                ['comment', /(?<!\\)%[^\n]*/],
+                ['keyword', /\\[A-Za-z@]+\*?|\\./],
+                ['string', /\$\$[\s\S]*?\$\$|\$[^$\n]*\$/],
+                ['number', /\b\d+(?:\.\d+)?(?:pt|cm|mm|in|em|ex)?\b/]
+            ]
+        },
+        bibtex: {
+            rules: [
+                ['comment', /%[^\n]*/],
+                ['keyword', /@\w+/],
+                ['property', /\w+(?=\s*=)/],
+                ['string', /"[^"\n]*"|(?<==\s*)\{[^\n]*\}/],
+                ['number', NUMBER]
+            ]
+        },
+        markdown: {
+            rules: [
+                ['string', /```[\s\S]*?```|`[^`\n]*`/],
+                ['keyword', /^#{1,6} [^\n]*/],
+                ['comment', /^>[^\n]*|<!--[\s\S]*?-->/],
+                ['tag', /^[ \t]*(?:[-*+]|\d+\.)(?= )|^(?:-{3,}|\*{3,}|_{3,})$/],
+                ['function', /!?\[[^\]\n]*\]\([^)\n]*\)/],
+                ['property', /\*\*[^*\n]+\*\*|__[^_\n]+__|\*[^*\n]+\*/]
+            ]
+        },
+        json: {
+            rules: [
+                ['property', /"(?:\\.|[^"\\\n])*"(?=\s*:)/],
+                ['string', STRING],
+                ['number', /-?\b\d+(?:\.\d+)?\b/],
+                ['word', /\w+/]
+            ],
+            keywords: 'true false null'
+        },
+        ruby: {
+            rules: [
+                ['comment', /#[^\n]*/],
+                ['string', STRING],
+                ['number', NUMBER],
+                ['word', /[A-Za-z_]\w*/]
+            ],
+            keywords: 'do end if else elsif unless def class module return true false nil require'
+        },
+        bash: SHELL,
+        powershell: SHELL,
+        html: { rules: MARKUP },
+        xml: { rules: MARKUP }
+    };
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function span(type, text) {
+        return '<span class="tok-' + type + '">' + escapeHtml(text) + '</span>';
+    }
+
+    function highlight(text, language) {
+        // HTML can hold JavaScript and CSS, so those parts get their own colors.
+        if (language === 'html') {
+            return text.split(/(<script\b[^>]*>[\s\S]*?<\/script>|<style\b[^>]*>[\s\S]*?<\/style>)/).map(function (part, i) {
+                if (i % 2 === 0) return tokenize(part, LANGUAGES.html);
+                var inner = part.match(/^(<[^>]*>)([\s\S]*)(<\/\w+>)$/);
+                var lang = /^<script/.test(part) ? LANGUAGES.javascript : LANGUAGES.css;
+                return tokenize(inner[1], LANGUAGES.html) + tokenize(inner[2], lang) + tokenize(inner[3], LANGUAGES.html);
+            }).join('');
+        }
+        return tokenize(text, LANGUAGES[language]);
+    }
+
+    function tokenize(text, language) {
+        var rules = language.rules;
+        var keywords = (language.keywords || '').split(' ');
+        // "m" makes ^ and $ match at the start and end of every line.
+        var pattern = new RegExp(rules.map(function (rule) { return '(' + rule[1].source + ')'; }).join('|'), 'gm');
+        var html = '';
+        var last = 0;
+        var match;
+
+        while ((match = pattern.exec(text)) !== null) {
+            if (match[0] === '') { pattern.lastIndex++; continue; }
+            var type = rules[match.slice(1).findIndex(function (group) { return group !== undefined; })][0];
+            var token = match[0];
+
+            if (type === 'word') {
+                var word = language.ignoreCase ? token.toLowerCase() : token;
+                if (keywords.indexOf(word) !== -1) type = 'keyword';
+                else if (text.charAt(pattern.lastIndex) === '(') type = 'function';
+                else type = null;
+            }
+
+            html += escapeHtml(text.slice(last, match.index));
+            html += type ? span(type, token) : escapeHtml(token);
+            last = pattern.lastIndex;
+        }
+        return html + escapeHtml(text.slice(last));
+    }
+
+    document.querySelectorAll('pre code[class*="language-"]').forEach(function (code) {
+        var language = code.className.match(/language-(\w+)/)[1];
+        if (LANGUAGES[language]) code.innerHTML = highlight(code.textContent, language);
+    });
+})();
+</script>
