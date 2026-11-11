@@ -11,6 +11,9 @@
  * from the state. The numbers are kept as text while typing, so that
  * "0." or "12.50" look right, and are turned into real numbers only
  * when we calculate.
+ *
+ * After "=" the result becomes the first number. Pressing an operator
+ * keeps calculating with it, pressing a digit starts a new calculation.
  */
 
 // --- State ---------------------------------------------------------------
@@ -18,6 +21,7 @@
 let firstNumber = "";
 let operator = "";
 let secondNumber = "";
+let showingResult = false;   // true right after "=" or "%"
 
 // --- Elements on the page ------------------------------------------------
 
@@ -32,9 +36,9 @@ function updateDisplay() {
 }
 
 // Computers can't store all decimals exactly, so 0.1 + 0.2 gives
-// 0.30000000000000004. Rounding to 10 decimals hides that.
+// 0.30000000000000004. Keeping 12 significant digits hides that.
 function round(number) {
-    return Math.round(number * 1e10) / 1e10;
+    return Number(number.toPrecision(12));
 }
 
 // Do the actual maths on two numbers.
@@ -72,6 +76,7 @@ function showResult(result) {
     firstNumber = String(round(result));
     operator = "";
     secondNumber = "";
+    showingResult = true;
     updateDisplay();
 }
 
@@ -81,12 +86,14 @@ function clearAll() {
     firstNumber = "";
     operator = "";
     secondNumber = "";
+    showingResult = false;
     updateDisplay();
 }
 
 // Remove the last thing typed: a digit of the second number,
 // then the operator, then digits of the first number.
 function backspace() {
+    showingResult = false;
     if (secondNumber !== "") {
         secondNumber = secondNumber.slice(0, -1);
     } else if (operator !== "") {
@@ -99,6 +106,10 @@ function backspace() {
 
 // A digit or the decimal point. Add it to the number we are typing.
 function typeDigit(digit) {
+    // A digit right after a result starts a new calculation.
+    if (showingResult) {
+        clearAll();
+    }
     // Before an operator is chosen we are typing the first number.
     let current = operator === "" ? firstNumber : secondNumber;
 
@@ -130,7 +141,12 @@ function chooseOperator(newOperator) {
     if (secondNumber !== "") {
         pressEquals();
     }
+    // If that calculation was an error (like 1/0), everything was cleared.
+    if (firstNumber === "") {
+        return;
+    }
     operator = newOperator;
+    showingResult = false;
     updateDisplay();
 }
 

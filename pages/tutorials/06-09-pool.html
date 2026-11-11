@@ -1,0 +1,676 @@
+---
+layout: default
+title: Pool
+permalink: /tutorials/pool/
+chapter: "06"
+chapter_title: "Classic arcade"
+keywords: [javascript, game, canvas, physics, collision, friction, billiards, 8-ball, mouse, power bar, clip]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Pool</h1>
+  <p>A game of 8-ball for one player. Aim with the mouse, hold the button to build up power, and let go to shoot the white ball. The first ball you pot decides your group: solids (1 to 7) or stripes (9 to 15). Pot all of your group, then the black 8. If the 8 goes in too early, you lose.</p>
+  <p>This is the game with the most physics in it: sixteen balls rolling, slowing down, bouncing off the cushions and off each other. It uses the game loop and screens from <a href="/tutorials/breakout/">Breakout</a>, aiming by holding the mouse button from <a href="/tutorials/hock-a-loogie/">Hock-A-Loogie</a>, and the directions from <a href="/tutorials/missile-command/">Missile Command</a>.</p>
+  <p><a href="/assets/tutorials/pool.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>pool.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The table is the canvas, and its wooden edge is a CSS border:</p>
+  <pre><code class="language-html">&lt;canvas id="gameCanvas" width="800" height="400"&gt;&lt;/canvas&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    background-color: #2e7d32;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border: 10px solid #5d4037;
+    border-radius: 10px;
+    box-sizing: border-box;
+    cursor: crosshair;
+}</code></pre>
+  <h2>Step 2: Racking the balls</h2>
+  <p>Each ball is an object: its number (0 is the white ball), where it is, its speed, and if it has been potted. The fifteen others go in a triangle:</p>
+  <pre><code class="language-javascript">const RACK = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 15, 7];
+
+let index = 0;
+for (let row = 0; row &lt; 5; row++) {
+    for (let col = 0; col &lt;= row; col++) {
+        const x = 580 + row * (BALL_RADIUS * 2 * 0.87 + 1);
+        const y = HEIGHT / 2 + (col - row / 2) * (BALL_RADIUS * 2 + 1);
+        balls.push(newBall(RACK[index], x, y));
+        index++;
+    }
+}</code></pre>
+  <ul>
+    <li>Row 0 has 1 ball, row 1 has 2, and so on: <code>col &lt;= row</code>.</li>
+    <li>Each row is a little further right. Rows of touching balls are 0.87 ball widths apart, not a whole one, because each ball sits in the gap between two balls in the row before.</li>
+    <li><code>col - row / 2</code> centers each row: in row 2 it is -1, 0 and 1, so the middle ball is on the center line.</li>
+    <li><code>RACK</code> puts the 8 fifth, which is the middle of the third row, as in real pool. The first version racked the balls in order 1 to 15, with the 8 off to the side.</li>
+    <li>The extra 1 pixel leaves a tiny gap, so the balls don't push each other apart before the first shot.</li>
+  </ul>
+  <h2>Step 3: Rolling and slowing down</h2>
+  <p>Each step, every ball moves by its speed, and loses a little of it:</p>
+  <pre><code class="language-javascript">ball.vx *= FRICTION;
+ball.vy *= FRICTION;
+if (Math.hypot(ball.vx, ball.vy) &lt; 0.05) {
+    ball.vx = 0;
+    ball.vy = 0;
+}</code></pre>
+  <p>With <code>FRICTION = 0.985</code>, the ball keeps 98.5% of its speed every step. It slows down smoothly, but it would never quite stop, so below 0.05 pixels a step we set it to 0.</p>
+  <p>The cushions are the canvas edges. We set the direction away from the cushion, like the walls in Breakout, and also move the ball back onto the table so it can't end up inside the cushion.</p>
+  <h2>Step 4: Two balls hit each other</h2>
+  <p>This is the most interesting part. Two balls touch when their centers are closer than two radii. First, push them apart so they don't overlap:</p>
+  <pre><code class="language-javascript">const nx = dx / distance;
+const ny = dy / distance;
+
+const overlap = (BALL_RADIUS * 2 - distance) / 2;
+a.x -= nx * overlap;
+a.y -= ny * overlap;
+b.x += nx * overlap;
+b.y += ny * overlap;</code></pre>
+  <p><code>nx, ny</code> is the direction from ball a to ball b, one pixel long, the same trick as in Missile Command. Each ball moves back half the overlap along that line.</p>
+  <p>Then the bounce. Think of a hit straight on: the white ball rolls into a ball that stands still. The white ball stops, and the other one rolls on with all of its speed. When two balls of the same weight hit, they <strong>swap</strong> the part of their speed that points along the line between them. The part across that line doesn't change. That is why a ball hit at an angle goes off along the line between the centers, and the white ball goes off to the side.</p>
+  <pre><code class="language-javascript">const closing = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+if (closing &lt;= 0) {
+    return;
+}
+
+a.vx -= closing * nx;
+a.vy -= closing * ny;
+b.vx += closing * nx;
+b.vy += closing * ny;</code></pre>
+  <p><code>closing</code> is how fast a moves towards b along the line between them. It is a dot product: multiply the across parts, multiply the up-down parts, and add them. If it is 0 or less, they are already moving apart, and nothing should happen. Otherwise a gives that much speed to b, along the line.</p>
+  <p>Try it with the straight hit: a moves right at 5, b stands still, and the line between them points right (<code>nx = 1, ny = 0</code>). <code>closing</code> is 5. a loses 5 and stops; b gets 5. Just like on a real table.</p>
+  <h2>Step 5: Not too fast</h2>
+  <p>If a ball moves further in one step than a ball is wide, it can jump right over another ball without ever touching it. The first version could shoot the white ball at 100 pixels a step, and it went through the whole rack. Now full power is <code>MAX_SPEED = 14</code>, and the balls move in two half steps, checking for hits after each:</p>
+  <pre><code class="language-javascript">for (let half = 0; half &lt; 2; half++) {
+    moving.forEach(function (ball) {
+        ball.x += ball.vx / 2;
+        ball.y += ball.vy / 2;
+        bounceOffCushions(ball);
+    });
+    for (let i = 0; i &lt; moving.length; i++) {
+        for (let j = i + 1; j &lt; moving.length; j++) {
+            collide(moving[i], moving[j]);
+        }
+    }
+}</code></pre>
+  <p>Every pair of balls is checked once: <code>j</code> starts at <code>i + 1</code>, so ball 3 is checked against 4, 5, 6... but not against 0, 1 and 2, which were checked already.</p>
+  <h2>Step 6: Aiming and power</h2>
+  <p>When all the balls have stopped, a line shows where the white ball will go: from its center towards the mouse. Pressing the button starts <code>charging</code>, and each step adds to the power, full after 1.5 seconds. Letting go shoots:</p>
+  <pre><code class="language-javascript">function shoot() {
+    const cue = cueBall();
+    const dx = mouseX - cue.x;
+    const dy = mouseY - cue.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance &gt; 0 &amp;&amp; power &gt; 0) {
+        cue.vx = dx / distance * power * MAX_SPEED;
+        cue.vy = dy / distance * power * MAX_SPEED;
+        shots++;
+    }
+    charging = false;
+    power = 0;
+}</code></pre>
+  <p>The mouse button only starts charging when <code>allStopped()</code>. In the first version you could shoot again while the balls were still rolling, and push the white ball around the table like a remote control car.</p>
+  <h2>Step 7: Pockets and rules</h2>
+  <p>A ball whose center gets within 22 pixels of a pocket's center falls in:</p>
+  <ul>
+    <li><strong>The white ball</strong> is a foul, and costs a point. It comes back to its start when everything has stopped.</li>
+    <li><strong>The 8</strong> ends the game. You win if you have a group and none of it is left on the table. Otherwise you lose.</li>
+    <li><strong>Any other ball</strong>: if you don't have a group yet, this ball decides it. A ball from your group is a point.</li>
+  </ul>
+  <h2>Step 8: Drawing a striped ball</h2>
+  <p>A stripe is a white ball with a band of color across the middle. <code>ctx.clip()</code> makes that easy: after it, everything drawn only shows inside the last shape:</p>
+  <pre><code class="language-javascript">ctx.save();
+ctx.beginPath();
+ctx.rect(ball.x - BALL_RADIUS, ball.y - BALL_RADIUS / 2, BALL_RADIUS * 2, BALL_RADIUS);
+ctx.clip();
+ctx.beginPath();
+ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+ctx.fillStyle = color;
+ctx.fill();
+ctx.restore();</code></pre>
+  <p>Clip to a band across the middle of the ball, then draw the whole colored ball: only the band shows. <code>save()</code> and <code>restore()</code> put the canvas back as it was, without the clip, so the next things drawn aren't cut off.</p>
+  <h2>Step 9: Test it</h2>
+  <ul>
+    <li>Shoot straight into a ball at rest. The white ball should almost stop, and the other roll on.</li>
+    <li>Break at full power. No ball should go through another, or leave the table.</li>
+    <li>Try to shoot while balls are moving. Nothing should happen.</li>
+    <li>Pot the white ball. It should come back when everything stops.</li>
+    <li>Pot the 8 early, and then play a whole game to the end.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>pool.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Pool&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        background-color: #2e7d32;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        border: 10px solid #5d4037;
+        border-radius: 10px;
+        box-sizing: border-box;
+        cursor: crosshair;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;canvas id="gameCanvas" width="800" height="400"&gt;&lt;/canvas&gt;
+
+  &lt;script&gt;
+    /*
+     * Pool: a game of 8-ball for one player. The first ball you pot decides
+     * your group: solids (1-7) or stripes (9-15). Pot all of your group, then
+     * the black 8. Pot the 8 too early and you lose.
+     *
+     *   mouse        aim (the line shows where the white ball goes)
+     *   hold button  build up power
+     *   let go       shoot
+     *   P / Esc      pause / menu
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;        // one update step, in milliseconds
+    const BALL_RADIUS = 10;
+    const POCKET_RADIUS = 22;
+    const FRICTION = 0.985;        // speed kept each step
+    const MAX_SPEED = 14;          // pixels a step at full power
+    const CHARGE_STEPS = 90;       // steps to build up full power
+    const CUE_START = { x: 200, y: 200 };
+
+    // The order of the balls in the triangle, row by row. The 8 is in the
+    // middle, and the two back corners are one solid and one stripe.
+    const RACK = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 15, 7];
+
+    const COLORS = [
+        "white", "#f2c500", "#1f4fd1", "#d42020", "#6a2c91", "#f07c00",
+        "#138a36", "#7a1f1f", "black"
+    ];
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // Six pockets: the four corners and the middle of the long sides.
+    const POCKETS = [
+        { x: 0, y: 0 }, { x: WIDTH / 2, y: 0 }, { x: WIDTH, y: 0 },
+        { x: 0, y: HEIGHT }, { x: WIDTH / 2, y: HEIGHT }, { x: WIDTH, y: HEIGHT }
+    ];
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, playing, paused, won, gameOver
+    let gameStarted = false;
+
+    let balls = [];        // { number, x, y, vx, vy, potted }
+    let group = null;      // null, "solids" or "stripes"
+    let score = 0;
+    let shots = 0;
+    let message = "";      // why the game ended
+
+    let mouseX = WIDTH / 2;
+    let mouseY = HEIGHT / 2;
+    let charging = false;
+    let power = 0;         // 0 to 1
+
+    // --- Starting ------------------------------------------------------------
+
+    function newBall(number, x, y) {
+        return { number: number, x: x, y: y, vx: 0, vy: 0, potted: false };
+    }
+
+    function newGame() {
+        balls = [newBall(0, CUE_START.x, CUE_START.y)];
+
+        // Five rows: 1 ball, then 2, 3, 4 and 5. Each row is a little further
+        // right, and half a ball lower at the top. The 1 px gap stops the balls
+        // from touching before the first shot.
+        let index = 0;
+        for (let row = 0; row &lt; 5; row++) {
+            for (let col = 0; col &lt;= row; col++) {
+                const x = 580 + row * (BALL_RADIUS * 2 * 0.87 + 1);
+                const y = HEIGHT / 2 + (col - row / 2) * (BALL_RADIUS * 2 + 1);
+                balls.push(newBall(RACK[index], x, y));
+                index++;
+            }
+        }
+
+        group = null;
+        score = 0;
+        shots = 0;
+        charging = false;
+        power = 0;
+        gameStarted = true;
+        screen = "playing";
+    }
+
+    // --- Helpers -------------------------------------------------------------
+
+    function cueBall() {
+        return balls[0];
+    }
+
+    function groupOf(number) {
+        if (number &gt;= 1 &amp;&amp; number &lt;= 7) {
+            return "solids";
+        }
+        if (number &gt;= 9) {
+            return "stripes";
+        }
+        return null;   // the white ball and the 8
+    }
+
+    function allStopped() {
+        return balls.every(function (ball) {
+            return ball.potted || (ball.vx === 0 &amp;&amp; ball.vy === 0);
+        });
+    }
+
+    function ballsLeft(whichGroup) {
+        return balls.filter(function (ball) {
+            return !ball.potted &amp;&amp; groupOf(ball.number) === whichGroup;
+        }).length;
+    }
+
+    // --- Shooting ------------------------------------------------------------
+
+    function shoot() {
+        const cue = cueBall();
+        const dx = mouseX - cue.x;
+        const dy = mouseY - cue.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance &gt; 0 &amp;&amp; power &gt; 0) {
+            cue.vx = dx / distance * power * MAX_SPEED;
+            cue.vy = dy / distance * power * MAX_SPEED;
+            shots++;
+        }
+        charging = false;
+        power = 0;
+    }
+
+    // --- Physics -------------------------------------------------------------
+
+    function bounceOffCushions(ball) {
+        if (ball.x &lt; BALL_RADIUS) {
+            ball.x = BALL_RADIUS;
+            ball.vx = Math.abs(ball.vx);
+        } else if (ball.x &gt; WIDTH - BALL_RADIUS) {
+            ball.x = WIDTH - BALL_RADIUS;
+            ball.vx = -Math.abs(ball.vx);
+        }
+        if (ball.y &lt; BALL_RADIUS) {
+            ball.y = BALL_RADIUS;
+            ball.vy = Math.abs(ball.vy);
+        } else if (ball.y &gt; HEIGHT - BALL_RADIUS) {
+            ball.y = HEIGHT - BALL_RADIUS;
+            ball.vy = -Math.abs(ball.vy);
+        }
+    }
+
+    // Two balls of the same weight hit each other.
+    function collide(a, b) {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance === 0 || distance &gt;= BALL_RADIUS * 2) {
+            return;
+        }
+
+        // nx, ny: one pixel long, pointing from a to b.
+        const nx = dx / distance;
+        const ny = dy / distance;
+
+        // Push them apart so they don't overlap.
+        const overlap = (BALL_RADIUS * 2 - distance) / 2;
+        a.x -= nx * overlap;
+        a.y -= ny * overlap;
+        b.x += nx * overlap;
+        b.y += ny * overlap;
+
+        // How fast they move towards each other, along the line between them.
+        const closing = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+        if (closing &lt;= 0) {
+            return;   // already moving apart
+        }
+
+        // Swap that part of their speeds: a gives it to b.
+        a.vx -= closing * nx;
+        a.vy -= closing * ny;
+        b.vx += closing * nx;
+        b.vy += closing * ny;
+    }
+
+    function checkPockets(ball) {
+        const inPocket = POCKETS.some(function (pocket) {
+            return Math.hypot(ball.x - pocket.x, ball.y - pocket.y) &lt; POCKET_RADIUS;
+        });
+        if (!inPocket) {
+            return;
+        }
+        ball.potted = true;
+        ball.vx = 0;
+        ball.vy = 0;
+
+        if (ball.number === 0) {
+            // The white ball: a foul. It comes back when everything stops.
+            score = Math.max(0, score - 1);
+        } else if (ball.number === 8) {
+            if (group !== null &amp;&amp; ballsLeft(group) === 0) {
+                score += 10;
+                message = "You potted the 8 in " + shots + " shots!";
+                screen = "won";
+            } else {
+                message = "The 8 went in too early.";
+                screen = "gameOver";
+            }
+        } else {
+            if (group === null) {
+                group = groupOf(ball.number);   // the first ball decides
+            }
+            if (groupOf(ball.number) === group) {
+                score++;
+            }
+        }
+    }
+
+    // --- Update --------------------------------------------------------------
+
+    // One step of the game: about 1/60 of a second. The balls move in two half
+    // steps, so a fast ball can't jump through another one.
+    function update() {
+        if (charging) {
+            power = Math.min(1, power + 1 / CHARGE_STEPS);
+        }
+
+        const moving = balls.filter(function (ball) {
+            return !ball.potted;
+        });
+        for (let half = 0; half &lt; 2; half++) {
+            moving.forEach(function (ball) {
+                ball.x += ball.vx / 2;
+                ball.y += ball.vy / 2;
+                bounceOffCushions(ball);
+            });
+            for (let i = 0; i &lt; moving.length; i++) {
+                for (let j = i + 1; j &lt; moving.length; j++) {
+                    collide(moving[i], moving[j]);
+                }
+            }
+        }
+
+        moving.forEach(function (ball) {
+            ball.vx *= FRICTION;
+            ball.vy *= FRICTION;
+            if (Math.hypot(ball.vx, ball.vy) &lt; 0.05) {
+                ball.vx = 0;
+                ball.vy = 0;
+            }
+            if (screen === "playing") {
+                checkPockets(ball);
+            }
+        });
+
+        // A potted white ball comes back when everything has stopped.
+        if (cueBall().potted &amp;&amp; allStopped()) {
+            const cue = cueBall();
+            cue.potted = false;
+            cue.x = CUE_START.x;
+            cue.y = CUE_START.y;
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawText(text, x, y, size, color, align) {
+        ctx.fillStyle = color || "white";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = align || "center";
+        ctx.fillText(text, x, y);
+    }
+
+    function drawBall(ball) {
+        // Stripes have the same colors as solids: 9 is like 1, 10 like 2...
+        const color = COLORS[ball.number &gt; 8 ? ball.number - 8 : ball.number];
+
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = ball.number &gt;= 9 ? "white" : color;
+        ctx.fill();
+
+        // A stripe: the colored ball, but only inside a band across the middle.
+        if (ball.number &gt;= 9) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(ball.x - BALL_RADIUS, ball.y - BALL_RADIUS / 2, BALL_RADIUS * 2, BALL_RADIUS);
+            ctx.clip();
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        if (ball.number &gt; 0) {
+            ctx.fillStyle = ball.number === 8 ? "white" : "black";
+            ctx.font = "9px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(ball.number, ball.x, ball.y + 1);
+            ctx.textBaseline = "alphabetic";
+        }
+    }
+
+    function drawWorld() {
+        ctx.fillStyle = "#1b5e20";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        ctx.fillStyle = "black";
+        POCKETS.forEach(function (pocket) {
+            ctx.beginPath();
+            ctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        balls.forEach(function (ball) {
+            if (!ball.potted) {
+                drawBall(ball);
+            }
+        });
+    }
+
+    function drawHud() {
+        const groupText = group === null ? "pot any ball" : group;
+        drawText("Score: " + score + "   Shots: " + shots + "   Your group: " + groupText, 30, 25, 16, "white", "left");
+
+        if (!allStopped()) {
+            return;
+        }
+
+        // The aiming line, from the white ball towards the mouse.
+        const cue = cueBall();
+        const dx = mouseX - cue.x;
+        const dy = mouseY - cue.y;
+        const distance = Math.hypot(dx, dy) || 1;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cue.x, cue.y);
+        ctx.lineTo(cue.x + dx / distance * 150, cue.y + dy / distance * 150);
+        ctx.stroke();
+
+        // The power bar.
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(30, HEIGHT - 30, 200, 12);
+        ctx.fillStyle = "#4caf50";
+        ctx.fillRect(30, HEIGHT - 30, 200 * power, 12);
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 50, 40, "yellow");
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 28, 18);
+        });
+    }
+
+    function draw() {
+        drawWorld();
+
+        if (screen === "menu") {
+            const lines = [
+                "Aim with the mouse. Hold the button for power, let go to shoot.",
+                "Pot your group, then the 8.",
+                "Press Enter to start"
+            ];
+            if (gameStarted) {
+                lines.push("Esc: back to the game");
+            }
+            drawMessage("Pool", lines);
+        } else if (screen === "playing") {
+            drawHud();
+        } else if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "won") {
+            drawMessage("You win!", [message, "Score: " + score, "Press Enter to play again"]);
+        } else if (screen === "gameOver") {
+            drawMessage("Game over", [message, "Press Enter to play again"]);
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // Run one update per 1/60 second, so the game has the same speed on
+    // every screen, then draw.
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        while (leftover &gt;= STEP) {
+            if (screen === "playing") {
+                update();
+            }
+            leftover -= STEP;
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Mouse and keyboard --------------------------------------------------
+
+    // The canvas can be shown smaller than 800x400 on a small screen. Convert
+    // from position on the screen to position in the canvas. clientLeft and
+    // clientWidth leave out the border around the canvas.
+    function canvasPosition(event) {
+        const box = canvas.getBoundingClientRect();
+        return {
+            x: (event.clientX - box.left - canvas.clientLeft) * (WIDTH / canvas.clientWidth),
+            y: (event.clientY - box.top - canvas.clientTop) * (HEIGHT / canvas.clientHeight)
+        };
+    }
+
+    canvas.addEventListener("mousemove", function (event) {
+        const position = canvasPosition(event);
+        mouseX = position.x;
+        mouseY = position.y;
+    });
+
+    // Only one shot at a time: wait until all the balls have stopped.
+    canvas.addEventListener("mousedown", function (event) {
+        if (screen === "playing" &amp;&amp; event.button === 0 &amp;&amp; allStopped() &amp;&amp; !cueBall().potted) {
+            event.preventDefault();
+            charging = true;
+            power = 0;
+        }
+    });
+
+    // On the whole window, so letting go outside the canvas still shoots.
+    window.addEventListener("mouseup", function () {
+        if (charging &amp;&amp; screen === "playing") {
+            shoot();
+        }
+        charging = false;
+        power = 0;
+    });
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+
+        if (screen === "menu") {
+            if (key === "Enter") {
+                newGame();
+            } else if (key === "Escape" &amp;&amp; gameStarted) {
+                screen = "paused";
+            }
+        } else if (screen === "playing") {
+            if (key === "p" || key === "P") {
+                screen = "paused";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "paused") {
+            if (key === "p" || key === "P") {
+                screen = "playing";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "won" || screen === "gameOver") {
+            if (key === "Enter") {
+                newGame();
+            } else if (key === "Escape") {
+                gameStarted = false;
+                screen = "menu";
+            }
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Make it a game for two players, who take turns and switch when a shot pots nothing.</li>
+    <li>Make the aiming line show where the white ball will hit the first ball.</li>
+    <li>Let the cushions take away a little speed, by multiplying the speed by 0.9 when a ball bounces.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

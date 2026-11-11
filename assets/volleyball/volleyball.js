@@ -1,633 +1,393 @@
-const colors = Object.freeze({
-  WHITE: "#ffffff",
-  BLACK: "#000000",
-  RED: "#ff0000",
-  BLUE: "#0000ff",
-  YELLOW: "#ffff00",
-  ORANGE: "#FFA500",
-  BEACH: "#e6cb9a",
-});
+/*
+ * Volleyball: two players, one on each side of the net. Bounce the ball
+ * over the net with your head. If the ball lands on your side, the other
+ * player gets the point and serves. First to five wins. Play against the
+ * computer, or against a friend on the same keyboard.
+ *
+ *   1 player    arrows or A / D to move, up or W to jump
+ *   2 players   left: A / D and W, right: arrows
+ *   P / Esc     pause / menu
+ */
 
-const gameStates = Object.freeze({
-  MENU: "MENU",
-  CONTROLLS: "CONTROLLS",
-  GAME: "GAME",
-  PAUSE: "PAUSE",
-  WINNER: "WINNER",
-  GAMEOVER: "GAMEOVER",
-});
+// --- Settings ------------------------------------------------------------
 
-const uiDisplay = {
-  canvas: document.getElementById("gameCanvas"),
-};
+const STEP = 1000 / 60;        // one update step, in milliseconds
+const WIN_SCORE = 5;
+const GROUND = 340;            // y of the sand
+const NET = { x: 400, top: 280, width: 10 };
+const PLAYER_RADIUS = 40;
+const PLAYER_SPEED = 5;
+const JUMP_SPEED = -8;
+const PLAYER_GRAVITY = 0.3;
+const BALL_RADIUS = 10;
+const BALL_GRAVITY = 0.15;
+const MAX_BALL_SPEED = 10;
+const SERVE_TIME = 60;         // steps the ball hangs still before a serve
 
-const ctx = uiDisplay.canvas.getContext("2d");
+// --- Canvas --------------------------------------------------------------
 
-const net = { x: 400, y: 340, width: 10, height: 50 };
-const gravity = 0.2;
-const ground = 340;
-let playerOne = getPlayer(200, colors.RED);
-let playerTwo = getPlayer(600, colors.BLUE);
-let ball = getBall(colors.ORANGE);
-let servingPlayer = playerTwo;
-let isTwoPlayer = false;
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
 
-const menuItems = ["1 Player", "2 Player", "Controlls"];
-let gameStarted = false;
-let gameState = gameStates.MENU;
+// --- State ---------------------------------------------------------------
+
+let screen = "menu";   // menu, controls, playing, paused, gameOver
 let menuIndex = 0;
+let gameStarted = false;
+let twoPlayers = false;
 
-function initGame() {
-  playerOne = getPlayer(200, colors.RED);
-  playerTwo = getPlayer(600, colors.BLUE);
-  ball = getBall(colors.ORANGE);
-  serveBall(servingPlayer);
+// Each player can move between minX and maxX: their own half.
+const left = { x: 200, y: GROUND, dy: 0, score: 0, color: "#e53935", minX: PLAYER_RADIUS, maxX: NET.x - NET.width / 2 - PLAYER_RADIUS };
+const right = { x: 600, y: GROUND, dy: 0, score: 0, color: "#1e88e5", minX: NET.x + NET.width / 2 + PLAYER_RADIUS, maxX: WIDTH - PLAYER_RADIUS };
+const ball = { x: 0, y: 0, dx: 0, dy: 0 };
+let serveTimer = 0;
+
+const keys = {};       // keys held down right now
+
+const MENU_ITEMS = ["1 player", "2 players", "Controls"];
+
+// --- Starting ------------------------------------------------------------
+
+function newGame(withTwoPlayers) {
+    twoPlayers = withTwoPlayers;
+    left.score = 0;
+    right.score = 0;
+    gameStarted = true;
+    serve(Math.random() < 0.5 ? left : right);
+    screen = "playing";
 }
 
-function getPlayer(x, color) {
-  return {
-    x: x,
-    y: 340,
-    radius: 45,
-    dx: 0,
-    dy: 0,
-    speed: 5,
-    jumpPower: -7,
-    onGround: true,
-    score: 0,
-    color: color,
-  };
-}
-
-function getBall(color) {
-  return {
-    x: 400,
-    y: 200,
-    radius: 10,
-    dx: 3,
-    dy: -5,
-    gravity: 0.2,
-    active: true,
-    color,
-    color,
-  };
-}
-
-function updateGame() {
-  ballMove();
-  ballCheckGroundCollision() && checkWinner();
-  ballCheckNetCollision();
-  playerOneMove();
-  isTwoPlayer ? playerTwoMove() : aiMove(playerTwo);
-  checkCollision(playerOne) && handleCollision(playerOne, ball);
-  checkCollision(playerTwo) && handleCollision(playerTwo, ball);
-}
-
-function ballMove() {
-  if (!ball.active) return;
-
-  ball.x += ball.dx;
-  ball.y += ball.dy;
-  ball.dy += ball.gravity;
-
-  if (
-    ball.x - ball.radius < 0 ||
-    ball.x + ball.radius > uiDisplay.canvas.width
-  ) {
-    ball.dx *= -1;
-  }
-}
-
-function ballCheckNetCollision() {
-  const netLeft = net.x - net.width / 2;
-  const netRight = net.x + net.width / 2;
-  const netTop = net.y - net.height;
-  const netBottom = net.y;
-
-  if (
-    ball.x + ball.radius > netLeft &&
-    ball.x - ball.radius < netRight &&
-    ball.y + ball.radius > netTop &&
-    ball.y - ball.radius < netBottom
-  ) {
-    // Simple bounce
-    ball.dx *= -1;
-    ball.dy *= -1;
-
-    // Push the ball outside the net to prevent getting stuck
-    if (ball.x < net.x) {
-      ball.x = netLeft - ball.radius;
-    } else {
-      ball.x = netRight + ball.radius;
-    }
-  }
-}
-
-function ballCheckGroundCollision() {
-  let givePoint = ball.active && ball.y + ball.radius >= ground;
-  if (givePoint) {
-    if (ball.x < net.x) {
-      ball.active = false;
-      playerTwo.score++;
-      serveBall(playerTwo);
-    } else {
-      ball.active = false;
-      playerOne.score++;
-      serveBall(playerOne);
-    }
-  }
-  return givePoint;
-}
-
-function checkWinner() {
-  if (!isTwoPlayer && playerTwo.score >= 5) {
-    gameState = gameStates.GAMEOVER;
-  } else if (playerOne.score >= 5 || playerTwo.score >= 5) {
-    gameState = gameStates.WINNER;
-  }
-}
-
-function playerOneMove() {
-  playerMove(playerOne);
-  if (playerOne.x + playerOne.radius > net.x - net.width / 2) {
-    playerOne.x = net.x - net.width / 2 - playerOne.radius;
-  }
-}
-
-function playerTwoMove() {
-  playerMove(playerTwo);
-  if (playerTwo.x - playerTwo.radius < net.x + net.width / 2) {
-    playerTwo.x = net.x + net.width / 2 + playerTwo.radius;
-  }
-}
-
-function playerMove(player) {
-  player.x += player.dx;
-  player.y += player.dy;
-  player.dy += gravity;
-
-  if (player.y >= ground) {
-    player.y = ground;
-    player.dy = 0;
-    player.onGround = true;
-  }
-
-  if (player.x - player.radius < 0) player.x = player.radius;
-  if (player.x + player.radius > uiDisplay.canvas.width) {
-    player.x = uiDisplay.canvas.width - player.radius;
-  }
-}
-
-function aiMove(player) {
-  if (ball.x < net.x) return;
-  if (ball.x > net.x + 50 && ball.x < uiDisplay.canvas.width - 50) {
-    player.x += ball.x > player.x ? player.speed : -player.speed;
-
-    if (ball.y < player.y - 10 && player.onGround) {
-      player.dy = player.jumpPower;
-      player.onGround = false;
-    }
-  }
-
-  player.y += player.dy;
-  player.dy += gravity;
-
-  if (player.y >= ground) {
-    player.y = ground;
-    player.dy = 0;
-    player.onGround = true;
-  }
-
-  if (player.onGround) {
-    player.dy = playerTwo.jumpPower;
-    player.onGround = false;
-    player.hitCount = 0;
-  }
-}
-
-function checkCollision(player) {
-  let dist = Math.hypot(
-    ball.x - player.x,
-    ball.y - (player.y - player.radius / 2)
-  ); // Adjust height of player hitbox
-  return dist < player.radius + ball.radius;
-}
-
-function handleCollision(player) {
-  let angle = Math.atan2(
-    ball.y - player.y,
-    ball.x - (player.x + (ball.x > player.x ? 20 : -20))
-  );
-  ball.dx = Math.cos(angle) * 7;
-  ball.dy = Math.sin(angle) * 9;
-}
-
-function serveBall(player) {
-  setTimeout(() => {
+// The ball hangs still above the server for a second, then drops.
+function serve(player) {
+    left.x = 200;
+    right.x = 600;
     ball.x = player.x;
-    ball.y = 20;
+    ball.y = 100;
     ball.dx = 0;
     ball.dy = 0;
-    servingPlayer = player;
-  }, 100);
-
-  setTimeout(() => (ball.active = true), 1000);
+    serveTimer = SERVE_TIME;
 }
 
-function drawPlayer(player) {
-  ctx.fillStyle = player.color;
-  ctx.beginPath();
-  ctx.arc(player.x, player.y, player.radius, Math.PI, 0);
-  ctx.fill();
+// --- Players -------------------------------------------------------------
+
+function anyHeld(list) {
+    return list.some(function (key) {
+        return keys[key];
+    });
 }
 
-function drawBall() {
-  ctx.fillStyle = ball.color;
-  ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-  ctx.fill();
+// Move left or right, jump, and fall back down.
+function movePlayer(player, goLeft, goRight, jump) {
+    if (goLeft) {
+        player.x -= PLAYER_SPEED;
+    }
+    if (goRight) {
+        player.x += PLAYER_SPEED;
+    }
+    player.x = Math.min(player.maxX, Math.max(player.minX, player.x));
+
+    if (jump && player.y === GROUND) {
+        player.dy = JUMP_SPEED;
+    }
+    player.y += player.dy;
+    player.dy += PLAYER_GRAVITY;
+    if (player.y >= GROUND) {
+        player.y = GROUND;
+        player.dy = 0;
+    }
 }
 
-function drawGame() {
-  ctx.clearRect(0, 0, uiDisplay.canvas.width, uiDisplay.canvas.height);
-
-  ctx.fillStyle = colors.BEACH;
-  ctx.fillRect(0, ground, uiDisplay.canvas.width, uiDisplay.canvas.height);
-
-  ctx.fillStyle = colors.BLACK;
-  ctx.fillRect(
-    net.x - net.width / 2,
-    net.y - net.height,
-    net.width,
-    net.height
-  );
-
-  drawPlayer(playerOne);
-  drawPlayer(playerTwo);
-  drawBall();
+// The computer stands a little to the right of the ball, so the ball
+// bounces off its left side, towards the net. It jumps when the ball is
+// coming down close above it.
+function moveComputer(player) {
+    let target = 600;   // its place when the ball is on the other side
+    if (ball.x > NET.x) {
+        target = ball.x + 15;
+    }
+    const goLeft = player.x > target + 3;
+    const goRight = player.x < target - 3;
+    const above = Math.abs(ball.x - player.x) < 50 && ball.y < player.y - 50 && ball.y > player.y - 160;
+    movePlayer(player, goLeft, goRight, above && ball.dy > 0);
 }
 
-function drawScoreCircles(start, player) {
-  for (let i = 0; i < 5; i++) {
-    ctx.fillStyle = colors.WHITE;
+// --- The ball ------------------------------------------------------------
 
-    if (i + 1 <= player.score) {
-      ctx.fillStyle = colors.YELLOW;
+// Bounce off a player's round head. Push the ball out of the head, turn
+// its speed around along the line from the head's center, and add some of
+// the player's own movement, so a jumping player hits harder.
+function bounceOffPlayer(player) {
+    const dx = ball.x - player.x;
+    const dy = ball.y - player.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance >= PLAYER_RADIUS + BALL_RADIUS || dy > 0 || distance === 0) {
+        return;
+    }
+    const nx = dx / distance;
+    const ny = dy / distance;
+    ball.x = player.x + nx * (PLAYER_RADIUS + BALL_RADIUS);
+    ball.y = player.y + ny * (PLAYER_RADIUS + BALL_RADIUS);
+
+    const along = ball.dx * nx + ball.dy * ny;
+    if (along < 0) {
+        ball.dx -= 2 * along * nx;
+        ball.dy -= 2 * along * ny;
+    }
+    ball.dy += player.dy * 0.5;
+    ball.dx += nx * 2;
+    ball.dy += ny * 2;
+
+    const speed = Math.hypot(ball.dx, ball.dy);
+    if (speed > MAX_BALL_SPEED) {
+        ball.dx *= MAX_BALL_SPEED / speed;
+        ball.dy *= MAX_BALL_SPEED / speed;
+    }
+}
+
+function bounceOffNet() {
+    const netLeft = NET.x - NET.width / 2 - BALL_RADIUS;
+    const netRight = NET.x + NET.width / 2 + BALL_RADIUS;
+    if (ball.x < netLeft || ball.x > netRight || ball.y < NET.top - BALL_RADIUS) {
+        return;
+    }
+    if (ball.y < NET.top) {
+        ball.dy = -Math.abs(ball.dy);   // on top of the net: up
+    } else if (ball.x < NET.x) {
+        ball.x = netLeft;               // the left side: back left
+        ball.dx = -Math.abs(ball.dx);
+    } else {
+        ball.x = netRight;
+        ball.dx = Math.abs(ball.dx);
+    }
+}
+
+function moveBall() {
+    if (serveTimer > 0) {
+        serveTimer--;
+        return;
+    }
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+    ball.dy += BALL_GRAVITY;
+
+    // The side walls: set the direction away from the wall.
+    if (ball.x < BALL_RADIUS) {
+        ball.dx = Math.abs(ball.dx);
+    } else if (ball.x > WIDTH - BALL_RADIUS) {
+        ball.dx = -Math.abs(ball.dx);
     }
 
-    start = start + 30;
+    bounceOffNet();
+    bounceOffPlayer(left);
+    bounceOffPlayer(right);
+
+    // On the ground: a point to the other side, who serves next.
+    if (ball.y > GROUND - BALL_RADIUS) {
+        const winner = ball.x < NET.x ? right : left;
+        winner.score++;
+        if (winner.score === WIN_SCORE) {
+            screen = "gameOver";
+        } else {
+            serve(winner);
+        }
+    }
+}
+
+// --- Update --------------------------------------------------------------
+
+function update() {
+    if (twoPlayers) {
+        movePlayer(left, anyHeld(["a", "A"]), anyHeld(["d", "D"]), anyHeld(["w", "W"]));
+        movePlayer(right, keys.ArrowLeft, keys.ArrowRight, keys.ArrowUp);
+    } else {
+        movePlayer(left, anyHeld(["a", "A", "ArrowLeft"]), anyHeld(["d", "D", "ArrowRight"]), anyHeld(["w", "W", "ArrowUp"]));
+        moveComputer(right);
+    }
+    moveBall();
+}
+
+// --- Drawing -------------------------------------------------------------
+
+function drawText(text, x, y, size, color) {
+    ctx.fillStyle = color || "white";
+    ctx.font = size + "px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(text, x, y);
+}
+
+// Five dots for each player, filled in for each point.
+function drawScore(player, startX) {
+    for (let i = 0; i < WIN_SCORE; i++) {
+        ctx.fillStyle = i < player.score ? "yellow" : "rgba(255, 255, 255, 0.5)";
+        ctx.beginPath();
+        ctx.arc(startX + i * 30, 40, 10, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawWorld() {
+    // Sky and sand.
+    ctx.fillStyle = "#87ceeb";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillStyle = "#e6cb9a";
+    ctx.fillRect(0, GROUND, WIDTH, HEIGHT - GROUND);
+
+    ctx.fillStyle = "#333333";
+    ctx.fillRect(NET.x - NET.width / 2, NET.top, NET.width, GROUND - NET.top);
+
+    if (!gameStarted) {
+        return;
+    }
+
+    // The players are half circles standing on the ground.
+    [left, right].forEach(function (player) {
+        ctx.fillStyle = player.color;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, PLAYER_RADIUS, Math.PI, 0);
+        ctx.fill();
+    });
+
+    ctx.fillStyle = "orange";
     ctx.beginPath();
-    ctx.arc(start, 40, 10, 0, Math.PI * 2);
+    ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
     ctx.fill();
-  }
+
+    drawScore(left, 40);
+    drawScore(right, WIDTH - 40 - (WIN_SCORE - 1) * 30);
+}
+
+function drawMessage(title, lines) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    drawText(title, WIDTH / 2, HEIGHT / 2 - 50, 40, "yellow");
+    lines.forEach(function (line, index) {
+        drawText(line, WIDTH / 2, HEIGHT / 2 + index * 28, 20);
+    });
 }
 
 function drawMenu() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.font = "60px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(
-    "Volleyball",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 50
-  );
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    drawText("Volleyball", WIDTH / 2, HEIGHT / 2 - 60, 60);
+    MENU_ITEMS.forEach(function (item, index) {
+        const color = index === menuIndex ? "yellow" : "white";
+        drawText(item, WIDTH / 2, HEIGHT / 2 + index * 40, 24, color);
+    });
+    drawText("Arrow keys and Enter to choose", WIDTH / 2, HEIGHT - 40, 16);
+    if (gameStarted) {
+        drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 18, 16);
+    }
+}
 
-  const startY = uiDisplay.canvas.height / 2 + 20;
-  const lineHeight = 50;
+function winnerText() {
+    if (!twoPlayers) {
+        return left.score === WIN_SCORE ? "You win!" : "The computer wins";
+    }
+    return left.score === WIN_SCORE ? "Red wins!" : "Blue wins!";
+}
 
-  menuItems.forEach((text, index) => {
-    if (menuIndex === index) {
-      ctx.fillStyle = colors.YELLOW;
-    } else {
-      ctx.fillStyle = colors.WHITE;
+function draw() {
+    drawWorld();
+
+    if (screen === "menu") {
+        drawMenu();
+    } else if (screen === "controls") {
+        drawMessage("Controls", [
+            "1 player: arrows or A / D to move, up or W to jump",
+            "2 players: left A / D and W, right arrows",
+            "Pause: P      Menu: Esc",
+            "",
+            "Esc: back"
+        ]);
+    } else if (screen === "paused") {
+        drawMessage("Pause", ["Press P to go on"]);
+    } else if (screen === "gameOver") {
+        drawMessage(winnerText(), [left.score + " - " + right.score, "Press Enter to play again", "Press Esc for the menu"]);
+    }
+}
+
+// --- The loop ------------------------------------------------------------
+
+// Run one update per 1/60 second, so the game has the same speed on
+// every screen, then draw.
+let lastTime = performance.now();
+let leftover = 0;
+
+function gameLoop(now) {
+    leftover += Math.min(now - lastTime, 250);
+    lastTime = now;
+
+    while (leftover >= STEP) {
+        if (screen === "playing") {
+            update();
+        }
+        leftover -= STEP;
     }
 
-    ctx.font = "20px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText(text, uiDisplay.canvas.width / 2, startY + index * lineHeight);
-  });
+    draw();
+    requestAnimationFrame(gameLoop);
 }
 
-function drawControlls() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.font = "40px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(
-    "Controlls",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 100
-  );
-
-  ctx.font = "20px Arial";
-
-  ctx.fillText(
-    "Pause:",
-    uiDisplay.canvas.width / 2 - 100,
-    uiDisplay.canvas.height / 2 + 50
-  );
-  ctx.fillText(
-    "P",
-    uiDisplay.canvas.width / 2 + 100,
-    uiDisplay.canvas.height / 2 + 50
-  );
-
-  ctx.fillText(
-    "Back to Menu:",
-    uiDisplay.canvas.width / 2 - 100,
-    uiDisplay.canvas.height / 2 + 75
-  );
-  ctx.fillText(
-    "ESC",
-    uiDisplay.canvas.width / 2 + 100,
-    uiDisplay.canvas.height / 2 + 75
-  );
-
-  ctx.fillText(
-    "Move left",
-    uiDisplay.canvas.width / 2 - 100,
-    uiDisplay.canvas.height / 2 + 125
-  );
-  ctx.fillText(
-    "Arrow left",
-    uiDisplay.canvas.width / 2 + 100,
-    uiDisplay.canvas.height / 2 + 125
-  );
-
-  ctx.fillText(
-    "Move right",
-    uiDisplay.canvas.width / 2 - 100,
-    uiDisplay.canvas.height / 2 + 150
-  );
-  ctx.fillText(
-    "Arrow right",
-    uiDisplay.canvas.width / 2 + 100,
-    uiDisplay.canvas.height / 2 + 150
-  );
-}
-
-function drawPause() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.textAlign = "center";
-  ctx.font = "40px Arial";
-  ctx.fillText(
-    "Pause",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2
-  );
-}
-
-function drawWinner() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.textAlign = "center";
-  ctx.font = "40px Arial";
-  let winner = "Red Player Wins!";
-  if (playerTwo.score >= 5) {
-    winner = "Blue Player Wins!";
-  }
-  ctx.fillText(
-    winner,
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 100
-  );
-  ctx.font = "20px Arial";
-  ctx.fillText(
-    "Press enter to play again",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 50
-  );
-  ctx.fillText(
-    "Press esc to go to menu",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 20
-  );
-}
-
-function drawGameOver() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.textAlign = "center";
-  ctx.font = "40px Arial";
-  ctx.fillText(
-    "Game Over",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 100
-  );
-  ctx.font = "20px Arial";
-  ctx.fillText(
-    "Press enter to play again",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 50
-  );
-  ctx.fillText(
-    "Press esc to go to menu",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 20
-  );
-}
-
-function drawUI() {
-  switch (gameState) {
-    case gameStates.MENU:
-      drawGame();
-      drawMenu();
-      break;
-    case gameStates.CONTROLLS:
-      drawGame();
-      drawControlls();
-      break;
-    case gameStates.GAME:
-      updateGame();
-      drawGame();
-      drawScoreCircles(80, playerOne);
-      drawScoreCircles(500, playerTwo);
-      break;
-    case gameStates.PAUSE:
-      drawGame();
-      drawScoreCircles(80, playerOne);
-      drawScoreCircles(500, playerTwo);
-      drawPause();
-      break;
-    case gameStates.WINNER:
-      drawGame();
-      drawWinner();
-      break;
-    case gameStates.GAMEOVER:
-      drawGame();
-      drawGameOver();
-      break;
-  }
-}
-
-function gameLoop() {
-  try {
-    drawUI();
-  } catch (error) {
-    console.error(error);
-  }
-  requestAnimationFrame(gameLoop);
-}
-
-document.addEventListener("keyup", (e) => {
-  const key = e.key.toLowerCase();
-  switch (key) {
-    case "arrowleft":
-      playerOne.dx = 0;
-      break;
-
-    case "arrowright":
-      playerOne.dx = 0;
-      break;
-
-    case "a":
-      isTwoPlayer && (playerTwo.dx = 0);
-      break;
-
-    case "d":
-      isTwoPlayer && (playerTwo.dx = 0);
-      break;
-  }
-});
+// --- Keyboard ------------------------------------------------------------
 
 document.addEventListener("keydown", function (event) {
-  const key = event.key.toLowerCase();
-  switch (gameState) {
-    case gameStates.GAME:
-      pressGame(key);
-      break;
-    case gameStates.PAUSE:
-      pressPause(key);
-      break;
-    case gameStates.WINNER:
-      pressWinner(key);
-      break;
-    case gameStates.GAMEOVER:
-      pressGameOver(key);
-      break;
-    case gameStates.MENU:
-      pressMenu(key);
-      break;
-    case gameStates.CONTROLLS:
-      pressControlls(key);
-      break;
-  }
+    const key = event.key;
+    keys[key] = true;
+
+    if (screen === "menu") {
+        if (key === "ArrowUp") {
+            menuIndex = (menuIndex + MENU_ITEMS.length - 1) % MENU_ITEMS.length;
+        } else if (key === "ArrowDown") {
+            menuIndex = (menuIndex + 1) % MENU_ITEMS.length;
+        } else if (key === "Enter") {
+            const item = MENU_ITEMS[menuIndex];
+            if (item === "Controls") {
+                screen = "controls";
+            } else {
+                newGame(item === "2 players");
+            }
+        } else if (key === "Escape" && gameStarted) {
+            screen = "paused";
+        }
+    } else if (screen === "controls") {
+        if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "playing") {
+        if (key === "p" || key === "P") {
+            screen = "paused";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "paused") {
+        if (key === "p" || key === "P") {
+            screen = "playing";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "gameOver") {
+        if (key === "Enter") {
+            newGame(twoPlayers);
+        } else if (key === "Escape") {
+            gameStarted = false;
+            screen = "menu";
+        }
+    }
 });
 
-function pressMenu(key) {
-  switch (key) {
-    case "arrowup":
-      menuIndex = menuIndex - 1 < 0 ? menuItems.length - 1 : menuIndex - 1;
-      break;
-    case "arrowdown":
-      menuIndex = menuIndex + 1 > menuItems.length - 1 ? 0 : menuIndex + 1;
-      break;
-    case "escape":
-      gameStarted && (gameState = gameStates.GAME);
-      break;
-    case "enter":
-      if (menuItems[menuIndex] === "Controlls") {
-        gameState = gameStates.CONTROLLS;
-      } else if (menuItems[menuIndex] === "1 Player") {
-        gameState = gameStates.GAME;
-        isTwoPlayer = false;
-        gameStarted = true;
-        serveBall(playerOne);
-      } else if (menuItems[menuIndex] === "2 Player") {
-        gameState = gameStates.GAME;
-        isTwoPlayer = true;
-        gameStarted = true;
-        serveBall(playerOne);
-      }
-  }
-}
+document.addEventListener("keyup", function (event) {
+    keys[event.key] = false;
+});
 
-function pressControlls(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      break;
-  }
-}
+// If the window loses focus while a key is held, we never get its keyup.
+window.addEventListener("blur", function () {
+    for (const key in keys) {
+        keys[key] = false;
+    }
+});
 
-function pressGame(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      break;
+// --- Start ---------------------------------------------------------------
 
-    case "p":
-      gameState = gameStates.PAUSE;
-      break;
-
-    case "arrowleft":
-      playerOne.dx = -playerOne.speed;
-      break;
-
-    case "arrowright":
-      playerOne.dx = playerOne.speed;
-      break;
-
-    case "arrowup":
-      if (playerOne.onGround) {
-        playerOne.dy = playerOne.jumpPower;
-        playerOne.onGround = false;
-      }
-      break;
-    case "a":
-      isTwoPlayer && (playerTwo.dx = -playerTwo.speed);
-      break;
-
-    case "d":
-      isTwoPlayer && (playerTwo.dx = playerTwo.speed);
-      break;
-
-    case "w":
-      if (isTwoPlayer && playerTwo.onGround) {
-        playerTwo.dy = playerTwo.jumpPower;
-        playerTwo.onGround = false;
-      }
-      break;
-  }
-}
-
-function pressPause(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      break;
-
-    case "p":
-      gameState = gameStates.GAME;
-      break;
-  }
-}
-
-function pressWinner(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      gameStarted = false;
-      break;
-
-    case "enter":
-      gameState = gameStates.GAME;
-      gameStarted = true;
-      initGame();
-      break;
-  }
-}
-
-function pressGameOver(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      gameStarted = false;
-      break;
-
-    case "enter":
-      gameState = gameStates.GAME;
-      gameStarted = true;
-      initGame();
-      break;
-  }
-}
-
-gameLoop();
+requestAnimationFrame(gameLoop);

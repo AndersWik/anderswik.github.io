@@ -38,6 +38,23 @@ js:
 
     </div>
   </div>
+  <form class="row mt-5 text-start" method="get">
+    <div class="col-sm-12 col-md-4 mt-2">
+      <label class="form-label" for="to">Count down to</label>
+      <input class="form-control" type="datetime-local" id="to" name="to" required>
+    </div>
+    <div class="col-sm-12 col-md-4 mt-2">
+      <label class="form-label" for="title">Title</label>
+      <input class="form-control" type="text" id="title" name="title">
+    </div>
+    <div class="col-sm-12 col-md-4 mt-2">
+      <label class="form-label" for="url">Image when done</label>
+      <input class="form-control" type="url" id="url" name="url" placeholder="https://">
+    </div>
+    <div class="col-12 mt-3 text-center">
+      <button class="btn btn-secondary" type="submit">Start countdown</button>
+    </div>
+  </form>
   <div class="container mt-3">
     <div class="row">
       <div class="col">
@@ -51,9 +68,10 @@ js:
             </h2>
             <div id="how-to-percent-x" class="accordion-collapse collapse" data-bs-parent="#how-to-percent">
               <div class="accordion-body">
-                <p class="text-start">The to parameter in the url should have the format 1999-12-31T23:59:00</p>
-                <p class="text-start">The title parameter in the url should is for displaying a title on the page</p>
-                <p class="text-start">The url parameter in the url is for displaying an image when the countdown is finished</p>
+                <p class="text-start">Fill in the form below, or add the settings to the address yourself, e.g. ?to=2026-12-24T15:00&amp;title=Christmas</p>
+                <p class="text-start"><strong>to</strong> is the date and time to count down to, written like 1999-12-31T23:59:00</p>
+                <p class="text-start"><strong>title</strong> is a title to show on the page</p>
+                <p class="text-start"><strong>url</strong> is the address of an image to show when the countdown is finished</p>
               </div>
             </div>
           </div>
@@ -61,4 +79,5 @@ js:
       </div>
     </div>
   </div>
+  <p class="mt-5 text-center"><a href="/tutorials/countdown/">How to build this app</a></p>
 </div>

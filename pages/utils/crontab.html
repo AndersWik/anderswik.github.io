@@ -2,6 +2,7 @@
 layout: default
 title: Crontab
 permalink: /utils/crontab/
+nonav: true
 css:
   - /assets/crontab/crontab.css
 js:
@@ -28,10 +29,10 @@ js:
   <div class="row mt-3">
     <div class="col-sm-12">
       <p id="minute-header" class="header">minute</p>
-      <p id="hour-header" class="header" style="display:none;">hour</p>
-      <p id="day-month-header" class="header" style="display:none;">day (month)</p>
-      <p id="month-header" class="header" style="display:none;">month</p>
-      <p id="day-week-header" class="header" style="display:none;">day (week)</p>
+      <p id="hour-header" class="header" hidden>hour</p>
+      <p id="day-month-header" class="header" hidden>day (month)</p>
+      <p id="month-header" class="header" hidden>month</p>
+      <p id="day-week-header" class="header" hidden>day (week)</p>
     </div>
   </div>
   <div class="row mt-3">
@@ -76,12 +77,12 @@ js:
         <tr>
           <td class="col-sm-3">/</td>
           <td class="col-sm-9 text-left">
-            <p>Step can be used with ranges or *. Adding / and a number after a range will step over minutes. Ranges with step are defined first-last/step. It will run at first then step too next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
+            <p>Step can be used with ranges or *. Adding / and a number after a range will step over minutes. Ranges with step are defined first-last/step. It will run at first then step to next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
           </td>
         </tr>
       </table>
     </div>
-    <div class="col-sm-12 bw pt-3" id="hour-txt" style="display:none;">
+    <div class="col-sm-12 bw pt-3" id="hour-txt" hidden>
       <table class="table table-striped text-left">
         <tr>
           <td class="col-sm-3">
@@ -109,7 +110,9 @@ js:
         </tr>
         <tr>
           <td class="col-sm-3">~</td>
-          <td class="col-sm-9 text-left">We can randomize execution in a range with ~.<br>Range ex: 4~6</td>
+          <td class="col-sm-9 text-left">
+            <p>We can randomize execution in a range with ~.<br>Range ex: 4~6</p>
+          </td>
         </tr>
         <tr>
           <td class="col-sm-3">,</td>
@@ -124,12 +127,12 @@ js:
             <p>/</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Step can be used with ranges or *. Adding / and a number after a range will step over hours. Ranges with step are defined first-last/step. It will run at first then step too next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
+            <p>Step can be used with ranges or *. Adding / and a number after a range will step over hours. Ranges with step are defined first-last/step. It will run at first then step to next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
           </td>
         </tr>
       </table>
     </div>
-    <div class="col-sm-12 bw pt-3" id="day-month-txt" style="display:none;">
+    <div class="col-sm-12 bw pt-3" id="day-month-txt" hidden>
       <table class="table table-striped text-left">
         <tr>
           <td class="col-sm-3">
@@ -174,14 +177,14 @@ js:
             <p>/</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Step can be used with ranges or *. Adding / and a number after a range will step over days. Ranges with step are defined first-last/step. It will run at first then step too next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
+            <p>Step can be used with ranges or *. Adding / and a number after a range will step over days. Ranges with step are defined first-last/step. It will run at first then step to next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
           </td>
         </tr>
         <tr>
           <td class="col-sm-3">
             <p>?</p></td>
           <td class="col-sm-9 text-left">
-            <p>Is any</p>
+            <p>Any value. Used in one of the two day fields when the other one is set.</p>
           </td>
         </tr>
         <tr>
@@ -189,7 +192,7 @@ js:
             <p>W</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Weekday<br>Example 11W</p>
+            <p>The weekday (Monday-Friday) closest to a day<br>Example 11W. LW is the last weekday of the month.</p>
           </td>
         </tr>
         <tr>
@@ -197,20 +200,12 @@ js:
             <p>L</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Last day of month<br>Example 31 of December. We can offset the value L-1 would be 30th of December</p>
-          </td>
-        </tr>
-        <tr>
-          <td class="col-sm-3">
-            <p>#</p>
-          </td>
-          <td class="col-sm-9 text-left">
-            <p>N-th day of month. Can be used to specify a weekday in month<br>Example 1#3 is the third monday of the month.</p>
+            <p>Last day of month<br>Example 31 of December. We can offset the value, L-1 would be 30th of December</p>
           </td>
         </tr>
       </table>
     </div>
-    <div class="col-sm-12 bw pt-3" id="month-txt" style="display:none;">
+    <div class="col-sm-12 bw pt-3" id="month-txt" hidden>
       <table class="table table-striped text-left">
         <tr>
           <td class="col-sm-3">
@@ -264,12 +259,12 @@ js:
             <p>/</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Step can be used with ranges or *. Adding / and a number after a range will step over months. Ranges with step are defined first-last/step. It will run at first then step too next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
+            <p>Step can be used with ranges or *. Adding / and a number after a range will step over months. Ranges with step are defined first-last/step. It will run at first then step to next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
           </td>
         </tr>
       </table>
     </div>
-    <div class="col-sm-12 bw pt-3" id="day-week-txt" style="display:none;">
+    <div class="col-sm-12 bw pt-3" id="day-week-txt" hidden>
       <table class="table table-striped">
         <tr>
           <td class="col-sm-3">
@@ -315,13 +310,14 @@ js:
             <p>Lists are numbers separated by commas.<br>Example: 3,5,7</p>
             <p>On many systems we can use ranges in a list<br>Example: 3-5,7-9</p>
             <p>Ranges in list will not work on BSD cron. There we can only use list or range.</p>
+          </td>
         </tr>
         <tr>
           <td class="col-sm-3">
             <p>/</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Step can be used with ranges or *. Adding / and a number after a range will step over days. Ranges with step are defined first-last/step. It will run at first then step too next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
+            <p>Step can be used with ranges or *. Adding / and a number after a range will step over days. Ranges with step are defined first-last/step. It will run at first then step to next until it reaches the last one.<br>Example 1-10/2 Will run 1,3,5,7,9</p>
           </td>
         </tr>
         <tr>
@@ -329,7 +325,7 @@ js:
             <p>?</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Is any</p>
+            <p>Any value. Used in one of the two day fields when the other one is set.</p>
           </td>
         </tr>
         <tr>
@@ -337,7 +333,15 @@ js:
             <p>L</p>
           </td>
           <td class="col-sm-9 text-left">
-            <p>Last of week, L would be Sunday. 1L would be Monday (This may differ, Sunday is 7 on some systems and 0 on other.)</p>
+            <p>On its own L is the last day of the week. After a day it means the last one of the month<br>Example 5L is the last Friday of the month.</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="col-sm-3">
+            <p>#</p>
+          </td>
+          <td class="col-sm-9 text-left">
+            <p>The N-th weekday of the month, written day#N<br>Example 1#3 is the third Monday of the month.</p>
           </td>
         </tr>
       </table>
@@ -345,8 +349,8 @@ js:
   </div>
   <div class="row bw mt-3">
     <div class="col-sm-12 col-md-6">
-      <p class="mt-3">None Standard Options</p>
-      <p>The `@' commands that appear in place of the first five fields are extensions.</p>
+      <p class="mt-3">Non-standard options</p>
+      <p>The @ commands that appear in place of the first five fields are extensions.</p>
       <table class="table table-striped">
         <tr>
           <td class="col-sm-3">
@@ -424,9 +428,10 @@ js:
     </div>
     <div class="col-sm-12 col-md-6">
       <p class="mt-3">What is crontab</p>
-      <p class="mt-3">The crontab file contains instructions for the cron daemon. Every user have a their own crontab. These commands will be executed as the user. Rows that start with # are comments.</p>
+      <p class="mt-3">The crontab file contains instructions for the cron daemon. Every user has their own crontab. These commands will be executed as the user. Rows that start with # are comments.</p>
       <p class="mt-3">Access the crontab file with "$ crontab -e"</p>
-      <p class="mt-3">Root user can edit another users crontab file by adding the username ex: "$ crontab -e [username]"</p>
+      <p class="mt-3">The root user can edit another user's crontab file with -u, ex: "$ sudo crontab -u [username] -e"</p>
     </div>
   </div>
+  <p class="mt-5 text-center"><a href="/tutorials/crontab/">How to build this tool</a></p>
 </div>

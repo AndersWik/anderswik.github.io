@@ -1,0 +1,373 @@
+---
+layout: default
+title: Slot machine
+permalink: /tutorials/slot-machine/
+chapter: "04"
+chapter_title: "Casino games"
+keywords: [javascript, game, setInterval, clearInterval, timer, animation, disabled, classList toggle, css animation]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Slot machine</h1>
+  <p>A spin costs one coin. The three reels spin, and stop one after the other. Press Stop to stop the next reel at once. Three of the same symbol is a jackpot of 10 coins. When your coins run out, you can start again.</p>
+  <p>The reels are moved by a timer that ticks every 60 milliseconds, like the spinning coin in <a href="/tutorials/coin-flip/">Coin flip</a>. The new part is one timer that controls several things that stop at different times.</p>
+  <p><a href="/assets/tutorials/slot-machine.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>slot-machine.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
+  <pre><code class="language-html">&lt;h1&gt;Slot machine&lt;/h1&gt;
+&lt;div class="slot-machine"&gt;
+  &lt;span id="machine-title"&gt;JACKPOT!&lt;/span&gt;
+  &lt;div class="slot"&gt;♠&lt;/div&gt;
+  &lt;div class="slot red"&gt;♥&lt;/div&gt;
+  &lt;div class="slot red"&gt;♦&lt;/div&gt;
+&lt;/div&gt;
+&lt;p class="coins"&gt;Coins: &lt;span id="coins"&gt;20&lt;/span&gt;&lt;/p&gt;
+&lt;div class="controls"&gt;
+  &lt;button type="button" id="start"&gt;Spin&lt;/button&gt;
+  &lt;button type="button" id="stop"&gt;Stop&lt;/button&gt;
+  &lt;button type="button" id="restart" hidden&gt;New game&lt;/button&gt;
+&lt;/div&gt;
+&lt;p id="slot-message" aria-live="polite"&gt;Try your luck!&lt;/p&gt;</code></pre>
+  <p>The three reels have the class <code>slot</code>. The code finds them with <code>document.querySelectorAll(".slot")</code>, so you could add a fourth reel in the HTML and the code would use it. The card symbols ♠ ♥ ♦ ♣ are normal text characters.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+#machine-title {
+    display: block;
+    font-size: 36px;
+    font-weight: bold;
+    color: red;
+}
+
+#machine-title.jackpot {
+    animation: blink 0.5s infinite;
+}
+
+@keyframes blink {
+    50% {
+        color: gold;
+    }
+}
+
+.slot {
+    display: inline-block;
+    width: 75px;
+    height: 90px;
+    line-height: 90px;
+    margin: 10px 4px;
+    font-size: 50px;
+    border: 3px solid #333333;
+    border-radius: 10px;
+}
+
+.slot.red {
+    color: red;
+}
+
+.coins {
+    font-size: 22px;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 18px;
+}</code></pre>
+  <p>A CSS animation makes the title blink after a jackpot. <code>@keyframes blink</code> says what the animation does: halfway (<code>50%</code>) the color is gold, and at the start and end it is the normal red. <code>animation: blink 0.5s infinite</code> plays it every half second, forever, for as long as the title has the class <code>jackpot</code>.</p>
+  <p><code>line-height: 90px</code>, the same as the height, puts the symbol in the middle of the reel from top to bottom.</p>
+  <h2>Step 2: Starting a spin</h2>
+  <pre><code class="language-javascript">function spin() {
+    if (spinTimer !== null || coins === 0) {
+        return;
+    }
+    coins--;
+    ticks = 0;
+    stopAt = [];
+    reels.forEach(function (reel, index) {
+        stopAt.push(FIRST_STOP + index * NEXT_STOP);
+    });
+    messageText.textContent = "Spinning...";
+    titleText.classList.remove("jackpot");
+    spinTimer = setInterval(tick, TICK);
+    showButtons();
+}</code></pre>
+  <p><code>spinTimer</code> is <code>null</code> when the reels stand still, and the timer's number while they spin. So it tells us if we are spinning, and we need it to stop the timer later.</p>
+  <p>Each reel gets the tick it stops at: <code>stopAt</code> is <code>[15, 23, 31]</code>. With 60 ms ticks, the first reel stops after 0.9 seconds, then one more every half second.</p>
+  <h2>Step 3: Ticking</h2>
+  <pre><code class="language-javascript">function tick() {
+    ticks++;
+    let spinning = 0;
+    reels.forEach(function (reel, index) {
+        if (ticks &lt;= stopAt[index]) {
+            results[index] = randomSymbol();
+            showReel(index, results[index]);
+            spinning++;
+        }
+    });
+    if (spinning === 0) {
+        clearInterval(spinTimer);
+        spinTimer = null;
+        checkWin();
+        showButtons();
+    }
+}</code></pre>
+  <p>Every tick, each reel that hasn't reached its stop shows a new random symbol. The last symbol it shows is its result. When no reel is spinning any more, the timer is stopped and we check for a win.</p>
+  <p>The first version made a list of the results before spinning, and then never used it. The result was read back from the page text afterwards. Here the results are kept in <code>results</code> as they happen.</p>
+  <pre><code class="language-javascript">function showReel(index, symbol) {
+    reels[index].textContent = symbol;
+    reels[index].classList.toggle("red", RED_SYMBOLS.includes(symbol));
+}</code></pre>
+  <p><code>classList.toggle("red", true)</code> adds the class and <code>toggle("red", false)</code> removes it. One line instead of an <code>if</code> with <code>add</code> and <code>remove</code>.</p>
+  <h2>Step 4: Stop!</h2>
+  <pre><code class="language-javascript">function stopNext() {
+    const next = stopAt.findIndex(function (stop) {
+        return stop &gt; ticks;
+    });
+    if (next !== -1) {
+        stopAt[next] = ticks;
+    }
+}</code></pre>
+  <p>The Stop button doesn't stop the timer. It just moves the stop of the next spinning reel to now. <code>findIndex</code> gives the index of the first reel whose stop is still to come, or -1 if there is none. The timer does the rest as usual. In the first version, Stop stopped everything at once, and pressing it when nothing was spinning checked the old result again.</p>
+  <h2>Step 5: Buttons that fit the moment</h2>
+  <pre><code class="language-javascript">function showButtons() {
+    spinButton.disabled = spinTimer !== null || coins === 0;
+    stopButton.disabled = spinTimer === null;
+    restartButton.hidden = spinTimer !== null || coins &gt; 0;
+    coinsText.textContent = coins;
+}</code></pre>
+  <p>One function sets every button from the state: Spin works when we are not spinning and have coins, Stop only while spinning, and New game only shows when the coins are gone. It is called after every change. That is simpler than turning each button on and off in many places, and the buttons can't end up wrong.</p>
+  <h2>Step 6: Test it</h2>
+  <ul>
+    <li>Spin and wait. The reels should stop left to right, and the coins go down by one.</li>
+    <li>Spin and press Stop three times quickly. Each press should stop one reel.</li>
+    <li>Press Spin again while spinning. Nothing should happen, and no extra coin should be taken.</li>
+    <li>Spin until the coins run out, then press New game.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>slot-machine.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Slot machine&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #machine-title {
+        display: block;
+        font-size: 36px;
+        font-weight: bold;
+        color: red;
+    }
+
+    #machine-title.jackpot {
+        animation: blink 0.5s infinite;
+    }
+
+    @keyframes blink {
+        50% {
+            color: gold;
+        }
+    }
+
+    .slot {
+        display: inline-block;
+        width: 75px;
+        height: 90px;
+        line-height: 90px;
+        margin: 10px 4px;
+        font-size: 50px;
+        border: 3px solid #333333;
+        border-radius: 10px;
+    }
+
+    .slot.red {
+        color: red;
+    }
+
+    .coins {
+        font-size: 22px;
+    }
+
+    button {
+        padding: 12px 24px;
+        font-size: 18px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Slot machine&lt;/h1&gt;
+  &lt;div class="slot-machine"&gt;
+    &lt;span id="machine-title"&gt;JACKPOT!&lt;/span&gt;
+    &lt;div class="slot"&gt;♠&lt;/div&gt;
+    &lt;div class="slot red"&gt;♥&lt;/div&gt;
+    &lt;div class="slot red"&gt;♦&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;p class="coins"&gt;Coins: &lt;span id="coins"&gt;20&lt;/span&gt;&lt;/p&gt;
+  &lt;div class="controls"&gt;
+    &lt;button type="button" id="start"&gt;Spin&lt;/button&gt;
+    &lt;button type="button" id="stop"&gt;Stop&lt;/button&gt;
+    &lt;button type="button" id="restart" hidden&gt;New game&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;p id="slot-message" aria-live="polite"&gt;Try your luck!&lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Slot machine: a spin costs one coin. The three reels spin, and stop one
+     * after the other. Press Stop to stop the next reel at once. Three of the
+     * same symbol is a jackpot of 10 coins.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SYMBOLS = ["♣", "♦", "♥", "♠"];
+    const RED_SYMBOLS = ["♦", "♥"];
+    const START_COINS = 20;
+    const JACKPOT = 10;
+    const TICK = 60;            // ms between symbol changes while spinning
+    const FIRST_STOP = 15;      // ticks before the first reel stops...
+    const NEXT_STOP = 8;        // ...and between the next ones
+
+    // --- Elements on the page ------------------------------------------------
+
+    const reels = document.querySelectorAll(".slot");
+    const coinsText = document.getElementById("coins");
+    const messageText = document.getElementById("slot-message");
+    const titleText = document.getElementById("machine-title");
+    const spinButton = document.getElementById("start");
+    const stopButton = document.getElementById("stop");
+    const restartButton = document.getElementById("restart");
+
+    // --- State ---------------------------------------------------------------
+
+    let coins = START_COINS;
+    let results = [];       // the symbol showing on each reel
+    let stopAt = [];        // the tick each reel stops at
+    let ticks = 0;
+    let spinTimer = null;   // null when the reels are standing still
+
+    // --- Helpers -------------------------------------------------------------
+
+    function randomSymbol() {
+        return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    }
+
+    function showReel(index, symbol) {
+        reels[index].textContent = symbol;
+        reels[index].classList.toggle("red", RED_SYMBOLS.includes(symbol));
+    }
+
+    function showButtons() {
+        spinButton.disabled = spinTimer !== null || coins === 0;
+        stopButton.disabled = spinTimer === null;
+        restartButton.hidden = spinTimer !== null || coins &gt; 0;
+        coinsText.textContent = coins;
+    }
+
+    // --- Spinning ------------------------------------------------------------
+
+    function spin() {
+        if (spinTimer !== null || coins === 0) {
+            return;
+        }
+        coins--;
+        ticks = 0;
+        stopAt = [];
+        reels.forEach(function (reel, index) {
+            stopAt.push(FIRST_STOP + index * NEXT_STOP);
+        });
+        messageText.textContent = "Spinning...";
+        titleText.classList.remove("jackpot");
+        spinTimer = setInterval(tick, TICK);
+        showButtons();
+    }
+
+    // Every tick, each reel that is still spinning shows a new random symbol.
+    // The symbol it shows when it stops is the result.
+    function tick() {
+        ticks++;
+        let spinning = 0;
+        reels.forEach(function (reel, index) {
+            if (ticks &lt;= stopAt[index]) {
+                results[index] = randomSymbol();
+                showReel(index, results[index]);
+                spinning++;
+            }
+        });
+        if (spinning === 0) {
+            clearInterval(spinTimer);
+            spinTimer = null;
+            checkWin();
+            showButtons();
+        }
+    }
+
+    // Stop the next reel that is still spinning, right now.
+    function stopNext() {
+        const next = stopAt.findIndex(function (stop) {
+            return stop &gt; ticks;
+        });
+        if (next !== -1) {
+            stopAt[next] = ticks;
+        }
+    }
+
+    function checkWin() {
+        const allSame = results.every(function (symbol) {
+            return symbol === results[0];
+        });
+        if (allSame) {
+            coins += JACKPOT;
+            messageText.textContent = "Jackpot! +" + JACKPOT + " coins";
+            titleText.classList.add("jackpot");
+        } else if (coins === 0) {
+            messageText.textContent = "No coins left!";
+        } else {
+            messageText.textContent = "Try again!";
+        }
+    }
+
+    function newGame() {
+        coins = START_COINS;
+        messageText.textContent = "Try your luck!";
+        showButtons();
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    spinButton.addEventListener("click", spin);
+    stopButton.addEventListener("click", stopNext);
+    restartButton.addEventListener("click", newGame);
+
+    showButtons();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Pay 2 coins for two of the same symbol.</li>
+    <li>Add a rare 7 symbol that pays 50 coins. (Put it in <code>SYMBOLS</code> just once, and the other symbols several times, to make it rare.)</li>
+    <li>Make each reel slow down before it stops, by making the tick longer near the end.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

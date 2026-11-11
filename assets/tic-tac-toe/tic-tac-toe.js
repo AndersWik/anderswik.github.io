@@ -1,190 +1,167 @@
-let playingAgainstCPU = true;
-let smarterCPU = true;
-let currentPlayer = "X";
-let winner = "";
-let gameActive = true;
-let gameState = ["", "", "", "", "", "", "", "", ""];
+/*
+ * Tic Tac Toe: X and O take turns. Three in a row, across, down or
+ * diagonally, wins. Play against a friend or the computer, which plays O.
+ *
+ *   Easy:  picks a random free square.
+ *   Smart: wins if it can, blocks you if you are about to win, and
+ *          otherwise likes the middle, then the corners.
+ */
 
-const winningCombinations = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
+// --- Settings ------------------------------------------------------------
+
+// The squares are numbered like this:   0 1 2
+//                                       3 4 5
+//                                       6 7 8
+const LINES = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],   // across
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],   // down
+    [0, 4, 8], [2, 4, 6]               // diagonal
 ];
+const COMPUTER_DELAY = 500;   // ms before the computer moves
 
-const uiDisplay = {
-  squares: document.querySelectorAll(".square"),
-  status: document.getElementById("status"),
-  reset: document.getElementById("reset"),
-  players: document.getElementById("players"),
-  difficulty: document.getElementById("difficulty"),
-};
+// --- Elements on the page ------------------------------------------------
 
-function handleSquareClick(e) {
-  if (!gameActive || (playingAgainstCPU && currentPlayer !== "X")) return;
+const squares = document.querySelectorAll(".square");
+const statusText = document.getElementById("status");
+const restartButton = document.getElementById("reset");
+const modeSelect = document.getElementById("mode");
 
-  const square = e.target;
-  const squareIndex = Array.from(uiDisplay.squares).indexOf(square);
+// --- State ---------------------------------------------------------------
 
-  if (gameState[squareIndex] !== "") return;
+let board = [];        // "", "X" or "O" for each square
+let player = "X";
+let gameOver = false;
+let computerTimer = null;
 
-  gameState[squareIndex] = currentPlayer;
-  square.textContent = currentPlayer;
-  checkWinner();
-  gameActive && (currentPlayer = getOppositePlayer());
-  updateStatus();
+// --- Rules ---------------------------------------------------------------
 
-  if (gameActive && playingAgainstCPU) {
-    setTimeout(() => {
-      let index = smarterCPU
-        ? computerSmartMove()
-        : computerRandomMove(getEmptySquares());
-      gameState[index] = currentPlayer;
-      uiDisplay.squares[index].textContent = currentPlayer;
-      checkWinner();
-      gameActive && (currentPlayer = getOppositePlayer());
-      updateStatus();
-    }, 500);
-  }
+// The line that "who" has three in a row on, or undefined.
+function winningLine(who) {
+    return LINES.find(function (line) {
+        return line.every(function (index) {
+            return board[index] === who;
+        });
+    });
 }
 
-function getEmptySquares() {
-  let emptysquares = [];
-  gameState.forEach((square, index) => {
-    if (square === "") {
-      emptysquares.push(index);
+function emptySquares() {
+    const empty = [];
+    board.forEach(function (mark, index) {
+        if (mark === "") {
+            empty.push(index);
+        }
+    });
+    return empty;
+}
+
+function randomItem(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}
+
+// --- Playing -------------------------------------------------------------
+
+function isComputersTurn() {
+    return modeSelect.value !== "pvp" && player === "O";
+}
+
+function play(index) {
+    if (gameOver || board[index] !== "") {
+        return;
     }
-  });
-  return emptysquares;
-}
+    board[index] = player;
+    squares[index].textContent = player;
 
-function getOppositePlayer() {
-  const players = ["X", "O"];
-  return currentPlayer === players[0] ? players[1] : players[0];
-}
-
-function computerRandomMove(emptySquares) {
-  let randomIndex =
-    emptySquares[Math.floor(Math.random() * emptySquares.length)];
-  return randomIndex;
-}
-
-function computerSmartMove() {
-  // Can SPU win?
-  let bestMove = findWinningMove(gameState, currentPlayer);
-  if (bestMove !== null) return bestMove;
-
-  // Can player win?
-  bestMove = findWinningMove(gameState, getOppositePlayer());
-  if (bestMove !== null) return bestMove;
-
-  // Are center square free?
-  if (board[4] === "") return 4;
-
-  // Are any corners free?
-  const corners = [0, 2, 6, 8].filter((i) => board[i] === "");
-  if (corners.length > 0) return computerRandomMove(corners);
-
-  // If we did not find index get random
-  return computerRandomMove(getEmptySquares());
-}
-
-function findWinningMove(board, symbol) {
-  const winningCombinations = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8], // Rows
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8], // Columns
-    [0, 4, 8],
-    [2, 4, 6], // Diagonals
-  ];
-
-  for (let combo of winningCombinations) {
-    let [a, b, c] = combo;
-    let values = [board[a], board[b], board[c]];
-
-    if (
-      values.filter((v) => v === symbol).length === 2 &&
-      values.includes("")
-    ) {
-      return combo[values.indexOf("")];
-    }
-  }
-  return null;
-}
-
-function checkWinner() {
-  winningCombinations.forEach((combination) => {
-    const [a, b, c] = combination;
-
-    if (
-      gameState[a] === currentPlayer &&
-      gameState[b] === currentPlayer &&
-      gameState[c] === currentPlayer
-    ) {
-      gameActive = false;
-      winner = currentPlayer;
-    }
-  });
-
-  let emptySquares = getEmptySquares();
-  if (gameActive && emptySquares.length === 0) {
-    gameActive = false;
-  }
-}
-
-function updateStatus() {
-  let status = "";
-  if (gameActive) {
-    status = "Player " + currentPlayer + " turn";
-  } else if (winner !== "X" && winner !== "O") {
-    status = "It's a draw!";
-  } else {
-    if (playingAgainstCPU) {
-      status = winner === "X" ? "You Win!" : "Computer Wins!";
+    const line = winningLine(player);
+    if (line) {
+        line.forEach(function (i) {
+            squares[i].classList.add("winning");
+        });
+        gameOver = true;
+        if (modeSelect.value === "pvp") {
+            statusText.textContent = player + " wins!";
+        } else {
+            statusText.textContent = player === "X" ? "You win!" : "The computer wins!";
+        }
+    } else if (emptySquares().length === 0) {
+        gameOver = true;
+        statusText.textContent = "It's a draw!";
     } else {
-      status = "Player " + winner + " Win!";
+        player = player === "X" ? "O" : "X";
+        statusText.textContent = isComputersTurn() ? "The computer is thinking..." : player + "'s turn";
+        if (isComputersTurn()) {
+            computerTimer = setTimeout(computerMove, COMPUTER_DELAY);
+        }
     }
-  }
-  uiDisplay.status.textContent = status;
 }
 
-function resetGame() {
-  playingAgainstCPU = uiDisplay.players.value === "1";
-  smarterCPU = uiDisplay.difficulty.value === "smart";
-  currentPlayer = "X";
-  winner = "";
-  gameActive = true;
-  gameState = ["", "", "", "", "", "", "", "", ""];
-  uiDisplay.squares.forEach((square) => (square.textContent = ""));
+// --- The computer --------------------------------------------------------
+
+// A free square that would give "who" three in a row, or undefined.
+function winningSquare(who) {
+    for (const line of LINES) {
+        const marks = line.map(function (index) {
+            return board[index];
+        });
+        const mine = marks.filter(function (mark) {
+            return mark === who;
+        }).length;
+        if (mine === 2 && marks.includes("")) {
+            return line[marks.indexOf("")];
+        }
+    }
+    return undefined;
 }
 
-uiDisplay.squares.forEach((square) => {
-  square.addEventListener("click", handleSquareClick);
-});
+function smartMove() {
+    const win = winningSquare("O");
+    if (win !== undefined) {
+        return win;
+    }
+    const block = winningSquare("X");
+    if (block !== undefined) {
+        return block;
+    }
+    if (board[4] === "") {
+        return 4;
+    }
+    const corners = [0, 2, 6, 8].filter(function (index) {
+        return board[index] === "";
+    });
+    if (corners.length > 0) {
+        return randomItem(corners);
+    }
+    return randomItem(emptySquares());
+}
 
-uiDisplay.reset.addEventListener("click", function () {
-  resetGame();
-  updateStatus();
-});
+function computerMove() {
+    const index = modeSelect.value === "smart" ? smartMove() : randomItem(emptySquares());
+    play(index);
+}
 
-uiDisplay.players.addEventListener("change", function () {
-  if (uiDisplay.players.value === "1") {
-    uiDisplay.difficulty.style.display = "inline-block";
-  } else {
-    uiDisplay.difficulty.style.display = "none";
-  }
-  resetGame();
-  updateStatus();
-});
+// --- Starting ------------------------------------------------------------
 
-uiDisplay.difficulty.addEventListener("change", function () {
-  resetGame();
-  updateStatus();
+function newGame() {
+    clearTimeout(computerTimer);
+    board = ["", "", "", "", "", "", "", "", ""];
+    squares.forEach(function (square) {
+        square.textContent = "";
+        square.classList.remove("winning");
+    });
+    player = "X";
+    gameOver = false;
+    statusText.textContent = "X's turn";
+}
+
+// --- Connect the page ----------------------------------------------------
+
+squares.forEach(function (square, index) {
+    square.addEventListener("click", function () {
+        if (!isComputersTurn()) {
+            play(index);
+        }
+    });
 });
+restartButton.addEventListener("click", newGame);
+modeSelect.addEventListener("change", newGame);
+
+newGame();

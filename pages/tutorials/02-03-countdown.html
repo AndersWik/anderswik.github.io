@@ -1,0 +1,433 @@
+---
+layout: default
+title: Countdown
+permalink: /tutorials/countdown/
+chapter: "02"
+chapter_title: "JavaScript apps"
+keywords: [javascript, countdown, setInterval, clearInterval, URLSearchParams, form, get, css animation, keyframes]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Countdown</h1>
+  <p>A countdown to a date, in days, hours, minutes and seconds. The date, a title and an image to show at the end are all read from the address, like this:</p>
+  <pre><code class="language-plaintext">countdown.html?to=2026-12-24T15:00&amp;title=Christmas&amp;url=https://example.com/tree.jpg</code></pre>
+  <p>That way anyone can make a countdown and share it as a link, without a server or a database. A plain HTML form writes the address for us.</p>
+  <p><a href="/assets/tutorials/countdown.html?to=2099-01-01T00:00&title=Year%202099">Open the finished page</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>countdown.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
+  <pre><code class="language-html">&lt;h1 id="countdown-title"&gt;Countdown&lt;/h1&gt;
+
+&lt;div class="clock"&gt;
+  &lt;div&gt;
+    &lt;p class="label"&gt;Days&lt;/p&gt;
+    &lt;p class="number" id="output-days"&gt;00&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;p class="label"&gt;Hours&lt;/p&gt;
+    &lt;p class="number" id="output-hours"&gt;00&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;p class="label"&gt;Minutes&lt;/p&gt;
+    &lt;p class="number" id="output-minutes"&gt;00&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;p class="label"&gt;Seconds&lt;/p&gt;
+    &lt;p class="number" id="output-seconds"&gt;00&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="image-container"&gt;&lt;/div&gt;
+
+&lt;form method="get"&gt;
+  &lt;label for="to"&gt;Count down to&lt;/label&gt;
+  &lt;input type="datetime-local" id="to" name="to" required&gt;
+
+  &lt;label for="title"&gt;Title&lt;/label&gt;
+  &lt;input type="text" id="title" name="title"&gt;
+
+  &lt;label for="url"&gt;Image when done&lt;/label&gt;
+  &lt;input type="url" id="url" name="url" placeholder="https://"&gt;
+
+  &lt;button type="submit"&gt;Start countdown&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+  <p>Look at the form at the bottom. It has <code>method="get"</code> and no <code>action</code>, so when you press the button, the browser opens the same page again with the fields in the address: <code>?to=...&amp;title=...&amp;url=...</code>. Each field's <code>name</code> becomes the name in the address. This is plain HTML and needs no JavaScript.</p>
+  <p><code>type="datetime-local"</code> shows a date and time picker. It gives text like <code>2026-12-24T15:00</code>, which is a format <code>new Date()</code> can read. <code>required</code> stops the form from being sent without a date.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+.clock {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+}
+
+.label {
+    margin-bottom: 0;
+    color: #c98a00;
+    font-size: 24px;
+}
+
+.number {
+    margin-top: 0;
+    font-size: 56px;
+    font-family: monospace;
+}
+
+.blink {
+    animation: blink 400ms infinite alternate;
+}
+
+@keyframes blink {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+#image-container img {
+    max-width: 100%;
+}
+
+form {
+    max-width: 400px;
+    margin: 40px auto 0;
+    text-align: left;
+}
+
+form label {
+    display: block;
+    margin-top: 12px;
+}
+
+form input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+}
+
+form button {
+    margin-top: 16px;
+    padding: 8px 16px;
+}</code></pre>
+  <p>The <code>.blink</code> class uses a CSS animation. <code>@keyframes blink</code> says how it changes, from <code>opacity: 1</code> (visible) to <code>opacity: 0</code> (gone). <code>animation: blink 400ms infinite alternate</code> runs it every 400 milliseconds, forever, back and forth. JavaScript only has to add the class.</p>
+  <h2>Step 2: Read the address</h2>
+  <p><code>window.location.search</code> is the part of the address from <code>?</code>. <code>URLSearchParams</code> reads it, and handles details like <code>%20</code> for spaces:</p>
+  <pre><code class="language-javascript">const params = new URLSearchParams(window.location.search);
+const endDate = new Date(params.get("to"));
+const imageUrl = params.get("url");</code></pre>
+  <p><code>params.get("to")</code> gives the text, or <code>null</code> if there is no <code>to</code> in the address.</p>
+  <h2>Step 3: Split seconds into days, hours, minutes and seconds</h2>
+  <pre><code class="language-javascript">function showTimeLeft(totalSeconds) {
+    const days = Math.floor(totalSeconds / (24 * 60 * 60));
+    const hours = Math.floor(totalSeconds / (60 * 60)) % 24;
+    const minutes = Math.floor(totalSeconds / 60) % 60;
+    const seconds = totalSeconds % 60;
+
+    daysText.textContent = twoDigits(days);
+    hoursText.textContent = twoDigits(hours);
+    minutesText.textContent = twoDigits(minutes);
+    secondsText.textContent = twoDigits(seconds);
+}</code></pre>
+  <p><code>%</code> gives what is left over. For example, <code>Math.floor(totalSeconds / 60)</code> is the total number of minutes, and <code>% 60</code> keeps only the minutes that don't fill a whole hour. Try <code>showTimeLeft(90061)</code> in the console. That is 1 day, 1 hour, 1 minute and 1 second, so it shows <code>01 01 01 01</code>.</p>
+  <p><code>twoDigits()</code> uses <code>padStart(2, "0")</code> to turn <code>7</code> into <code>"07"</code>.</p>
+  <h2>Step 4: Tick every second</h2>
+  <pre><code class="language-javascript">function tick() {
+    const secondsLeft = Math.ceil((endDate - new Date()) / 1000);
+
+    if (secondsLeft &lt;= 0) {
+        showTimeLeft(0);
+        finish();
+    } else {
+        showTimeLeft(secondsLeft);
+    }
+}</code></pre>
+  <p>Subtracting two dates gives milliseconds. <code>Math.ceil</code> rounds up, so the clock shows <code>00:01</code> during the last second and not <code>00:00</code>.</p>
+  <p><code>setInterval(tick, 1000)</code> runs <code>tick</code> every second and returns an id. <code>clearInterval(id)</code> stops it again:</p>
+  <pre><code class="language-javascript">function finish() {
+    clearInterval(timer);
+
+    [daysText, hoursText, minutesText, secondsText].forEach(function (element) {
+        element.classList.add("blink");
+    });
+
+    if (imageUrl) {
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.style.width = "100%";
+        imageContainer.appendChild(image);
+    }
+}</code></pre>
+  <h2>Step 5: Start, carefully</h2>
+  <p>Everything in the address comes from whoever made the link, so we treat it with care:</p>
+  <pre><code class="language-javascript">if (params.get("title")) {
+    titleText.textContent = params.get("title");
+}
+
+if (params.get("to") &amp;&amp; isValidDate(endDate)) {
+    timer = setInterval(tick, 1000);
+    tick();
+} else {
+    titleText.textContent = "Add a date to the address, e.g. ?to=1999-12-31T23:59:00";
+}</code></pre>
+  <ul>
+    <li>The title is written with <code>textContent</code>, never <code>innerHTML</code>. Otherwise a link with <code>?title=&lt;img src=x onerror=...&gt;</code> could run any script on the page. This kind of attack is called cross-site scripting, or XSS.</li>
+    <li><code>params.get("title")</code> is <code>null</code> if there is no title and <code>""</code> if the form field was empty. Both count as false, so an empty field keeps the heading "Countdown".</li>
+    <li><code>new Date("not a date")</code> gives an "Invalid Date" whose time is <code>NaN</code>. <code>isValidDate()</code> checks for that with <code>isNaN(date.getTime())</code>.</li>
+    <li><strong>A trap:</strong> <code>new Date(null)</code> is not invalid. It is 1 January 1970. So without the <code>params.get("to")</code> check, a page with no date would show a finished countdown instead of the help text.</li>
+    <li>We call <code>tick()</code> once ourselves, so the numbers show right away and not after the first second.</li>
+  </ul>
+  <h2>Step 6: Test it</h2>
+  <ul>
+    <li>Open the page without anything after <code>.html</code>. You should see the help text in the heading.</li>
+    <li>Fill in the form with a time two minutes from now and an image address. When it reaches zero, the numbers blink and the image shows.</li>
+    <li>Try <code>?to=nonsense</code> and <code>?to=2000-01-01T00:00</code>.</li>
+    <li>Try <code>?to=2099-01-01T00:00&amp;title=&lt;b&gt;hi&lt;/b&gt;</code>. The title should show the tags as text.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>countdown.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Countdown&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    .clock {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+    }
+
+    .label {
+        margin-bottom: 0;
+        color: #c98a00;
+        font-size: 24px;
+    }
+
+    .number {
+        margin-top: 0;
+        font-size: 56px;
+        font-family: monospace;
+    }
+
+    .blink {
+        animation: blink 400ms infinite alternate;
+    }
+
+    @keyframes blink {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    #image-container img {
+        max-width: 100%;
+    }
+
+    form {
+        max-width: 400px;
+        margin: 40px auto 0;
+        text-align: left;
+    }
+
+    form label {
+        display: block;
+        margin-top: 12px;
+    }
+
+    form input {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+    }
+
+    form button {
+        margin-top: 16px;
+        padding: 8px 16px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 id="countdown-title"&gt;Countdown&lt;/h1&gt;
+
+  &lt;div class="clock"&gt;
+    &lt;div&gt;
+      &lt;p class="label"&gt;Days&lt;/p&gt;
+      &lt;p class="number" id="output-days"&gt;00&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;p class="label"&gt;Hours&lt;/p&gt;
+      &lt;p class="number" id="output-hours"&gt;00&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;p class="label"&gt;Minutes&lt;/p&gt;
+      &lt;p class="number" id="output-minutes"&gt;00&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;p class="label"&gt;Seconds&lt;/p&gt;
+      &lt;p class="number" id="output-seconds"&gt;00&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div id="image-container"&gt;&lt;/div&gt;
+
+  &lt;form method="get"&gt;
+    &lt;label for="to"&gt;Count down to&lt;/label&gt;
+    &lt;input type="datetime-local" id="to" name="to" required&gt;
+
+    &lt;label for="title"&gt;Title&lt;/label&gt;
+    &lt;input type="text" id="title" name="title"&gt;
+
+    &lt;label for="url"&gt;Image when done&lt;/label&gt;
+    &lt;input type="url" id="url" name="url" placeholder="https://"&gt;
+
+    &lt;button type="submit"&gt;Start countdown&lt;/button&gt;
+  &lt;/form&gt;
+
+  &lt;script&gt;
+    /*
+     * Countdown to a date given in the page address, e.g.
+     *
+     *   ?to=2026-12-24T15:00:00&amp;title=Christmas&amp;url=https://.../tree.jpg
+     *
+     * A plain HTML form with method="get" on the page writes the address for us.
+     *
+     *   to     the date and time to count down to (required)
+     *   title  text shown as the heading (optional)
+     *   url    an image to show when the countdown is done (optional)
+     *
+     * Every second we work out how long is left and split it into
+     * days, hours, minutes and seconds.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const titleText = document.getElementById("countdown-title");
+    const daysText = document.getElementById("output-days");
+    const hoursText = document.getElementById("output-hours");
+    const minutesText = document.getElementById("output-minutes");
+    const secondsText = document.getElementById("output-seconds");
+    const imageContainer = document.getElementById("image-container");
+
+    // --- Settings from the address -------------------------------------------
+
+    // URLSearchParams reads the "?to=...&amp;title=..." part of the address.
+    const params = new URLSearchParams(window.location.search);
+    const endDate = new Date(params.get("to"));
+    const imageUrl = params.get("url");
+
+    // --- State ---------------------------------------------------------------
+
+    let timer = null;
+
+    // --- Helpers -------------------------------------------------------------
+
+    // 7 -&gt; "07"
+    function twoDigits(number) {
+        return String(number).padStart(2, "0");
+    }
+
+    // new Date("not a date") gives an "Invalid Date" whose time is NaN.
+    function isValidDate(date) {
+        return !isNaN(date.getTime());
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function showTimeLeft(totalSeconds) {
+        const days = Math.floor(totalSeconds / (24 * 60 * 60));
+        const hours = Math.floor(totalSeconds / (60 * 60)) % 24;
+        const minutes = Math.floor(totalSeconds / 60) % 60;
+        const seconds = totalSeconds % 60;
+
+        daysText.textContent = twoDigits(days);
+        hoursText.textContent = twoDigits(hours);
+        minutesText.textContent = twoDigits(minutes);
+        secondsText.textContent = twoDigits(seconds);
+    }
+
+    function finish() {
+        clearInterval(timer);
+
+        // The "blink" class has a CSS animation.
+        [daysText, hoursText, minutesText, secondsText].forEach(function (element) {
+            element.classList.add("blink");
+        });
+
+        if (imageUrl) {
+            const image = document.createElement("img");
+            image.src = imageUrl;
+            image.style.width = "100%";
+            imageContainer.appendChild(image);
+        }
+    }
+
+    // Called once every second.
+    function tick() {
+        // Subtracting two dates gives the difference in milliseconds.
+        const secondsLeft = Math.ceil((endDate - new Date()) / 1000);
+
+        if (secondsLeft &lt;= 0) {
+            showTimeLeft(0);
+            finish();
+        } else {
+            showTimeLeft(secondsLeft);
+        }
+    }
+
+    // --- Start ---------------------------------------------------------------
+
+    // get() gives null when it is missing and "" when the form field was empty.
+    if (params.get("title")) {
+        // textContent (not innerHTML) so nobody can put HTML or scripts
+        // into the page through the address.
+        titleText.textContent = params.get("title");
+    }
+
+    // Without "to" in the address, new Date(null) is 1970-01-01, which is a
+    // valid date. So check that there is a "to" as well.
+    if (params.get("to") &amp;&amp; isValidDate(endDate)) {
+        timer = setInterval(tick, 1000);
+        tick(); // show the time right away instead of after one second
+    } else {
+        titleText.textContent = "Add a date to the address, e.g. ?to=1999-12-31T23:59:00";
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Fill the form with the current settings, so it is easy to change one of them.</li>
+    <li>Show "Starts in" before the date and "Started ago" after it, counting up instead of stopping.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

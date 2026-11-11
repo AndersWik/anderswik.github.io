@@ -35,6 +35,12 @@ async function loadTemplate() {
 
     try {
         const response = await fetch(templateSelect.value);
+
+        // fetch() only throws when there is no network. A missing file
+        // still "works" and gives an error page, so check the status.
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
         template = await response.text();
         showFile();
     } catch (error) {

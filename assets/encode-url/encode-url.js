@@ -6,6 +6,10 @@
  *
  *   "hello world"  ->  "hello%20world"
  *
+ * encodeURIComponent() also encodes characters that have a meaning in a
+ * URL, like "&", "=", "?" and "/", so the text can safely be put inside
+ * one part of a URL, e.g. "?q=" + encodeURIComponent("fish & chips").
+ *
  * The page also builds a CSS snippet that puts an SVG image straight into
  * the CSS as a "data URL", which is a common use for URL encoding.
  */
@@ -20,8 +24,9 @@ const decodeButton = document.getElementById("decode-btn");
 
 // --- Helpers -------------------------------------------------------------
 
-// encodeURI() leaves "#" alone because it has a meaning in URLs.
-// In a data URL "#" would cut the image short, so encode it as well.
+// For the SVG we use encodeURI(), which leaves "/", ":" and "=" alone so
+// the SVG stays readable. It also leaves "#" alone, but in a data URL "#"
+// would cut the image short, so we encode that one ourselves.
 function encodeForSvg(text) {
     return encodeURI(text).replaceAll("#", "%23");
 }
@@ -37,7 +42,7 @@ function buildCss(encodedSvg) {
 // --- What the buttons do -------------------------------------------------
 
 function encode() {
-    encodedText.value = encodeURI(plainText.value);
+    encodedText.value = encodeURIComponent(plainText.value);
     cssText.value = buildCss(encodeForSvg(plainText.value));
 }
 

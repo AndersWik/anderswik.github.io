@@ -1,0 +1,317 @@
+---
+layout: default
+title: Vagrantfile maker
+permalink: /tutorials/vagrantfile-maker/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, fetch, async, await, response.ok, template, replaceAll, download, data url, vagrant]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Vagrantfile maker</h1>
+  <p>We build a Vagrantfile maker. You pick a template, type an IP and a host name, and download a finished <code>Vagrantfile</code>. The new ideas are loading a file with <code>fetch</code>, and letting the user download text as a file.</p>
+  <p><a href="/assets/tutorials/vagrantfile-maker.html">Open the finished Vagrantfile maker</a></p>
+  <h2>The plan</h2>
+  <ol>
+    <li>The templates are ordinary files in a <code>templates</code> folder next to the page. In them, the IP is written as <code>vagrantip</code> and the host name as <code>vagranturl</code>.</li>
+    <li>When a template is picked, the script loads it with <code>fetch</code>.</li>
+    <li>While the user types, the script replaces the placeholders and shows the result.</li>
+    <li>The <strong>Download file</strong> button saves the result as a file called <code>Vagrantfile</code>.</li>
+  </ol>
+  <h2>Step 1: The templates</h2>
+  <p>Make a folder for the tool with the page and a <code>templates</code> folder in it:</p>
+  <pre><code class="language-plaintext">vagrantfile-maker/
+    vagrantfile-maker.html
+    templates/
+        basic.Vagrantfile
+        web.Vagrantfile</code></pre>
+  <p>Each template is a normal Vagrantfile with the placeholders in it:</p>
+  <p><strong>basic.Vagrantfile</strong></p>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+  config.vm.network "private_network", ip: "vagrantip"
+  config.vm.hostname = "vagranturl"
+end</code></pre>
+  <p><strong>web.Vagrantfile</strong></p>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+  config.vm.network "private_network", ip: "vagrantip"
+  config.vm.hostname = "vagranturl"
+
+  config.vm.provision "shell", inline: &lt;&lt;-SHELL
+    apt-get update
+    apt-get install -y apache2
+    echo "&lt;h1&gt;Hello from vagranturl&lt;/h1&gt;" &gt; /var/www/html/index.html
+  SHELL
+end</code></pre>
+  <p>Pick placeholder words that can't appear anywhere else in the file, because every copy is replaced. In the web template the host name is used twice, and both are filled in.</p>
+  <h2>Step 2: The page</h2>
+  <p>Create <code>vagrantfile-maker.html</code> from the skeleton in <a href="/tutorials/utility-page/">Building a utility page</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Vagrantfile maker&lt;/h1&gt;
+
+&lt;label for="vagrant-ip"&gt;IP&lt;/label&gt;
+&lt;input type="text" id="vagrant-ip" placeholder="192.168.56.10"&gt;
+
+&lt;label for="vagrant-url"&gt;Host name&lt;/label&gt;
+&lt;input type="text" id="vagrant-url" placeholder="dev.local"&gt;
+
+&lt;label for="vagrant-file-select"&gt;Template&lt;/label&gt;
+&lt;select id="vagrant-file-select"&gt;
+  &lt;option value="templates/basic.Vagrantfile"&gt;Basic&lt;/option&gt;
+  &lt;option value="templates/web.Vagrantfile"&gt;Web server&lt;/option&gt;
+&lt;/select&gt;
+
+&lt;button type="button" id="download"&gt;Download file&lt;/button&gt;
+&lt;a href="#" id="download-content" download="Vagrantfile" hidden&gt;&lt;/a&gt;
+
+&lt;textarea id="vagrant-file" rows="20" aria-label="Vagrantfile"&gt;&lt;/textarea&gt;</code></pre>
+  <p>Each option's <code>value</code> is the address of a template, relative to the page. The hidden link with <code>download="Vagrantfile"</code> is what the download uses in step 5.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+label {
+    display: block;
+    margin-top: 16px;
+}
+
+input,
+select {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+}
+
+button {
+    padding: 8px 16px;
+    margin-top: 16px;
+}
+
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 16px;
+    font-family: monospace;
+}</code></pre>
+  <h2>Step 3: Load a template with fetch</h2>
+  <p><code>fetch(url)</code> asks the server for a file. The network takes time, so <code>fetch</code> doesn't return the file right away. It returns a <strong>promise</strong>, a value that will arrive later. Inside a function marked <code>async</code>, <code>await</code> waits for the promise without freezing the page:</p>
+  <pre><code class="language-javascript">let template = "";
+
+async function loadTemplate() {
+    fileText.value = "Loading...";
+
+    try {
+        const response = await fetch(templateSelect.value);
+
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+        template = await response.text();
+        showFile();
+    } catch (error) {
+        fileText.value = "Could not load the Vagrantfile.";
+    }
+}</code></pre>
+  <p><code>fetch</code> only throws an error when there is no network at all. If the file is missing, the server still answers, with status 404 and an error page. Without the <code>response.ok</code> check, that error page would end up in the Vagrantfile. <code>response.ok</code> is true for status 200-299. <code>throw</code> jumps straight to <code>catch</code>, so both kinds of problem show the same message.</p>
+  <p>We keep the template exactly as downloaded, with the placeholders still in it. Then every time the user types, we can fill it in again from the start.</p>
+  <h2>Step 4: Fill in the placeholders</h2>
+  <pre><code class="language-javascript">function showFile() {
+    let content = template;
+
+    if (ipInput.value !== "") {
+        content = content.replaceAll("vagrantip", ipInput.value);
+    }
+    if (urlInput.value !== "") {
+        content = content.replaceAll("vagranturl", urlInput.value);
+    }
+
+    fileText.value = content;
+}</code></pre>
+  <p><code>replace()</code> only changes the first match, and <code>replaceAll()</code> changes every match. While a box is empty, the placeholder stays, so you can see where the value will go.</p>
+  <h2>Step 5: Download the text as a file</h2>
+  <p>A <strong>data URL</strong> holds the content of a file in the link itself: <code>data:text/plain;charset=utf-8,</code> followed by the URL encoded text. You can read more about URL encoding in the <a href="/tutorials/url-encoder/">URL encoder</a> tutorial. The <code>download</code> attribute on a link tells the browser to save the file instead of opening it, with that name. We put the data URL in the hidden link and click it from code:</p>
+  <pre><code class="language-javascript">function downloadFile() {
+    downloadLink.href = "data:text/plain;charset=utf-8," + encodeURIComponent(fileText.value);
+    downloadLink.click();
+}</code></pre>
+  <p>We download <code>fileText.value</code>, the text box, and not the template. So if the user edits the text by hand before downloading, the changes are kept.</p>
+  <h2>Step 6: Connect and start</h2>
+  <pre><code class="language-javascript">ipInput.addEventListener("input", showFile);
+urlInput.addEventListener("input", showFile);
+templateSelect.addEventListener("change", loadTemplate);
+downloadButton.addEventListener("click", downloadFile);
+
+loadTemplate();</code></pre>
+  <p>The last line loads the first template as soon as the page opens.</p>
+  <h2>Step 7: Test it</h2>
+  <p>For safety, browsers don't let <code>fetch</code> read files when a page is opened straight from disk (the address starts with <code>file://</code>). So this page needs a small web server. Python has one built in. Run this in the <code>vagrantfile-maker</code> folder:</p>
+  <pre><code class="language-bash">$ python3 -m http.server 8000</code></pre>
+  <p>Then open <code>http://localhost:8000/vagrantfile-maker.html</code>. Press <code>Ctrl+C</code> in the terminal to stop the server when you are done.</p>
+  <ul>
+    <li>Type <code>192.168.56.10</code> and <code>dev.local</code>. Both appear in the text while you type.</li>
+    <li>Change the template. The new one is filled in with the same values.</li>
+    <li>Press <strong>Download file</strong> and open the file. It should match the text box.</li>
+    <li>In the developer tools, change one option's <code>value</code> to a file that doesn't exist and pick it. You should see "Could not load the Vagrantfile."</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>vagrantfile-maker.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Vagrantfile maker&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    label {
+        display: block;
+        margin-top: 16px;
+    }
+
+    input,
+    select {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+    }
+
+    button {
+        padding: 8px 16px;
+        margin-top: 16px;
+    }
+
+    textarea {
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 16px;
+        font-family: monospace;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Vagrantfile maker&lt;/h1&gt;
+
+  &lt;label for="vagrant-ip"&gt;IP&lt;/label&gt;
+  &lt;input type="text" id="vagrant-ip" placeholder="192.168.56.10"&gt;
+
+  &lt;label for="vagrant-url"&gt;Host name&lt;/label&gt;
+  &lt;input type="text" id="vagrant-url" placeholder="dev.local"&gt;
+
+  &lt;label for="vagrant-file-select"&gt;Template&lt;/label&gt;
+  &lt;select id="vagrant-file-select"&gt;
+    &lt;option value="templates/basic.Vagrantfile"&gt;Basic&lt;/option&gt;
+    &lt;option value="templates/web.Vagrantfile"&gt;Web server&lt;/option&gt;
+  &lt;/select&gt;
+
+  &lt;button type="button" id="download"&gt;Download file&lt;/button&gt;
+  &lt;a href="#" id="download-content" download="Vagrantfile" hidden&gt;&lt;/a&gt;
+
+  &lt;textarea id="vagrant-file" rows="20" aria-label="Vagrantfile"&gt;&lt;/textarea&gt;
+
+  &lt;script&gt;
+    /*
+     * Vagrantfile maker.
+     *
+     * The Vagrantfile templates on the server contain two placeholders:
+     *
+     *   vagrantip   replaced with the IP the user types
+     *   vagranturl  replaced with the URL the user types
+     *
+     * Steps:
+     *   1. Download the template the user picked (fetch).
+     *   2. Replace the placeholders and show the result.
+     *   3. Let the user download the result as a file.
+     */
+
+    // --- State ---------------------------------------------------------------
+
+    // The template exactly as downloaded, with the placeholders still in it.
+    let template = "";
+
+    // --- Elements on the page ------------------------------------------------
+
+    const templateSelect = document.getElementById("vagrant-file-select");
+    const ipInput = document.getElementById("vagrant-ip");
+    const urlInput = document.getElementById("vagrant-url");
+    const fileText = document.getElementById("vagrant-file");
+    const downloadButton = document.getElementById("download");
+    const downloadLink = document.getElementById("download-content");
+
+    // --- Actions -------------------------------------------------------------
+
+    // Download the chosen template. "async" lets us use "await", which waits
+    // for the network without freezing the page.
+    async function loadTemplate() {
+        fileText.value = "Loading...";
+
+        try {
+            const response = await fetch(templateSelect.value);
+
+            // fetch() only throws when there is no network. A missing file
+            // still "works" and gives an error page, so check the status.
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+            template = await response.text();
+            showFile();
+        } catch (error) {
+            fileText.value = "Could not load the Vagrantfile.";
+        }
+    }
+
+    // Fill in the placeholders and show the finished file.
+    function showFile() {
+        let content = template;
+
+        if (ipInput.value !== "") {
+            content = content.replaceAll("vagrantip", ipInput.value);
+        }
+        if (urlInput.value !== "") {
+            content = content.replaceAll("vagranturl", urlInput.value);
+        }
+
+        fileText.value = content;
+    }
+
+    // Put the text into the hidden &lt;a download="Vagrantfile"&gt; link and click it.
+    // A "data:" URL holds the file's content in the link itself.
+    function downloadFile() {
+        downloadLink.href = "data:text/plain;charset=utf-8," + encodeURIComponent(fileText.value);
+        downloadLink.click();
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // "input" fires on every change: typing, pasting, deleting...
+    ipInput.addEventListener("input", showFile);
+    urlInput.addEventListener("input", showFile);
+    templateSelect.addEventListener("change", loadTemplate);
+    downloadButton.addEventListener("click", downloadFile);
+
+    // --- Start ---------------------------------------------------------------
+
+    loadTemplate();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a field for the amount of memory, with a <code>vagrantmemory</code> placeholder in the templates.</li>
+    <li>Check that the IP looks like an IP before using it, for example with <code>/^\d{1,3}(\.\d{1,3}){3}$/</code>, and give the box a red border if it doesn't.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

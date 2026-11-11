@@ -66,6 +66,13 @@
 
 .colorhex .go-to-color {
   height: 100px;
+  width: 25%;
+}
+
+@media (max-width: 767px) {
+  .colorhex .go-to-color {
+    width: 50%;
+  }
 }
 
 .colorhex .go-to-color span {

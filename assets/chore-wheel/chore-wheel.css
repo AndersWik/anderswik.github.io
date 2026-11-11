@@ -99,8 +99,19 @@
   pointer-events: none;
 }
 
+.game #result {
+  font-size: 18px;
+  white-space: pre-line;
+}
+
+.game button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .game .name-label {
   position: absolute;
+  white-space: nowrap;
   font-weight: bold;
   font-size: 14px;
   transform: translate(-50%, -50%);

@@ -1,0 +1,47 @@
+---
+layout: game
+title: Blackjack
+permalink: /games/blackjack/
+nonav: true
+css:
+  - /assets/blackjack/blackjack.css
+js:
+  - /assets/blackjack/blackjack.js
+---
+<h1>Blackjack</h1>
+<div class="hand">
+  Dealer <span id="dealer-score"></span>
+  <div id="dealer-cards" class="cards"></div>
+</div>
+<div class="hand">
+  You
+  <div id="player-hands"></div>
+</div>
+<div id="result" aria-live="polite"></div>
+<div id="bank">
+  Balance: $<span id="balance">1000</span> | Bet: $<span id="current-bet">0</span>
+</div>
+
+<div id="chip-buttons">
+  <button type="button" id="placeBet10">$10</button>
+  <button type="button" id="placeBet50">$50</button>
+  <button type="button" id="placeBet100">$100</button>
+  <button type="button" id="clearBet" class="clear">Clear</button>
+</div>
+<div id="controls">
+  <button type="button" id="startGame">Deal</button>
+  <button type="button" id="hit">Hit</button>
+  <button type="button" id="stand">Stand</button>
+</div>
+<div id="extra-controls">
+  <button type="button" id="doubleDown">Double Down</button>
+  <button type="button" id="split">Split</button>
+  <button type="button" id="takeInsurance">Insurance</button>
+</div>
+
+<div class="rules">
+  <p>Blackjack pays 3 to 2. The dealer draws to 17.</p>
+  <p>You can split once if your two cards have the same value.</p>
+  <p>You can double down on any two cards if you can afford it.</p>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/blackjack/">How to build this game</a></p>

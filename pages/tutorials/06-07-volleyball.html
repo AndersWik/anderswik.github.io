@@ -1,0 +1,548 @@
+---
+layout: default
+title: Volleyball
+permalink: /tutorials/volleyball/
+chapter: "06"
+chapter_title: "Classic arcade"
+keywords: [javascript, game, canvas, gravity, jumping, bounce, circle, reflection, two players, computer player]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Volleyball</h1>
+  <p>Two players, one on each side of the net. Each player is a half circle that can move and jump. Bounce the ball over the net with your head. If the ball lands on your side, the other player gets the point and serves. First to five wins. Play against the computer or a friend on the same keyboard.</p>
+  <p>The game loop, screens and keys are the same as in <a href="/tutorials/pong/">Pong</a>. The new parts are gravity pulling the players and the ball down, jumping, and a ball bouncing off a round head in the right direction.</p>
+  <p><a href="/assets/tutorials/volleyball.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>volleyball.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The HTML and CSS are the same as Pong's:</p>
+  <pre><code class="language-html">&lt;canvas id="gameCanvas" width="800" height="400"&gt;&lt;/canvas&gt;</code></pre>
+  <h2>Step 2: Gravity and jumping</h2>
+  <p>Gravity is a number added to the falling speed every step, like the shells in <a href="/tutorials/artillery/">Artillery</a>:</p>
+  <pre><code class="language-javascript">function movePlayer(player, goLeft, goRight, jump) {
+    if (goLeft) {
+        player.x -= PLAYER_SPEED;
+    }
+    if (goRight) {
+        player.x += PLAYER_SPEED;
+    }
+    player.x = Math.min(player.maxX, Math.max(player.minX, player.x));
+
+    if (jump &amp;&amp; player.y === GROUND) {
+        player.dy = JUMP_SPEED;
+    }
+    player.y += player.dy;
+    player.dy += PLAYER_GRAVITY;
+    if (player.y &gt;= GROUND) {
+        player.y = GROUND;
+        player.dy = 0;
+    }
+}</code></pre>
+  <ul>
+    <li>A jump sets the up speed to -8. Every step gravity adds 0.3, so the player goes up slower and slower, stops, and comes down faster and faster.</li>
+    <li>You can only jump from the ground: <code>player.y === GROUND</code>.</li>
+    <li>When the player lands, it is put exactly on the ground and stops falling.</li>
+    <li><code>minX</code> and <code>maxX</code> keep each player on their own half. They are set once for each player, so the same function moves both.</li>
+  </ul>
+  <p>With one player you can use the arrows or A, D and W. With two, the left player uses A, D and W, and the right player the arrows. The first version gave the right player A and D, the keys on the left of the keyboard.</p>
+  <h2>Step 3: Bouncing off a head</h2>
+  <p>A player is a half circle. When the ball touches it, the ball should go off in the direction away from the center of the circle. Hit it with the middle of your head and it goes straight up. Hit it with the side and it goes off to the side. This is the same idea as the balls in <a href="/tutorials/pool/">Pool</a>:</p>
+  <pre><code class="language-javascript">const nx = dx / distance;
+const ny = dy / distance;
+ball.x = player.x + nx * (PLAYER_RADIUS + BALL_RADIUS);
+ball.y = player.y + ny * (PLAYER_RADIUS + BALL_RADIUS);
+
+const along = ball.dx * nx + ball.dy * ny;
+if (along &lt; 0) {
+    ball.dx -= 2 * along * nx;
+    ball.dy -= 2 * along * ny;
+}
+ball.dy += player.dy * 0.5;
+ball.dx += nx * 2;
+ball.dy += ny * 2;</code></pre>
+  <ul>
+    <li><code>nx, ny</code> is the direction from the center of the head to the ball, one pixel long.</li>
+    <li>First the ball is moved to just outside the head, so it can't get stuck inside.</li>
+    <li><code>along</code> is how fast the ball moves along that direction. It is negative when the ball moves into the head. Taking it away twice turns that part of the speed around: the ball <strong>reflects</strong>, like light off a mirror.</li>
+    <li>Then a little extra: half the player's own up or down speed, so jumping into the ball hits it harder, and a small push straight out from the head, so even a ball resting on a head gets bounced away.</li>
+  </ul>
+  <p>Last, the speed is limited to <code>MAX_BALL_SPEED</code>, by shrinking both parts of the speed by the same amount.</p>
+  <h2>Step 4: The net</h2>
+  <pre><code class="language-javascript">if (ball.y &lt; NET.top) {
+    ball.dy = -Math.abs(ball.dy);
+} else if (ball.x &lt; NET.x) {
+    ball.x = netLeft;
+    ball.dx = -Math.abs(ball.dx);
+} else {
+    ball.x = netRight;
+    ball.dx = Math.abs(ball.dx);
+}</code></pre>
+  <p>If the ball touches the net, it either landed on top of it, and bounces up, or hit one of its sides, and bounces back that way. The first version turned both directions around for any touch, so a ball that hit the side of the net shot back up into the air.</p>
+  <h2>Step 5: Points and serving</h2>
+  <pre><code class="language-javascript">if (ball.y &gt; GROUND - BALL_RADIUS) {
+    const winner = ball.x &lt; NET.x ? right : left;
+    winner.score++;
+    if (winner.score === WIN_SCORE) {
+        screen = "gameOver";
+    } else {
+        serve(winner);
+    }
+}</code></pre>
+  <p>The ball landing on the left side is a point for the right player, and the other way round. The player who won the point serves: the ball hangs still over their head for <code>SERVE_TIME</code> steps, then drops onto it. The first version served with two <code>setTimeout</code>s, which kept running during the pause and could serve twice.</p>
+  <h2>Step 6: The computer player</h2>
+  <pre><code class="language-javascript">function moveComputer(player) {
+    let target = 600;
+    if (ball.x &gt; NET.x) {
+        target = ball.x + 15;
+    }
+    const goLeft = player.x &gt; target + 3;
+    const goRight = player.x &lt; target - 3;
+    const above = Math.abs(ball.x - player.x) &lt; 50 &amp;&amp; ball.y &lt; player.y - 50 &amp;&amp; ball.y &gt; player.y - 160;
+    movePlayer(player, goLeft, goRight, above &amp;&amp; ball.dy &gt; 0);
+}</code></pre>
+  <p>When the ball is on its side, the computer stands 15 pixels to the right of it. Then the ball hits the left part of its head and bounces left, over the net. When the ball is on your side, it goes back to the middle of its half. It jumps when the ball is falling and not far above it. It uses the same <code>movePlayer</code> as you, so it has to follow the same rules. The first version had its own copy of the moving code, and the computer jumped all the time, whether the ball was near or not.</p>
+  <h2>Step 7: Test it</h2>
+  <ul>
+    <li>Head the ball with the middle and with the sides of your head.</li>
+    <li>Jump into the ball. It should fly higher.</li>
+    <li>Hit the ball into the side of the net, and onto its top.</li>
+    <li>Play a whole game against the computer, and one with two players.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>volleyball.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Volleyball&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        background-color: #222222;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        border: 4px solid white;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;canvas id="gameCanvas" width="800" height="400"&gt;&lt;/canvas&gt;
+
+  &lt;script&gt;
+    /*
+     * Volleyball: two players, one on each side of the net. Bounce the ball
+     * over the net with your head. If the ball lands on your side, the other
+     * player gets the point and serves. First to five wins. Play against the
+     * computer, or against a friend on the same keyboard.
+     *
+     *   1 player    arrows or A / D to move, up or W to jump
+     *   2 players   left: A / D and W, right: arrows
+     *   P / Esc     pause / menu
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;        // one update step, in milliseconds
+    const WIN_SCORE = 5;
+    const GROUND = 340;            // y of the sand
+    const NET = { x: 400, top: 280, width: 10 };
+    const PLAYER_RADIUS = 40;
+    const PLAYER_SPEED = 5;
+    const JUMP_SPEED = -8;
+    const PLAYER_GRAVITY = 0.3;
+    const BALL_RADIUS = 10;
+    const BALL_GRAVITY = 0.15;
+    const MAX_BALL_SPEED = 10;
+    const SERVE_TIME = 60;         // steps the ball hangs still before a serve
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, controls, playing, paused, gameOver
+    let menuIndex = 0;
+    let gameStarted = false;
+    let twoPlayers = false;
+
+    // Each player can move between minX and maxX: their own half.
+    const left = { x: 200, y: GROUND, dy: 0, score: 0, color: "#e53935", minX: PLAYER_RADIUS, maxX: NET.x - NET.width / 2 - PLAYER_RADIUS };
+    const right = { x: 600, y: GROUND, dy: 0, score: 0, color: "#1e88e5", minX: NET.x + NET.width / 2 + PLAYER_RADIUS, maxX: WIDTH - PLAYER_RADIUS };
+    const ball = { x: 0, y: 0, dx: 0, dy: 0 };
+    let serveTimer = 0;
+
+    const keys = {};       // keys held down right now
+
+    const MENU_ITEMS = ["1 player", "2 players", "Controls"];
+
+    // --- Starting ------------------------------------------------------------
+
+    function newGame(withTwoPlayers) {
+        twoPlayers = withTwoPlayers;
+        left.score = 0;
+        right.score = 0;
+        gameStarted = true;
+        serve(Math.random() &lt; 0.5 ? left : right);
+        screen = "playing";
+    }
+
+    // The ball hangs still above the server for a second, then drops.
+    function serve(player) {
+        left.x = 200;
+        right.x = 600;
+        ball.x = player.x;
+        ball.y = 100;
+        ball.dx = 0;
+        ball.dy = 0;
+        serveTimer = SERVE_TIME;
+    }
+
+    // --- Players -------------------------------------------------------------
+
+    function anyHeld(list) {
+        return list.some(function (key) {
+            return keys[key];
+        });
+    }
+
+    // Move left or right, jump, and fall back down.
+    function movePlayer(player, goLeft, goRight, jump) {
+        if (goLeft) {
+            player.x -= PLAYER_SPEED;
+        }
+        if (goRight) {
+            player.x += PLAYER_SPEED;
+        }
+        player.x = Math.min(player.maxX, Math.max(player.minX, player.x));
+
+        if (jump &amp;&amp; player.y === GROUND) {
+            player.dy = JUMP_SPEED;
+        }
+        player.y += player.dy;
+        player.dy += PLAYER_GRAVITY;
+        if (player.y &gt;= GROUND) {
+            player.y = GROUND;
+            player.dy = 0;
+        }
+    }
+
+    // The computer stands a little to the right of the ball, so the ball
+    // bounces off its left side, towards the net. It jumps when the ball is
+    // coming down close above it.
+    function moveComputer(player) {
+        let target = 600;   // its place when the ball is on the other side
+        if (ball.x &gt; NET.x) {
+            target = ball.x + 15;
+        }
+        const goLeft = player.x &gt; target + 3;
+        const goRight = player.x &lt; target - 3;
+        const above = Math.abs(ball.x - player.x) &lt; 50 &amp;&amp; ball.y &lt; player.y - 50 &amp;&amp; ball.y &gt; player.y - 160;
+        movePlayer(player, goLeft, goRight, above &amp;&amp; ball.dy &gt; 0);
+    }
+
+    // --- The ball ------------------------------------------------------------
+
+    // Bounce off a player's round head. Push the ball out of the head, turn
+    // its speed around along the line from the head's center, and add some of
+    // the player's own movement, so a jumping player hits harder.
+    function bounceOffPlayer(player) {
+        const dx = ball.x - player.x;
+        const dy = ball.y - player.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance &gt;= PLAYER_RADIUS + BALL_RADIUS || dy &gt; 0 || distance === 0) {
+            return;
+        }
+        const nx = dx / distance;
+        const ny = dy / distance;
+        ball.x = player.x + nx * (PLAYER_RADIUS + BALL_RADIUS);
+        ball.y = player.y + ny * (PLAYER_RADIUS + BALL_RADIUS);
+
+        const along = ball.dx * nx + ball.dy * ny;
+        if (along &lt; 0) {
+            ball.dx -= 2 * along * nx;
+            ball.dy -= 2 * along * ny;
+        }
+        ball.dy += player.dy * 0.5;
+        ball.dx += nx * 2;
+        ball.dy += ny * 2;
+
+        const speed = Math.hypot(ball.dx, ball.dy);
+        if (speed &gt; MAX_BALL_SPEED) {
+            ball.dx *= MAX_BALL_SPEED / speed;
+            ball.dy *= MAX_BALL_SPEED / speed;
+        }
+    }
+
+    function bounceOffNet() {
+        const netLeft = NET.x - NET.width / 2 - BALL_RADIUS;
+        const netRight = NET.x + NET.width / 2 + BALL_RADIUS;
+        if (ball.x &lt; netLeft || ball.x &gt; netRight || ball.y &lt; NET.top - BALL_RADIUS) {
+            return;
+        }
+        if (ball.y &lt; NET.top) {
+            ball.dy = -Math.abs(ball.dy);   // on top of the net: up
+        } else if (ball.x &lt; NET.x) {
+            ball.x = netLeft;               // the left side: back left
+            ball.dx = -Math.abs(ball.dx);
+        } else {
+            ball.x = netRight;
+            ball.dx = Math.abs(ball.dx);
+        }
+    }
+
+    function moveBall() {
+        if (serveTimer &gt; 0) {
+            serveTimer--;
+            return;
+        }
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+        ball.dy += BALL_GRAVITY;
+
+        // The side walls: set the direction away from the wall.
+        if (ball.x &lt; BALL_RADIUS) {
+            ball.dx = Math.abs(ball.dx);
+        } else if (ball.x &gt; WIDTH - BALL_RADIUS) {
+            ball.dx = -Math.abs(ball.dx);
+        }
+
+        bounceOffNet();
+        bounceOffPlayer(left);
+        bounceOffPlayer(right);
+
+        // On the ground: a point to the other side, who serves next.
+        if (ball.y &gt; GROUND - BALL_RADIUS) {
+            const winner = ball.x &lt; NET.x ? right : left;
+            winner.score++;
+            if (winner.score === WIN_SCORE) {
+                screen = "gameOver";
+            } else {
+                serve(winner);
+            }
+        }
+    }
+
+    // --- Update --------------------------------------------------------------
+
+    function update() {
+        if (twoPlayers) {
+            movePlayer(left, anyHeld(["a", "A"]), anyHeld(["d", "D"]), anyHeld(["w", "W"]));
+            movePlayer(right, keys.ArrowLeft, keys.ArrowRight, keys.ArrowUp);
+        } else {
+            movePlayer(left, anyHeld(["a", "A", "ArrowLeft"]), anyHeld(["d", "D", "ArrowRight"]), anyHeld(["w", "W", "ArrowUp"]));
+            moveComputer(right);
+        }
+        moveBall();
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawText(text, x, y, size, color) {
+        ctx.fillStyle = color || "white";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(text, x, y);
+    }
+
+    // Five dots for each player, filled in for each point.
+    function drawScore(player, startX) {
+        for (let i = 0; i &lt; WIN_SCORE; i++) {
+            ctx.fillStyle = i &lt; player.score ? "yellow" : "rgba(255, 255, 255, 0.5)";
+            ctx.beginPath();
+            ctx.arc(startX + i * 30, 40, 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function drawWorld() {
+        // Sky and sand.
+        ctx.fillStyle = "#87ceeb";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = "#e6cb9a";
+        ctx.fillRect(0, GROUND, WIDTH, HEIGHT - GROUND);
+
+        ctx.fillStyle = "#333333";
+        ctx.fillRect(NET.x - NET.width / 2, NET.top, NET.width, GROUND - NET.top);
+
+        if (!gameStarted) {
+            return;
+        }
+
+        // The players are half circles standing on the ground.
+        [left, right].forEach(function (player) {
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, PLAYER_RADIUS, Math.PI, 0);
+            ctx.fill();
+        });
+
+        ctx.fillStyle = "orange";
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+
+        drawScore(left, 40);
+        drawScore(right, WIDTH - 40 - (WIN_SCORE - 1) * 30);
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 50, 40, "yellow");
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 28, 20);
+        });
+    }
+
+    function drawMenu() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText("Volleyball", WIDTH / 2, HEIGHT / 2 - 60, 60);
+        MENU_ITEMS.forEach(function (item, index) {
+            const color = index === menuIndex ? "yellow" : "white";
+            drawText(item, WIDTH / 2, HEIGHT / 2 + index * 40, 24, color);
+        });
+        drawText("Arrow keys and Enter to choose", WIDTH / 2, HEIGHT - 40, 16);
+        if (gameStarted) {
+            drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 18, 16);
+        }
+    }
+
+    function winnerText() {
+        if (!twoPlayers) {
+            return left.score === WIN_SCORE ? "You win!" : "The computer wins";
+        }
+        return left.score === WIN_SCORE ? "Red wins!" : "Blue wins!";
+    }
+
+    function draw() {
+        drawWorld();
+
+        if (screen === "menu") {
+            drawMenu();
+        } else if (screen === "controls") {
+            drawMessage("Controls", [
+                "1 player: arrows or A / D to move, up or W to jump",
+                "2 players: left A / D and W, right arrows",
+                "Pause: P      Menu: Esc",
+                "",
+                "Esc: back"
+            ]);
+        } else if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "gameOver") {
+            drawMessage(winnerText(), [left.score + " - " + right.score, "Press Enter to play again", "Press Esc for the menu"]);
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // Run one update per 1/60 second, so the game has the same speed on
+    // every screen, then draw.
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        while (leftover &gt;= STEP) {
+            if (screen === "playing") {
+                update();
+            }
+            leftover -= STEP;
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Keyboard ------------------------------------------------------------
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+        keys[key] = true;
+
+        if (screen === "menu") {
+            if (key === "ArrowUp") {
+                menuIndex = (menuIndex + MENU_ITEMS.length - 1) % MENU_ITEMS.length;
+            } else if (key === "ArrowDown") {
+                menuIndex = (menuIndex + 1) % MENU_ITEMS.length;
+            } else if (key === "Enter") {
+                const item = MENU_ITEMS[menuIndex];
+                if (item === "Controls") {
+                    screen = "controls";
+                } else {
+                    newGame(item === "2 players");
+                }
+            } else if (key === "Escape" &amp;&amp; gameStarted) {
+                screen = "paused";
+            }
+        } else if (screen === "controls") {
+            if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "playing") {
+            if (key === "p" || key === "P") {
+                screen = "paused";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "paused") {
+            if (key === "p" || key === "P") {
+                screen = "playing";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "gameOver") {
+            if (key === "Enter") {
+                newGame(twoPlayers);
+            } else if (key === "Escape") {
+                gameStarted = false;
+                screen = "menu";
+            }
+        }
+    });
+
+    document.addEventListener("keyup", function (event) {
+        keys[event.key] = false;
+    });
+
+    // If the window loses focus while a key is held, we never get its keyup.
+    window.addEventListener("blur", function () {
+        for (const key in keys) {
+            keys[key] = false;
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Allow at most three touches on each side before the ball must go over.</li>
+    <li>Draw eyes on the players that look at the ball.</li>
+    <li>Make the computer smarter: work out where the ball will land, and go there.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

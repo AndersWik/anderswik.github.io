@@ -1,0 +1,798 @@
+---
+layout: default
+title: Arcade shooter
+permalink: /tutorials/arcade-shooter/
+chapter: "06"
+chapter_title: "Classic arcade"
+keywords: [javascript, game, canvas, game loop, requestAnimationFrame, images, mouse, screens, state machine, levels]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Arcade shooter</h1>
+  <p>Targets pop up in doors and windows. Shoot the bad guys before they hide again, but don't shoot the civilians. You have six bullets, and Space reloads. There are three levels.</p>
+  <p>This is the first game drawn on a <code>&lt;canvas&gt;</code>, and it introduces the parts every canvas game here is built from: a game loop, screens (menu, playing, paused...), and drawing with pictures, shapes and text. The next two games reuse all of them.</p>
+  <p><a href="/assets/arcade-shooter/standalone.html">Open the finished game</a></p>
+  <h2>The pictures</h2>
+  <p>This game uses pictures. Make a folder for the game, with the page and a folder called <code>images</code>:</p>
+  <pre><code class="language-plaintext">arcade-shooter/
+    arcade-shooter.html
+    images/
+        snow_level.png
+        enemy1_full.png
+        ...</code></pre>
+  <p>Download these into <code>images</code> (right-click a link and save it):</p>
+  <p><a href="/assets/arcade-shooter/images/snow_level.png">snow_level.png</a>, <a href="/assets/arcade-shooter/images/pirate_level.png">pirate_level.png</a>, <a href="/assets/arcade-shooter/images/house_level.png">house_level.png</a>, <a href="/assets/arcade-shooter/images/enemy1_full.png">enemy1_full.png</a>, <a href="/assets/arcade-shooter/images/enemy1_half.png">enemy1_half.png</a>, <a href="/assets/arcade-shooter/images/enemy2_full.png">enemy2_full.png</a>, <a href="/assets/arcade-shooter/images/enemy2_half.png">enemy2_half.png</a>, <a href="/assets/arcade-shooter/images/enemy3_full.png">enemy3_full.png</a>, <a href="/assets/arcade-shooter/images/enemy3_half.png">enemy3_half.png</a>, <a href="/assets/arcade-shooter/images/enemy4_full.png">enemy4_full.png</a>, <a href="/assets/arcade-shooter/images/enemy4_half.png">enemy4_half.png</a>, <a href="/assets/arcade-shooter/images/pirate_enemy1_full.png">pirate_enemy1_full.png</a>, <a href="/assets/arcade-shooter/images/pirate_enemy2_full.png">pirate_enemy2_full.png</a>, <a href="/assets/arcade-shooter/images/pirate_enemy3_full.png">pirate_enemy3_full.png</a>, <a href="/assets/arcade-shooter/images/pirate_enemy4_full.png">pirate_enemy4_full.png</a>, <a href="/assets/arcade-shooter/images/civilian1_full.png">civilian1_full.png</a>, <a href="/assets/arcade-shooter/images/civilian1_half.png">civilian1_half.png</a>, <a href="/assets/arcade-shooter/images/civilian2_full.png">civilian2_full.png</a>, <a href="/assets/arcade-shooter/images/civilian2_half.png">civilian2_half.png</a>, <a href="/assets/arcade-shooter/images/rifle_bullet.png">rifle_bullet.png</a>, <a href="/assets/arcade-shooter/images/splat-1.png">splat-1.png</a>, <a href="/assets/arcade-shooter/images/splat-2.png">splat-2.png</a></p>
+  <p>The game also works without them. Every picture that is missing is drawn as a colored box, so you can start coding first and add the pictures later.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>arcade-shooter.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The whole game is one canvas:</p>
+  <pre><code class="language-html">&lt;canvas id="gameCanvas" width="800" height="600"&gt;&lt;/canvas&gt;</code></pre>
+  <p><code>width="800" height="600"</code> is the size of the drawing in pixels. The CSS may show it smaller on a phone, but the code always draws on 800 x 600.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    color: white;
+    background-color: #111111;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border: 4px solid white;
+    cursor: crosshair;
+}</code></pre>
+  <h2>Step 2: Drawing on a canvas</h2>
+  <p>The canvas is a picture you draw on with code. <code>getContext("2d")</code> gives the drawing tools. Position (0, 0) is the <strong>top left</strong> corner, x grows to the right and y grows <strong>down</strong>.</p>
+  <pre><code class="language-javascript">const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+
+ctx.fillStyle = "red";
+ctx.fillRect(10, 10, 100, 50);         // a red box
+ctx.drawImage(picture, 0, 0, 800, 600); // a picture, stretched to fit
+ctx.font = "20px Arial";
+ctx.fillText("Score: 100", 120, 30);   // text</code></pre>
+  <p>Nothing on a canvas moves by itself. To animate, you draw the whole picture again, about 60 times a second, with things in slightly new places.</p>
+  <h2>Step 3: The level data</h2>
+  <p>The levels are data, kept apart from the code. Adding a level means adding an object, not changing the game:</p>
+  <pre><code class="language-javascript">const LEVELS = [
+    {
+        background: "snow_level.png",
+        enemies: [
+            { half: "enemy1_half.png", full: "enemy1_full.png" },
+            ...
+        ],
+        civilians: [ ... ],
+        spots: [
+            { x: 220, y: 120, place: "door" },
+            { x: 480, y: 120, place: "door" },
+            ...
+        ],
+        targets: 10,
+        interval: 1000
+    },
+    ...
+];</code></pre>
+  <p>A target in a door is shown full size. In a window only the top half shows, so it uses the "half" picture. The spots were found by opening the background in an image program and noting where the doors and windows are.</p>
+  <h2>Step 4: Loading pictures</h2>
+  <p><code>new Image()</code> makes a picture and <code>src</code> starts loading it. Loading takes time, so we load everything at the start and remember each picture by name:</p>
+  <pre><code class="language-javascript">const images = {};
+
+function loadImage(name) {
+    if (!images[name]) {
+        images[name] = new Image();
+        images[name].src = IMAGE_FOLDER + name;
+    }
+    return images[name];
+}
+
+function isLoaded(image) {
+    return image.complete &amp;&amp; image.naturalWidth &gt; 0;
+}</code></pre>
+  <p><code>complete</code> is true when loading is finished, even if it failed. <code>naturalWidth</code> is 0 for a picture that failed to load. <code>drawImage()</code> in the game checks <code>isLoaded()</code> and draws a colored box otherwise.</p>
+  <h2>Step 5: Screens</h2>
+  <p>A game is in one of several <strong>screens</strong> at a time: the menu, the controls, playing, paused, level done, won or game over. One variable keeps track:</p>
+  <pre><code class="language-javascript">let screen = "menu";   // menu, controls, playing, paused, levelDone, won, gameOver</code></pre>
+  <p>Each screen draws different things and reacts to different keys. Keeping it in one variable makes it impossible to be in two screens at once, for example paused and game over. A list of states like this, with rules for moving between them, is called a <strong>state machine</strong>.</p>
+  <h2>Step 6: The game loop</h2>
+  <p><code>requestAnimationFrame(gameLoop)</code> asks the browser to call <code>gameLoop</code> just before the next screen refresh. <code>gameLoop</code> asks again at the end, so it runs all the time.</p>
+  <p>Screens refresh 60 times a second on most computers, but 120 or 144 on some. If the game moved things once per frame, it would run twice as fast on those screens. So we <strong>update</strong> the game in fixed steps of 1/60 second, as many as have passed, and <strong>draw</strong> once per frame:</p>
+  <pre><code class="language-javascript">const STEP = 1000 / 60;
+let lastTime = performance.now();
+let leftover = 0;
+
+function gameLoop(now) {
+    leftover += Math.min(now - lastTime, 250);
+    lastTime = now;
+
+    while (leftover &gt;= STEP) {
+        if (screen === "playing") {
+            update();
+        }
+        leftover -= STEP;
+    }
+
+    draw();
+    requestAnimationFrame(gameLoop);
+}</code></pre>
+  <p><code>now</code> is the time in milliseconds. <code>Math.min(..., 250)</code> stops the game from running hundreds of steps at once after you come back from another tab, where the browser pauses the loop.</p>
+  <p><code>update()</code> only runs while playing. That is how pause works: nothing changes, but the picture is still drawn.</p>
+  <h2>Step 7: Game time</h2>
+  <p>Targets hide again after 2 seconds. If we used the clock on the wall (<code>Date.now()</code>), the time would keep running while the game is paused, and every target would be gone when you come back. So the game keeps its own clock, which only moves in <code>update()</code>:</p>
+  <pre><code class="language-javascript">function update() {
+    gameTime += STEP;
+
+    if (spawned &lt; level().targets &amp;&amp; gameTime &gt;= nextSpawnTime) {
+        spawnTarget();
+    }
+    ...
+}</code></pre>
+  <p>Every time in the game is a <code>gameTime</code>. A target gets <code>hideTime: gameTime + TARGET_TIME</code>, and in <code>update()</code> we remove the targets whose time has passed. Enemies that get away cost a life:</p>
+  <pre><code class="language-javascript">targets = targets.filter(function (target) {
+    if (gameTime &lt; target.hideTime) {
+        return true;
+    }
+    if (target.isEnemy) {
+        loseLife();
+    }
+    return false;
+});</code></pre>
+  <p><code>filter</code> keeps the items where the function returns <code>true</code>, so this removes hidden targets and checks them in one go.</p>
+  <h2>Step 8: Popping up targets</h2>
+  <p>A spot is free if no target is in it. We don't store that as a flag on the spot, because flags like that are easy to forget to reset. We work it out when we need it:</p>
+  <pre><code class="language-javascript">const freeSpots = level().spots.filter(function (spot) {
+    return !targets.some(function (target) {
+        return target.spot === spot;
+    });
+});
+if (freeSpots.length === 0) {
+    return; // try again next step
+}</code></pre>
+  <p><code>some</code> is true if at least one item matches. If all spots are taken, we don't count the target. It pops up a moment later instead. Then we pick a random spot, decide enemy or civilian (70% enemies), and pick a picture.</p>
+  <h2>Step 9: Mouse and shooting</h2>
+  <p>Mouse positions come in screen pixels. If the canvas is shown smaller than 800 pixels wide, we have to scale them up to canvas pixels:</p>
+  <pre><code class="language-javascript">function canvasPosition(event) {
+    const box = canvas.getBoundingClientRect();
+    return {
+        x: (event.clientX - box.left - canvas.clientLeft) * (WIDTH / canvas.clientWidth),
+        y: (event.clientY - box.top - canvas.clientTop) * (HEIGHT / canvas.clientHeight)
+    };
+}</code></pre>
+  <p><code>getBoundingClientRect()</code> gives where the canvas is on the screen. <code>clientLeft</code> is the width of the border, and <code>clientWidth</code> the width inside it.</p>
+  <p>A click only shoots while playing. We check the targets from last to first, because the last one is drawn on top, and remove the first one that was hit:</p>
+  <pre><code class="language-javascript">function shoot(x, y) {
+    if (bullets === 0) {
+        return;
+    }
+    bullets--;
+
+    for (let i = targets.length - 1; i &gt;= 0; i--) {
+        const target = targets[i];
+        if (isHit(target, x, y)) {
+            if (target.isEnemy) {
+                score += 100;
+                ...add a splat...
+            } else {
+                loseLife();
+            }
+            targets.splice(i, 1);
+            return;
+        }
+    }
+}</code></pre>
+  <p><code>isHit</code> checks if the point is inside the target's rectangle: x between left and right, and y between top and bottom.</p>
+  <h2>Step 10: Keys for each screen</h2>
+  <p>One <code>keydown</code> listener checks the screen first, then the key. For example, from the level-done screen, Enter goes on to the next level:</p>
+  <pre><code class="language-javascript">} else if (screen === "levelDone") {
+    if (key === "Enter") {
+        levelIndex++;
+        startLevel();
+    }
+}</code></pre>
+  <p><code>startGame()</code> resets everything for a new game, and <code>startLevel()</code> resets what belongs to one level. Keeping all the resetting in those two functions means a new game always starts clean, however the last one ended.</p>
+  <h2>Step 11: Drawing</h2>
+  <p><code>draw()</code> always draws the world (background, targets, splats), then what belongs to the screen on top: the menu, the score and bullets, or a message on a dark see-through layer:</p>
+  <pre><code class="language-javascript">function drawMessage(title, lines) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    drawText(title, WIDTH / 2, HEIGHT / 2 - 60, 40, "yellow");
+    lines.forEach(function (line, index) {
+        drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+    });
+}</code></pre>
+  <p>A red see-through layer flashes for 150 ms when you lose a life (<code>hurtUntil</code>).</p>
+  <h2>Step 12: Test it</h2>
+  <ul>
+    <li>Start the game, shoot an enemy and a civilian, and let an enemy get away. Score and lives should change.</li>
+    <li>Pause with P while a target is up, wait 5 seconds, and go on. The target should still be there.</li>
+    <li>Empty the gun, and reload with Space.</li>
+    <li>Lose all lives, press Enter, and check that you start on level 1 with 3 lives and a score of 0.</li>
+    <li>Make the browser window narrow so the canvas shrinks. The crosshair should still be where the mouse is.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>standalone.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Arcade shooter&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        color: white;
+        background-color: #111111;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        border: 4px solid white;
+        cursor: crosshair;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;canvas id="gameCanvas" width="800" height="600"&gt;&lt;/canvas&gt;
+
+  &lt;script&gt;
+    /*
+     * The levels of the arcade shooter.
+     *
+     * background  the picture behind everything
+     * enemies     pictures of targets to shoot
+     * civilians   pictures of targets NOT to shoot
+     * spots       where targets can pop up. A target in a "door" is shown
+     *             full size, in a "window" only the top half (the "half" picture).
+     * targets     how many targets pop up during the level
+     * interval    milliseconds between two targets
+     */
+
+    const LEVELS = [
+        {
+            background: "snow_level.png",
+            enemies: [
+                { half: "enemy1_half.png", full: "enemy1_full.png" },
+                { half: "enemy2_half.png", full: "enemy2_full.png" },
+                { half: "enemy3_half.png", full: "enemy3_full.png" },
+                { half: "enemy4_half.png", full: "enemy4_full.png" }
+            ],
+            civilians: [
+                { half: "civilian1_half.png", full: "civilian1_full.png" },
+                { half: "civilian2_half.png", full: "civilian2_full.png" }
+            ],
+            spots: [
+                { x: 220, y: 120, place: "door" },
+                { x: 480, y: 120, place: "door" },
+                { x: 170, y: 250, place: "door" },
+                { x: 500, y: 250, place: "door" },
+                { x: 170, y: 400, place: "door" },
+                { x: 520, y: 400, place: "door" }
+            ],
+            targets: 10,
+            interval: 1000
+        },
+        {
+            background: "pirate_level.png",
+            enemies: [
+                { half: "pirate_enemy1_full.png", full: "pirate_enemy1_full.png" },
+                { half: "pirate_enemy2_full.png", full: "pirate_enemy2_full.png" },
+                { half: "pirate_enemy3_full.png", full: "pirate_enemy3_full.png" },
+                { half: "pirate_enemy4_full.png", full: "pirate_enemy4_full.png" }
+            ],
+            civilians: [
+                { half: "civilian1_half.png", full: "civilian1_full.png" },
+                { half: "civilian2_half.png", full: "civilian2_full.png" }
+            ],
+            spots: [
+                { x: 150, y: 155, place: "door" },
+                { x: 360, y: 230, place: "door" },
+                { x: 560, y: 180, place: "door" },
+                { x: 175, y: 345, place: "window" },
+                { x: 320, y: 345, place: "window" },
+                { x: 455, y: 345, place: "window" }
+            ],
+            targets: 10,
+            interval: 1000
+        },
+        {
+            background: "house_level.png",
+            enemies: [
+                { half: "enemy1_half.png", full: "enemy1_full.png" },
+                { half: "enemy2_half.png", full: "enemy2_full.png" },
+                { half: "enemy3_half.png", full: "enemy3_full.png" },
+                { half: "enemy4_half.png", full: "enemy4_full.png" }
+            ],
+            civilians: [
+                { half: "civilian1_half.png", full: "civilian1_full.png" },
+                { half: "civilian2_half.png", full: "civilian2_full.png" }
+            ],
+            spots: [
+                { x: 170, y: 155, place: "window" },
+                { x: 360, y: 155, place: "window" },
+                { x: 560, y: 155, place: "window" },
+                { x: 170, y: 305, place: "window" },
+                { x: 360, y: 305, place: "window" },
+                { x: 550, y: 305, place: "window" },
+                { x: 170, y: 460, place: "door" },
+                { x: 550, y: 460, place: "door" }
+            ],
+            targets: 10,
+            interval: 1000
+        }
+    ];
+
+    /*
+     * Arcade shooter: targets pop up in doors and windows. Shoot the bad guys
+     * before they disappear, but don't shoot the civilians.
+     *
+     *   click   shoot (6 bullets)
+     *   Space   reload
+     *   P       pause
+     *   Esc     menu
+     *
+     * The game is drawn on a &lt;canvas&gt;. A loop runs about 60 times a second:
+     * it updates the game a fixed number of steps, then draws everything.
+     * "screen" says what is shown: the menu, the game, the pause text...
+     *
+     * The level data (pictures and where targets pop up) is in levels.js.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    // Where the pictures are: a folder called "images" next to this page.
+    const IMAGE_FOLDER = "images/";
+
+    const MAX_BULLETS = 6;
+    const START_LIVES = 3;
+    const TARGET_TIME = 2000;    // ms a target stays before it hides again
+    const TARGET_WIDTH = 80;
+    const TARGET_HEIGHT = 120;
+    const ENEMY_CHANCE = 0.7;    // 70% of targets are enemies
+    const STEP = 1000 / 60;      // one update step, in milliseconds
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // --- Pictures ------------------------------------------------------------
+
+    const images = {};
+
+    // Start loading a picture once and remember it by name.
+    function loadImage(name) {
+        if (!images[name]) {
+            images[name] = new Image();
+            images[name].src = IMAGE_FOLDER + name;
+        }
+        return images[name];
+    }
+
+    // complete is true when loading is done; naturalWidth is 0 if it failed.
+    function isLoaded(image) {
+        return image.complete &amp;&amp; image.naturalWidth &gt; 0;
+    }
+
+    // Load everything at the start, so nothing pops in late during the game.
+    function loadAllImages() {
+        ["rifle_bullet.png", "splat-1.png", "splat-2.png"].forEach(loadImage);
+        LEVELS.forEach(function (level) {
+            loadImage(level.background);
+            level.enemies.concat(level.civilians).forEach(function (picture) {
+                loadImage(picture.half);
+                loadImage(picture.full);
+            });
+        });
+    }
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, controls, playing, paused, levelDone, won, gameOver
+    let menuIndex = 0;
+    let gameStarted = false;
+
+    let levelIndex = 0;
+    let score = 0;
+    let lives = START_LIVES;
+    let bullets = MAX_BULLETS;
+    let targets = [];      // the targets showing right now
+    let splats = [];       // blood splats where an enemy was hit
+    let spawned = 0;       // targets shown so far this level
+    let gameTime = 0;      // ms of playing time; stops while paused
+    let nextSpawnTime = 0;
+    let hurtUntil = 0;     // show a red flash until this time
+
+    let mouseX = WIDTH / 2;
+    let mouseY = HEIGHT / 2;
+
+    const MENU_ITEMS = ["Start", "Controls"];
+
+    // --- Helpers -------------------------------------------------------------
+
+    function randomItem(list) {
+        return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function level() {
+        return LEVELS[levelIndex];
+    }
+
+    function startGame() {
+        levelIndex = 0;
+        score = 0;
+        lives = START_LIVES;
+        gameStarted = true;
+        startLevel();
+    }
+
+    function startLevel() {
+        targets = [];
+        splats = [];
+        spawned = 0;
+        bullets = MAX_BULLETS;
+        gameTime = 0;
+        nextSpawnTime = level().interval;
+        hurtUntil = 0;
+        screen = "playing";
+    }
+
+    function loseLife() {
+        lives--;
+        hurtUntil = gameTime + 150;
+    }
+
+    // --- Targets -------------------------------------------------------------
+
+    function spawnTarget() {
+        // Spots that have no target in them right now.
+        const freeSpots = level().spots.filter(function (spot) {
+            return !targets.some(function (target) {
+                return target.spot === spot;
+            });
+        });
+        if (freeSpots.length === 0) {
+            return; // try again next step
+        }
+
+        const spot = randomItem(freeSpots);
+        const isEnemy = Math.random() &lt; ENEMY_CHANCE;
+        const picture = randomItem(isEnemy ? level().enemies : level().civilians);
+
+        targets.push({
+            spot: spot,
+            x: spot.x,
+            y: spot.y,
+            isEnemy: isEnemy,
+            image: loadImage(spot.place === "door" ? picture.full : picture.half),
+            hideTime: gameTime + TARGET_TIME
+        });
+        spawned++;
+        nextSpawnTime = gameTime + level().interval;
+    }
+
+    function isHit(target, x, y) {
+        return x &gt;= target.x &amp;&amp; x &lt;= target.x + TARGET_WIDTH &amp;&amp;
+            y &gt;= target.y &amp;&amp; y &lt;= target.y + TARGET_HEIGHT;
+    }
+
+    function shoot(x, y) {
+        if (bullets === 0) {
+            return;
+        }
+        bullets--;
+
+        // Look from the last target, which is drawn on top, to the first.
+        for (let i = targets.length - 1; i &gt;= 0; i--) {
+            const target = targets[i];
+            if (isHit(target, x, y)) {
+                if (target.isEnemy) {
+                    score += 100;
+                    splats.push({ x: x - 15, y: y - 15, image: loadImage(randomItem(["splat-1.png", "splat-2.png"])), hideTime: gameTime + 500 });
+                } else {
+                    loseLife();
+                }
+                targets.splice(i, 1);
+                return;
+            }
+        }
+    }
+
+    // --- Update --------------------------------------------------------------
+
+    // One step of the game: about 1/60 of a second.
+    function update() {
+        gameTime += STEP;
+
+        if (spawned &lt; level().targets &amp;&amp; gameTime &gt;= nextSpawnTime) {
+            spawnTarget();
+        }
+
+        // Enemies that hide again before they are shot cost a life.
+        targets = targets.filter(function (target) {
+            if (gameTime &lt; target.hideTime) {
+                return true;
+            }
+            if (target.isEnemy) {
+                loseLife();
+            }
+            return false;
+        });
+
+        splats = splats.filter(function (splat) {
+            return gameTime &lt; splat.hideTime;
+        });
+
+        if (lives &lt;= 0) {
+            screen = "gameOver";
+        } else if (spawned === level().targets &amp;&amp; targets.length === 0) {
+            screen = levelIndex === LEVELS.length - 1 ? "won" : "levelDone";
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawText(text, x, y, size, color) {
+        ctx.fillStyle = color || "white";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(text, x, y);
+    }
+
+    // Draw a picture, or a plain box if it hasn't loaded (yet).
+    function drawImage(image, x, y, width, height, fallbackColor) {
+        if (isLoaded(image)) {
+            ctx.drawImage(image, x, y, width, height);
+        } else {
+            ctx.fillStyle = fallbackColor;
+            ctx.fillRect(x, y, width, height);
+        }
+    }
+
+    function drawWorld() {
+        drawImage(loadImage(level().background), 0, 0, WIDTH, HEIGHT, "#87ceeb");
+
+        targets.forEach(function (target) {
+            drawImage(target.image, target.x, target.y, TARGET_WIDTH, TARGET_HEIGHT,
+                target.isEnemy ? "red" : "blue");
+        });
+
+        splats.forEach(function (splat) {
+            if (isLoaded(splat.image)) {
+                ctx.drawImage(splat.image, splat.x, splat.y, 30, 30);
+            }
+        });
+
+        if (gameTime &lt; hurtUntil) {
+            ctx.fillStyle = "rgba(225, 0, 0, 0.5)";
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        }
+    }
+
+    function drawHud() {
+        drawText("Score: " + score, 120, 30, 20);
+        drawText("Lives: " + lives, 400, 30, 20);
+        drawText("Level: " + (levelIndex + 1), 680, 30, 20);
+
+        // The bullets left, stacked from the bottom left corner.
+        const bulletImage = loadImage("rifle_bullet.png");
+        for (let i = 0; i &lt; bullets; i++) {
+            drawImage(bulletImage, 20, HEIGHT - 60 - i * 30, 100, 30, "gold");
+        }
+        if (bullets === 0) {
+            drawText("Press Space to reload", WIDTH / 2, HEIGHT - 30, 24, "yellow");
+        }
+    }
+
+    function drawCrosshair() {
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 30, 0, Math.PI * 2);
+        // Four short lines: left, right, up and down.
+        ctx.moveTo(mouseX - 40, mouseY);
+        ctx.lineTo(mouseX - 20, mouseY);
+        ctx.moveTo(mouseX + 20, mouseY);
+        ctx.lineTo(mouseX + 40, mouseY);
+        ctx.moveTo(mouseX, mouseY - 40);
+        ctx.lineTo(mouseX, mouseY - 20);
+        ctx.moveTo(mouseX, mouseY + 20);
+        ctx.lineTo(mouseX, mouseY + 40);
+        ctx.stroke();
+    }
+
+    function drawMenu() {
+        drawText("Tux Shooter", WIDTH / 2, HEIGHT / 2 - 50, 60, "yellow");
+        MENU_ITEMS.forEach(function (item, index) {
+            const color = index === menuIndex ? "yellow" : "white";
+            drawText(item, WIDTH / 2, HEIGHT / 2 + 20 + index * 50, 24, color);
+        });
+        drawText("Arrow keys and Enter to choose", WIDTH / 2, HEIGHT - 60, 16);
+        if (gameStarted) {
+            drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 35, 16);
+        }
+    }
+
+    function drawControls() {
+        drawText("Controls", WIDTH / 2, 150, 40, "yellow");
+        const lines = [
+            ["Shoot", "Click"],
+            ["Reload", "Space"],
+            ["Pause", "P"],
+            ["Menu", "Esc"]
+        ];
+        lines.forEach(function (line, index) {
+            drawText(line[0], WIDTH / 2 - 100, 250 + index * 35, 22);
+            drawText(line[1], WIDTH / 2 + 100, 250 + index * 35, 22);
+        });
+        drawText("Shoot the bad guys. Don't shoot the civilians!", WIDTH / 2, 430, 20, "yellow");
+        drawText("Esc: back", WIDTH / 2, HEIGHT - 35, 16);
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 60, 40, "yellow");
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+        });
+    }
+
+    function draw() {
+        drawWorld();
+
+        if (screen === "menu") {
+            drawMenu();
+        } else if (screen === "controls") {
+            drawControls();
+        } else if (screen === "playing") {
+            drawHud();
+            drawCrosshair();
+        } else if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "levelDone") {
+            drawMessage("Level complete!", ["Score: " + score, "Press Enter to continue"]);
+        } else if (screen === "won") {
+            drawMessage("You win!", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+        } else if (screen === "gameOver") {
+            drawMessage("Game over", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // requestAnimationFrame calls us before every screen refresh, usually 60
+    // times a second, but 120 or more on some screens. To make the game run
+    // at the same speed everywhere, we run one update per 1/60 second that
+    // has passed, however many frames that is.
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        // Math.min: after a long break (another tab), don't run hundreds of steps.
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        while (leftover &gt;= STEP) {
+            if (screen === "playing") {
+                update();
+            }
+            leftover -= STEP;
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Mouse and keyboard --------------------------------------------------
+
+    // The canvas can be shown smaller than 800x600 on a small screen. Convert
+    // from position on the screen to position in the canvas. clientLeft and
+    // clientWidth leave out the border around the canvas.
+    function canvasPosition(event) {
+        const box = canvas.getBoundingClientRect();
+        return {
+            x: (event.clientX - box.left - canvas.clientLeft) * (WIDTH / canvas.clientWidth),
+            y: (event.clientY - box.top - canvas.clientTop) * (HEIGHT / canvas.clientHeight)
+        };
+    }
+
+    canvas.addEventListener("mousemove", function (event) {
+        const position = canvasPosition(event);
+        mouseX = position.x;
+        mouseY = position.y;
+    });
+
+    canvas.addEventListener("click", function (event) {
+        if (screen === "playing") {
+            const position = canvasPosition(event);
+            shoot(position.x, position.y);
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+
+        if (screen === "menu") {
+            if (key === "ArrowUp") {
+                menuIndex = (menuIndex + MENU_ITEMS.length - 1) % MENU_ITEMS.length;
+            } else if (key === "ArrowDown") {
+                menuIndex = (menuIndex + 1) % MENU_ITEMS.length;
+            } else if (key === "Enter") {
+                if (MENU_ITEMS[menuIndex] === "Start") {
+                    startGame();
+                } else {
+                    screen = "controls";
+                }
+            } else if (key === "Escape" &amp;&amp; gameStarted) {
+                screen = "paused";
+            }
+        } else if (screen === "controls") {
+            if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "playing") {
+            if (key === " ") {
+                bullets = MAX_BULLETS;
+            } else if (key === "p" || key === "P") {
+                screen = "paused";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "paused") {
+            if (key === "p" || key === "P") {
+                screen = "playing";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "levelDone") {
+            if (key === "Enter") {
+                levelIndex++;
+                startLevel();
+            }
+        } else if (screen === "won" || screen === "gameOver") {
+            if (key === "Enter") {
+                startGame();
+            } else if (key === "Escape") {
+                gameStarted = false;
+                screen = "menu";
+            }
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    loadAllImages();
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a fourth level: a new background and a new list of spots.</li>
+    <li>Make targets show for a shorter time on each level.</li>
+    <li>Give a bonus for a level with no civilians hit.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

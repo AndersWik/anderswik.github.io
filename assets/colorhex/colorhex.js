@@ -13,7 +13,8 @@
  *
  * Lighter/darker/favorite colors are links like <a href="#ff8800">.
  * Clicking one changes the "#..." part of the page address, and we
- * listen for that change to load the color.
+ * listen for that change to load the color. Moving a slider also writes
+ * the color into the address, so the page can be shared or bookmarked.
  */
 
 // --- Elements on the page ------------------------------------------------
@@ -108,7 +109,7 @@ function showSwatches(list, hexColors) {
     hexColors.forEach(function (hex) {
         const link = document.createElement("a");
         link.href = hex;
-        link.className = "go-to-color col-sm-6 col-md-3";
+        link.className = "go-to-color";
         link.style.backgroundColor = hex;
         link.style.color = toHex(invert(fromHex(hex)));
 
@@ -142,6 +143,11 @@ function render() {
     paintPanel(invertedPanel, invertedText, invertedHex, solidHex);
 
     hexInput.value = toHex(color);
+
+    // Put the color in the address without adding a history entry.
+    // Without this, clicking the same swatch twice would do nothing the
+    // second time, because the address would not change.
+    history.replaceState(null, "", toHex(color));
 
     // 10 lighter and 10 darker versions, 5 steps apart.
     const lighter = [];

@@ -1,7 +1,9 @@
 /*
  * Countdown to a date given in the page address, e.g.
  *
- *   /other/countdown/?to=2026-12-24T15:00:00&title=Christmas&url=https://.../tree.jpg
+ *   ?to=2026-12-24T15:00:00&title=Christmas&url=https://.../tree.jpg
+ *
+ * A plain HTML form with method="get" on the page writes the address for us.
  *
  *   to     the date and time to count down to (required)
  *   title  text shown as the heading (optional)
@@ -88,13 +90,16 @@ function tick() {
 
 // --- Start ---------------------------------------------------------------
 
-if (params.has("title")) {
+// get() gives null when it is missing and "" when the form field was empty.
+if (params.get("title")) {
     // textContent (not innerHTML) so nobody can put HTML or scripts
     // into the page through the address.
     titleText.textContent = params.get("title");
 }
 
-if (isValidDate(endDate)) {
+// Without "to" in the address, new Date(null) is 1970-01-01, which is a
+// valid date. So check that there is a "to" as well.
+if (params.get("to") && isValidDate(endDate)) {
     timer = setInterval(tick, 1000);
     tick(); // show the time right away instead of after one second
 } else {

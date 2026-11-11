@@ -1,0 +1,364 @@
+---
+layout: default
+title: Egg clock
+permalink: /tutorials/egg-clock/
+chapter: "02"
+chapter_title: "JavaScript apps"
+keywords: [javascript, timer, setInterval, clearInterval, state, web audio, AudioContext, oscillator, beep]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Egg clock</h1>
+  <p>An egg clock: set the time with buttons, press Start, and it beeps when it reaches zero. The new ideas are keeping a timer as state, so it can't run twice, and making a sound with the Web Audio API, without a sound file.</p>
+  <p><a href="/assets/tutorials/egg-clock.html">Open the finished page</a></p>
+  <p>Read the <a href="/tutorials/countdown/">Countdown</a> first. It explains <code>setInterval</code> and <code>clearInterval</code>.</p>
+  <h2>The state</h2>
+  <p>The clock has to remember three things:</p>
+  <pre><code class="language-javascript">let secondsLeft = 0;  // how much time is left, in seconds
+let timer = null;     // the running countdown (null when stopped)
+let beeper = null;    // the repeating beep (null when quiet)
+let audio = null;     // for making sound, see step 5
+
+const MAX_SECONDS = 60 * 60; // one hour</code></pre>
+  <p><code>timer</code> and <code>beeper</code> hold the ids that <code>setInterval</code> returns, and <code>null</code> when nothing is running. Then we can always tell whether the clock is running, and stop it.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>egg-clock.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Egg clock&lt;/h1&gt;
+
+&lt;div class="clock"&gt;
+  &lt;div&gt;
+    &lt;p class="label"&gt;Minutes&lt;/p&gt;
+    &lt;p class="number" id="output-minutes"&gt;00&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;p class="label"&gt;Seconds&lt;/p&gt;
+    &lt;p class="number" id="output-seconds"&gt;00&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="buttons"&gt;
+  &lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;
+  &lt;button type="button" id="button-stop"&gt;Stop&lt;/button&gt;
+  &lt;button type="button" id="increase-minutes"&gt;+ 1 min&lt;/button&gt;
+  &lt;button type="button" id="decrease-minutes"&gt;- 1 min&lt;/button&gt;
+  &lt;button type="button" id="increase-seconds"&gt;+ 1 sec&lt;/button&gt;
+  &lt;button type="button" id="decrease-seconds"&gt;- 1 sec&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+.clock {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+}
+
+.label {
+    margin-bottom: 0;
+    color: #c98a00;
+    font-size: 24px;
+}
+
+.number {
+    margin-top: 0;
+    font-size: 56px;
+    font-family: monospace;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.buttons button {
+    height: 60px;
+    font-size: 18px;
+}</code></pre>
+  <p><code>display: grid</code> with <code>grid-template-columns: 1fr 1fr</code> puts the six buttons in two equal columns.</p>
+  <h2>Step 2: Show the time</h2>
+  <pre><code class="language-javascript">function twoDigits(number) {
+    return String(number).padStart(2, "0");
+}
+
+// 125 seconds -&gt; "02" minutes and "05" seconds
+function showTime() {
+    minutesText.textContent = twoDigits(Math.floor(secondsLeft / 60));
+    secondsText.textContent = twoDigits(secondsLeft % 60);
+}</code></pre>
+  <h2>Step 3: Set the time</h2>
+  <p>One function handles all four buttons. A positive number adds time and a negative number removes it. <code>Math.min</code> and <code>Math.max</code> keep the time between 0 and one hour:</p>
+  <pre><code class="language-javascript">function changeTime(seconds) {
+    secondsLeft = Math.min(MAX_SECONDS, Math.max(0, secondsLeft + seconds));
+    showTime();
+}
+
+addMinuteButton.addEventListener("click", function () { changeTime(60); });
+removeMinuteButton.addEventListener("click", function () { changeTime(-60); });
+addSecondButton.addEventListener("click", function () { changeTime(1); });
+removeSecondButton.addEventListener("click", function () { changeTime(-1); });</code></pre>
+  <p><code>addEventListener</code> needs a function to call later. <code>changeTime(60)</code> would run right away, so we wrap it in a small function without a name: <code>function () { changeTime(60); }</code>.</p>
+  <h2>Step 4: Start, tick and stop</h2>
+  <pre><code class="language-javascript">function start() {
+    if (audio === null) {
+        audio = new AudioContext();
+    }
+    if (timer !== null || secondsLeft === 0) {
+        return;
+    }
+    clearInterval(beeper);
+    beeper = null;
+    timer = setInterval(tick, 1000);
+}</code></pre>
+  <p>The check <code>timer !== null</code> matters. Without it, pressing Start twice would start two intervals, the clock would run at double speed, and Stop could only stop one of them. If it is still beeping from last time, we stop that too.</p>
+  <pre><code class="language-javascript">function tick() {
+    if (secondsLeft &gt; 0) {
+        secondsLeft = secondsLeft - 1;
+        showTime();
+    }
+    if (secondsLeft === 0) {
+        clearInterval(timer);
+        timer = null;
+        beep();
+        beeper = setInterval(beep, 1000);
+    }
+}</code></pre>
+  <p>Why not just subtract 1 and check for 0? Because the user can press "- 1 min" while the clock is running and set the time to 0 between two ticks. If we always subtracted, the next tick would give -1, which never equals 0, and the clock would count down into negative numbers forever. So we only subtract when there is time left, and the zero check catches both cases.</p>
+  <pre><code class="language-javascript">function stop() {
+    clearInterval(timer);
+    clearInterval(beeper);
+    timer = null;
+    beeper = null;
+}</code></pre>
+  <p>Stop works as both pause and silence. <code>clearInterval(null)</code> does nothing, so we don't need to check first.</p>
+  <h2>Step 5: A beep without a sound file</h2>
+  <p>The Web Audio API can make sound from code. An <strong>oscillator</strong> makes a steady tone. We connect it to the speakers, start it, and tell it to stop after 0.3 seconds:</p>
+  <pre><code class="language-javascript">function beep() {
+    const tone = audio.createOscillator();
+    tone.frequency.value = 880;              // pitch in hertz, a high A
+    tone.connect(audio.destination);         // to the speakers
+    tone.start();
+    tone.stop(audio.currentTime + 0.3);      // 0.3 seconds long
+}</code></pre>
+  <p>An oscillator can only be played once, so <code>beep()</code> makes a new one every time.</p>
+  <p>Browsers don't let a page make sound until the user has clicked something, so pages can't start shouting by themselves. That is why <code>audio = new AudioContext()</code> is in <code>start()</code>, which runs on a click, and not at the top of the script.</p>
+  <h2>Step 6: Test it</h2>
+  <ul>
+    <li>Set 5 seconds and press Start. It should count down and beep once a second at zero. Stop silences it.</li>
+    <li>Press Start twice quickly. The clock should still count one second per second.</li>
+    <li>Set 1 minute, press Start, then press "- 1 min" right away. It should stop at 00:00 and beep, not show negative numbers.</li>
+    <li>While it beeps, add 5 seconds and press Start. The beep stops and it counts down again.</li>
+    <li>Press "- 1 min" at 00:30. It goes to 00:00.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>egg-clock.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Egg clock&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    .clock {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+    }
+
+    .label {
+        margin-bottom: 0;
+        color: #c98a00;
+        font-size: 24px;
+    }
+
+    .number {
+        margin-top: 0;
+        font-size: 56px;
+        font-family: monospace;
+    }
+
+    .buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .buttons button {
+        height: 60px;
+        font-size: 18px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Egg clock&lt;/h1&gt;
+
+  &lt;div class="clock"&gt;
+    &lt;div&gt;
+      &lt;p class="label"&gt;Minutes&lt;/p&gt;
+      &lt;p class="number" id="output-minutes"&gt;00&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;p class="label"&gt;Seconds&lt;/p&gt;
+      &lt;p class="number" id="output-seconds"&gt;00&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class="buttons"&gt;
+    &lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;
+    &lt;button type="button" id="button-stop"&gt;Stop&lt;/button&gt;
+    &lt;button type="button" id="increase-minutes"&gt;+ 1 min&lt;/button&gt;
+    &lt;button type="button" id="decrease-minutes"&gt;- 1 min&lt;/button&gt;
+    &lt;button type="button" id="increase-seconds"&gt;+ 1 sec&lt;/button&gt;
+    &lt;button type="button" id="decrease-seconds"&gt;- 1 sec&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Egg clock: count down from a chosen time and beep when it reaches zero.
+     *
+     * State:
+     *   secondsLeft  how much time is left, in seconds
+     *   timer        the running countdown (null when stopped)
+     *   beeper       the repeating beep (null when quiet)
+     *
+     * setInterval(fn, 1000) calls fn once every second until clearInterval()
+     * stops it. It returns an id that we keep so we can stop it later.
+     */
+
+    // --- State ---------------------------------------------------------------
+
+    let secondsLeft = 0;
+    let timer = null;
+    let beeper = null;
+    let audio = null;   // made on the first Start, see beep()
+
+    const MAX_SECONDS = 60 * 60; // one hour
+
+    // --- Elements on the page ------------------------------------------------
+
+    const minutesText = document.getElementById("output-minutes");
+    const secondsText = document.getElementById("output-seconds");
+    const startButton = document.getElementById("button-start");
+    const stopButton = document.getElementById("button-stop");
+    const addMinuteButton = document.getElementById("increase-minutes");
+    const removeMinuteButton = document.getElementById("decrease-minutes");
+    const addSecondButton = document.getElementById("increase-seconds");
+    const removeSecondButton = document.getElementById("decrease-seconds");
+
+    // --- Helpers -------------------------------------------------------------
+
+    // 7 -&gt; "07"
+    function twoDigits(number) {
+        return String(number).padStart(2, "0");
+    }
+
+    // 125 seconds -&gt; "02" minutes and "05" seconds
+    function showTime() {
+        minutesText.textContent = twoDigits(Math.floor(secondsLeft / 60));
+        secondsText.textContent = twoDigits(secondsLeft % 60);
+    }
+
+    // Make a short beep with the Web Audio API, so we need no sound file.
+    // An oscillator makes a tone; 880 is the pitch in hertz (a high A).
+    function beep() {
+        const tone = audio.createOscillator();
+        tone.frequency.value = 880;
+        tone.connect(audio.destination);       // to the speakers
+        tone.start();
+        tone.stop(audio.currentTime + 0.3);    // 0.3 seconds long
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    // Add (positive) or remove (negative) time, but stay within 0 and one hour.
+    function changeTime(seconds) {
+        secondsLeft = Math.min(MAX_SECONDS, Math.max(0, secondsLeft + seconds));
+        showTime();
+    }
+
+    // Called once every second while the clock runs.
+    function tick() {
+        if (secondsLeft &gt; 0) {
+            secondsLeft = secondsLeft - 1;
+            showTime();
+        }
+        // Also true if the time was set to 0 with the buttons while running.
+        if (secondsLeft === 0) {
+            clearInterval(timer);
+            timer = null;
+            beep();
+            beeper = setInterval(beep, 1000);
+        }
+    }
+
+    function start() {
+        // Browsers only allow sound after the user has clicked something,
+        // so the audio is made here and not when the page loads.
+        if (audio === null) {
+            audio = new AudioContext();
+        }
+        // Don't start twice (the clock would run at double speed),
+        // and there is nothing to count down from 0.
+        if (timer !== null || secondsLeft === 0) {
+            return;
+        }
+        // Stop a beep that is still going from the last time.
+        clearInterval(beeper);
+        beeper = null;
+        timer = setInterval(tick, 1000);
+    }
+
+    // Pause the countdown and stop any beeping.
+    function stop() {
+        clearInterval(timer);
+        clearInterval(beeper);
+        timer = null;
+        beeper = null;
+    }
+
+    // --- Connect the buttons -------------------------------------------------
+
+    startButton.addEventListener("click", start);
+    stopButton.addEventListener("click", stop);
+
+    addMinuteButton.addEventListener("click", function () { changeTime(60); });
+    removeMinuteButton.addEventListener("click", function () { changeTime(-60); });
+    addSecondButton.addEventListener("click", function () { changeTime(1); });
+    removeSecondButton.addEventListener("click", function () { changeTime(-1); });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Show the time left in the browser tab: <code>document.title = minutesText.textContent + ":" + secondsText.textContent</code>.</li>
+    <li>Add preset buttons, like "Soft boiled (6 min)" and "Hard boiled (10 min)".</li>
+    <li>Change <code>tone.type</code> to <code>"square"</code> or <code>"sawtooth"</code> for a different sound.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

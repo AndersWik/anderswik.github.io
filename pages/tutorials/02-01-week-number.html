@@ -1,0 +1,168 @@
+---
+layout: default
+title: Week number
+permalink: /tutorials/week-number/
+chapter: "02"
+chapter_title: "JavaScript apps"
+keywords: [javascript, date, week number, iso 8601, getDay, setDate, modulo]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Week number</h1>
+  <p>The apps in this chapter are a bit bigger than the utilities, and each one shows a new idea. We start with the smallest: a page that shows today's week number in big digits. It is a good first lesson in how JavaScript handles dates.</p>
+  <p><a href="/assets/tutorials/week-number.html">Open the finished page</a></p>
+  <p>If you haven't built a page from scratch before, read <a href="/tutorials/utility-page/">Building a utility page</a> first. It explains the skeleton that every page here starts from.</p>
+  <h2>How week numbers work</h2>
+  <p>Sweden and most of Europe use ISO week numbers:</p>
+  <ul>
+    <li>A week starts on Monday.</li>
+    <li>Week 1 is the week with the year's first Thursday in it.</li>
+  </ul>
+  <p>That gives a simple way to find the week of any date:</p>
+  <ol>
+    <li>Find the Thursday in the same Monday-Sunday week.</li>
+    <li>Count which Thursday of its year that is.</li>
+  </ol>
+  <p>The second rule is why the first days of January can belong to week 52 or 53 of the year before, and the last days of December to week 1 of the next year. The Thursday decides which year the week belongs to.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>week-number.html</code> from the skeleton. The HTML is only a heading, a paragraph for the number and a link:</p>
+  <pre><code class="language-html">&lt;h1&gt;Week&lt;/h1&gt;
+&lt;p id="number"&gt;00&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://weeknumber.net/how-to/javascript"&gt;How week numbers work&lt;/a&gt;&lt;/p&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+#number {
+    margin: 0;
+    font-size: 160px;
+}</code></pre>
+  <h2>Step 2: Find the element</h2>
+  <pre><code class="language-javascript">const weekNumber = document.getElementById("number");
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;</code></pre>
+  <p>JavaScript measures time in milliseconds, so one day is <code>24 * 60 * 60 * 1000</code>. Constants that never change are often written in capital letters.</p>
+  <h2>Step 3: Find the Thursday</h2>
+  <p><code>new Date(year, month, day)</code> makes a date at midnight. We use it to copy the date, so we don't change the one we were given:</p>
+  <pre><code class="language-javascript">const thursday = new Date(date.getFullYear(), date.getMonth(), date.getDate());</code></pre>
+  <p><code>getDay()</code> gives the day of the week, but it starts on Sunday: Sunday is 0, Monday 1 and Saturday 6. We want Monday as 0 and Sunday as 6. Adding 6 and taking the rest after dividing by 7 (<code>%</code>, modulo) does exactly that:</p>
+  <pre><code class="language-plaintext">day      getDay()   + 6   % 7
+Monday   1          7     0
+Tuesday  2          8     1
+Sunday   0          6     6</code></pre>
+  <pre><code class="language-javascript">const dayOfWeek = (thursday.getDay() + 6) % 7;
+
+// Step back to Monday, then forward 3 days to Thursday.
+thursday.setDate(thursday.getDate() - dayOfWeek + 3);</code></pre>
+  <p><code>setDate()</code> handles going past the start or end of a month by itself. <code>setDate(0)</code> is the last day of the month before, and <code>setDate(32)</code> is a day in the next month.</p>
+  <h2>Step 4: Count the Thursdays</h2>
+  <p>Subtracting two dates gives the time between them in milliseconds. Divided by <code>DAY_IN_MS</code> it is a number of days. We round it, because a day with a summer-time change is 23 or 25 hours long.</p>
+  <pre><code class="language-javascript">const januaryFirst = new Date(thursday.getFullYear(), 0, 1);
+const daysIntoYear = Math.round((thursday - januaryFirst) / DAY_IN_MS);
+
+return Math.floor(daysIntoYear / 7) + 1;</code></pre>
+  <p>The first Thursday of a year is 0-6 days after January 1st, which gives week 1. The next is 7-13 days after, which gives week 2, and so on. We use <code>thursday.getFullYear()</code>, not the year of the date we were given, because the Thursday decides the year.</p>
+  <h2>Step 5: Show it</h2>
+  <pre><code class="language-javascript">weekNumber.textContent = getWeekNumber(new Date());</code></pre>
+  <p><code>new Date()</code> with nothing inside is right now.</p>
+  <h2>Step 6: Test it</h2>
+  <p>The page always shows today, so test the function in the console with dates where the year and the week year are different. Remember that months start at 0 in JavaScript, so <code>11</code> is December.</p>
+  <pre><code class="language-javascript">getWeekNumber(new Date(2026, 0, 1))    // 1   (a Thursday)
+getWeekNumber(new Date(2027, 0, 1))    // 53  (2026 has 53 weeks)
+getWeekNumber(new Date(2024, 11, 30))  // 1   (Monday of week 1, 2025)
+getWeekNumber(new Date(2021, 0, 3))    // 53  (Sunday of week 53, 2020)</code></pre>
+  <h2>The complete page</h2>
+  <p><strong>week-number.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;What week is it?&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #number {
+        margin: 0;
+        font-size: 160px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Week&lt;/h1&gt;
+  &lt;p id="number"&gt;00&lt;/p&gt;
+  &lt;p&gt;&lt;a href="https://weeknumber.net/how-to/javascript"&gt;How week numbers work&lt;/a&gt;&lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * What week is it?
+     *
+     * Sweden (and most of Europe) uses ISO week numbers:
+     *   - weeks start on Monday
+     *   - week 1 is the week that has the year's first Thursday in it
+     *
+     * So the easy way to find the week number of a date is:
+     *   1. find the Thursday in the same week (Monday-Sunday)
+     *   2. count which Thursday of its year that is
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const weekNumber = document.getElementById("number");
+
+    // --- Helpers -------------------------------------------------------------
+
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+    function getWeekNumber(date) {
+        // Copy the date (at midnight) so we don't change the original.
+        const thursday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        // getDay() gives Sunday = 0 ... Saturday = 6.
+        // Change it to Monday = 0 ... Sunday = 6.
+        const dayOfWeek = (thursday.getDay() + 6) % 7;
+
+        // Step back to Monday, then forward 3 days to Thursday.
+        thursday.setDate(thursday.getDate() - dayOfWeek + 3);
+
+        // How many days after January 1st is that Thursday?
+        // (Math.round smooths over summer/winter time changes.)
+        const januaryFirst = new Date(thursday.getFullYear(), 0, 1);
+        const daysIntoYear = Math.round((thursday - januaryFirst) / DAY_IN_MS);
+
+        // Every 7 days is a new week, and we count from 1, not 0.
+        return Math.floor(daysIntoYear / 7) + 1;
+    }
+
+    // --- Start ---------------------------------------------------------------
+
+    weekNumber.textContent = getWeekNumber(new Date());
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Show the dates of Monday and Sunday of this week under the number.</li>
+    <li>Add an <code>&lt;input type="date"&gt;</code> and show the week number of the chosen date.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

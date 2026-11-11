@@ -1,0 +1,23 @@
+---
+layout: game
+title: Roulette
+permalink: /games/roulette/
+nonav: true
+css:
+  - /assets/roulette/roulette.css
+js:
+  - /assets/roulette/roulette.js
+---
+<h1>Roulette</h1>
+<p class="coins">Coins: <span id="coins">100</span> (each bet is 10)</p>
+<div class="layout">
+  <canvas id="wheel" width="400" height="400"></canvas>
+  <div class="table">
+    <div id="numbers"></div>
+    <div id="outside"></div>
+  </div>
+</div>
+<p id="message" aria-live="polite"></p>
+<button type="button" id="spin">Spin</button>
+<button type="button" id="restart" hidden>New game</button>
+<p class="text-center mt-4"><a href="/tutorials/roulette/">How to build this game</a></p>

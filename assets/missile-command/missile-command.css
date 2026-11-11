@@ -1,24 +1,15 @@
 .game {
-  margin: 0;
-  overflow: hidden;
   background: black;
   text-align: center;
   color: white;
   font-family: Arial, sans-serif;
+  padding-top: 10px;
 }
 
 .game canvas {
   display: block;
-  background: #111;
+  max-width: 100%;
+  height: auto;
   margin: 10px auto;
-}
-
-.game #dashboard {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.game #dashboard p {
-  padding-right: 10px;
+  cursor: crosshair;
 }

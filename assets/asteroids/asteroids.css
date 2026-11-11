@@ -9,6 +9,8 @@ body {
 }
 
 .game canvas {
+  max-width: 100%;
+  height: auto;
   background: #000;
   display: block;
   margin: auto;

@@ -10,20 +10,20 @@ js:
 ---
 <div class="container">
   <h1>Chore Wheel</h1>
-  <div class="input-row">
-    <input type="text" id="choreInput" placeholder="Enter Chore" />
-    <button id="choreButton">Add Chore</button>
-  </div>
-  <div class="input-row">
-    <input type="text" id="personInput" placeholder="Enter Person" />
-    <button id="personButton">Add Person</button>
-  </div>
+  <form class="input-row" id="chore-form" autocomplete="off">
+    <input type="text" id="choreInput" placeholder="Enter Chore" aria-label="Chore" />
+    <button type="submit" id="choreButton">Add Chore</button>
+  </form>
+  <form class="input-row" id="person-form" autocomplete="off">
+    <input type="text" id="personInput" placeholder="Enter Person" aria-label="Person" />
+    <button type="submit" id="personButton">Add Person</button>
+  </form>
   <div id="wheel-container">
     <canvas id="wheel" width="300" height="300"></canvas>
     <div id="names-container"></div>
   </div>
-  <button id="spinButton">Spin Wheel</button>
-  <p id="result"></p>
+  <button type="button" id="spinButton">Spin Wheel</button>
+  <p id="result" aria-live="polite"></p>
   <div class="list-container">
     <div>
       <h2>Chores</h2>
@@ -35,3 +35,4 @@ js:
     </div>
   </div>
 </div>
+<p class="text-center mt-4"><a href="/tutorials/chore-wheel/">How to build this game</a></p>

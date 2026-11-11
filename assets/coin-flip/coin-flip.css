@@ -47,8 +47,7 @@
   height: 200px;
 }
 
-.game .flip {
-  animation-name: flip;
-  animation-duration: 4s;
-  animation-iteration-count: infinite;
+.game button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }

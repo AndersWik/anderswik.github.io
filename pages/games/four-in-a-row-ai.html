@@ -1,0 +1,25 @@
+---
+layout: game
+title: Connect Four (vs Computer)
+permalink: /games/four-in-a-row-ai/
+nonav: true
+css:
+  - /assets/four-in-a-row-ai/four-in-a-row.css
+js:
+  - /assets/four-in-a-row-ai/four-in-a-row.js
+---
+<div class="container">
+  <h1>Connect Four</h1>
+  <div id="board"></div>
+  <p id="status" aria-live="polite"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy" selected>The computer (easy)</option>
+      <option value="hard">The computer (hard)</option>
+    </select>
+  </p>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/connect-four-ai/">How to build this game</a></p>

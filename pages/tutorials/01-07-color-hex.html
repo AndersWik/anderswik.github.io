@@ -1,0 +1,571 @@
+---
+layout: default
+title: Color picker
+permalink: /tutorials/color-hex/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, color, hex, rgb, rgba, alpha, range slider, location.hash, hashchange, history.replaceState, createElement]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Color picker</h1>
+  <p>We build a color picker. Sliders for red, green, blue and alpha show the color as <code>rgb()</code>, <code>rgba()</code> and hex, together with its opposite color, 10 lighter and 10 darker versions, and a list of favorites. The color is also kept in the address, like <code>color-hex.html#ff8800</code>, so you can bookmark or share it.</p>
+  <p><a href="/assets/tutorials/color-hex.html">Open the finished color picker</a></p>
+  <h2>How screen colors work</h2>
+  <p>A pixel mixes red, green and blue light, each from 0 to 255. The same color can be written in different ways:</p>
+  <pre><code class="language-plaintext">rgb(255, 136, 0)          three numbers
+#ff8800                   the same numbers in hexadecimal: ff = 255, 88 = 136, 00 = 0
+rgba(255, 136, 0, 0.5)    plus alpha: 0 is see-through, 1 is solid</code></pre>
+  <p>Hexadecimal counts with 16 digits, <code>0-9</code> and then <code>a-f</code>, so two hex digits hold 0 to 255. In JavaScript, <code>(255).toString(16)</code> gives <code>"ff"</code> and <code>parseInt("ff", 16)</code> gives <code>255</code>.</p>
+  <h2>The plan</h2>
+  <p>The sliders are the state. Every time one moves, <code>render()</code> reads all of them and redraws everything. There is one way to draw the page, so it can't get out of step with the sliders.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>color-hex.html</code> from the skeleton in <a href="/tutorials/utility-page/">Building a utility page</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Color picker&lt;/h1&gt;
+
+&lt;div class="panels"&gt;
+  &lt;div id="color-panel-rgb"&gt;&lt;p id="color-panel-text-rgb"&gt;&lt;/p&gt;&lt;/div&gt;
+  &lt;div id="color-panel-rgba"&gt;&lt;p id="color-panel-text-rgba"&gt;&lt;/p&gt;&lt;/div&gt;
+  &lt;div id="color-panel-hex"&gt;&lt;p id="color-panel-text-hex"&gt;&lt;/p&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="panels"&gt;
+  &lt;div id="color-panel-inverted"&gt;&lt;p id="color-panel-text-inverted"&gt;&lt;/p&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;label&gt;Alpha &lt;input type="range" id="alpha" min="0" max="100" value="50"&gt;&lt;/label&gt;
+&lt;label&gt;Red &lt;input type="range" id="red" min="0" max="255" value="200"&gt;&lt;/label&gt;
+&lt;label&gt;Green &lt;input type="range" id="green" min="0" max="255" value="200"&gt;&lt;/label&gt;
+&lt;label&gt;Blue &lt;input type="range" id="blue" min="0" max="255" value="50"&gt;&lt;/label&gt;
+&lt;label&gt;Hex &lt;input type="text" id="hex"&gt;&lt;/label&gt;
+
+&lt;h2&gt;Lighter&lt;/h2&gt;
+&lt;div id="lighter-color-container" class="swatches"&gt;&lt;/div&gt;
+
+&lt;h2&gt;Darker&lt;/h2&gt;
+&lt;div id="darker-color-container" class="swatches"&gt;&lt;/div&gt;
+
+&lt;h2&gt;Favorites&lt;/h2&gt;
+&lt;div id="favorite-color-container" class="swatches"&gt;&lt;/div&gt;</code></pre>
+  <p>The lighter, darker and favorite lists are empty <code>div</code>s that JavaScript fills. A <code>label</code> that wraps its input doesn't need <code>for</code>.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+.panels {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.panels &gt; div {
+    flex: 1;
+    min-width: 200px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#color-panel-inverted {
+    font-size: 30px;
+}
+
+label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+label input {
+    flex: 1;
+}
+
+.swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+
+.go-to-color {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}</code></pre>
+  <p><code>display: flex</code> with <code>align-items: center</code> and <code>justify-content: center</code> puts the text in the middle of each panel. The swatch lists use a grid with <code>repeat(auto-fill, minmax(120px, 1fr))</code>, which fits as many 120px columns as there is room for.</p>
+  <p>The script starts by finding the elements, and a list of favorite colors:</p>
+  <pre><code class="language-javascript">const redSlider = document.getElementById("red");
+const greenSlider = document.getElementById("green");
+const blueSlider = document.getElementById("blue");
+const alphaSlider = document.getElementById("alpha");
+const hexInput = document.getElementById("hex");
+
+const rgbPanel = document.getElementById("color-panel-rgb");
+const rgbText = document.getElementById("color-panel-text-rgb");
+// ... the same for rgba, hex and inverted
+
+const lighterList = document.getElementById("lighter-color-container");
+const darkerList = document.getElementById("darker-color-container");
+const favoriteList = document.getElementById("favorite-color-container");
+
+const favorites = ["#afc0bc", "#7c878f", "#253746", "#8db9ca", "#ca9a8e",
+                   "#d9c89e", "#899064", "#6ba4b8", "#d9d9d6", "#caffca"];</code></pre>
+  <h2>Step 2: Colors as objects</h2>
+  <p>We store a color as an object like <code>{ red: 255, green: 136, blue: 0 }</code>. The helpers below only calculate. They never touch the page, so you can try every one in the console.</p>
+  <pre><code class="language-javascript">// Keep a value inside 0-255 and make it a whole number.
+function clamp(value) {
+    return Math.min(255, Math.max(0, Math.round(value)));
+}
+
+// { red: 255, green: 136, blue: 0 } -&gt; "#ff8800"
+function toHex(color) {
+    const parts = [color.red, color.green, color.blue].map(function (value) {
+        return clamp(value).toString(16).padStart(2, "0");
+    });
+    return "#" + parts.join("");
+}</code></pre>
+  <p><code>padStart(2, "0")</code> is needed because <code>(8).toString(16)</code> is only <code>"8"</code>, and a hex color needs <code>"08"</code>.</p>
+  <p>Going the other way, a regular expression checks that the text is exactly six hex digits. The <code>i</code> at the end means upper and lower case both count. <code>slice(0, 2)</code> takes the first two characters.</p>
+  <pre><code class="language-javascript">// "#ff8800" -&gt; { red: 255, green: 136, blue: 0 }, or null if not valid.
+function fromHex(hex) {
+    hex = hex.replace("#", "");
+
+    if (!/^[0-9a-f]{6}$/i.test(hex)) {
+        return null;
+    }
+    return {
+        red: parseInt(hex.slice(0, 2), 16),
+        green: parseInt(hex.slice(2, 4), 16),
+        blue: parseInt(hex.slice(4, 6), 16)
+    };
+}</code></pre>
+  <h2>Step 3: Alpha, opposite, lighter and darker</h2>
+  <p>A see-through color on a white page looks like a lighter solid color. We work out that solid color by mixing each part with white (255), using alpha as the weight:</p>
+  <pre><code class="language-javascript">function onWhite(color, alpha) {
+    function mix(value) {
+        return clamp(alpha * value + (1 - alpha) * 255);
+    }
+    return { red: mix(color.red), green: mix(color.green), blue: mix(color.blue) };
+}
+
+// The opposite color: black &lt;-&gt; white, red &lt;-&gt; cyan...
+function invert(color) {
+    return { red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue };
+}
+
+// Positive amount = lighter, negative = darker.
+function shade(color, amount) {
+    return {
+        red: clamp(color.red + amount),
+        green: clamp(color.green + amount),
+        blue: clamp(color.blue + amount)
+    };
+}</code></pre>
+  <p>The opposite color is used for the text, so it can always be read on the background.</p>
+  <h2>Step 4: Swatches built with createElement</h2>
+  <p>Each swatch is a link like <code>&lt;a href="#ff8800"&gt;</code>. We build it with <code>document.createElement</code> and set <code>textContent</code>, instead of joining HTML strings. That way there is no risk of broken HTML.</p>
+  <pre><code class="language-javascript">function showSwatches(list, hexColors) {
+    list.innerHTML = "";    // remove the old swatches
+
+    hexColors.forEach(function (hex) {
+        const link = document.createElement("a");
+        link.href = hex;
+        link.className = "go-to-color";
+        link.style.backgroundColor = hex;
+        link.style.color = toHex(invert(fromHex(hex)));
+
+        const label = document.createElement("span");
+        label.textContent = hex;
+        link.appendChild(label);
+
+        list.appendChild(link);
+    });
+}</code></pre>
+  <h2>Step 5: render()</h2>
+  <pre><code class="language-javascript">function render() {
+    const color = {
+        red: Number(redSlider.value),
+        green: Number(greenSlider.value),
+        blue: Number(blueSlider.value)
+    };
+    const alpha = Number(alphaSlider.value) / 100;
+
+    const solid = onWhite(color, alpha);
+    const solidHex = toHex(solid);
+    const invertedHex = toHex(invert(solid));
+
+    const rgb = "rgb(" + solid.red + ", " + solid.green + ", " + solid.blue + ")";
+    const rgba = "rgba(" + color.red + ", " + color.green + ", " + color.blue + ", " + alpha + ")";
+
+    paintPanel(rgbPanel, rgbText, rgb, invertedHex);
+    paintPanel(rgbaPanel, rgbaText, rgba, invertedHex);
+    paintPanel(hexPanel, hexText, solidHex, invertedHex);
+    paintPanel(invertedPanel, invertedText, invertedHex, solidHex);
+
+    hexInput.value = toHex(color);
+    history.replaceState(null, "", toHex(color));
+
+    const lighter = [];
+    const darker = [];
+    for (let step = 0; step &lt; 50; step += 5) {
+        lighter.push(toHex(shade(color, step)));
+        darker.push(toHex(shade(color, -step)));
+    }
+    showSwatches(lighterList, lighter);
+    showSwatches(darkerList, darker);
+}</code></pre>
+  <p><code>paintPanel()</code> sets a panel's background and text color and writes the CSS text into it. A slider's <code>value</code> is always text, even for <code>type="range"</code>, so we use <code>Number()</code>.</p>
+  <h2>Step 6: The color in the address</h2>
+  <p>The part of the address after <code>#</code> is the <strong>hash</strong>. Changing it doesn't load a new page, but the browser fires a <code>"hashchange"</code> event. We use that in two directions:</p>
+  <ul>
+    <li>Clicking a swatch, which is a link to <code>#ff8800</code>, changes the hash. We listen for <code>"hashchange"</code> and move the sliders.</li>
+    <li>Moving a slider writes the color into the hash with <code>history.replaceState()</code>. That changes the address without adding a history entry, so the back button doesn't have to step through every slider move, and it doesn't fire <code>"hashchange"</code>.</li>
+  </ul>
+  <p>The second part matters more than it looks. Without it, if you click <code>#ff8800</code>, move a slider and click <code>#ff8800</code> again, the hash doesn't change, no event fires, and nothing happens.</p>
+  <pre><code class="language-javascript">function loadHex(hex) {
+    const color = fromHex(hex);
+
+    if (color === null) {
+        return;
+    }
+    redSlider.value = color.red;
+    greenSlider.value = color.green;
+    blueSlider.value = color.blue;
+    alphaSlider.value = 100;
+    render();
+}
+
+window.addEventListener("hashchange", function () {
+    loadHex(window.location.hash);
+});</code></pre>
+  <p>A valid hex typed in the hex box goes into the address too, which loads it the same way:</p>
+  <pre><code class="language-javascript">hexInput.addEventListener("input", function () {
+    if (fromHex(hexInput.value) !== null) {
+        window.location.hash = hexInput.value.replace("#", "");
+    }
+});</code></pre>
+  <h2>Step 7: Start</h2>
+  <p>At the start we show the favorites. If the page was opened with a color in the address, we load it, otherwise we draw the sliders' default color.</p>
+  <pre><code class="language-javascript">showSwatches(favoriteList, favorites);
+
+if (fromHex(window.location.hash) !== null) {
+    loadHex(window.location.hash);
+} else {
+    render();
+}</code></pre>
+  <h2>Step 8: Test it</h2>
+  <ul>
+    <li>Drag each slider. All panels and swatches update while you drag, because <code>"input"</code> fires during the drag and <code>"change"</code> only fires when you let go.</li>
+    <li>Type <code>ff8800</code> in the hex box. The address ends with <code>#ff8800</code>.</li>
+    <li>Click a swatch, move a slider, then click the same swatch again. It should load again.</li>
+    <li>Add <code>#253746</code> to the end of the address and press Enter in a new tab. It starts with that color.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>color-hex.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Color picker&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .panels {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .panels &gt; div {
+        flex: 1;
+        min-width: 200px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #color-panel-inverted {
+        font-size: 30px;
+    }
+
+    label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    label input {
+        flex: 1;
+    }
+
+    .swatches {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .go-to-color {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Color picker&lt;/h1&gt;
+
+  &lt;div class="panels"&gt;
+    &lt;div id="color-panel-rgb"&gt;&lt;p id="color-panel-text-rgb"&gt;&lt;/p&gt;&lt;/div&gt;
+    &lt;div id="color-panel-rgba"&gt;&lt;p id="color-panel-text-rgba"&gt;&lt;/p&gt;&lt;/div&gt;
+    &lt;div id="color-panel-hex"&gt;&lt;p id="color-panel-text-hex"&gt;&lt;/p&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="panels"&gt;
+    &lt;div id="color-panel-inverted"&gt;&lt;p id="color-panel-text-inverted"&gt;&lt;/p&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;label&gt;Alpha &lt;input type="range" id="alpha" min="0" max="100" value="50"&gt;&lt;/label&gt;
+  &lt;label&gt;Red &lt;input type="range" id="red" min="0" max="255" value="200"&gt;&lt;/label&gt;
+  &lt;label&gt;Green &lt;input type="range" id="green" min="0" max="255" value="200"&gt;&lt;/label&gt;
+  &lt;label&gt;Blue &lt;input type="range" id="blue" min="0" max="255" value="50"&gt;&lt;/label&gt;
+  &lt;label&gt;Hex &lt;input type="text" id="hex"&gt;&lt;/label&gt;
+
+  &lt;h2&gt;Lighter&lt;/h2&gt;
+  &lt;div id="lighter-color-container" class="swatches"&gt;&lt;/div&gt;
+
+  &lt;h2&gt;Darker&lt;/h2&gt;
+  &lt;div id="darker-color-container" class="swatches"&gt;&lt;/div&gt;
+
+  &lt;h2&gt;Favorites&lt;/h2&gt;
+  &lt;div id="favorite-color-container" class="swatches"&gt;&lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Color Hex: pick a color with sliders and see it in different formats.
+     *
+     * A screen color is made of red, green and blue light, each 0-255.
+     * The same color can be written in different ways:
+     *
+     *   rgb(255, 136, 0)          three numbers
+     *   #ff8800                   the same three numbers in hexadecimal
+     *   rgba(255, 136, 0, 0.5)    plus alpha: how see-through it is (0-1)
+     *
+     * The sliders on the page are the "state": every time one moves we read
+     * them all and redraw everything from scratch (the render function).
+     *
+     * Lighter/darker/favorite colors are links like &lt;a href="#ff8800"&gt;.
+     * Clicking one changes the "#..." part of the page address, and we
+     * listen for that change to load the color. Moving a slider also writes
+     * the color into the address, so the page can be shared or bookmarked.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const redSlider = document.getElementById("red");
+    const greenSlider = document.getElementById("green");
+    const blueSlider = document.getElementById("blue");
+    const alphaSlider = document.getElementById("alpha");
+    const hexInput = document.getElementById("hex");
+
+    const rgbPanel = document.getElementById("color-panel-rgb");
+    const rgbText = document.getElementById("color-panel-text-rgb");
+    const rgbaPanel = document.getElementById("color-panel-rgba");
+    const rgbaText = document.getElementById("color-panel-text-rgba");
+    const hexPanel = document.getElementById("color-panel-hex");
+    const hexText = document.getElementById("color-panel-text-hex");
+    const invertedPanel = document.getElementById("color-panel-inverted");
+    const invertedText = document.getElementById("color-panel-text-inverted");
+
+    const lighterList = document.getElementById("lighter-color-container");
+    const darkerList = document.getElementById("darker-color-container");
+    const favoriteList = document.getElementById("favorite-color-container");
+
+    const favorites = ["#afc0bc", "#7c878f", "#253746", "#8db9ca", "#ca9a8e",
+                       "#d9c89e", "#899064", "#6ba4b8", "#d9d9d6", "#caffca"];
+
+    // --- Color helpers -------------------------------------------------------
+    // A color is an object like { red: 255, green: 136, blue: 0 }.
+
+    // Keep a value inside 0-255 and make it a whole number.
+    function clamp(value) {
+        return Math.min(255, Math.max(0, Math.round(value)));
+    }
+
+    // { red: 255, green: 136, blue: 0 } -&gt; "#ff8800"
+    function toHex(color) {
+        const parts = [color.red, color.green, color.blue].map(function (value) {
+            return clamp(value).toString(16).padStart(2, "0");
+        });
+        return "#" + parts.join("");
+    }
+
+    // "#ff8800" -&gt; { red: 255, green: 136, blue: 0 }, or null if not valid.
+    function fromHex(hex) {
+        hex = hex.replace("#", "");
+
+        if (!/^[0-9a-f]{6}$/i.test(hex)) {
+            return null;
+        }
+        return {
+            red: parseInt(hex.slice(0, 2), 16),
+            green: parseInt(hex.slice(2, 4), 16),
+            blue: parseInt(hex.slice(4, 6), 16)
+        };
+    }
+
+    // A see-through color on a white page looks like a lighter solid color.
+    // Mix each part with white (255) depending on alpha.
+    function onWhite(color, alpha) {
+        function mix(value) {
+            return clamp(alpha * value + (1 - alpha) * 255);
+        }
+        return { red: mix(color.red), green: mix(color.green), blue: mix(color.blue) };
+    }
+
+    // The opposite color: black &lt;-&gt; white, red &lt;-&gt; cyan...
+    function invert(color) {
+        return { red: 255 - color.red, green: 255 - color.green, blue: 255 - color.blue };
+    }
+
+    // Add the same amount to every part. Positive = lighter, negative = darker.
+    function shade(color, amount) {
+        return {
+            red: clamp(color.red + amount),
+            green: clamp(color.green + amount),
+            blue: clamp(color.blue + amount)
+        };
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function paintPanel(panel, text, background, textColor) {
+        panel.style.backgroundColor = background;
+        panel.style.color = textColor;
+        text.textContent = "background-color: " + background + ";";
+    }
+
+    // Fill a list with color links, e.g. &lt;a href="#ff8800"&gt;#ff8800&lt;/a&gt;.
+    function showSwatches(list, hexColors) {
+        list.innerHTML = "";
+
+        hexColors.forEach(function (hex) {
+            const link = document.createElement("a");
+            link.href = hex;
+            link.className = "go-to-color";
+            link.style.backgroundColor = hex;
+            link.style.color = toHex(invert(fromHex(hex)));
+
+            const label = document.createElement("span");
+            label.textContent = hex;
+            link.appendChild(label);
+
+            list.appendChild(link);
+        });
+    }
+
+    // Read the sliders and redraw the whole page from them.
+    function render() {
+        const color = {
+            red: Number(redSlider.value),
+            green: Number(greenSlider.value),
+            blue: Number(blueSlider.value)
+        };
+        const alpha = Number(alphaSlider.value) / 100;
+
+        const solid = onWhite(color, alpha);
+        const solidHex = toHex(solid);
+        const invertedHex = toHex(invert(solid));
+
+        const rgb = "rgb(" + solid.red + ", " + solid.green + ", " + solid.blue + ")";
+        const rgba = "rgba(" + color.red + ", " + color.green + ", " + color.blue + ", " + alpha + ")";
+
+        paintPanel(rgbPanel, rgbText, rgb, invertedHex);
+        paintPanel(rgbaPanel, rgbaText, rgba, invertedHex);
+        paintPanel(hexPanel, hexText, solidHex, invertedHex);
+        paintPanel(invertedPanel, invertedText, invertedHex, solidHex);
+
+        hexInput.value = toHex(color);
+
+        // Put the color in the address without adding a history entry.
+        // Without this, clicking the same swatch twice would do nothing the
+        // second time, because the address would not change.
+        history.replaceState(null, "", toHex(color));
+
+        // 10 lighter and 10 darker versions, 5 steps apart.
+        const lighter = [];
+        const darker = [];
+        for (let step = 0; step &lt; 50; step += 5) {
+            lighter.push(toHex(shade(color, step)));
+            darker.push(toHex(shade(color, -step)));
+        }
+        showSwatches(lighterList, lighter);
+        showSwatches(darkerList, darker);
+    }
+
+    // Move the sliders to a hex color (fully solid) and redraw.
+    function loadHex(hex) {
+        const color = fromHex(hex);
+
+        if (color === null) {
+            return;
+        }
+        redSlider.value = color.red;
+        greenSlider.value = color.green;
+        blueSlider.value = color.blue;
+        alphaSlider.value = 100;
+        render();
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // "input" fires all the time while a slider is dragged.
+    redSlider.addEventListener("input", render);
+    greenSlider.addEventListener("input", render);
+    blueSlider.addEventListener("input", render);
+    alphaSlider.addEventListener("input", render);
+
+    // A valid hex typed in the box goes into the address, e.g. ".../colorhex/#ff8800".
+    // That makes the color easy to share, and triggers "hashchange" below.
+    hexInput.addEventListener("input", function () {
+        if (fromHex(hexInput.value) !== null) {
+            window.location.hash = hexInput.value.replace("#", "");
+        }
+    });
+
+    // The "#..." part of the address changed (typed hex or clicked swatch).
+    window.addEventListener("hashchange", function () {
+        loadHex(window.location.hash);
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    showSwatches(favoriteList, favorites);
+
+    if (fromHex(window.location.hash) !== null) {
+        loadHex(window.location.hash);
+    } else {
+        render();
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Accept short hex colors like <code>#f80</code>: if there are three digits, double each one.</li>
+    <li>Add a slider for hue using <code>hsl()</code> colors.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

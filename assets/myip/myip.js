@@ -19,6 +19,12 @@ async function showMyIp() {
 
     try {
         const response = await fetch("https://api.ipify.org?format=json");
+
+        // fetch() only throws when there is no network. If the service
+        // answers with an error, like 503, we have to check that ourselves.
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
         const data = await response.json();
         ipText.textContent = data.ip;
     } catch (error) {

@@ -1,0 +1,19 @@
+.game {
+  background: #2e7d32;
+  padding: 20px 0;
+}
+
+.game canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border: 10px solid #5d4037;
+  border-radius: 10px;
+  box-sizing: border-box;
+  cursor: crosshair;
+}
+
+.game a {
+  color: white;
+}

@@ -5,6 +5,10 @@
  * URL encoding replaces each of them with "%" and a code:
  *
  *   "hello world"  <->  "hello%20world"
+ *
+ * encodeURIComponent() also encodes characters that have a meaning in a
+ * URL, like "&", "=", "?" and "/", so the text can safely be put inside
+ * one part of a URL, e.g. "?q=" + encodeURIComponent("fish & chips").
  */
 
 // --- Elements on the page ------------------------------------------------
@@ -27,7 +31,7 @@ function decode() {
 }
 
 function encode() {
-    encodedText.value = encodeURI(plainText.value);
+    encodedText.value = encodeURIComponent(plainText.value);
 }
 
 // --- Connect the buttons -------------------------------------------------

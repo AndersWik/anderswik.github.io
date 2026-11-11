@@ -1,140 +1,124 @@
-const images = {
-  xs: ["blue-star", "green-star", "purple-star", "yellow-star"],
-  s: [
-    "blue-star",
-    "green-star",
-    "purple-star",
-    "yellow-star",
-    "blue-triangel",
-    "green-triangel",
-  ],
-  m: [
-    "blue-star",
-    "green-star",
-    "purple-star",
-    "yellow-star",
-    "blue-triangel",
-    "green-triangel",
-    "purple-triangel",
-    "yellow-triangel",
-  ],
-  l: [
-    "blue-star",
-    "green-star",
-    "purple-star",
-    "yellow-star",
-    "blue-triangel",
-    "green-triangel",
-    "purple-triangel",
-    "yellow-triangel",
-    "blue-square",
-    "green-square",
-  ],
-  xl: [
-    "blue-star",
-    "green-star",
-    "purple-star",
-    "yellow-star",
-    "blue-triangel",
-    "green-triangel",
-    "purple-triangel",
-    "yellow-triangel",
-    "blue-square",
-    "green-square",
-    "purple-square",
-    "yellow-square",
-  ],
-};
+/*
+ * Memory: all cards lie face down, and every picture is on two cards.
+ * Turn up two cards. If they match, they stay up; if not, they turn back.
+ * Find all the pairs in as few moves as you can.
+ */
 
-let shuffled = [];
-let selected = [];
-let matched = [];
-let size = "xs";
+// --- Settings ------------------------------------------------------------
 
-const uiDisplay = {
-  board: document.getElementById("board"),
-  shuffle: document.getElementById("shuffle"),
-  size: document.getElementById("size"),
-  overlay: document.getElementById("overlay"),
-  resultMessage: document.getElementById("resultMessage"),
-  restart: document.getElementById("restart"),
-};
+// Where the pictures are. On a page of your own: "images/".
+const IMAGE_FOLDER = "/assets/memory/images/";
 
-function init() {
-  shuffled = [];
-  selected = [];
-  matched = [];
-  createDeck();
-  shuffle();
-  setupCards();
+const PICTURES = [
+    "blue-star", "green-star", "purple-star", "yellow-star",
+    "blue-triangel", "green-triangel", "purple-triangel", "yellow-triangel",
+    "blue-square", "green-square", "purple-square", "yellow-square"
+];
+const TURN_BACK_TIME = 800;   // ms to look at two cards that don't match
+
+// --- Elements on the page ------------------------------------------------
+
+const board = document.getElementById("board");
+const sizeSelect = document.getElementById("size");
+const statusText = document.getElementById("status");
+const restartButton = document.getElementById("restart");
+
+// --- State ---------------------------------------------------------------
+
+let cards = [];        // { name, element, up }
+let open = [];         // the cards turned up this move (0, 1 or 2)
+let moves = 0;
+let pairsFound = 0;
+let turnBackTimer = null;
+
+// --- Helpers -------------------------------------------------------------
+
+// A shuffled copy of a list (the Fisher-Yates shuffle).
+function shuffle(list) {
+    const copy = list.slice();
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = temp;
+    }
+    return copy;
 }
 
-function createDeck() {
-  shuffled = images[size].slice();
-  let temp = images[size].slice();
-  shuffled = shuffled.concat(temp);
+function showStatus() {
+    if (pairsFound === cards.length / 2) {
+        statusText.textContent = "You found all the pairs in " + moves + " moves!";
+    } else {
+        statusText.textContent = "Moves: " + moves;
+    }
 }
 
-function shuffle() {
-  for (let i = 0; i < shuffled.length; i++) {
-    let j = Math.floor(Math.random() * (i + 1));
-    let temp = shuffled[i];
-    shuffled[i] = shuffled[j];
-    shuffled[j] = temp;
-  }
-}
+// --- The game ------------------------------------------------------------
 
-function setupCards() {
-  uiDisplay.board.innerHTML = "";
-  shuffled.forEach((name, index) => {
-    let card = document.createElement("div");
-    let image = document.createElement("img");
-    image.src = "/assets/memory/images/" + name + ".svg";
-    card.appendChild(image);
-    card.classList.add("card", "hidden");
-    card.dataset.index = index;
-    card.dataset.name = name;
-    card.addEventListener("click", flipCard);
-    uiDisplay.board.appendChild(card);
-  });
-}
+function newGame() {
+    clearTimeout(turnBackTimer);
 
-function flipCard() {
-  if (selected.length < 2 && !matched.includes(this.dataset.index)) {
-    this.classList.remove("hidden");
-    selected.push(this);
-  }
+    // Two of each picture, in random order.
+    const pairs = Number(sizeSelect.value);
+    const names = PICTURES.slice(0, pairs);
+    const deck = shuffle(names.concat(names));
 
-  if (selected.length === 2) {
-    setTimeout(checkMatch, 500);
-  }
-}
+    board.innerHTML = "";
+    cards = deck.map(function (name) {
+        const element = document.createElement("button");
+        element.type = "button";
+        element.className = "card down";
+        const image = document.createElement("img");
+        image.src = IMAGE_FOLDER + name + ".svg";
+        image.alt = name.replace("-", " ");
+        element.appendChild(image);
+        board.appendChild(element);
 
-function checkMatch() {
-  if (selected[0].dataset.name === selected[1].dataset.name) {
-    matched.push(selected[0].dataset.index, selected[1].dataset.index);
-  } else {
-    selected.forEach((card) => {
-      card.classList.add("hidden");
+        const card = { name: name, element: element, up: false };
+        element.addEventListener("click", function () {
+            turnUp(card);
+        });
+        return card;
     });
-  }
-  selected = [];
-  if (matched.length === shuffled.length) {
-    uiDisplay.overlay.style.display = "block";
-    uiDisplay.resultMessage.innerHTML = "You Win!";
-  }
+
+    open = [];
+    moves = 0;
+    pairsFound = 0;
+    showStatus();
 }
 
-uiDisplay.restart.addEventListener("click", function () {
-  uiDisplay.overlay.style.display = "none";
-  init();
-});
+function turnUp(card) {
+    // Not while two cards are showing, and not a card that is already up.
+    if (open.length === 2 || card.up) {
+        return;
+    }
+    card.up = true;
+    card.element.classList.remove("down");
+    open.push(card);
 
-uiDisplay.size.addEventListener("change", function () {
-  size = uiDisplay.size.value;
-  init();
-});
+    if (open.length === 2) {
+        moves++;
+        if (open[0].name === open[1].name) {
+            pairsFound++;
+            open = [];   // a pair: they stay up
+        } else {
+            turnBackTimer = setTimeout(turnBack, TURN_BACK_TIME);
+        }
+    }
+    showStatus();
+}
 
-window.onload = function () {
-  init();
-};
+function turnBack() {
+    open.forEach(function (card) {
+        card.up = false;
+        card.element.classList.add("down");
+    });
+    open = [];
+}
+
+// --- Connect the page ----------------------------------------------------
+
+sizeSelect.addEventListener("change", newGame);
+restartButton.addEventListener("click", newGame);
+
+newGame();

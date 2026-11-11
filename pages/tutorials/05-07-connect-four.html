@@ -1,0 +1,410 @@
+---
+layout: default
+title: Connect Four
+permalink: /tutorials/connect-four/
+chapter: "05"
+chapter_title: "Board Games"
+keywords: [javascript, game, board game, two players, grid, 2d array, css grid, aspect-ratio, four in a row, directions]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Connect Four</h1>
+  <p>Two players take turns dropping a piece into one of the seven columns. The piece falls to the lowest free place in that column. The first to get four in a row, across, down or diagonally, wins.</p>
+  <p>This is a board game, so the game is a grid: a list of rows, where each row is a list of places. The new parts are making a grid like that, drawing it with CSS grid, and checking for four in a row in every direction with one small function.</p>
+  <p><a href="/assets/tutorials/connect-four.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>connect-four.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The board starts empty, and the code fills it with 42 places:</p>
+  <pre><code class="language-html">&lt;h1&gt;Connect Four&lt;/h1&gt;
+&lt;div id="board"&gt;&lt;/div&gt;
+&lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+&lt;button type="button" id="restart"&gt;New game&lt;/button&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    max-width: 450px;
+    margin: 0 auto;
+    padding: 10px;
+    background-color: #00458a;
+    border-radius: 10px;
+}
+
+.cell {
+    aspect-ratio: 1;
+    background-color: white;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.cell.player1 {
+    background-color: red;
+}
+
+.cell.player2 {
+    background-color: yellow;
+}
+
+.cell.winning {
+    outline: 4px solid limegreen;
+}
+
+#status {
+    font-size: 20px;
+}</code></pre>
+  <ul>
+    <li><code>display: grid</code> with <code>grid-template-columns: repeat(7, 1fr)</code> puts the places in 7 columns of the same width. After the 7th place, the next one starts a new row by itself.</li>
+    <li><code>aspect-ratio: 1</code> makes each place as tall as it is wide. Together with <code>1fr</code> the board shrinks on a small phone and the places stay round.</li>
+    <li><code>border-radius: 50%</code> turns a square into a circle. An empty place is white, a played place gets the class <code>player1</code> (red) or <code>player2</code> (yellow).</li>
+  </ul>
+  <h2>Step 2: A grid in JavaScript</h2>
+  <pre><code class="language-javascript">const ROWS = 6;
+const COLS = 7;
+const NAMES = { 1: "Red", 2: "Yellow" };
+
+let grid = [];          // grid[row][col]: 0 = empty, 1 = red, 2 = yellow
+let cells = [];         // cells[row][col]: the &lt;div&gt; for each place
+let player = 1;         // whose turn it is
+let moves = 0;
+let gameOver = false;</code></pre>
+  <p><code>grid</code> is a list of 6 rows, and each row is a list of 7 numbers. <code>grid[5][3]</code> is row 5 (the bottom row, since row 0 is the top) and column 3 (the middle). A list of lists like this is often called a 2D array.</p>
+  <p><code>cells</code> has the same shape, but holds the <code>&lt;div&gt;</code> on the page for each place. With it, we never have to search the page for the place at a row and column: it is just <code>cells[row][col]</code>.</p>
+  <h2>Step 3: Building the board</h2>
+  <pre><code class="language-javascript">function newGame() {
+    grid = [];
+    cells = [];
+    boardElement.innerHTML = "";
+
+    for (let row = 0; row &lt; ROWS; row++) {
+        grid.push([]);
+        cells.push([]);
+        for (let col = 0; col &lt; COLS; col++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.addEventListener("click", function () {
+                play(col);
+            });
+            boardElement.appendChild(cell);
+            grid[row].push(0);
+            cells[row].push(cell);
+        }
+    }
+
+    player = 1;
+    moves = 0;
+    gameOver = false;
+    statusText.textContent = NAMES[player] + "'s turn";
+}</code></pre>
+  <p>One loop inside another: for each row, make a new empty list, then add 7 places to it. The places are added to the page in the same order, row by row, and the CSS grid puts 7 on each line.</p>
+  <p>Each place calls <code>play(col)</code> when it's clicked. Only the column matters: in Connect Four you choose a column, not a place. <code>let col</code> in the <code>for</code> loop is a new variable each time round, so every place remembers its own column.</p>
+  <p><code>newGame</code> resets <strong>everything</strong>, including <code>moves</code>. In the first version of this game, the move count was never reset. After a few games, it said "It's a draw!" in the middle of a game.</p>
+  <h2>Step 4: Where does the piece land?</h2>
+  <pre><code class="language-javascript">function freeRow(col) {
+    for (let row = ROWS - 1; row &gt;= 0; row--) {
+        if (grid[row][col] === 0) {
+            return row;
+        }
+    }
+    return -1;
+}</code></pre>
+  <p>Start at the bottom row and go up. The first empty place is where the piece lands. If there is none, the column is full, and we return -1.</p>
+  <h2>Step 5: Four in a row</h2>
+  <p>A new piece can only win together with the pieces next to it. So we look out from the new piece in a line, one step at a time, for as long as the pieces are the same color:</p>
+  <pre><code class="language-javascript">function lineFrom(row, col, dRow, dCol) {
+    const who = grid[row][col];
+    const line = [];
+    let r = row + dRow;
+    let c = col + dCol;
+    while (r &gt;= 0 &amp;&amp; r &lt; ROWS &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; COLS &amp;&amp; grid[r][c] === who) {
+        line.push([r, c]);
+        r += dRow;
+        c += dCol;
+    }
+    return line;
+}</code></pre>
+  <p><code>dRow</code> and <code>dCol</code> are the step: how far to move down and right each time. <code>[0, 1]</code> is one step right, <code>[0, -1]</code> one step left, <code>[1, 1]</code> one step down and right. The loop stops at the edge of the board, or at a place that is empty or the other color.</p>
+  <p>There are four directions a line can have. Each one goes two ways from the new piece, so we look both ways and add them up:</p>
+  <pre><code class="language-javascript">const DIRECTIONS = [
+    [0, 1],   // across
+    [1, 0],   // down
+    [1, 1],   // diagonal \
+    [1, -1]   // diagonal /
+];
+
+function findWin(row, col) {
+    for (const [dRow, dCol] of DIRECTIONS) {
+        const line = [[row, col]]
+            .concat(lineFrom(row, col, dRow, dCol))
+            .concat(lineFrom(row, col, -dRow, -dCol));
+        if (line.length &gt;= 4) {
+            return line;
+        }
+    }
+    return null;
+}</code></pre>
+  <p><code>const [dRow, dCol] of DIRECTIONS</code> takes each pair from the list and puts the two numbers into two variables at once. <code>-dRow, -dCol</code> is the opposite way. The line is the new piece, plus the pieces one way, plus the pieces the other way. If that is 4 or more, we return the places in it, so they can be marked. Otherwise <code>null</code>, which counts as false in an <code>if</code>.</p>
+  <p>Looking both ways matters. If you drop the piece in the middle of a line, like <code>R R _ R</code>, looking only one way would find 2, not 4.</p>
+  <h2>Step 6: Playing a move</h2>
+  <pre><code class="language-javascript">function play(col) {
+    if (gameOver) {
+        return;
+    }
+    const row = freeRow(col);
+    if (row === -1) {
+        return; // the column is full
+    }
+
+    grid[row][col] = player;
+    cells[row][col].classList.add("player" + player);
+    moves++;
+
+    const win = findWin(row, col);
+    if (win) {
+        win.forEach(function ([r, c]) {
+            cells[r][c].classList.add("winning");
+        });
+        statusText.textContent = NAMES[player] + " wins!";
+        gameOver = true;
+    } else if (moves === ROWS * COLS) {
+        statusText.textContent = "It's a draw!";
+        gameOver = true;
+    } else {
+        player = player === 1 ? 2 : 1;
+        statusText.textContent = NAMES[player] + "'s turn";
+    }
+}</code></pre>
+  <p>The order is important. We change <code>grid</code> first, then the page. <code>grid</code> is the real game, and the page only shows it. Then we check for a win, then a full board, and only if the game goes on, we switch player. If we switched first, the message would name the wrong winner.</p>
+  <p><code>"player" + player</code> makes the class <code>player1</code> or <code>player2</code>. <code>function ([r, c])</code> takes each pair of the winning line apart, the same way as in the <code>for</code> loop above.</p>
+  <h2>Step 7: Test it</h2>
+  <ul>
+    <li>Win across, down, and in both diagonals. The four winning pieces should get a green ring.</li>
+    <li>Win by dropping the piece in the middle of a line, not at the end.</li>
+    <li>Fill a column, then click it again. Nothing should happen, and it should still be the same player's turn.</li>
+    <li>Play a few games in a row. "It's a draw!" should only come when the board is full.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>connect-four.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Connect Four&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #board {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+        max-width: 450px;
+        margin: 0 auto;
+        padding: 10px;
+        background-color: #00458a;
+        border-radius: 10px;
+    }
+
+    .cell {
+        aspect-ratio: 1;
+        background-color: white;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .cell.player1 {
+        background-color: red;
+    }
+
+    .cell.player2 {
+        background-color: yellow;
+    }
+
+    .cell.winning {
+        outline: 4px solid limegreen;
+    }
+
+    #status {
+        font-size: 20px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Connect Four&lt;/h1&gt;
+  &lt;div id="board"&gt;&lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+
+  &lt;script&gt;
+    /*
+     * Connect Four: two players take turns dropping a piece into one of the
+     * seven columns. It falls to the lowest free row. The first with four in a
+     * row (across, down or diagonal) wins.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const ROWS = 6;
+    const COLS = 7;
+    const NAMES = { 1: "Red", 2: "Yellow" };
+
+    const DIRECTIONS = [
+        [0, 1],   // across
+        [1, 0],   // down
+        [1, 1],   // diagonal \
+        [1, -1]   // diagonal /
+    ];
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const statusText = document.getElementById("status");
+    const restartButton = document.getElementById("restart");
+
+    // --- State ---------------------------------------------------------------
+
+    let grid = [];          // grid[row][col]: 0 = empty, 1 = red, 2 = yellow
+    let cells = [];         // cells[row][col]: the &lt;div&gt; for each place
+    let player = 1;         // whose turn it is
+    let moves = 0;
+    let gameOver = false;
+
+    // --- The board -----------------------------------------------------------
+
+    function newGame() {
+        grid = [];
+        cells = [];
+        boardElement.innerHTML = "";
+
+        // Row 0 is the top row.
+        for (let row = 0; row &lt; ROWS; row++) {
+            grid.push([]);
+            cells.push([]);
+            for (let col = 0; col &lt; COLS; col++) {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+                cell.addEventListener("click", function () {
+                    play(col);
+                });
+                boardElement.appendChild(cell);
+                grid[row].push(0);
+                cells[row].push(cell);
+            }
+        }
+
+        player = 1;
+        moves = 0;
+        gameOver = false;
+        statusText.textContent = NAMES[player] + "'s turn";
+    }
+
+    // The lowest empty row in a column, or -1 if the column is full.
+    function freeRow(col) {
+        for (let row = ROWS - 1; row &gt;= 0; row--) {
+            if (grid[row][col] === 0) {
+                return row;
+            }
+        }
+        return -1;
+    }
+
+    // --- Four in a row -------------------------------------------------------
+
+    // The pieces of the same color in a line from (row, col), one step at a
+    // time in the direction (dRow, dCol), not counting the start.
+    function lineFrom(row, col, dRow, dCol) {
+        const who = grid[row][col];
+        const line = [];
+        let r = row + dRow;
+        let c = col + dCol;
+        while (r &gt;= 0 &amp;&amp; r &lt; ROWS &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; COLS &amp;&amp; grid[r][c] === who) {
+            line.push([r, c]);
+            r += dRow;
+            c += dCol;
+        }
+        return line;
+    }
+
+    // Does the piece at (row, col) make four in a row? Returns the winning
+    // places, or null.
+    function findWin(row, col) {
+        for (const [dRow, dCol] of DIRECTIONS) {
+            // Look both ways from the new piece.
+            const line = [[row, col]]
+                .concat(lineFrom(row, col, dRow, dCol))
+                .concat(lineFrom(row, col, -dRow, -dCol));
+            if (line.length &gt;= 4) {
+                return line;
+            }
+        }
+        return null;
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function play(col) {
+        if (gameOver) {
+            return;
+        }
+        const row = freeRow(col);
+        if (row === -1) {
+            return; // the column is full
+        }
+
+        grid[row][col] = player;
+        cells[row][col].classList.add("player" + player);
+        moves++;
+
+        const win = findWin(row, col);
+        if (win) {
+            win.forEach(function ([r, c]) {
+                cells[r][c].classList.add("winning");
+            });
+            statusText.textContent = NAMES[player] + " wins!";
+            gameOver = true;
+        } else if (moves === ROWS * COLS) {
+            statusText.textContent = "It's a draw!";
+            gameOver = true;
+        } else {
+            player = player === 1 ? 2 : 1;
+            statusText.textContent = NAMES[player] + "'s turn";
+        }
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    restartButton.addEventListener("click", newGame);
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Count the wins for each color, and let the loser start the next game.</li>
+    <li>Show the piece above the board when the mouse is over a column, so you can see where it will go.</li>
+    <li>Change <code>ROWS</code> and <code>COLS</code> for a bigger board, and the CSS to match. Does everything else still work?</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,29 @@
+---
+layout: game
+title: Slot Machine
+permalink: /games/slot-machine/
+nonav: true
+css:
+  - /assets/slot-machine/slot-machine.css
+js:
+  - /assets/slot-machine/slot-machine.js
+---
+<div class="container">
+  <h1>Slot Machine</h1>
+  <div class="slot-machine clearfix">
+    <span id="machine-title">JACKPOT!</span>
+    <div class="slot pad10">♠</div>
+    <div class="slot pad10 red">♥</div>
+    <div class="slot red">♦</div>
+  </div>
+  <p class="coins">Coins: <span id="coins">20</span></p>
+  <div class="controls">
+    <button type="button" id="start">Spin</button>
+    <button type="button" id="stop">Stop</button>
+    <button type="button" id="restart" hidden>New game</button>
+  </div>
+  <div class="slot-info">
+    <p id="slot-message" aria-live="polite">Try your luck!</p>
+  </div>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/slot-machine/">How to build this game</a></p>

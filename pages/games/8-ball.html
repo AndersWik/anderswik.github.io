@@ -13,9 +13,12 @@ js:
   <img
     id="eightball"
     src="{{ site.baseurl }}/assets/8-ball/images/eightball.svg"
-    alt="eightball"
+    alt="A magic 8 ball"
   />
-  <input type="text" id="question" placeholder="Ask your question..." />
-  <button id="eightBallBtn">Shake the Ball</button>
-  <div id="result"></div>
+  <form id="ask-form" autocomplete="off">
+    <input type="text" id="question" placeholder="Ask your question..." aria-label="Your question" />
+    <button type="submit">Shake the Ball</button>
+  </form>
+  <div id="result" aria-live="polite"></div>
 </div>
+<p class="text-center mt-4"><a href="/tutorials/8-ball/">How to build this game</a></p>

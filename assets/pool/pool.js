@@ -1,0 +1,477 @@
+/*
+ * Pool: a game of 8-ball for one player. The first ball you pot decides
+ * your group: solids (1-7) or stripes (9-15). Pot all of your group, then
+ * the black 8. Pot the 8 too early and you lose.
+ *
+ *   mouse        aim (the line shows where the white ball goes)
+ *   hold button  build up power
+ *   let go       shoot
+ *   P / Esc      pause / menu
+ */
+
+// --- Settings ------------------------------------------------------------
+
+const STEP = 1000 / 60;        // one update step, in milliseconds
+const BALL_RADIUS = 10;
+const POCKET_RADIUS = 22;
+const FRICTION = 0.985;        // speed kept each step
+const MAX_SPEED = 14;          // pixels a step at full power
+const CHARGE_STEPS = 90;       // steps to build up full power
+const CUE_START = { x: 200, y: 200 };
+
+// The order of the balls in the triangle, row by row. The 8 is in the
+// middle, and the two back corners are one solid and one stripe.
+const RACK = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 15, 7];
+
+const COLORS = [
+    "white", "#f2c500", "#1f4fd1", "#d42020", "#6a2c91", "#f07c00",
+    "#138a36", "#7a1f1f", "black"
+];
+
+// --- Canvas --------------------------------------------------------------
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+
+// Six pockets: the four corners and the middle of the long sides.
+const POCKETS = [
+    { x: 0, y: 0 }, { x: WIDTH / 2, y: 0 }, { x: WIDTH, y: 0 },
+    { x: 0, y: HEIGHT }, { x: WIDTH / 2, y: HEIGHT }, { x: WIDTH, y: HEIGHT }
+];
+
+// --- State ---------------------------------------------------------------
+
+let screen = "menu";   // menu, playing, paused, won, gameOver
+let gameStarted = false;
+
+let balls = [];        // { number, x, y, vx, vy, potted }
+let group = null;      // null, "solids" or "stripes"
+let score = 0;
+let shots = 0;
+let message = "";      // why the game ended
+
+let mouseX = WIDTH / 2;
+let mouseY = HEIGHT / 2;
+let charging = false;
+let power = 0;         // 0 to 1
+
+// --- Starting ------------------------------------------------------------
+
+function newBall(number, x, y) {
+    return { number: number, x: x, y: y, vx: 0, vy: 0, potted: false };
+}
+
+function newGame() {
+    balls = [newBall(0, CUE_START.x, CUE_START.y)];
+
+    // Five rows: 1 ball, then 2, 3, 4 and 5. Each row is a little further
+    // right, and half a ball lower at the top. The 1 px gap stops the balls
+    // from touching before the first shot.
+    let index = 0;
+    for (let row = 0; row < 5; row++) {
+        for (let col = 0; col <= row; col++) {
+            const x = 580 + row * (BALL_RADIUS * 2 * 0.87 + 1);
+            const y = HEIGHT / 2 + (col - row / 2) * (BALL_RADIUS * 2 + 1);
+            balls.push(newBall(RACK[index], x, y));
+            index++;
+        }
+    }
+
+    group = null;
+    score = 0;
+    shots = 0;
+    charging = false;
+    power = 0;
+    gameStarted = true;
+    screen = "playing";
+}
+
+// --- Helpers -------------------------------------------------------------
+
+function cueBall() {
+    return balls[0];
+}
+
+function groupOf(number) {
+    if (number >= 1 && number <= 7) {
+        return "solids";
+    }
+    if (number >= 9) {
+        return "stripes";
+    }
+    return null;   // the white ball and the 8
+}
+
+function allStopped() {
+    return balls.every(function (ball) {
+        return ball.potted || (ball.vx === 0 && ball.vy === 0);
+    });
+}
+
+function ballsLeft(whichGroup) {
+    return balls.filter(function (ball) {
+        return !ball.potted && groupOf(ball.number) === whichGroup;
+    }).length;
+}
+
+// --- Shooting ------------------------------------------------------------
+
+function shoot() {
+    const cue = cueBall();
+    const dx = mouseX - cue.x;
+    const dy = mouseY - cue.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance > 0 && power > 0) {
+        cue.vx = dx / distance * power * MAX_SPEED;
+        cue.vy = dy / distance * power * MAX_SPEED;
+        shots++;
+    }
+    charging = false;
+    power = 0;
+}
+
+// --- Physics -------------------------------------------------------------
+
+function bounceOffCushions(ball) {
+    if (ball.x < BALL_RADIUS) {
+        ball.x = BALL_RADIUS;
+        ball.vx = Math.abs(ball.vx);
+    } else if (ball.x > WIDTH - BALL_RADIUS) {
+        ball.x = WIDTH - BALL_RADIUS;
+        ball.vx = -Math.abs(ball.vx);
+    }
+    if (ball.y < BALL_RADIUS) {
+        ball.y = BALL_RADIUS;
+        ball.vy = Math.abs(ball.vy);
+    } else if (ball.y > HEIGHT - BALL_RADIUS) {
+        ball.y = HEIGHT - BALL_RADIUS;
+        ball.vy = -Math.abs(ball.vy);
+    }
+}
+
+// Two balls of the same weight hit each other.
+function collide(a, b) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance === 0 || distance >= BALL_RADIUS * 2) {
+        return;
+    }
+
+    // nx, ny: one pixel long, pointing from a to b.
+    const nx = dx / distance;
+    const ny = dy / distance;
+
+    // Push them apart so they don't overlap.
+    const overlap = (BALL_RADIUS * 2 - distance) / 2;
+    a.x -= nx * overlap;
+    a.y -= ny * overlap;
+    b.x += nx * overlap;
+    b.y += ny * overlap;
+
+    // How fast they move towards each other, along the line between them.
+    const closing = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+    if (closing <= 0) {
+        return;   // already moving apart
+    }
+
+    // Swap that part of their speeds: a gives it to b.
+    a.vx -= closing * nx;
+    a.vy -= closing * ny;
+    b.vx += closing * nx;
+    b.vy += closing * ny;
+}
+
+function checkPockets(ball) {
+    const inPocket = POCKETS.some(function (pocket) {
+        return Math.hypot(ball.x - pocket.x, ball.y - pocket.y) < POCKET_RADIUS;
+    });
+    if (!inPocket) {
+        return;
+    }
+    ball.potted = true;
+    ball.vx = 0;
+    ball.vy = 0;
+
+    if (ball.number === 0) {
+        // The white ball: a foul. It comes back when everything stops.
+        score = Math.max(0, score - 1);
+    } else if (ball.number === 8) {
+        if (group !== null && ballsLeft(group) === 0) {
+            score += 10;
+            message = "You potted the 8 in " + shots + " shots!";
+            screen = "won";
+        } else {
+            message = "The 8 went in too early.";
+            screen = "gameOver";
+        }
+    } else {
+        if (group === null) {
+            group = groupOf(ball.number);   // the first ball decides
+        }
+        if (groupOf(ball.number) === group) {
+            score++;
+        }
+    }
+}
+
+// --- Update --------------------------------------------------------------
+
+// One step of the game: about 1/60 of a second. The balls move in two half
+// steps, so a fast ball can't jump through another one.
+function update() {
+    if (charging) {
+        power = Math.min(1, power + 1 / CHARGE_STEPS);
+    }
+
+    const moving = balls.filter(function (ball) {
+        return !ball.potted;
+    });
+    for (let half = 0; half < 2; half++) {
+        moving.forEach(function (ball) {
+            ball.x += ball.vx / 2;
+            ball.y += ball.vy / 2;
+            bounceOffCushions(ball);
+        });
+        for (let i = 0; i < moving.length; i++) {
+            for (let j = i + 1; j < moving.length; j++) {
+                collide(moving[i], moving[j]);
+            }
+        }
+    }
+
+    moving.forEach(function (ball) {
+        ball.vx *= FRICTION;
+        ball.vy *= FRICTION;
+        if (Math.hypot(ball.vx, ball.vy) < 0.05) {
+            ball.vx = 0;
+            ball.vy = 0;
+        }
+        if (screen === "playing") {
+            checkPockets(ball);
+        }
+    });
+
+    // A potted white ball comes back when everything has stopped.
+    if (cueBall().potted && allStopped()) {
+        const cue = cueBall();
+        cue.potted = false;
+        cue.x = CUE_START.x;
+        cue.y = CUE_START.y;
+    }
+}
+
+// --- Drawing -------------------------------------------------------------
+
+function drawText(text, x, y, size, color, align) {
+    ctx.fillStyle = color || "white";
+    ctx.font = size + "px Arial";
+    ctx.textAlign = align || "center";
+    ctx.fillText(text, x, y);
+}
+
+function drawBall(ball) {
+    // Stripes have the same colors as solids: 9 is like 1, 10 like 2...
+    const color = COLORS[ball.number > 8 ? ball.number - 8 : ball.number];
+
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = ball.number >= 9 ? "white" : color;
+    ctx.fill();
+
+    // A stripe: the colored ball, but only inside a band across the middle.
+    if (ball.number >= 9) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(ball.x - BALL_RADIUS, ball.y - BALL_RADIUS / 2, BALL_RADIUS * 2, BALL_RADIUS);
+        ctx.clip();
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    if (ball.number > 0) {
+        ctx.fillStyle = ball.number === 8 ? "white" : "black";
+        ctx.font = "9px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(ball.number, ball.x, ball.y + 1);
+        ctx.textBaseline = "alphabetic";
+    }
+}
+
+function drawWorld() {
+    ctx.fillStyle = "#1b5e20";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.fillStyle = "black";
+    POCKETS.forEach(function (pocket) {
+        ctx.beginPath();
+        ctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    balls.forEach(function (ball) {
+        if (!ball.potted) {
+            drawBall(ball);
+        }
+    });
+}
+
+function drawHud() {
+    const groupText = group === null ? "pot any ball" : group;
+    drawText("Score: " + score + "   Shots: " + shots + "   Your group: " + groupText, 30, 25, 16, "white", "left");
+
+    if (!allStopped()) {
+        return;
+    }
+
+    // The aiming line, from the white ball towards the mouse.
+    const cue = cueBall();
+    const dx = mouseX - cue.x;
+    const dy = mouseY - cue.y;
+    const distance = Math.hypot(dx, dy) || 1;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cue.x, cue.y);
+    ctx.lineTo(cue.x + dx / distance * 150, cue.y + dy / distance * 150);
+    ctx.stroke();
+
+    // The power bar.
+    ctx.fillStyle = "#444444";
+    ctx.fillRect(30, HEIGHT - 30, 200, 12);
+    ctx.fillStyle = "#4caf50";
+    ctx.fillRect(30, HEIGHT - 30, 200 * power, 12);
+}
+
+function drawMessage(title, lines) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    drawText(title, WIDTH / 2, HEIGHT / 2 - 50, 40, "yellow");
+    lines.forEach(function (line, index) {
+        drawText(line, WIDTH / 2, HEIGHT / 2 + index * 28, 18);
+    });
+}
+
+function draw() {
+    drawWorld();
+
+    if (screen === "menu") {
+        const lines = [
+            "Aim with the mouse. Hold the button for power, let go to shoot.",
+            "Pot your group, then the 8.",
+            "Press Enter to start"
+        ];
+        if (gameStarted) {
+            lines.push("Esc: back to the game");
+        }
+        drawMessage("Pool", lines);
+    } else if (screen === "playing") {
+        drawHud();
+    } else if (screen === "paused") {
+        drawMessage("Pause", ["Press P to go on"]);
+    } else if (screen === "won") {
+        drawMessage("You win!", [message, "Score: " + score, "Press Enter to play again"]);
+    } else if (screen === "gameOver") {
+        drawMessage("Game over", [message, "Press Enter to play again"]);
+    }
+}
+
+// --- The loop ------------------------------------------------------------
+
+// Run one update per 1/60 second, so the game has the same speed on
+// every screen, then draw.
+let lastTime = performance.now();
+let leftover = 0;
+
+function gameLoop(now) {
+    leftover += Math.min(now - lastTime, 250);
+    lastTime = now;
+
+    while (leftover >= STEP) {
+        if (screen === "playing") {
+            update();
+        }
+        leftover -= STEP;
+    }
+
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+// --- Mouse and keyboard --------------------------------------------------
+
+// The canvas can be shown smaller than 800x400 on a small screen. Convert
+// from position on the screen to position in the canvas. clientLeft and
+// clientWidth leave out the border around the canvas.
+function canvasPosition(event) {
+    const box = canvas.getBoundingClientRect();
+    return {
+        x: (event.clientX - box.left - canvas.clientLeft) * (WIDTH / canvas.clientWidth),
+        y: (event.clientY - box.top - canvas.clientTop) * (HEIGHT / canvas.clientHeight)
+    };
+}
+
+canvas.addEventListener("mousemove", function (event) {
+    const position = canvasPosition(event);
+    mouseX = position.x;
+    mouseY = position.y;
+});
+
+// Only one shot at a time: wait until all the balls have stopped.
+canvas.addEventListener("mousedown", function (event) {
+    if (screen === "playing" && event.button === 0 && allStopped() && !cueBall().potted) {
+        event.preventDefault();
+        charging = true;
+        power = 0;
+    }
+});
+
+// On the whole window, so letting go outside the canvas still shoots.
+window.addEventListener("mouseup", function () {
+    if (charging && screen === "playing") {
+        shoot();
+    }
+    charging = false;
+    power = 0;
+});
+
+document.addEventListener("keydown", function (event) {
+    const key = event.key;
+
+    if (screen === "menu") {
+        if (key === "Enter") {
+            newGame();
+        } else if (key === "Escape" && gameStarted) {
+            screen = "paused";
+        }
+    } else if (screen === "playing") {
+        if (key === "p" || key === "P") {
+            screen = "paused";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "paused") {
+        if (key === "p" || key === "P") {
+            screen = "playing";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "won" || screen === "gameOver") {
+        if (key === "Enter") {
+            newGame();
+        } else if (key === "Escape") {
+            gameStarted = false;
+            screen = "menu";
+        }
+    }
+});
+
+// --- Start ---------------------------------------------------------------
+
+requestAnimationFrame(gameLoop);

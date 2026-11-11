@@ -1,0 +1,26 @@
+---
+layout: game
+title: Reversi (vs Computer)
+permalink: /games/reversi-ai/
+nonav: true
+css:
+  - /assets/reversi/reversi.css
+js:
+  - /assets/reversi-ai/reversi.js
+---
+<div class="container">
+  <h1>Reversi</h1>
+  <div id="board"></div>
+  <p id="status" aria-live="polite"></p>
+  <p id="message"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy" selected>The computer (easy)</option>
+      <option value="hard">The computer (hard)</option>
+    </select>
+  </p>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/reversi-ai/">How to build this game</a></p>

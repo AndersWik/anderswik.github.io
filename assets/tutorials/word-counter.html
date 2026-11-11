@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Word counter</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    label {
+        display: block;
+        margin-top: 16px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 120px;
+        box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <h1>Word counter</h1>
+
+  <label for="text">Text</label>
+  <textarea id="text"></textarea>
+
+  <p>Words: <span id="count">0</span></p>
+
+  <script>
+    /*
+     * Word counter: count the words in a text while you type.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const textInput = document.getElementById("text");
+    const countText = document.getElementById("count");
+
+    // --- Helpers -------------------------------------------------------------
+
+    // "hello  big world " -> 3
+    function countWords(text) {
+        // trim() removes spaces at the start and end. split(/\s+/) splits on
+        // one or more spaces, tabs or new lines.
+        const words = text.trim().split(/\s+/);
+
+        // "".split() gives [""], one empty word, so handle that on its own.
+        if (words[0] === "") {
+            return 0;
+        }
+        return words.length;
+    }
+
+    // --- What the page does --------------------------------------------------
+
+    function update() {
+        countText.textContent = countWords(textInput.value);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // "input" fires on every change: typing, pasting, deleting...
+    textInput.addEventListener("input", update);
+  </script>
+</body>
+</html>

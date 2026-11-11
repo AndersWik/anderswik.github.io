@@ -1,64 +1,64 @@
+/*
+ * Rock Paper Scissors against the computer. Rock beats scissors, scissors
+ * beat paper, and paper beats rock. The computer picks at random.
+ */
+
+// --- Settings ------------------------------------------------------------
+
+// Where the pictures are. On a page of your own: "images/".
+const IMAGE_FOLDER = "/assets/rock-paper-scissors/images/";
+
+const CHOICES = ["Rock", "Paper", "Scissors"];
+
+// What each choice beats.
+const BEATS = { Rock: "Scissors", Paper: "Rock", Scissors: "Paper" };
+
+// --- Elements on the page ------------------------------------------------
+
+const playerImage = document.getElementById("playerImage");
+const playerChoiceText = document.getElementById("playerChoice");
+const playerScoreText = document.getElementById("playerScore");
+const computerImage = document.getElementById("computerImage");
+const computerChoiceText = document.getElementById("computerChoice");
+const computerScoreText = document.getElementById("computerScore");
+const resultText = document.getElementById("result");
+
+// --- State ---------------------------------------------------------------
+
 let playerScore = 0;
 let computerScore = 0;
 
-const uiDisplay = {
-  result: document.getElementById("result"),
-  playerChoice: document.getElementById("playerChoice"),
-  computerChoice: document.getElementById("computerChoice"),
-  playerScore: document.getElementById("playerScore"),
-  computerScore: document.getElementById("computerScore"),
-  playerImage: document.getElementById("playerImage"),
-  computerImage: document.getElementById("computerImage"),
-  rockBtn: document.getElementById("rockBtn"),
-  paperBtn: document.getElementById("paperBtn"),
-  scissorsBtn: document.getElementById("scissorsBtn"),
-};
+// --- The game ------------------------------------------------------------
 
-function playGame(playerChoice) {
-  // Get computer's choice
-  const choices = ["Rock", "Paper", "Scissors"];
-  const computerChoice = choices[Math.floor(Math.random() * 3)];
-
-  // Update display
-  uiDisplay.playerChoice.textContent = `${playerChoice}`;
-  uiDisplay.playerImage.src =
-    "/assets/rock-paper-scissors/images/" + playerChoice + ".svg";
-  uiDisplay.computerChoice.textContent = `${computerChoice}`;
-  uiDisplay.computerImage.src =
-    "/assets/rock-paper-scissors/images/" + computerChoice + ".svg";
-
-  determineWinner(playerChoice, computerChoice);
+function showChoice(choice, image, text) {
+    image.src = IMAGE_FOLDER + choice + ".svg";
+    image.alt = choice;
+    text.textContent = choice;
 }
 
-function determineWinner(player, computer) {
-  if (player === computer) {
-    uiDisplay.result.innerHTML = "It's a draw!";
-    return;
-  }
+function play(playerChoice) {
+    const computerChoice = CHOICES[Math.floor(Math.random() * CHOICES.length)];
+    showChoice(playerChoice, playerImage, playerChoiceText);
+    showChoice(computerChoice, computerImage, computerChoiceText);
 
-  if (
-    (player === "Rock" && computer === "Scissors") ||
-    (player === "Paper" && computer === "Rock") ||
-    (player === "Scissors" && computer === "Paper")
-  ) {
-    playerScore++;
-    uiDisplay.playerScore.textContent = playerScore;
-    uiDisplay.result.innerHTML = "You win!";
-  } else {
-    computerScore++;
-    uiDisplay.computerScore.textContent = computerScore;
-    uiDisplay.result.innerHTML = "Computer wins!";
-  }
+    if (playerChoice === computerChoice) {
+        resultText.textContent = "It's a draw!";
+    } else if (BEATS[playerChoice] === computerChoice) {
+        playerScore++;
+        resultText.textContent = playerChoice + " beats " + computerChoice + ". You win!";
+    } else {
+        computerScore++;
+        resultText.textContent = computerChoice + " beats " + playerChoice + ". The computer wins!";
+    }
+    playerScoreText.textContent = playerScore;
+    computerScoreText.textContent = computerScore;
 }
 
-uiDisplay.rockBtn.addEventListener("click", function () {
-  playGame("Rock");
-});
+// --- Connect the page ----------------------------------------------------
 
-uiDisplay.paperBtn.addEventListener("click", function () {
-  playGame("Paper");
-});
-
-uiDisplay.scissorsBtn.addEventListener("click", function () {
-  playGame("Scissors");
+// One button for each choice: <button data-choice="Rock">.
+document.querySelectorAll("[data-choice]").forEach(function (button) {
+    button.addEventListener("click", function () {
+        play(button.dataset.choice);
+    });
 });

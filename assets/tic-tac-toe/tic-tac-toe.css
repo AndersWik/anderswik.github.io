@@ -31,7 +31,6 @@
   border: 5px solid #caf6cc;
   border-radius: 5px;
   cursor: pointer;
-  word-break: break-all;
 }
 
 .game button:hover {
@@ -84,6 +83,22 @@
   color: #caf6cc;
 }
 
+.game .square.winning {
+  background-color: #ffffff;
+  color: #e53935;
+}
+
 .game .controls {
-  margin-top: 10px;
+  margin-top: 16px;
+  color: #caf6cc;
+}
+
+.game select {
+  padding: 6px;
+  font-size: 16px;
+}
+
+.game + p a,
+.game a {
+  color: #caf6cc;
 }

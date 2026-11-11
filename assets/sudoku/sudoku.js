@@ -1,312 +1,315 @@
-const uiDisplay = {
-  board: document.getElementById("sudoku-board"),
-  checkBoard: document.getElementById("checkBoard"),
-  restartGame: document.getElementById("restartGame"),
-  overlay: document.getElementById("overlay"),
-  overlayClose: document.getElementById("overlayClose"),
-  overlayMessage: document.getElementById("overlayMessage"),
-  overlayRestart: document.getElementById("overlayRestart"),
-  gameModeSelector: document.getElementById("gameMode"),
-  getHint: document.getElementById("getHint"),
-  numberPad: document.getElementById("numberPad"),
-  status: document.getElementById("status"),
-};
+/*
+ * Sudoku: fill the board so every row, every column and every 3x3 box has
+ * the numbers 1 to 9 once each. A new puzzle is made every game: first a
+ * full, random board, then numbers are taken away for as long as the
+ * puzzle still has only one solution.
+ *
+ *   click a square, then type a number or use the number pad
+ *   arrow keys   move between squares
+ */
 
-// Number of given cells we aim for. Harder puzzles may end up with a few
-// more if removing another cell would allow more than one solution.
-const prefilledCounts = {
-  easy: 40,
-  medium: 35,
-  hard: 30,
-  expert: 25,
-};
+// --- Settings ------------------------------------------------------------
 
-let solutionBoard = []; // numbers 1-9
-let cells = []; // cells[row][col] -> <input>
-let activeCell = null;
+// How many numbers are given at the start, for each difficulty. Hard
+// puzzles can end up with a few more, if taking away another number would
+// give the puzzle more than one solution.
+const GIVEN = { easy: 40, medium: 35, hard: 30, expert: 25 };
 
-function initGame() {
-  hideOverlay();
-  uiDisplay.status.textContent = "";
-  activeCell = null;
+// --- Elements on the page ------------------------------------------------
 
-  const prefilledCount = prefilledCounts[uiDisplay.gameModeSelector.value] || 35;
+const boardElement = document.getElementById("board");
+const difficultySelect = document.getElementById("difficulty");
+const numberPad = document.getElementById("numberPad");
+const statusText = document.getElementById("status");
+const checkButton = document.getElementById("check");
+const hintButton = document.getElementById("hint");
+const restartButton = document.getElementById("restart");
 
-  // 0 means an empty cell
-  const fullBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
-  fillBoard(fullBoard);
-  solutionBoard = fullBoard.map((row) => row.slice()); // copy full solution
+// --- State ---------------------------------------------------------------
 
-  const newPuzzle = generatePuzzle(fullBoard, prefilledCount);
-  createBoard(newPuzzle);
-}
+let solution = [];     // solution[row][col]: the right number, 1-9
+let cells = [];        // cells[row][col]: the <input> for each square
+let activeCell = null; // the square the player last clicked
 
-/* ---------- Puzzle generation ---------- */
+// --- Making a puzzle -----------------------------------------------------
 
-// Fisher–Yates shuffle, every order is equally likely
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
-function isSafe(board, row, col, num) {
-  for (let x = 0; x < 9; x++) {
-    if (board[row][x] === num || board[x][col] === num) return false;
-  }
-  const startRow = row - (row % 3);
-  const startCol = col - (col % 3);
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
-      if (board[startRow + r][startCol + c] === num) return false;
+// Shuffle a list in place (the Fisher-Yates shuffle) and return it.
+function shuffle(list) {
+    for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = list[i];
+        list[i] = list[j];
+        list[j] = temp;
     }
-  }
-  return true;
+    return list;
 }
 
-function fillBoard(board) {
-  for (let row = 0; row < 9; row++) {
-    for (let col = 0; col < 9; col++) {
-      if (board[row][col] === 0) {
-        for (let num of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
-          if (isSafe(board, row, col, num)) {
-            board[row][col] = num;
-            if (fillBoard(board)) return true; // recurse
-            board[row][col] = 0; // backtrack
-          }
+// Can "num" go at (row, col)? Not if it is already in the row, the column
+// or the 3x3 box.
+function canPlace(board, row, col, num) {
+    for (let i = 0; i < 9; i++) {
+        if (board[row][i] === num || board[i][col] === num) {
+            return false;
         }
-        return false; // no valid number found, backtrack
-      }
     }
-  }
-  return true; // board is filled
-}
-
-// Count solutions, but stop as soon as we reach `limit`.
-// Always tries the empty cell with the fewest options first, which keeps it fast.
-function countSolutions(board, limit = 2) {
-  let bestRow = -1;
-  let bestCol = -1;
-  let bestOptions = null;
-
-  for (let row = 0; row < 9; row++) {
-    for (let col = 0; col < 9; col++) {
-      if (board[row][col] !== 0) continue;
-      const options = [];
-      for (let num = 1; num <= 9; num++) {
-        if (isSafe(board, row, col, num)) options.push(num);
-      }
-      if (options.length === 0) return 0; // dead end
-      if (!bestOptions || options.length < bestOptions.length) {
-        bestRow = row;
-        bestCol = col;
-        bestOptions = options;
-      }
+    const boxRow = row - row % 3;
+    const boxCol = col - col % 3;
+    for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+            if (board[boxRow + r][boxCol + c] === num) {
+                return false;
+            }
+        }
     }
-  }
-
-  if (!bestOptions) return 1; // no empty cells left: one solution found
-
-  let count = 0;
-  for (let num of bestOptions) {
-    board[bestRow][bestCol] = num;
-    count += countSolutions(board, limit - count);
-    if (count >= limit) break;
-  }
-  board[bestRow][bestCol] = 0;
-  return count;
+    return true;
 }
 
-// Remove numbers one by one, but only if the puzzle still has exactly one solution.
-function generatePuzzle(fullBoard, prefilledCount) {
-  const puzzle = fullBoard.map((row) => row.slice());
-  const positions = shuffle(Array.from({ length: 81 }, (_, i) => i));
-  let filled = 81;
-
-  for (let index of positions) {
-    if (filled <= prefilledCount) break;
-    const row = Math.floor(index / 9);
-    const col = index % 9;
-    const value = puzzle[row][col];
-
-    puzzle[row][col] = 0;
-    if (countSolutions(puzzle.map((r) => r.slice())) === 1) {
-      filled--;
-    } else {
-      puzzle[row][col] = value; // put it back, removing it makes the puzzle ambiguous
+// Fill every empty square (0) with a random number that fits. If a square
+// has no number that fits, go back and try another number in the square
+// before. This is called backtracking.
+function fillBoard(board) {
+    for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+            if (board[row][col] !== 0) {
+                continue;
+            }
+            for (const num of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+                if (canPlace(board, row, col, num)) {
+                    board[row][col] = num;
+                    if (fillBoard(board)) {
+                        return true;
+                    }
+                    board[row][col] = 0;   // didn't work: undo and try the next
+                }
+            }
+            return false;   // nothing fits here
+        }
     }
-  }
-
-  return puzzle;
+    return true;   // no empty squares left
 }
 
-/* ---------- Board ---------- */
-
-function createBoard(puzzleData) {
-  uiDisplay.board.innerHTML = "";
-  cells = [];
-
-  for (let row = 0; row < 9; row++) {
-    cells.push([]);
-    for (let col = 0; col < 9; col++) {
-      const cell = document.createElement("input");
-      cell.type = "text";
-      cell.inputMode = "numeric";
-      cell.autocomplete = "off";
-      cell.maxLength = 2; // room for the new digit, we keep only the last one
-      cell.className = "cell";
-      cell.dataset.row = row;
-      cell.dataset.col = col;
-      cell.setAttribute("aria-label", `Row ${row + 1}, column ${col + 1}`);
-
-      const value = puzzleData[row][col];
-      if (value !== 0) {
-        cell.value = value;
-        cell.classList.add("prefilled");
-        cell.readOnly = true;
-        cell.tabIndex = -1;
-      } else {
-        cell.addEventListener("input", () => setCellValue(cell, cell.value));
-      }
-
-      cell.addEventListener("focus", () => selectCell(cell));
-      cell.addEventListener("keydown", (event) => moveWithArrows(event, row, col));
-
-      cells[row].push(cell);
-      uiDisplay.board.appendChild(cell);
+// How many solutions does the board have? We only need to know if it is
+// one or more than one, so stop counting at "limit". Always fill the empty
+// square with the fewest possible numbers first; that is much faster.
+function countSolutions(board, limit) {
+    let bestRow = -1;
+    let bestCol = -1;
+    let bestOptions = null;
+    for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+            if (board[row][col] !== 0) {
+                continue;
+            }
+            const options = [];
+            for (let num = 1; num <= 9; num++) {
+                if (canPlace(board, row, col, num)) {
+                    options.push(num);
+                }
+            }
+            if (options.length === 0) {
+                return 0;   // a dead end
+            }
+            if (bestOptions === null || options.length < bestOptions.length) {
+                bestRow = row;
+                bestCol = col;
+                bestOptions = options;
+            }
+        }
     }
-  }
+    if (bestOptions === null) {
+        return 1;   // the board is full: that is one solution
+    }
+
+    let count = 0;
+    for (const num of bestOptions) {
+        board[bestRow][bestCol] = num;
+        count += countSolutions(board, limit - count);
+        if (count >= limit) {
+            break;
+        }
+    }
+    board[bestRow][bestCol] = 0;
+    return count;
 }
 
-// Only allow a single digit 1-9; typing replaces the old digit
-function setCellValue(cell, text) {
-  if (cell.readOnly) return;
-  const digits = String(text).replace(/[^1-9]/g, "");
-  cell.value = digits.slice(-1);
-  cell.classList.remove("error");
-  uiDisplay.status.textContent = "";
+// Take away numbers in random order, but only if the puzzle still has
+// exactly one solution afterwards.
+function makePuzzle(full, given) {
+    const puzzle = full.map(function (row) {
+        return row.slice();
+    });
+    const squares = [];
+    for (let i = 0; i < 81; i++) {
+        squares.push(i);
+    }
+    let filled = 81;
+    for (const square of shuffle(squares)) {
+        if (filled <= given) {
+            break;
+        }
+        const row = Math.floor(square / 9);
+        const col = square % 9;
+        const value = puzzle[row][col];
+        puzzle[row][col] = 0;
+        if (countSolutions(puzzle, 2) === 1) {
+            filled--;
+        } else {
+            puzzle[row][col] = value;   // put it back
+        }
+    }
+    return puzzle;
 }
 
-// Highlight the row, column and box of the selected cell
+// --- The board -----------------------------------------------------------
+
+function newGame() {
+    const full = [];
+    for (let row = 0; row < 9; row++) {
+        full.push([0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    }
+    fillBoard(full);
+    solution = full;
+    const puzzle = makePuzzle(full, GIVEN[difficultySelect.value]);
+
+    boardElement.innerHTML = "";
+    cells = [];
+    activeCell = null;
+    statusText.textContent = "";
+
+    for (let row = 0; row < 9; row++) {
+        cells.push([]);
+        for (let col = 0; col < 9; col++) {
+            const cell = document.createElement("input");
+            cell.type = "text";
+            cell.inputMode = "numeric";
+            cell.autocomplete = "off";
+            cell.className = "cell";
+            cell.setAttribute("aria-label", "Row " + (row + 1) + ", column " + (col + 1));
+            cell.dataset.row = row;
+            cell.dataset.col = col;
+
+            if (puzzle[row][col] !== 0) {
+                cell.value = puzzle[row][col];
+                cell.readOnly = true;
+                cell.classList.add("given");
+            }
+            cell.addEventListener("input", function () {
+                setValue(cell, cell.value);
+            });
+            cell.addEventListener("focus", function () {
+                selectCell(cell);
+            });
+            cell.addEventListener("keydown", function (event) {
+                moveWithArrows(event, row, col);
+            });
+
+            boardElement.appendChild(cell);
+            cells[row].push(cell);
+        }
+    }
+}
+
+// Keep only one digit, 1-9. Typing a new digit replaces the old one.
+function setValue(cell, text) {
+    if (cell.readOnly) {
+        return;
+    }
+    const digits = String(text).replace(/[^1-9]/g, "");
+    cell.value = digits.slice(-1);
+    cell.classList.remove("wrong");
+    statusText.textContent = "";
+}
+
+// Light up the row, column and box of the chosen square.
 function selectCell(cell) {
-  activeCell = cell;
-  cell.select(); // so typing replaces the digit wherever the caret was
-  const row = Number(cell.dataset.row);
-  const col = Number(cell.dataset.col);
-  const boxRow = Math.floor(row / 3);
-  const boxCol = Math.floor(col / 3);
-
-  cells.flat().forEach((other) => {
-    const r = Number(other.dataset.row);
-    const c = Number(other.dataset.col);
-    const related =
-      r === row || c === col || (Math.floor(r / 3) === boxRow && Math.floor(c / 3) === boxCol);
-    other.classList.toggle("related", related);
-    other.classList.toggle("selected", other === cell);
-  });
+    activeCell = cell;
+    cell.select();
+    const row = Number(cell.dataset.row);
+    const col = Number(cell.dataset.col);
+    cells.flat().forEach(function (other) {
+        const r = Number(other.dataset.row);
+        const c = Number(other.dataset.col);
+        const sameBox = Math.floor(r / 3) === Math.floor(row / 3) && Math.floor(c / 3) === Math.floor(col / 3);
+        other.classList.toggle("related", r === row || c === col || sameBox);
+        other.classList.toggle("selected", other === cell);
+    });
 }
 
 function moveWithArrows(event, row, col) {
-  const moves = {
-    ArrowUp: [-1, 0],
-    ArrowDown: [1, 0],
-    ArrowLeft: [0, -1],
-    ArrowRight: [0, 1],
-  };
-  const move = moves[event.key];
-  if (!move) return;
-  event.preventDefault();
-  const newRow = (row + move[0] + 9) % 9;
-  const newCol = (col + move[1] + 9) % 9;
-  cells[newRow][newCol].focus();
-}
-
-/* ---------- Checking and hints ---------- */
-
-function checkBoard() {
-  let empty = 0;
-  let wrong = 0;
-
-  cells.flat().forEach((cell) => {
-    cell.classList.remove("error");
-    if (cell.readOnly) return;
-    const row = Number(cell.dataset.row);
-    const col = Number(cell.dataset.col);
-
-    if (cell.value === "") {
-      empty++;
-    } else if (Number(cell.value) !== solutionBoard[row][col]) {
-      wrong++;
-      cell.classList.add("error");
+    const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+    const move = moves[event.key];
+    if (!move) {
+        return;
     }
-  });
-
-  if (empty === 0 && wrong === 0) {
-    showOverlay("🎉 Sudoku solved correctly!");
-  } else if (wrong > 0) {
-    showOverlay(`❌ ${wrong} ${wrong === 1 ? "number is" : "numbers are"} wrong.`);
-  } else {
-    uiDisplay.status.textContent = `No mistakes so far, ${empty} ${empty === 1 ? "cell" : "cells"} left.`;
-  }
+    event.preventDefault();
+    // + 9 and % 9: going off one side comes back on the other.
+    cells[(row + move[0] + 9) % 9][(col + move[1] + 9) % 9].focus();
 }
 
-// Fill in the selected cell, or a random empty/wrong cell if none is selected.
-function giveHint() {
-  let cell = activeCell;
+// --- Checking and hints --------------------------------------------------
 
-  if (!cell || cell.readOnly) {
-    const candidates = cells.flat().filter((c) => {
-      if (c.readOnly) return false;
-      const answer = solutionBoard[c.dataset.row][c.dataset.col];
-      return Number(c.value) !== answer;
+function check() {
+    let empty = 0;
+    let wrong = 0;
+    cells.flat().forEach(function (cell) {
+        cell.classList.remove("wrong");
+        if (cell.readOnly) {
+            return;
+        }
+        if (cell.value === "") {
+            empty++;
+        } else if (Number(cell.value) !== solution[cell.dataset.row][cell.dataset.col]) {
+            wrong++;
+            cell.classList.add("wrong");
+        }
     });
-    if (candidates.length === 0) return;
-    cell = candidates[Math.floor(Math.random() * candidates.length)];
-  }
 
-  const row = Number(cell.dataset.row);
-  const col = Number(cell.dataset.col);
-
-  cell.value = solutionBoard[row][col];
-  cell.classList.remove("error");
-  cell.classList.add("hinted");
-  cell.readOnly = true; // a hint is always right, so lock it
-  uiDisplay.status.textContent = "";
+    if (wrong > 0) {
+        statusText.textContent = wrong + (wrong === 1 ? " number is" : " numbers are") + " wrong.";
+    } else if (empty > 0) {
+        statusText.textContent = "No mistakes so far. " + empty + (empty === 1 ? " square" : " squares") + " left.";
+    } else {
+        statusText.textContent = "Solved! Well done!";
+    }
 }
 
-/* ---------- Overlay ---------- */
-
-function showOverlay(message) {
-  uiDisplay.overlayMessage.textContent = message;
-  uiDisplay.overlay.classList.add("show");
+// Fill in the right number in the chosen square, or in a random square
+// that is empty or wrong if no square is chosen.
+function hint() {
+    let cell = activeCell;
+    if (!cell || cell.readOnly) {
+        const open = cells.flat().filter(function (c) {
+            return !c.readOnly && Number(c.value) !== solution[c.dataset.row][c.dataset.col];
+        });
+        if (open.length === 0) {
+            return;
+        }
+        cell = open[Math.floor(Math.random() * open.length)];
+    }
+    cell.value = solution[cell.dataset.row][cell.dataset.col];
+    cell.classList.remove("wrong");
+    cell.classList.add("hinted");
+    cell.readOnly = true;   // a hint is always right, so lock it
+    statusText.textContent = "";
 }
 
-function hideOverlay() {
-  uiDisplay.overlay.classList.remove("show");
-}
+// --- Connect the page ----------------------------------------------------
 
-/* ---------- Events ---------- */
+checkButton.addEventListener("click", check);
+hintButton.addEventListener("click", hint);
+restartButton.addEventListener("click", newGame);
+difficultySelect.addEventListener("change", newGame);
 
-uiDisplay.checkBoard.addEventListener("click", checkBoard);
-uiDisplay.restartGame.addEventListener("click", initGame);
-uiDisplay.overlayRestart.addEventListener("click", initGame);
-uiDisplay.getHint.addEventListener("click", giveHint);
-uiDisplay.overlayClose.addEventListener("click", hideOverlay);
-uiDisplay.overlay.addEventListener("click", (event) => {
-  if (event.target === uiDisplay.overlay) hideOverlay(); // click outside the box
+// The number pad, for phones. Clicking it would take the focus away from
+// the square, so we stop that with preventDefault on mousedown.
+numberPad.addEventListener("mousedown", function (event) {
+    event.preventDefault();
 });
-uiDisplay.gameModeSelector.addEventListener("change", initGame);
-
-// On-screen number pad, handy on phones
-uiDisplay.numberPad.addEventListener("click", (event) => {
-  const button = event.target.closest("button");
-  if (!button || !activeCell) return;
-  setCellValue(activeCell, button.dataset.number);
+numberPad.addEventListener("click", function (event) {
+    const button = event.target.closest("button");
+    if (button && activeCell) {
+        setValue(activeCell, button.dataset.number);
+    }
 });
 
-// Keep focus on the board cell when tapping the number pad
-uiDisplay.numberPad.addEventListener("mousedown", (event) => event.preventDefault());
-
-initGame();
+newGame();

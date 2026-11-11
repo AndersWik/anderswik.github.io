@@ -1,0 +1,232 @@
+---
+layout: default
+title: URL encoder
+permalink: /tutorials/url-encoder/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, url, encodeURIComponent, decodeURIComponent, encodeURI, try catch, svg, data url]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>URL encoder</h1>
+  <p>We build a URL encoder: type text, press <strong>Encode</strong>, and get text that is safe to put in a URL. Press <strong>Decode</strong> to go back. As a bonus it builds a piece of CSS that puts an SVG image straight into a stylesheet.</p>
+  <p><a href="/assets/tutorials/url-encoder.html">Open the finished URL encoder</a></p>
+  <h2>What URL encoding is</h2>
+  <p>A URL may only contain some characters. Others, like spaces, <code>åäö</code> and quotes, are written as <code>%</code> and a code. Some characters, like <code>&amp;</code>, <code>=</code>, <code>?</code> and <code>/</code>, have a meaning in a URL. If they are part of a value, they must be encoded too, or the browser reads them as part of the URL itself.</p>
+  <pre><code class="language-plaintext">fish &amp; chips     -&gt;  fish%20%26%20chips
+https://site/?q=fish%20%26%20chips    q is "fish &amp; chips"
+https://site/?q=fish &amp; chips          q is "fish ", then a broken parameter</code></pre>
+  <p>JavaScript has these functions built in:</p>
+  <ul>
+    <li><code>encodeURIComponent(text)</code> encodes everything that isn't a letter, a digit or one of <code>- _ . ! ~ * ' ( )</code>. Use it for one part of a URL, like a search word.</li>
+    <li><code>decodeURIComponent(text)</code> turns every <code>%</code> code back into a character.</li>
+    <li><code>encodeURI(text)</code> encodes less. It leaves <code>/ : ? &amp; = #</code> alone so a whole URL stays a URL. We use it for the SVG.</li>
+  </ul>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>url-encoder.html</code> from the skeleton in <a href="/tutorials/utility-page/">Building a utility page</a>. The page has three text boxes and two buttons. The ids are what the script uses.</p>
+  <pre><code class="language-html">&lt;h1&gt;URL encoder&lt;/h1&gt;
+
+&lt;label for="decoded-text"&gt;Text&lt;/label&gt;
+&lt;textarea id="decoded-text"&gt;&lt;/textarea&gt;
+
+&lt;label for="encoded-text"&gt;URL encoded text&lt;/label&gt;
+&lt;textarea id="encoded-text"&gt;&lt;/textarea&gt;
+
+&lt;button type="button" id="encode-btn"&gt;Encode&lt;/button&gt;
+&lt;button type="button" id="decode-btn"&gt;Decode&lt;/button&gt;
+
+&lt;label for="escaped-css"&gt;CSS for an SVG&lt;/label&gt;
+&lt;textarea id="escaped-css"&gt;&lt;/textarea&gt;</code></pre>
+  <p>The buttons have <code>type="button"</code>. A button inside a form submits the form by default. <code>type="button"</code> makes it a plain button that only runs our code. It is a good habit even when there is no form.</p>
+  <h2>Step 2: The CSS</h2>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+label {
+    display: block;
+    margin-top: 16px;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 8px 16px;
+    margin-top: 16px;
+}</code></pre>
+  <h2>Step 3: Find the elements</h2>
+  <pre><code class="language-javascript">const plainText = document.getElementById("decoded-text");
+const encodedText = document.getElementById("encoded-text");
+const cssText = document.getElementById("escaped-css");
+const encodeButton = document.getElementById("encode-btn");
+const decodeButton = document.getElementById("decode-btn");</code></pre>
+  <h2>Step 4: Encode</h2>
+  <p>Reading a text box is <code>.value</code>, and writing to it is also <code>.value</code>:</p>
+  <pre><code class="language-javascript">function encode() {
+    encodedText.value = encodeURIComponent(plainText.value);
+}
+
+encodeButton.addEventListener("click", encode);</code></pre>
+  <p>Save, reload, type <code>fish &amp; chips</code> and press Encode. You should get <code>fish%20%26%20chips</code>.</p>
+  <h2>Step 5: Decode, and handle bad input</h2>
+  <p><code>decodeURIComponent</code> throws an error when the text has a broken code, like <code>%E0%A4%A</code>. An error that isn't caught stops the function, and the user just sees nothing happen. <code>try</code> and <code>catch</code> let us catch the error and show a message instead:</p>
+  <pre><code class="language-javascript">function decode() {
+    try {
+        plainText.value = decodeURIComponent(encodedText.value);
+    } catch (error) {
+        plainText.value = "That is not a valid URL encoded text.";
+    }
+}
+
+decodeButton.addEventListener("click", decode);</code></pre>
+  <p>Test with <code>fish%20%26%20chips</code> (gives <code>fish &amp; chips</code>) and with <code>%E0%A4%A</code> (gives the message).</p>
+  <h2>Step 6: The SVG in CSS</h2>
+  <p>An SVG image is text, so it can go straight into CSS as a data URL: <code>url("data:image/svg+xml;charset=US-ASCII,...")</code> followed by the encoded SVG. We use <code>encodeURI</code> here because it leaves <code>/ : =</code> alone, which keeps the SVG readable. It also leaves <code>#</code> alone, and in a URL <code>#</code> starts the fragment, so a color like <code>#f00</code> would cut the image short. So we replace <code>#</code> with its code, <code>%23</code>, ourselves:</p>
+  <pre><code class="language-javascript">function encodeForSvg(text) {
+    return encodeURI(text).replaceAll("#", "%23");
+}
+
+function buildCss(encodedSvg) {
+    return ".myImage:before {\n" +
+        "    background-image: url(\"data:image/svg+xml;charset=US-ASCII," + encodedSvg + "\");\n" +
+        "    background-size: 100% 100%;\n" +
+        "    background-repeat: no-repeat;\n" +
+        "}";
+}</code></pre>
+  <p><code>\n</code> is a new line and <code>\"</code> is a quote inside a string. Now <code>encode()</code> fills both boxes:</p>
+  <pre><code class="language-javascript">function encode() {
+    encodedText.value = encodeURIComponent(plainText.value);
+    cssText.value = buildCss(encodeForSvg(plainText.value));
+}</code></pre>
+  <p>Test with <code>&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"&gt;&lt;circle cx="5" cy="5" r="5" fill="#f00"/&gt;&lt;/svg&gt;</code>. The CSS box should contain <code>fill=%22%23f00%22</code>.</p>
+  <h2>The complete page</h2>
+  <p><strong>url-encoder.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;URL encoder&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    label {
+        display: block;
+        margin-top: 16px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 120px;
+        box-sizing: border-box;
+    }
+
+    button {
+        padding: 8px 16px;
+        margin-top: 16px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;URL encoder&lt;/h1&gt;
+
+  &lt;label for="decoded-text"&gt;Text&lt;/label&gt;
+  &lt;textarea id="decoded-text"&gt;&lt;/textarea&gt;
+
+  &lt;label for="encoded-text"&gt;URL encoded text&lt;/label&gt;
+  &lt;textarea id="encoded-text"&gt;&lt;/textarea&gt;
+
+  &lt;button type="button" id="encode-btn"&gt;Encode&lt;/button&gt;
+  &lt;button type="button" id="decode-btn"&gt;Decode&lt;/button&gt;
+
+  &lt;label for="escaped-css"&gt;CSS for an SVG&lt;/label&gt;
+  &lt;textarea id="escaped-css"&gt;&lt;/textarea&gt;
+
+  &lt;script&gt;
+    /*
+     * URL encode / decode.
+     *
+     * Some characters (spaces, åäö, quotes, &lt; &gt;...) are not allowed in a URL.
+     * URL encoding replaces each of them with "%" and a code:
+     *
+     *   "hello world"  -&gt;  "hello%20world"
+     *
+     * encodeURIComponent() also encodes characters that have a meaning in a
+     * URL, like "&amp;", "=", "?" and "/", so the text can safely be put inside
+     * one part of a URL, e.g. "?q=" + encodeURIComponent("fish &amp; chips").
+     *
+     * The page also builds a CSS snippet that puts an SVG image straight into
+     * the CSS as a "data URL", which is a common use for URL encoding.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const plainText = document.getElementById("decoded-text");
+    const encodedText = document.getElementById("encoded-text");
+    const cssText = document.getElementById("escaped-css");
+    const encodeButton = document.getElementById("encode-btn");
+    const decodeButton = document.getElementById("decode-btn");
+
+    // --- Helpers -------------------------------------------------------------
+
+    // For the SVG we use encodeURI(), which leaves "/", ":" and "=" alone so
+    // the SVG stays readable. It also leaves "#" alone, but in a data URL "#"
+    // would cut the image short, so we encode that one ourselves.
+    function encodeForSvg(text) {
+        return encodeURI(text).replaceAll("#", "%23");
+    }
+
+    function buildCss(encodedSvg) {
+        return ".myImage:before {\n" +
+            "    background-image: url(\"data:image/svg+xml;charset=US-ASCII," + encodedSvg + "\");\n" +
+            "    background-size: 100% 100%;\n" +
+            "    background-repeat: no-repeat;\n" +
+            "}";
+    }
+
+    // --- What the buttons do -------------------------------------------------
+
+    function encode() {
+        encodedText.value = encodeURIComponent(plainText.value);
+        cssText.value = buildCss(encodeForSvg(plainText.value));
+    }
+
+    function decode() {
+        // decodeURIComponent() decodes every "%" code, including "%23".
+        // It throws an error on broken codes like "%E0%A4%A", so catch that.
+        try {
+            plainText.value = decodeURIComponent(encodedText.value);
+        } catch (error) {
+            plainText.value = "That is not a valid URL encoded text.";
+        }
+    }
+
+    // --- Connect the buttons -------------------------------------------------
+
+    encodeButton.addEventListener("click", encode);
+    decodeButton.addEventListener("click", decode);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Encode text as you type: listen for <code>"input"</code> on the text box instead of <code>"click"</code> on the button.</li>
+    <li>Add a button that copies the result with <code>navigator.clipboard.writeText(encodedText.value)</code>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

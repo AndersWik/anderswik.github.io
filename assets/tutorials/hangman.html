@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hangman</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    svg {
+        width: 200px;
+        height: 220px;
+    }
+
+    svg line,
+    svg circle {
+        stroke: #333333;
+        stroke-width: 5;
+        stroke-linecap: round;
+        fill: none;
+    }
+
+    #word {
+        font-size: 28px;
+        letter-spacing: 4px;
+    }
+
+    #message {
+        font-size: 20px;
+        font-weight: bold;
+        min-height: 1.5em;
+    }
+
+    #keyboard {
+        max-width: 480px;
+        margin: 0 auto 20px;
+    }
+
+    #keyboard button {
+        width: 40px;
+        padding: 8px 0;
+        margin: 2px;
+        font-size: 16px;
+    }
+
+    #keyboard button.correct {
+        background-color: #99e883;
+    }
+
+    #keyboard button.wrong {
+        background-color: #d47575;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hangman</h1>
+  <svg viewBox="0 0 200 220" role="img" aria-label="The hanging man">
+    <line x1="20" y1="210" x2="180" y2="210"/>
+    <line x1="60" y1="210" x2="60" y2="20"/>
+    <line x1="60" y1="20" x2="140" y2="20"/>
+    <line x1="140" y1="20" x2="140" y2="50"/>
+    <circle class="part" cx="140" cy="70" r="20"/>
+    <line class="part" x1="140" y1="90" x2="140" y2="150"/>
+    <line class="part" x1="140" y1="105" x2="115" y2="130"/>
+    <line class="part" x1="140" y1="105" x2="165" y2="130"/>
+    <line class="part" x1="140" y1="150" x2="120" y2="190"/>
+    <line class="part" x1="140" y1="150" x2="160" y2="190"/>
+  </svg>
+  <p id="word"></p>
+  <p id="wrong"></p>
+  <p id="message" aria-live="polite"></p>
+  <div id="keyboard"></div>
+  <button type="button" id="newWord">New word</button>
+
+  <script>
+    /*
+     * Hangman: guess the word one letter at a time. Every wrong letter adds a
+     * part to the hanging man. Six wrong letters and you lose.
+     *
+     * Click the letters, or type them on your keyboard.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const WORDS = [
+        "APPLE", "BANANA", "CHERRY", "COCONUT", "GRAPES", "KIWI", "LEMON",
+        "LIME", "MANGO", "MELON", "ORANGE", "PEAR", "PINEAPPLE"
+    ];
+    const MAX_WRONG = 6;
+    const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    // --- Elements on the page ------------------------------------------------
+
+    const wordText = document.getElementById("word");
+    const wrongText = document.getElementById("wrong");
+    const messageText = document.getElementById("message");
+    const keyboard = document.getElementById("keyboard");
+    const newWordButton = document.getElementById("newWord");
+    const parts = document.querySelectorAll(".part");  // head, body, arms, legs
+
+    // --- State ---------------------------------------------------------------
+
+    let word = "";
+    let guessed = [];      // every letter guessed so far, right or wrong
+    let gameOver = false;
+    const buttons = {};    // the button for each letter, e.g. buttons["A"]
+
+    // --- Helpers -------------------------------------------------------------
+
+    function wrongCount() {
+        return guessed.filter(function (letter) {
+            return !word.includes(letter);
+        }).length;
+    }
+
+    function isSolved() {
+        return word.split("").every(function (letter) {
+            return guessed.includes(letter);
+        });
+    }
+
+    // --- Showing the game ----------------------------------------------------
+
+    function show() {
+        // Guessed letters are shown, the rest are _.
+        wordText.textContent = word.split("").map(function (letter) {
+            return guessed.includes(letter) ? letter : "_";
+        }).join(" ");
+
+        const wrong = wrongCount();
+        wrongText.textContent = "Wrong guesses: " + wrong + " of " + MAX_WRONG;
+
+        // One more part of the man for each wrong guess.
+        parts.forEach(function (part, index) {
+            part.style.visibility = index < wrong ? "visible" : "hidden";
+        });
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function guess(letter) {
+        if (gameOver || guessed.includes(letter)) {
+            return;
+        }
+        guessed.push(letter);
+
+        const button = buttons[letter];
+        button.disabled = true;
+        button.classList.add(word.includes(letter) ? "correct" : "wrong");
+        show();
+
+        if (isSolved()) {
+            endGame("You win! The word was " + word + ".");
+        } else if (wrongCount() >= MAX_WRONG) {
+            endGame("Game over! The word was " + word + ".");
+        }
+    }
+
+    function endGame(text) {
+        gameOver = true;
+        messageText.textContent = text;
+        LETTERS.split("").forEach(function (letter) {
+            buttons[letter].disabled = true;
+        });
+    }
+
+    function newGame() {
+        word = WORDS[Math.floor(Math.random() * WORDS.length)];
+        guessed = [];
+        gameOver = false;
+        messageText.textContent = "";
+        LETTERS.split("").forEach(function (letter) {
+            buttons[letter].disabled = false;
+            buttons[letter].classList.remove("correct", "wrong");
+        });
+        show();
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // One button per letter.
+    LETTERS.split("").forEach(function (letter) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = letter;
+        button.addEventListener("click", function () {
+            guess(letter);
+        });
+        keyboard.appendChild(button);
+        buttons[letter] = button;
+    });
+
+    // Typing a letter works too, but not Ctrl+R and the like.
+    document.addEventListener("keydown", function (event) {
+        if (event.ctrlKey || event.metaKey || event.altKey) {
+            return;
+        }
+        const letter = event.key.toUpperCase();
+        if (letter.length === 1 && LETTERS.includes(letter)) {
+            guess(letter);
+        }
+    });
+
+    newWordButton.addEventListener("click", newGame);
+
+    newGame();
+  </script>
+</body>
+</html>

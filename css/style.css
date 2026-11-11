@@ -176,7 +176,8 @@ body > header a:hover {
 .certifications,
 .notes,
 .apps,
-.projects {
+.projects,
+.games {
   margin: 0 auto;
   padding: 56px 15px 0;
   max-width: 620px;
@@ -188,7 +189,9 @@ body > header a:hover {
 .apps .certifications-title,
 .apps .category-title,
 .projects .certifications-title,
-.projects .category-title {
+.projects .category-title,
+.games .certifications-title,
+.games .category-title {
   font-family: "ubuntu-text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 0.8rem;
   font-weight: 500;
@@ -212,7 +215,11 @@ body > header a:hover {
 .projects .certifications-title::before,
 .projects .certifications-title::after,
 .projects .category-title::before,
-.projects .category-title::after {
+.projects .category-title::after,
+.games .certifications-title::before,
+.games .certifications-title::after,
+.games .category-title::before,
+.games .category-title::after {
   content: "";
   flex: 1;
   height: 1px;
@@ -221,7 +228,8 @@ body > header a:hover {
 .certifications .badges,
 .notes .badges,
 .apps .badges,
-.projects .badges {
+.projects .badges,
+.games .badges {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -233,7 +241,8 @@ body > header a:hover {
 .certifications .badge-card,
 .notes .badge-card,
 .apps .badge-card,
-.projects .badge-card {
+.projects .badge-card,
+.games .badge-card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -248,7 +257,8 @@ body > header a:hover {
 .certifications .badge-card img,
 .notes .badge-card img,
 .apps .badge-card img,
-.projects .badge-card img {
+.projects .badge-card img,
+.games .badge-card img {
   height: 120px;
   width: 100%;
   object-fit: contain;
@@ -256,7 +266,8 @@ body > header a:hover {
 .certifications .badge-card .badge-name,
 .notes .badge-card .badge-name,
 .apps .badge-card .badge-name,
-.projects .badge-card .badge-name {
+.projects .badge-card .badge-name,
+.games .badge-card .badge-name {
   margin-top: 0.9rem;
   font-size: 0.8rem;
   font-weight: 500;
@@ -266,28 +277,50 @@ body > header a:hover {
 .certifications .badge-card:hover,
 .notes .badge-card:hover,
 .apps .badge-card:hover,
-.projects .badge-card:hover {
+.projects .badge-card:hover,
+.games .badge-card:hover {
   transform: translateY(-4px);
   border-color: #e8b455;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.1);
 }
 
-.notes, .apps, .projects {
+.notes, .apps, .projects, .games {
   padding-bottom: 56px;
 }
-.notes a.badge-card, .apps a.badge-card, .projects a.badge-card {
+.notes a.badge-card, .apps a.badge-card, .projects a.badge-card, .games a.badge-card {
   height: 100%;
   color: #a86a0c;
   text-decoration: none;
 }
-.notes a.badge-card svg, .apps a.badge-card svg, .projects a.badge-card svg {
+.notes a.badge-card svg, .apps a.badge-card svg, .projects a.badge-card svg, .games a.badge-card svg {
   height: 120px;
   width: 72px;
 }
-.notes a.badge-card:focus-visible, .apps a.badge-card:focus-visible, .projects a.badge-card:focus-visible {
+.notes a.badge-card:focus-visible, .apps a.badge-card:focus-visible, .projects a.badge-card:focus-visible, .games a.badge-card:focus-visible {
   transform: translateY(-4px);
   border-color: #e8b455;
   outline: none;
+}
+
+.games {
+  max-width: 820px;
+}
+.games .category-title {
+  margin-top: 2.5rem;
+}
+.games .category-title:first-child {
+  margin-top: 0;
+}
+.games .badge-card {
+  width: 175px;
+  padding: 0.75rem 0.75rem 1rem;
+}
+.games .badge-card img {
+  height: auto;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e2e4e8;
 }
 
 footer {

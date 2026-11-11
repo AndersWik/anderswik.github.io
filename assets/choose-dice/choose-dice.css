@@ -30,11 +30,18 @@
   max-width: 250px;
   aspect-ratio: 1;
   margin: 0 auto 10px;
-  background-image: url("./images/d4.svg");
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 }
+
+/* The picture for each die. The script sets the class, e.g. "d6". */
+.game #dice-preview.d4 { background-image: url("images/d4.svg"); }
+.game #dice-preview.d6 { background-image: url("images/d6.svg"); }
+.game #dice-preview.d8 { background-image: url("images/d8.svg"); }
+.game #dice-preview.d10 { background-image: url("images/d10.svg"); }
+.game #dice-preview.d12 { background-image: url("images/d12.svg"); }
+.game #dice-preview.d20 { background-image: url("images/d20.svg"); }
 
 .game #dice-preview span {
   color: #000;

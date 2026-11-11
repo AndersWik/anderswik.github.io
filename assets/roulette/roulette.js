@@ -1,0 +1,246 @@
+/*
+ * Roulette: choose a bet on the table, then spin the wheel. A bet costs
+ * 10 coins. A single number pays 35 times the bet, a dozen 2 times, and
+ * red, black, even, odd, 1-18 and 19-36 pay the same as the bet. On 0 and
+ * 00 only a bet on that number wins.
+ */
+
+// --- Settings ------------------------------------------------------------
+
+const START_COINS = 100;
+const BET = 10;
+const SPIN_TIME = 4000;    // ms
+
+// The numbers in the order they are around an American wheel.
+const WHEEL = [
+    "0", "28", "9", "26", "30", "11", "7", "20", "32", "17", "5", "22", "34",
+    "15", "3", "24", "36", "13", "1", "00", "27", "10", "25", "29", "12",
+    "8", "19", "31", "18", "6", "21", "33", "16", "4", "23", "35", "14", "2"
+];
+const RED = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+const SLICE = Math.PI * 2 / WHEEL.length;
+
+// A bet on something other than a single number. "test" gets the number
+// that came up; 0 and 00 are both 0, and lose every one of these bets.
+const OUTSIDE_BETS = [
+    { label: "1st 12", pays: 2, test: function (n) { return n >= 1 && n <= 12; } },
+    { label: "2nd 12", pays: 2, test: function (n) { return n >= 13 && n <= 24; } },
+    { label: "3rd 12", pays: 2, test: function (n) { return n >= 25; } },
+    { label: "1 to 18", pays: 1, test: function (n) { return n >= 1 && n <= 18; } },
+    { label: "19 to 36", pays: 1, test: function (n) { return n >= 19; } },
+    { label: "Even", pays: 1, test: function (n) { return n > 0 && n % 2 === 0; } },
+    { label: "Odd", pays: 1, test: function (n) { return n % 2 === 1; } },
+    { label: "Red", pays: 1, test: function (n) { return RED.includes(n); } },
+    { label: "Black", pays: 1, test: function (n) { return n > 0 && !RED.includes(n); } }
+];
+
+// --- Elements on the page ------------------------------------------------
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const numbersBox = document.getElementById("numbers");
+const outsideBox = document.getElementById("outside");
+const coinsText = document.getElementById("coins");
+const messageText = document.getElementById("message");
+const spinButton = document.getElementById("spin");
+const restartButton = document.getElementById("restart");
+
+const CENTER = canvas.width / 2;
+const RADIUS = CENTER - 10;
+
+// --- State ---------------------------------------------------------------
+
+let coins = START_COINS;
+let bet = null;          // { label, pays, wins(result), button }
+let spinning = false;
+let wheelAngle = 0;      // how far the wheel is turned
+let ballAngle = -Math.PI / 2;
+
+// --- Helpers -------------------------------------------------------------
+
+function colorOf(result) {
+    const n = Number(result);
+    if (n === 0) {
+        return "green";
+    }
+    return RED.includes(n) ? "red" : "black";
+}
+
+// --- The table -----------------------------------------------------------
+
+function chooseBet(newBet) {
+    if (spinning) {
+        return;
+    }
+    if (bet) {
+        bet.button.classList.remove("selected");
+    }
+    bet = newBet;
+    bet.button.classList.add("selected");
+    messageText.textContent = "Your bet: " + bet.label + ". Press Spin!";
+}
+
+function addBetButton(box, label, pays, wins, className) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.className = className;
+    const newBet = { label: label, pays: pays, wins: wins, button: button };
+    button.addEventListener("click", function () {
+        chooseBet(newBet);
+    });
+    box.appendChild(button);
+}
+
+function buildTable() {
+    // 0, 00, then 1 to 36. The numbers are kept as text, so "0" and "00"
+    // are different.
+    const numbers = ["0", "00"];
+    for (let i = 1; i <= 36; i++) {
+        numbers.push(String(i));
+    }
+    numbers.forEach(function (number) {
+        addBetButton(numbersBox, number, 35, function (result) {
+            return result === number;
+        }, colorOf(number));
+    });
+
+    OUTSIDE_BETS.forEach(function (outside) {
+        addBetButton(outsideBox, outside.label, outside.pays, function (result) {
+            return outside.test(Number(result));
+        }, "outside");
+    });
+}
+
+// --- The wheel -----------------------------------------------------------
+
+function drawWheel() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    WHEEL.forEach(function (number, index) {
+        const start = wheelAngle + index * SLICE;
+        ctx.beginPath();
+        ctx.moveTo(CENTER, CENTER);
+        ctx.arc(CENTER, CENTER, RADIUS, start, start + SLICE);
+        ctx.closePath();
+        ctx.fillStyle = colorOf(number);
+        ctx.fill();
+        ctx.strokeStyle = "#d4af37";
+        ctx.stroke();
+
+        // The number, turned to point out from the center.
+        ctx.save();
+        ctx.translate(CENTER, CENTER);
+        ctx.rotate(start + SLICE / 2);
+        ctx.fillStyle = "white";
+        ctx.font = "13px Arial";
+        ctx.textAlign = "right";
+        ctx.fillText(number, RADIUS - 8, 5);
+        ctx.restore();
+    });
+
+    // The middle of the wheel.
+    ctx.beginPath();
+    ctx.arc(CENTER, CENTER, RADIUS * 0.6, 0, Math.PI * 2);
+    ctx.fillStyle = "#8b5a2b";
+    ctx.fill();
+
+    // The ball.
+    ctx.beginPath();
+    ctx.arc(CENTER + Math.cos(ballAngle) * RADIUS * 0.75, CENTER + Math.sin(ballAngle) * RADIUS * 0.75, 7, 0, Math.PI * 2);
+    ctx.fillStyle = "white";
+    ctx.fill();
+
+    // The pointer at the top.
+    ctx.beginPath();
+    ctx.moveTo(CENTER - 10, 0);
+    ctx.lineTo(CENTER + 10, 0);
+    ctx.lineTo(CENTER, 18);
+    ctx.fillStyle = "gold";
+    ctx.fill();
+}
+
+// Starts fast and slows down to a stop: 0 at the start, 1 at the end.
+function easeOut(t) {
+    return 1 - Math.pow(1 - t, 3);
+}
+
+function spin() {
+    if (spinning) {
+        return;
+    }
+    if (!bet) {
+        messageText.textContent = "Choose a bet on the table first.";
+        return;
+    }
+    coins -= BET;
+    coinsText.textContent = coins;
+    spinning = true;
+    spinButton.disabled = true;
+    messageText.textContent = "No more bets!";
+
+    // Pick the result first, then turn the wheel so that number ends up
+    // under the pointer at the top (angle -90 degrees), after five turns.
+    const index = Math.floor(Math.random() * WHEEL.length);
+    const result = WHEEL[index];
+    const startAngle = wheelAngle;
+    let target = -Math.PI / 2 - (index + 0.5) * SLICE;
+    while (target < startAngle) {
+        target += Math.PI * 2;
+    }
+    target += Math.PI * 2 * 5;
+
+    let startTime = null;
+    function animate(now) {
+        if (startTime === null) {
+            startTime = now;
+        }
+        const t = Math.min(1, (now - startTime) / SPIN_TIME);
+        wheelAngle = startAngle + (target - startAngle) * easeOut(t);
+        // The ball runs the other way, and ends at the top too.
+        ballAngle = -Math.PI / 2 - Math.PI * 2 * 8 * (1 - easeOut(t));
+        drawWheel();
+        if (t < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            finish(result);
+        }
+    }
+    requestAnimationFrame(animate);
+}
+
+function finish(result) {
+    spinning = false;
+    let text = result + " " + colorOf(result) + ". ";
+    if (bet.wins(result)) {
+        coins += BET * (bet.pays + 1);   // the bet back, plus the win
+        text += "You win " + BET * bet.pays + " coins!";
+    } else {
+        text += "You lose.";
+    }
+    coinsText.textContent = coins;
+    if (coins < BET) {
+        text += " You have no coins left.";
+        restartButton.hidden = false;
+    } else {
+        spinButton.disabled = false;
+    }
+    messageText.textContent = text;
+}
+
+function newGame() {
+    coins = START_COINS;
+    coinsText.textContent = coins;
+    spinButton.disabled = false;
+    restartButton.hidden = true;
+    messageText.textContent = "Choose a bet, then press Spin.";
+}
+
+// --- Connect the page ----------------------------------------------------
+
+spinButton.addEventListener("click", spin);
+restartButton.addEventListener("click", newGame);
+
+buildTable();
+newGame();
+drawWheel();

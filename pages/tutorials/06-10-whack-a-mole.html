@@ -1,0 +1,480 @@
+---
+layout: default
+title: Whack A Mole
+permalink: /tutorials/whack-a-mole/
+chapter: "06"
+chapter_title: "Classic arcade"
+keywords: [javascript, game, canvas, images, mouse, mousedown, difficulty, timers in steps, cursor]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Whack A Mole</h1>
+  <p>Moles pop up out of five holes. Hit them with the mallet before they hide again. Every mole that gets away costs a life, and you have three. The moles get quicker as your score goes up.</p>
+  <p>It is built like <a href="/tutorials/arcade-shooter/">Arcade shooter</a>: pictures on a canvas, targets that come and go, and clicking on them. The new parts are a game that gets harder by itself, and replacing the mouse pointer with a picture.</p>
+  <p><a href="/assets/whack-a-mole/standalone.html">Open the finished game</a></p>
+  <h2>The pictures</h2>
+  <p>Make a folder for the game, with the page and a folder called <code>images</code>. Download these into <code>images</code> (right-click a link and save it):</p>
+  <p><a href="/assets/whack-a-mole/images/background.png">background.png</a>, <a href="/assets/whack-a-mole/images/mallet.png">mallet.png</a>, <a href="/assets/whack-a-mole/images/mole-1.png">mole-1.png</a>, <a href="/assets/whack-a-mole/images/mole-2.png">mole-2.png</a>, <a href="/assets/whack-a-mole/images/mole-3.png">mole-3.png</a></p>
+  <p>The game also works without them. Missing pictures are drawn as colored boxes.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>whack-a-mole.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
+  <pre><code class="language-html">&lt;canvas id="gameCanvas" width="800" height="600"&gt;&lt;/canvas&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    background-color: #111111;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border: 4px solid white;
+    cursor: none;
+}</code></pre>
+  <p><code>cursor: none</code> hides the mouse pointer over the canvas. The game draws the mallet where the pointer is instead.</p>
+  <h2>Step 2: The holes</h2>
+  <pre><code class="language-javascript">const HOLES = [
+    { x: 141, y: 381 }, { x: 402, y: 375 }, { x: 660, y: 384 },
+    { x: 270, y: 448 }, { x: 508, y: 448 }
+];</code></pre>
+  <p>The holes are part of the background picture, so the code needs to know where they are. These are the middles of the five holes, measured on the picture after it is stretched to 800 x 600. A mole is drawn standing in its hole:</p>
+  <pre><code class="language-javascript">function moleBox(mole) {
+    return {
+        x: mole.hole.x - MOLE_SIZE / 2,
+        y: mole.hole.y - MOLE_SIZE + 15,
+        width: MOLE_SIZE,
+        height: MOLE_SIZE
+    };
+}</code></pre>
+  <p>Centered over the hole, with its bottom 15 pixels below the middle of the hole, so it looks like it comes out of it. The same box is used to draw the mole and to check if a click hit it, so they always agree. The mole pictures are square, so the box is square too. The first version drew them 120 by 200, which stretched them, and placed them below the holes.</p>
+  <h2>Step 3: Moles come and go</h2>
+  <p>A mole is an object with its hole, its picture, and how many steps it has left before it hides:</p>
+  <pre><code class="language-javascript">moles.push({
+    hole: freeHoles[Math.floor(Math.random() * freeHoles.length)],
+    picture: MOLE_PICTURES[Math.floor(Math.random() * MOLE_PICTURES.length)],
+    timeLeft: upTime()
+});</code></pre>
+  <p><code>freeHoles</code> is the holes that have no mole in them now, so two moles never share a hole. Every step, each mole's <code>timeLeft</code> goes down by one, and when it reaches 0 the mole got away:</p>
+  <pre><code class="language-javascript">moles = moles.filter(function (mole) {
+    mole.timeLeft--;
+    if (mole.timeLeft &lt;= 0) {
+        lives--;
+        return false;
+    }
+    return true;
+});</code></pre>
+  <p>The first version gave every mole its own <code>setTimeout</code>. Those timers kept running in the pause and the menu, so moles got away while you weren't playing. Counting steps in <code>update</code>, which only runs while playing, can't do that.</p>
+  <h2>Step 4: Getting harder</h2>
+  <pre><code class="language-javascript">function upTime() {
+    return Math.max(30, 90 - Math.floor(score / 1000) * 10);
+}
+
+function spawnTime() {
+    return Math.max(25, 60 - Math.floor(score / 1000) * 6);
+}</code></pre>
+  <p>Difficulty is just two numbers worked out from the score. <code>Math.floor(score / 1000)</code> goes up by one every 1000 points. At the start a mole stays up 90 steps (1.5 seconds) and a new one comes every 60 steps. Every 1000 points, they stay 10 steps less and come 6 steps sooner. <code>Math.max</code> sets a limit, so it never gets impossible: at least half a second up.</p>
+  <h2>Step 5: Whack!</h2>
+  <pre><code class="language-javascript">canvas.addEventListener("mousedown", function (event) {
+    mouseDown = true;
+    if (screen === "playing") {
+        const position = canvasPosition(event);
+        hit(position.x, position.y);
+    }
+});</code></pre>
+  <p>We hit on <code>mousedown</code>, not <code>click</code>. A click only comes when the button is let go, and that feels slow when you are trying to be fast. <code>canvasPosition</code> scales the mouse position to the canvas, as in Arcade shooter.</p>
+  <pre><code class="language-javascript">function hit(x, y) {
+    for (let i = moles.length - 1; i &gt;= 0; i--) {
+        const box = moleBox(moles[i]);
+        if (x &gt;= box.x &amp;&amp; x &lt;= box.x + box.width &amp;&amp; y &gt;= box.y &amp;&amp; y &lt;= box.y + box.height) {
+            score += POINTS;
+            pows.push({ x: moles[i].hole.x, y: box.y, timeLeft: 20 });
+            moles.splice(i, 1);
+            return;
+        }
+    }
+}</code></pre>
+  <p>A hit removes the mole and leaves a "POW!" over the hole for 20 steps.</p>
+  <h2>Step 6: The mallet</h2>
+  <pre><code class="language-javascript">const lift = mouseDown ? 0 : 40;
+drawImage("mallet.png", mouseX - 100, mouseY - 75 - lift, 150, 150);</code></pre>
+  <p>The mallet is drawn last, on top of everything, at the mouse. While the button is up, it is lifted 40 pixels. When you press, it drops onto the mole. It is a tiny thing, but it makes hitting feel like hitting.</p>
+  <p><code>mouseup</code> is listened for on the whole window, so the mallet comes up even if you let go outside the canvas.</p>
+  <h2>Step 7: Test it</h2>
+  <ul>
+    <li>Hit a mole: it should vanish with a POW, and the score go up 100.</li>
+    <li>Let a mole get away: you should lose a life.</li>
+    <li>Pause for a while and go on. No lives should be lost during the pause.</li>
+    <li>Get to a few thousand points. The moles should be quicker.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>whack-a-mole.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Whack A Mole&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        background-color: #111111;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        border: 4px solid white;
+        cursor: none;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;canvas id="gameCanvas" width="800" height="600"&gt;&lt;/canvas&gt;
+
+  &lt;script&gt;
+    /*
+     * Whack A Mole: moles pop up out of five holes. Hit them with the mallet
+     * before they hide again. Every mole that gets away costs a life, and the
+     * moles get quicker as your score goes up.
+     *
+     *   click     hit
+     *   P / Esc   pause / menu
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    // Where the pictures are: a folder called "images" next to this page.
+    const IMAGE_FOLDER = "images/";
+
+    const STEP = 1000 / 60;      // one update step, in milliseconds
+    const START_LIVES = 3;
+    const MOLE_SIZE = 120;
+    const POINTS = 100;
+
+    // The middle of each hole in the background picture.
+    const HOLES = [
+        { x: 141, y: 381 }, { x: 402, y: 375 }, { x: 660, y: 384 },
+        { x: 270, y: 448 }, { x: 508, y: 448 }
+    ];
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // --- Pictures ------------------------------------------------------------
+
+    const images = {};
+
+    function loadImage(name) {
+        if (!images[name]) {
+            images[name] = new Image();
+            images[name].src = IMAGE_FOLDER + name;
+        }
+        return images[name];
+    }
+
+    function isLoaded(image) {
+        return image.complete &amp;&amp; image.naturalWidth &gt; 0;
+    }
+
+    // Draw a picture, or a plain box if it hasn't loaded (yet).
+    function drawImage(name, x, y, width, height, fallbackColor) {
+        const image = loadImage(name);
+        if (isLoaded(image)) {
+            ctx.drawImage(image, x, y, width, height);
+        } else if (fallbackColor) {
+            ctx.fillStyle = fallbackColor;
+            ctx.fillRect(x, y, width, height);
+        }
+    }
+
+    const MOLE_PICTURES = ["mole-1.png", "mole-2.png", "mole-3.png"];
+    ["background.png", "mallet.png"].concat(MOLE_PICTURES).forEach(loadImage);
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, playing, paused, gameOver
+    let gameStarted = false;
+
+    let score = 0;
+    let lives = START_LIVES;
+    let moles = [];        // { hole, picture, timeLeft }
+    let pows = [];         // "POW!" where a mole was hit: { x, y, timeLeft }
+    let spawnTimer = 0;
+
+    let mouseX = WIDTH / 2;
+    let mouseY = HEIGHT / 2;
+    let mouseDown = false;
+
+    // --- Difficulty ----------------------------------------------------------
+
+    // Moles stay up for 1.5 seconds at the start, and a little shorter for
+    // every 1000 points, but never less than half a second.
+    function upTime() {
+        return Math.max(30, 90 - Math.floor(score / 1000) * 10);
+    }
+
+    // A new mole every second at the start, faster later.
+    function spawnTime() {
+        return Math.max(25, 60 - Math.floor(score / 1000) * 6);
+    }
+
+    // --- Starting ------------------------------------------------------------
+
+    function newGame() {
+        score = 0;
+        lives = START_LIVES;
+        moles = [];
+        pows = [];
+        spawnTimer = 30;
+        gameStarted = true;
+        screen = "playing";
+    }
+
+    // --- Moles ---------------------------------------------------------------
+
+    function spawnMole() {
+        const freeHoles = HOLES.filter(function (hole) {
+            return !moles.some(function (mole) {
+                return mole.hole === hole;
+            });
+        });
+        if (freeHoles.length === 0) {
+            return;
+        }
+        moles.push({
+            hole: freeHoles[Math.floor(Math.random() * freeHoles.length)],
+            picture: MOLE_PICTURES[Math.floor(Math.random() * MOLE_PICTURES.length)],
+            timeLeft: upTime()
+        });
+    }
+
+    // The box a mole is drawn in: standing in its hole.
+    function moleBox(mole) {
+        return {
+            x: mole.hole.x - MOLE_SIZE / 2,
+            y: mole.hole.y - MOLE_SIZE + 15,
+            width: MOLE_SIZE,
+            height: MOLE_SIZE
+        };
+    }
+
+    function hit(x, y) {
+        // The last mole is drawn on top, so look at it first.
+        for (let i = moles.length - 1; i &gt;= 0; i--) {
+            const box = moleBox(moles[i]);
+            if (x &gt;= box.x &amp;&amp; x &lt;= box.x + box.width &amp;&amp; y &gt;= box.y &amp;&amp; y &lt;= box.y + box.height) {
+                score += POINTS;
+                pows.push({ x: moles[i].hole.x, y: box.y, timeLeft: 20 });
+                moles.splice(i, 1);
+                return;
+            }
+        }
+    }
+
+    // --- Update --------------------------------------------------------------
+
+    function update() {
+        spawnTimer--;
+        if (spawnTimer &lt;= 0) {
+            spawnMole();
+            spawnTimer = spawnTime();
+        }
+
+        // A mole that stays up until its time runs out got away.
+        moles = moles.filter(function (mole) {
+            mole.timeLeft--;
+            if (mole.timeLeft &lt;= 0) {
+                lives--;
+                return false;
+            }
+            return true;
+        });
+
+        pows = pows.filter(function (pow) {
+            pow.timeLeft--;
+            return pow.timeLeft &gt; 0;
+        });
+
+        if (lives &lt;= 0) {
+            screen = "gameOver";
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawText(text, x, y, size, color, align) {
+        ctx.fillStyle = color || "black";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = align || "center";
+        ctx.fillText(text, x, y);
+    }
+
+    function drawWorld() {
+        drawImage("background.png", 0, 0, WIDTH, HEIGHT, "#7cc95b");
+
+        moles.forEach(function (mole) {
+            const box = moleBox(mole);
+            drawImage(mole.picture, box.x, box.y, box.width, box.height, "saddlebrown");
+        });
+
+        pows.forEach(function (pow) {
+            drawText("POW!", pow.x, pow.y, 36, "red");
+        });
+    }
+
+    function drawHud() {
+        drawText("Score: " + score, 20, 35, 24, "black", "left");
+        drawText("Lives: " + lives, WIDTH - 20, 35, 24, "black", "right");
+
+        // The mallet at the mouse, a little higher when the button is up.
+        const lift = mouseDown ? 0 : 40;
+        drawImage("mallet.png", mouseX - 100, mouseY - 75 - lift, 150, 150);
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.fillRect(WIDTH * 0.2, HEIGHT * 0.2, WIDTH * 0.6, HEIGHT * 0.6);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 50, 48);
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+        });
+    }
+
+    function draw() {
+        drawWorld();
+
+        if (screen === "menu") {
+            const lines = ["Click the moles before they hide!", "P: pause    Esc: menu", "Press Enter to start"];
+            if (gameStarted) {
+                lines.push("Esc: back to the game");
+            }
+            drawMessage("Whack A Mole", lines);
+        } else if (screen === "playing") {
+            drawHud();
+        } else if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "gameOver") {
+            drawMessage("Game over", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // Run one update per 1/60 second, so the game has the same speed on
+    // every screen, then draw.
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        while (leftover &gt;= STEP) {
+            if (screen === "playing") {
+                update();
+            }
+            leftover -= STEP;
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Mouse and keyboard --------------------------------------------------
+
+    // The canvas can be shown smaller than 800x600 on a small screen. Convert
+    // from position on the screen to position in the canvas. clientLeft and
+    // clientWidth leave out the border around the canvas.
+    function canvasPosition(event) {
+        const box = canvas.getBoundingClientRect();
+        return {
+            x: (event.clientX - box.left - canvas.clientLeft) * (WIDTH / canvas.clientWidth),
+            y: (event.clientY - box.top - canvas.clientTop) * (HEIGHT / canvas.clientHeight)
+        };
+    }
+
+    canvas.addEventListener("mousemove", function (event) {
+        const position = canvasPosition(event);
+        mouseX = position.x;
+        mouseY = position.y;
+    });
+
+    canvas.addEventListener("mousedown", function (event) {
+        mouseDown = true;
+        if (screen === "playing") {
+            const position = canvasPosition(event);
+            hit(position.x, position.y);
+        }
+    });
+
+    window.addEventListener("mouseup", function () {
+        mouseDown = false;
+    });
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+
+        if (screen === "menu") {
+            if (key === "Enter") {
+                newGame();
+            } else if (key === "Escape" &amp;&amp; gameStarted) {
+                screen = "paused";
+            }
+        } else if (screen === "playing") {
+            if (key === "p" || key === "P") {
+                screen = "paused";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "paused") {
+            if (key === "p" || key === "P") {
+                screen = "playing";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "gameOver") {
+            if (key === "Enter") {
+                newGame();
+            } else if (key === "Escape") {
+                gameStarted = false;
+                screen = "menu";
+            }
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Make the moles rise out of the hole and sink back, instead of popping up. (Draw the picture lower, by less and less, and clip it at the hole.)</li>
+    <li>Add a golden mole that is rare, quick and worth 500 points.</li>
+    <li>Add a bomb that you must not hit.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -12,30 +12,23 @@ js:
   <h1>Rock Paper Scissors</h1>
   <div class="score">
     <div id="player">
-      <p>Player</p>
+      <p>You</p>
       <p id="playerScore">0</p>
-      <img
-        id="playerImage"
-        src="{{ site.baseurl }}/assets/rock-paper-scissors/images/Rock.svg"
-        alt=""
-      />
-      <div id="playerChoice">Rock</div>
+      <img id="playerImage" src="{{ site.baseurl }}/assets/rock-paper-scissors/images/Rock.svg" alt="Rock">
+      <p id="playerChoice">Rock</p>
     </div>
     <div id="cpu">
-      <p>CPU</p>
+      <p>Computer</p>
       <p id="computerScore">0</p>
-      <img
-        id="computerImage"
-        src="{{ site.baseurl }}/assets/rock-paper-scissors/images/Scissors.svg"
-        alt=""
-      />
-      <div id="computerChoice">Scissors</div>
+      <img id="computerImage" src="{{ site.baseurl }}/assets/rock-paper-scissors/images/Scissors.svg" alt="Scissors">
+      <p id="computerChoice">Scissors</p>
     </div>
   </div>
-  <p id="result"></p>
+  <p id="result" aria-live="polite">Make your choice!</p>
   <div class="choices">
-    <button id="rockBtn">Rock</button>
-    <button id="paperBtn">Paper</button>
-    <button id="scissorsBtn">Scissors</button>
+    <button type="button" data-choice="Rock">Rock</button>
+    <button type="button" data-choice="Paper">Paper</button>
+    <button type="button" data-choice="Scissors">Scissors</button>
   </div>
 </div>
+<p class="text-center mt-4"><a href="/tutorials/rock-paper-scissors/">How to build this game</a></p>

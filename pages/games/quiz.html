@@ -10,19 +10,11 @@ js:
 ---
 <div class="container">
   <h1>Quiz!</h1>
-  <div class="info">Score: <span id="score">0</span></div>
-  <div class="question" id="question"></div>
+  <p class="info">Score: <span id="score">0</span></p>
+  <p id="progress"></p>
+  <p id="question"></p>
   <div id="answers"></div>
-  <div id="overlay">
-    <div id="modal">
-      <div id="result"></div>
-      <img
-        id="star"
-        src="{{ site.baseurl }}/assets/quiz/images/star.svg"
-        alt=""
-        style="display: none"
-      />
-      <button id="restart">Play Again</button>
-    </div>
-  </div>
+  <p id="result" aria-live="polite"></p>
+  <button type="button" id="restart" hidden>Play again</button>
 </div>
+<p class="text-center mt-4"><a href="/tutorials/quiz/">How to build this game</a></p>

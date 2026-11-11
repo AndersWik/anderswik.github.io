@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My IP</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #ip {
+        font-size: 48px;
+        overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+<body>
+  <h1>My IP</h1>
+  <p id="ip">000.000.000.000</p>
+  <p>Using the <a href="https://www.ipify.org/">ipify</a> service</p>
+
+  <script>
+    /*
+     * My IP: ask the ipify service which public IP address we have.
+     *
+     * fetch() sends a request over the network. It takes a while, so
+     * "async" and "await" let us wait for the answer without freezing the page.
+     *
+     * The answer is JSON text like {"ip":"81.230.12.34"}.
+     * response.json() turns it into a JavaScript object.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const ipText = document.getElementById("ip");
+
+    // --- Actions -------------------------------------------------------------
+
+    async function showMyIp() {
+        ipText.textContent = "Loading...";
+
+        try {
+            const response = await fetch("https://api.ipify.org?format=json");
+
+            // fetch() only throws when there is no network. If the service
+            // answers with an error, like 503, we have to check that ourselves.
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+            const data = await response.json();
+            ipText.textContent = data.ip;
+        } catch (error) {
+            // No network, or the service is down.
+            ipText.textContent = "Could not get your IP";
+        }
+    }
+
+    // --- Start ---------------------------------------------------------------
+
+    showMyIp();
+  </script>
+</body>
+</html>

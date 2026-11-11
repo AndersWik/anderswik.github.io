@@ -1,85 +1,61 @@
-const uiDisplay = {
-  diceTypes: document.getElementById("dice-type"),
-  dicePreview: document.getElementById("dice-preview"),
-  dicePrevText: document.getElementById("preview-text"),
-  diceBtn: document.getElementById("roll-dice-btn"),
-  diceSelected: document.getElementById("dice-selected"),
-  diceResult: document.getElementById("dice-result"),
-};
+/*
+ * Dice roller: pick a die with 4, 6, 8, 10, 12 or 20 sides and roll it.
+ *
+ * The picture of the die is set in the CSS: the preview gets a class like
+ * "d6", and the CSS has a background picture for each class.
+ */
 
-uiDisplay.diceTypes.addEventListener("change", function () {
-  uiDisplay.dicePrevText.textContent = uiDisplay.diceTypes.value;
-  uiDisplay.dicePreview.style.backgroundImage = setDiceBackground(
-    uiDisplay.diceTypes.value
-  );
-  uiDisplay.diceSelected.textContent = setDiceChoosen(
-    uiDisplay.diceTypes.value
-  );
-});
+// --- Elements on the page ------------------------------------------------
 
-function setDiceBackground(value) {
-  let result = "";
-  switch (value) {
-    case "4":
-      result = "url(/assets/choose-dice/images/d4.svg)";
-      break;
-    case "6":
-      result = "url(/assets/choose-dice/images/d6.svg)";
-      break;
-    case "8":
-      result = "url(/assets/choose-dice/images/d8.svg)";
-      break;
-    case "10":
-      result = "url(/assets/choose-dice/images/d10.svg)";
-      break;
-    case "12":
-      result = "url(/assets/choose-dice/images/d12.svg)";
-      break;
-    case "20":
-      result = "url(/assets/choose-dice/images/d20.svg)";
-      break;
-  }
-  return result;
+const diceSelect = document.getElementById("dice-type");
+const preview = document.getElementById("dice-preview");
+const previewText = document.getElementById("preview-text");
+const rollButton = document.getElementById("roll-dice-btn");
+const selectedText = document.getElementById("dice-selected");
+const resultText = document.getElementById("dice-result");
+
+const SPIN_TIME = 1000; // ms, the same as the spin animation in the CSS
+
+// --- Helpers -------------------------------------------------------------
+
+// A whole number from 1 to sides, all equally likely.
+//   Math.random() * 6 is 0 to 5.999..., Math.floor makes it 0-5, + 1 gives 1-6.
+function roll(sides) {
+    return Math.floor(Math.random() * sides) + 1;
 }
 
-function setDiceChoosen(value) {
-  let result = "";
-  switch (value) {
-    case "4":
-      result = "D4 (4 sides) selected";
-      break;
-    case "6":
-      result = "D6 (6 sides) selected";
-      break;
-    case "8":
-      result = "D8 (8 sides) selected";
-      break;
-    case "10":
-      result = "D10 (10 sides) selected";
-      break;
-    case "12":
-      result = "D12 (12 sides) selected";
-      break;
-    case "20":
-      result = "D20 (20 sides) selected";
-      break;
-  }
-  return result;
+// --- Actions -------------------------------------------------------------
+
+function chooseDie() {
+    const sides = Number(diceSelect.value);
+    preview.className = "d" + sides;
+    previewText.textContent = sides;
+    // The text of the chosen option, e.g. "D6 (6 sides)".
+    selectedText.textContent = diceSelect.selectedOptions[0].text + " selected";
+    resultText.textContent = "";
 }
 
-function rollDice() {
-  uiDisplay.dicePreview.classList.add("spin");
-  setTimeout(() => {
-    uiDisplay.dicePreview.classList.remove("spin");
-  }, 1000);
-  const diceType = uiDisplay.diceTypes.value;
-  const result = Math.floor(Math.random() * (diceType - 1) + 1);
-  uiDisplay.dicePrevText.textContent = result;
-  uiDisplay.diceResult.textContent = "You rolled " + result;
+function rollDie() {
+    if (preview.classList.contains("spin")) {
+        return; // still rolling
+    }
+    const result = roll(Number(diceSelect.value));
+
+    resultText.textContent = "";
+    preview.classList.add("spin");
+    setTimeout(function () {
+        preview.classList.remove("spin");
+        previewText.textContent = result;
+        resultText.textContent = "You rolled " + result;
+    }, SPIN_TIME);
 }
 
-window.onload = function () {
-  uiDisplay.diceSelected.textContent = "Select a die and click Roll!";
-};
+// --- Connect the page ----------------------------------------------------
 
-uiDisplay.diceBtn.addEventListener("click", rollDice);
+diceSelect.addEventListener("change", chooseDie);
+rollButton.addEventListener("click", rollDie);
+
+// --- Start ---------------------------------------------------------------
+
+chooseDie();
+selectedText.textContent = "Select a die and click Roll!";

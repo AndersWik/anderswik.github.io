@@ -37,7 +37,7 @@
 
 /* ---------- Board ---------- */
 
-.game #sudoku-board {
+.game #board {
   box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
@@ -76,7 +76,7 @@
   background-color: #eef3fb;
 }
 
-.game .cell.prefilled {
+.game .cell.given {
   background-color: #e0e0e0;
   font-weight: bold;
 }
@@ -85,7 +85,7 @@
   background-color: #d0f0d0;
 }
 
-.game .cell.error {
+.game .cell.wrong {
   background-color: #fdd;
   color: #b00;
 }
@@ -137,52 +137,4 @@
 .game .status {
   min-height: 1.5em;
   margin: 15px 0 0;
-}
-
-/* ---------- Overlay ---------- */
-
-.game #overlay {
-  box-sizing: border-box;
-  position: fixed;
-  display: none;
-  inset: 0;
-  padding: 20px;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 2;
-}
-
-.game #overlay.show {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.game #info {
-  box-sizing: border-box;
-  width: min(100%, 320px);
-  text-align: center;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.game #overlayClose {
-  float: right;
-  padding: 0 8px;
-  font-size: 22px;
-  line-height: 1.2;
-  background: none;
-  color: #000;
-  border: none;
-}
-
-.game #overlayClose:hover {
-  box-shadow: none;
-}
-
-.game #overlayMessage {
-  clear: both;
-  font-size: 20px;
-  padding-top: 10px;
 }

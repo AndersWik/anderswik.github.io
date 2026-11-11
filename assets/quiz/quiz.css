@@ -22,8 +22,17 @@
   text-shadow: 2px 2px #5da360;
 }
 
-.game .question {
-  margin-bottom: 1rem;
+.game .info {
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.game #progress {
+  color: #777;
+  margin: 0;
+}
+
+.game #question {
   padding: 1rem;
   font-size: clamp(18px, 5vw, 22px);
   overflow-wrap: anywhere;
@@ -52,59 +61,31 @@
   overflow-wrap: anywhere;
 }
 
-.game button:hover {
+.game button:hover:enabled {
   box-shadow: 0px 0px 10px #45a049;
 }
 
-.game .info {
-  font-size: 1.2rem;
-  color: #333;
+.game #answers button:disabled {
+  background-color: #cccccc;
+  border-color: #bbbbbb;
+  color: #555555;
+  cursor: default;
 }
 
-.game #overlay {
-  position: fixed;
-  display: none;
-  box-sizing: border-box;
-  padding: 20px;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 2;
-  cursor: pointer;
+.game #answers button.correct {
+  background-color: #2e9e3e;
+  border-color: #1f7a2c;
+  color: #ffffff;
 }
 
-.game #overlay.show {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.game #answers button.wrong {
+  background-color: #d94343;
+  border-color: #b02f2f;
+  color: #ffffff;
 }
 
-.game #modal {
-  box-sizing: border-box;
-  width: min(100%, 320px);
-  text-align: center;
-  padding: 20px;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.game #modal img {
-  display: block;
-  width: min(100%, 150px);
-  margin: 10px auto 0;
-}
-
-.game #modal button {
-  margin-top: 15px;
-}
-
-.game #result span {
-  font-size: 1.2rem;
-  color: #333;
+.game #result {
+  font-size: 1.3rem;
   font-weight: bold;
+  color: #333;
 }

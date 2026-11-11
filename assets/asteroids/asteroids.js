@@ -1,999 +1,597 @@
-const colors = Object.freeze({
-  WHITE: "#ffffff",
-  BLACK: "#000000",
-  YELLOW: "#ffff00",
-  RED: "#ff0000",
-  BLUE: "#0000FF",
-  GREEN: "#00ff00",
-  PINK: "#E81E63",
-  GRAY: "#808080",
-});
+/*
+ * Asteroids: fly a small ship and shoot the rocks. Big rocks break into
+ * two medium ones, medium ones into two small ones. Colored balls are
+ * power-ups: fly into them to pick them up.
+ *
+ *   Arrow left/right   turn
+ *   Arrow up           thrust
+ *   Space              shoot (hold it down)
+ *   P / Esc            pause / menu
+ *
+ * Everything that moves is an object with x, y (position), dx, dy (speed
+ * per step) and radius. Things that fly off one side of the screen come
+ * back on the other side.
+ */
 
-const gameStates = Object.freeze({
-  MENU: "MENU",
-  CONTROLLS: "CONTROLLS",
-  POWERUPS: "POWERUPS",
-  GAME: "GAME",
-  PAUSE: "PAUSE",
-  CONTINUE: "CONTINUE",
-  WINNER: "WINNER",
-  GAMEOVER: "GAMEOVER",
-});
+// --- Settings ------------------------------------------------------------
 
-const asteroidLabels = Object.freeze({
-  LARGE: "LARGE",
-  MEDIUM: "MEDIUM",
-  SMALL: "SMALL",
-});
+const STEP = 1000 / 60;         // one update step, in milliseconds
+const TURN_SPEED = 0.08;        // radians per step
+const THRUST = 0.15;
+const MAX_SPEED = 6;
+const FRICTION = 0.99;          // the ship slowly stops by itself
+const BULLET_SPEED = 6;
+const BULLET_TIME = 1500;       // ms a bullet flies
+const FIRE_DELAY = 200;         // ms between shots
+const POWER_UP_DELAY = 10000;   // ms between power-ups
+const POWER_UP_TIME = 10000;    // ms a power-up lasts
 
-const PowerUpsLabels = Object.freeze({
-  SPEED: "SPEED",
-  TRIPLE: "TRIPLE",
-  QUINTUPLE: "QUINTUPLE",
-  HEALTH: "HEALTH",
-});
+const ROCK_SIZES = { large: 50, medium: 30, small: 15 };
+const SPLITS_INTO = { large: "medium", medium: "small", small: null };
 
-const PowerUpsColors = Object.freeze({
-  [PowerUpsLabels.SPEED]: colors.YELLOW,
-  [PowerUpsLabels.TRIPLE]: colors.RED,
-  [PowerUpsLabels.QUINTUPLE]: colors.PINK,
-  [PowerUpsLabels.HEALTH]: colors.GREEN,
-});
+// A new kind of power-up is added on each level, in this order.
+const POWER_UPS = [
+    { type: "health", color: "#00ff00", text: "Repairs 10 health" },
+    { type: "triple", color: "#ff0000", text: "Shoots 3 bullets at once" },
+    { type: "five", color: "#e81e63", text: "Shoots 5 bullets at once" },
+    { type: "speed", color: "#ffff00", text: "Faster ship" }
+];
 
-const uiDisplay = {
-  canvas: document.getElementById("gameCanvas"),
-};
+// --- Canvas --------------------------------------------------------------
 
-let intervals = {
-  spawnPowerUpInterval: undefined,
-  spawnAsteroidInterval: undefined,
-  spawnEnemiesInterval: undefined,
-  powerUpInterval: 10000,
-  asteroidInterval: 3000,
-  enemiesInterval: 5000,
-};
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
 
-const ctx = uiDisplay.canvas.getContext("2d");
-uiDisplay.canvas.width = 800;
-uiDisplay.canvas.height = 600;
+// --- State ---------------------------------------------------------------
 
-let ship = getShip();
+let screen = "menu";   // menu, controls, powerUps, playing, paused, levelDone, gameOver
+let menuIndex = 0;
+let gameStarted = false;
+
+let ship;
 let bullets = [];
-let asteroids = [];
-let enemies = [];
-let currentLevelPowerUps = [];
+let rocks = [];
 let powerUps = [];
-let powerUpsTimeout;
 let level = 1;
 let score = 0;
-let spawnedAsteroids = 0;
-let maxAsteroids = 5 + level;
-let spawnedEnemies = 0;
-let maxEnemies = 0;
+let rocksToSpawn = 0;
+let gameTime = 0;      // ms of playing time; stops while paused
+let nextRockTime = 0;
+let nextPowerUpTime = 0;
 
-const menuItems = ["Start", "Controlls", "Power-ups"];
-let gameStarted = false;
-let gameState = gameStates.MENU;
-let menuIndex = 0;
+// Which keys are held down right now, e.g. keys["ArrowUp"] === true.
+const keys = {};
 
-let stars = [];
+const MENU_ITEMS = ["Start", "Controls", "Power-ups"];
 
-function getShip() {
-  return {
-    x: 400,
-    y: 300,
-    dx: 0,
-    dy: 0,
-    angle: 0,
-    radius: 20,
-    health: 100,
-    shot: "",
-    isShooting: false,
-    lastShotTime: 0,
-    fireRate: 200,
-    active: true,
-    rotating: 0,
-  };
-}
-
-function initGame() {
-  ship = getShip();
-  bullets = [];
-  asteroids = [];
-  enemies = [];
-  powerUps = [];
-  level = 1;
-  spawnedAsteroids = 0;
-  maxAsteroids = 5 + level;
-  spawnedEnemies = 0;
-  maxEnemies = 0;
-}
-
-function initLevel() {
-  spawnedAsteroids = 0;
-  maxAsteroids = 5 + level;
-  asteroids = [];
-  enemies = [];
-  updateIntervals();
-  updateCurrentLevelPowerUps();
-}
-
-function updateCurrentLevelPowerUps() {
-  switch (level) {
-    case 1:
-      currentLevelPowerUps.push(PowerUpsLabels.HEALTH);
-      break;
-    case 2:
-      currentLevelPowerUps.push(PowerUpsLabels.TRIPLE);
-      break;
-    case 3:
-      currentLevelPowerUps.push(PowerUpsLabels.QUINTUPLE);
-      break;
-    case 4:
-      currentLevelPowerUps.push(PowerUpsLabels.SPEED);
-  }
-}
-
-function initStars() {
-  let numberOfStars = 100;
-  for (let i = 0; i < numberOfStars; i++) {
+// The stars only twinkle, they never move.
+const stars = [];
+for (let i = 0; i < 100; i++) {
     stars.push({
-      x: Math.random() * uiDisplay.canvas.width,
-      y: Math.random() * uiDisplay.canvas.height,
-      radius: Math.random() * 2,
-      brightness: Math.random(),
-      speed: Math.random() * 0.02 + 0.01,
+        x: Math.random() * WIDTH,
+        y: Math.random() * HEIGHT,
+        radius: Math.random() * 2,
+        brightness: Math.random()
     });
-  }
 }
 
-function initIntervals() {
-  intervals.spawnPowerUpInterval = setInterval(
-    spawnPowerUp,
-    intervals.powerUpInterval
-  );
-  intervals.spawnAsteroidInterval = setInterval(
-    spawnAsteroid,
-    intervals.asteroidInterval
-  );
-  intervals.spawnEnemiesIntervall = setInterval(
-    spawnEnemies,
-    intervals.enemiesInterval
-  );
+// --- Starting ------------------------------------------------------------
+
+function newShip() {
+    return {
+        x: WIDTH / 2, y: HEIGHT / 2, dx: 0, dy: 0,
+        angle: -Math.PI / 2,  // pointing up
+        radius: 15,
+        health: 100,
+        lastShot: 0,
+        shotType: "single",
+        shotUntil: 0,
+        speedUntil: 0,
+        hurtUntil: 0
+    };
 }
 
-function updateIntervals() {
-  intervals.asteroidInterval =
-    intervals.asteroidInterval - 100 > 100
-      ? intervals.asteroidInterval - 100
-      : 100;
-  clearInterval(intervals.spawnAsteroidInterval);
-  intervals.spawnAsteroidInterval = setInterval(
-    spawnAsteroid,
-    intervals.asteroidInterval
-  );
+function newGame() {
+    ship = newShip();
+    level = 1;
+    score = 0;
+    gameStarted = true;
+    startLevel();
 }
 
-function spawnAsteroid() {
-  if (spawnedAsteroids >= maxAsteroids) return;
-  if (gameState !== gameStates.GAME) return;
-  spawnedAsteroids++;
-  const side = Math.random() * 4;
-  let x, y, dx, dy;
-  if (side < 1) {
-    x = -10;
-    y = Math.random() * uiDisplay.canvas.height;
-    dx = Math.random() * 2 + 1;
-    dy = Math.random() * 2 - 1;
-  } else if (side < 2) {
-    x = uiDisplay.canvas.width + 10;
-    y = Math.random() * uiDisplay.canvas.height;
-    dx = -Math.random() * 2 - 1;
-    dy = Math.random() * 2 - 1;
-  } else if (side < 3) {
-    x = Math.random() * uiDisplay.canvas.width;
-    y = -10;
-    dx = Math.random() * 2 - 1;
-    dy = Math.random() * 2 + 1;
-  } else {
-    x = Math.random() * uiDisplay.canvas.width;
-    y = uiDisplay.canvas.height + 10;
-    dx = Math.random() * 2 - 1;
-    dy = -Math.random() * 2 - 1;
-  }
-  asteroids.push({
-    x,
-    y,
-    dx,
-    dy,
-    radius: 50,
-    type: asteroidLabels.LARGE,
-    active: true,
-  });
+function startLevel() {
+    bullets = [];
+    rocks = [];
+    powerUps = [];
+    rocksToSpawn = 5 + level;
+    gameTime = 0;
+    nextRockTime = 0;
+    nextPowerUpTime = POWER_UP_DELAY;
+    screen = "playing";
+}
+
+// --- Helpers -------------------------------------------------------------
+
+function randomItem(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}
+
+// A place on a random edge of the screen, and a speed into the screen.
+function fromRandomEdge() {
+    const side = Math.floor(Math.random() * 4);
+    const along = Math.random();
+    const inward = Math.random() * 2 + 1;   // 1 to 3
+    const sideways = Math.random() * 2 - 1; // -1 to 1
+
+    if (side === 0) return { x: 0, y: along * HEIGHT, dx: inward, dy: sideways };       // left
+    if (side === 1) return { x: WIDTH, y: along * HEIGHT, dx: -inward, dy: sideways };  // right
+    if (side === 2) return { x: along * WIDTH, y: 0, dx: sideways, dy: inward };        // top
+    return { x: along * WIDTH, y: HEIGHT, dx: sideways, dy: -inward };                  // bottom
+}
+
+// Move by the speed. Off one side of the screen: back on the other side.
+function move(thing) {
+    thing.x = (thing.x + thing.dx + WIDTH) % WIDTH;
+    thing.y = (thing.y + thing.dy + HEIGHT) % HEIGHT;
+}
+
+// Two circles touch if the distance between the centers is less than
+// the two radii added together (Pythagoras for the distance).
+function touching(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y) < a.radius + b.radius;
+}
+
+// --- Spawning ------------------------------------------------------------
+
+function spawnRock() {
+    const place = fromRandomEdge();
+    rocks.push({ x: place.x, y: place.y, dx: place.dx, dy: place.dy, size: "large", radius: ROCK_SIZES.large });
+    rocksToSpawn--;
+    // Rocks come faster on higher levels, but not faster than every 0.5 s.
+    nextRockTime = gameTime + Math.max(500, 3000 - level * 100);
 }
 
 function spawnPowerUp() {
-  if (gameState !== gameStates.GAME) return;
-  const side = Math.random() * 4;
-  let x, y, dx, dy;
-  if (side < 1) {
-    x = -10;
-    y = Math.random() * uiDisplay.canvas.height;
-    dx = Math.random() * 2 + 1;
-    dy = Math.random() * 2 - 1;
-  } else if (side < 2) {
-    x = uiDisplay.canvas.width + 10;
-    y = Math.random() * uiDisplay.canvas.height;
-    dx = -Math.random() * 2 - 1;
-    dy = Math.random() * 2 - 1;
-  } else if (side < 3) {
-    x = Math.random() * uiDisplay.canvas.width;
-    y = -10;
-    dx = Math.random() * 2 - 1;
-    dy = Math.random() * 2 + 1;
-  } else {
-    x = Math.random() * uiDisplay.canvas.width;
-    y = uiDisplay.canvas.height + 10;
-    dx = Math.random() * 2 - 1;
-    dy = -Math.random() * 2 - 1;
-  }
-  let powerUpKeys = Object.keys(currentLevelPowerUps);
-  let randomKey = powerUpKeys[Math.floor(Math.random() * powerUpKeys.length)];
-  let typeLabel = currentLevelPowerUps[randomKey];
-  let powerUp = {
-    x,
-    y,
-    dx,
-    dy,
-    radius: 10,
-    type: typeLabel,
-    color: PowerUpsColors[typeLabel],
-    active: true,
-  };
-  powerUps.push(powerUp);
-  setTimeout(() => (powerUp.active = false), 10000);
-}
-
-function spawnEnemies() {
-  if (gameState !== gameStates.GAME) return;
-}
-
-function updateObjects(objects) {
-  objects.forEach((o) => {
-    o.x += o.dx;
-    o.y += o.dy;
-    if (o.x < 0) o.x += uiDisplay.canvas.width;
-    if (o.x > uiDisplay.canvas.width) o.x -= uiDisplay.canvas.width;
-    if (o.y < 0) o.y += uiDisplay.canvas.height;
-    if (o.y > uiDisplay.canvas.height) o.y -= uiDisplay.canvas.height;
-  });
-}
-
-function checkCollision(obj1, obj2) {
-  const dx = obj1.x - obj2.x;
-  const dy = obj1.y - obj2.y;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-  return distance < obj1.radius + obj2.radius;
-}
-
-function splitAsteroid(asteroid) {
-  if (asteroid.type === asteroidLabels.LARGE) {
-    asteroids.push(
-      {
-        x: asteroid.x,
-        y: asteroid.y,
-        dx: Math.random() * 2 - 1,
-        dy: Math.random() * 2 - 1,
-        radius: 30,
-        type: asteroidLabels.MEDIUM,
-        active: true,
-      },
-      {
-        x: asteroid.x,
-        y: asteroid.y,
-        dx: Math.random() * 2 - 1,
-        dy: Math.random() * 2 - 1,
-        radius: 30,
-        type: asteroidLabels.MEDIUM,
-        active: true,
-      }
-    );
-  } else if (asteroid.type === asteroidLabels.MEDIUM) {
-    asteroids.push(
-      {
-        x: asteroid.x,
-        y: asteroid.y,
-        dx: Math.random() * 2 - 1,
-        dy: Math.random() * 2 - 1,
-        radius: 15,
-        type: asteroidLabels.SMALL,
-        active: true,
-      },
-      {
-        x: asteroid.x,
-        y: asteroid.y,
-        dx: Math.random() * 2 - 1,
-        dy: Math.random() * 2 - 1,
-        radius: 15,
-        type: asteroidLabels.SMALL,
-        active: true,
-      }
-    );
-  }
-}
-
-function activatePowerUp(type) {
-  switch (type) {
-    case PowerUpsLabels.SPEED:
-      ship.speedMultiplier = 2;
-      if (powerUpsTimeout) {
-        clearTimeout(powerUpsTimeout);
-      }
-      powerUpsTimeout = setTimeout(() => (ship.speedMultiplier = 1), 10000);
-      break;
-    case PowerUpsLabels.TRIPLE:
-      ship.shot = PowerUpsLabels.TRIPLE;
-      if (powerUpsTimeout) {
-        clearTimeout(powerUpsTimeout);
-      }
-      powerUpsTimeout = setTimeout(() => (ship.shot = ""), 10000);
-      break;
-    case PowerUpsLabels.QUINTUPLE:
-      ship.shot = PowerUpsLabels.QUINTUPLE;
-      if (powerUpsTimeout) {
-        clearTimeout(powerUpsTimeout);
-      }
-      powerUpsTimeout = setTimeout(() => (ship.shot = ""), 10000);
-      break;
-    case PowerUpsLabels.HEALTH:
-      ship.health = ship.health + 10;
-      ship.health > 100 && (ship.health = 100);
-      break;
-  }
-}
-
-function handleCollisions() {
-  powerUps.forEach((powerUp) => {
-    if (checkCollision(ship, powerUp)) {
-      powerUp.active = false;
-      activatePowerUp(powerUp.type);
-    }
-  });
-
-  bullets.forEach((bullet) => {
-    powerUps.forEach((powerUp) => {
-      if (checkCollision(bullet, powerUp)) {
-        powerUp.active = false;
-      }
+    const place = fromRandomEdge();
+    const kind = randomItem(POWER_UPS.slice(0, level));
+    powerUps.push({
+        x: place.x, y: place.y, dx: place.dx, dy: place.dy, radius: 10,
+        type: kind.type, color: kind.color,
+        hideTime: gameTime + POWER_UP_TIME
     });
-    asteroids.forEach((asteroid) => {
-      if (checkCollision(bullet, asteroid)) {
-        bullet.active = false;
-        asteroid.active = false;
-        score = score + 10;
-        splitAsteroid(asteroid);
-      }
-    });
-  });
+    nextPowerUpTime = gameTime + POWER_UP_DELAY;
+}
 
-  asteroids.forEach((asteroid) => {
-    if (checkCollision(ship, asteroid)) {
-      let normalX = asteroid.x - ship.x;
-      let normalY = asteroid.y - ship.y;
-      let magnitude = Math.sqrt(normalX * normalX + normalY * normalY);
-      normalX /= magnitude;
-      normalY /= magnitude;
-
-      let relativeVelocityX = ship.dx - asteroid.dx;
-      let relativeVelocityY = ship.dy - asteroid.dy;
-      let speed = relativeVelocityX * normalX + relativeVelocityY * normalY;
-
-      if (speed < 0) return; // Already moving away
-
-      // Reflect velocity for bouncing
-      ship.dx -= normalX;
-      ship.dy -= normalY;
-      asteroid.dx += normalX;
-      asteroid.dy += normalY;
-
-      ship.health = ship.health - 5;
-      ship.hurt = true;
-
-      if (ship.health <= 0) {
-        ship.active = false;
-        gameState = gameStates.GAMEOVER;
-      }
+function breakRock(rock) {
+    score += 10;
+    const smaller = SPLITS_INTO[rock.size];
+    if (smaller === null) {
+        return;
     }
-  });
+    for (let i = 0; i < 2; i++) {
+        rocks.push({
+            x: rock.x, y: rock.y,
+            dx: Math.random() * 2 - 1, dy: Math.random() * 2 - 1,
+            size: smaller, radius: ROCK_SIZES[smaller]
+        });
+    }
 }
 
-function getBullet(speed, spreadAngle) {
-  return {
-    x: ship.x + Math.cos(ship.angle - spreadAngle) * 20,
-    y: ship.y + Math.sin(ship.angle - spreadAngle) * 20,
-    dx: Math.cos(ship.angle - spreadAngle) * speed,
-    dy: Math.sin(ship.angle - spreadAngle) * speed,
-    angle: ship.angle + spreadAngle,
-    radius: 2,
-    active: true,
-  };
+// --- The ship ------------------------------------------------------------
+
+function steerShip() {
+    if (keys.ArrowLeft) {
+        ship.angle -= TURN_SPEED;
+    }
+    if (keys.ArrowRight) {
+        ship.angle += TURN_SPEED;
+    }
+
+    const fast = gameTime < ship.speedUntil;
+    if (keys.ArrowUp) {
+        // Push in the direction the ship points.
+        const thrust = fast ? THRUST * 2 : THRUST;
+        ship.dx += Math.cos(ship.angle) * thrust;
+        ship.dy += Math.sin(ship.angle) * thrust;
+    }
+
+    ship.dx *= FRICTION;
+    ship.dy *= FRICTION;
+
+    // Not faster than the top speed.
+    const maxSpeed = fast ? MAX_SPEED * 1.5 : MAX_SPEED;
+    const speed = Math.hypot(ship.dx, ship.dy);
+    if (speed > maxSpeed) {
+        ship.dx = ship.dx / speed * maxSpeed;
+        ship.dy = ship.dy / speed * maxSpeed;
+    }
 }
 
-function shootBullet() {
-  if (!ship.isShooting) return;
+function shoot() {
+    if (!keys[" "] || gameTime - ship.lastShot < FIRE_DELAY) {
+        return;
+    }
+    ship.lastShot = gameTime;
 
-  let now = Date.now();
-  if (now - ship.lastShotTime < ship.fireRate) return;
+    // Extra bullets go out at small angles to the sides.
+    let angles = [0];
+    if (gameTime < ship.shotUntil && ship.shotType === "triple") {
+        angles = [-0.15, 0, 0.15];
+    } else if (gameTime < ship.shotUntil && ship.shotType === "five") {
+        angles = [-0.3, -0.15, 0, 0.15, 0.3];
+    }
 
-  const speed = 5;
-  const spreadAngleLeft = -0.15;
-  const spreadAngleRight = 0.15;
-
-  // Create main bullet (straight shot)
-  let bulletsToAdd = [getBullet(speed, 0)];
-
-  switch (ship.shot) {
-    case PowerUpsLabels.QUINTUPLE:
-      bulletsToAdd.push(getBullet(speed, spreadAngleLeft * 2));
-      bulletsToAdd.push(getBullet(speed, spreadAngleRight * 2));
-    case PowerUpsLabels.TRIPLE:
-      bulletsToAdd.push(getBullet(speed, spreadAngleLeft));
-      bulletsToAdd.push(getBullet(speed, spreadAngleRight));
-      break;
-  }
-
-  // Add bullets to array and set expiration
-  bulletsToAdd.forEach((bullet) => {
-    bullets.push(bullet);
-    setTimeout(() => (bullet.active = false), 1500);
-  });
-
-  ship.lastShotTime = now;
+    angles.forEach(function (spread) {
+        const angle = ship.angle + spread;
+        bullets.push({
+            x: ship.x + Math.cos(angle) * 20,
+            y: ship.y + Math.sin(angle) * 20,
+            dx: Math.cos(angle) * BULLET_SPEED,
+            dy: Math.sin(angle) * BULLET_SPEED,
+            radius: 2,
+            hideTime: gameTime + BULLET_TIME
+        });
+    });
 }
 
-function checkLevelCompletion() {
-  let asteroidsComplete =
-    spawnedAsteroids >= maxAsteroids && asteroids.length < 1;
-  let enemiesComplete = spawnedEnemies >= maxEnemies && enemies.length < 1;
-
-  if (asteroidsComplete && enemiesComplete) {
-    level++;
-    gameState = gameStates.CONTINUE;
-  }
+function pickUp(powerUp) {
+    if (powerUp.type === "health") {
+        ship.health = Math.min(100, ship.health + 10);
+    } else if (powerUp.type === "speed") {
+        ship.speedUntil = gameTime + POWER_UP_TIME;
+    } else {
+        ship.shotType = powerUp.type;
+        ship.shotUntil = gameTime + POWER_UP_TIME;
+    }
 }
 
-function updateGame() {
-  if (ship.hurt) ship.hurt = false;
-  ship.angle += ship.rotating;
-  ship.x += ship.dx;
-  ship.y += ship.dy;
-  updateObjects([...bullets, ...asteroids, ...enemies, ...powerUps, ship]);
-  handleCollisions();
+// The ship and a rock bounce off each other, and the ship takes damage.
+function crash(rock) {
+    // A line from the ship to the rock, made 1 long.
+    const distance = Math.hypot(rock.x - ship.x, rock.y - ship.y) || 1;
+    const nx = (rock.x - ship.x) / distance;
+    const ny = (rock.y - ship.y) / distance;
 
-  bullets = bullets.filter((b) => b.active);
-  asteroids = asteroids.filter((a) => a.active);
-  enemies = enemies.filter((e) => e.active);
-  powerUps = powerUps.filter((e) => e.active);
+    // Already moving apart? Then they bounced last step; do nothing.
+    if ((ship.dx - rock.dx) * nx + (ship.dy - rock.dy) * ny < 0) {
+        return;
+    }
+    ship.dx -= nx;
+    ship.dy -= ny;
+    rock.dx += nx;
+    rock.dy += ny;
 
-  checkLevelCompletion();
-  shootBullet();
+    ship.health -= 5;
+    ship.hurtUntil = gameTime + 150;
+}
+
+// --- Update --------------------------------------------------------------
+
+function update() {
+    gameTime += STEP;
+
+    if (rocksToSpawn > 0 && gameTime >= nextRockTime) {
+        spawnRock();
+    }
+    if (gameTime >= nextPowerUpTime) {
+        spawnPowerUp();
+    }
+
+    steerShip();
+    shoot();
+
+    move(ship);
+    bullets.forEach(move);
+    rocks.forEach(move);
+    powerUps.forEach(move);
+
+    // Bullets that hit something are removed, and so is what they hit.
+    bullets = bullets.filter(function (bullet) {
+        if (gameTime > bullet.hideTime) {
+            return false;
+        }
+        const rock = rocks.find(function (r) { return touching(bullet, r); });
+        if (rock) {
+            rocks.splice(rocks.indexOf(rock), 1);
+            breakRock(rock);
+            return false;
+        }
+        const powerUp = powerUps.find(function (p) { return touching(bullet, p); });
+        if (powerUp) {
+            powerUps.splice(powerUps.indexOf(powerUp), 1);
+            return false;
+        }
+        return true;
+    });
+
+    powerUps = powerUps.filter(function (powerUp) {
+        if (touching(ship, powerUp)) {
+            pickUp(powerUp);
+            return false;
+        }
+        return gameTime < powerUp.hideTime;
+    });
+
+    rocks.forEach(function (rock) {
+        if (touching(ship, rock)) {
+            crash(rock);
+        }
+    });
+
+    if (ship.health <= 0) {
+        ship.health = 0;
+        screen = "gameOver";
+    } else if (rocksToSpawn === 0 && rocks.length === 0) {
+        level++;
+        screen = "levelDone";
+    }
+}
+
+// --- Drawing -------------------------------------------------------------
+
+function drawText(text, x, y, size, color, align) {
+    ctx.fillStyle = color || "white";
+    ctx.font = size + "px Arial";
+    ctx.textAlign = align || "center";
+    ctx.fillText(text, x, y);
+}
+
+function drawCircle(thing, color, filled) {
+    ctx.beginPath();
+    ctx.arc(thing.x, thing.y, thing.radius, 0, Math.PI * 2);
+    if (filled) {
+        ctx.fillStyle = color;
+        ctx.fill();
+    } else {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
 }
 
 function drawStars() {
-  ctx.clearRect(0, 0, uiDisplay.canvas.width, uiDisplay.canvas.height); // Clear canvas
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  // Background color (dark space)
-  ctx.fillStyle = colors.BLACK;
-  ctx.fillRect(0, 0, uiDisplay.canvas.width, uiDisplay.canvas.height);
+    stars.forEach(function (star) {
+        // Change the brightness a little, up or down, every frame.
+        star.brightness += (Math.random() - 0.5) * 0.05;
+        star.brightness = Math.min(1, Math.max(0.1, star.brightness));
 
-  stars.forEach((star) => {
-    // Adjust brightness (twinkling effect)
-    star.brightness += star.speed * (Math.random() > 0.5 ? 1 : -1);
-    if (star.brightness < 0.1) star.brightness = 0.1;
-    if (star.brightness > 1) star.brightness = 1;
-
-    // Draw star
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`; // White star with opacity
-    ctx.fill();
-  });
+        ctx.fillStyle = "rgba(255, 255, 255, " + star.brightness + ")";
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
 }
 
 function drawShip() {
-  ctx.save();
-  ctx.translate(ship.x, ship.y);
-  ctx.rotate(ship.angle);
-  ctx.beginPath();
-  ctx.moveTo(20, 0);
-  ctx.lineTo(-15, -10);
-  ctx.lineTo(-15, 10);
-  ctx.closePath();
-  ctx.strokeStyle = colors.WHITE;
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawBullets() {
-  ctx.fillStyle = colors.WHITE;
-  bullets.forEach((b) => {
+    // Move and turn the canvas to the ship, then draw a triangle that
+    // points right. This is easier than working out turned corners.
+    ctx.save();
+    ctx.translate(ship.x, ship.y);
+    ctx.rotate(ship.angle);
     ctx.beginPath();
-    ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
-    ctx.fill();
-  });
-}
-
-function drawAsteroids() {
-  ctx.strokeStyle = colors.GRAY;
-  asteroids.forEach((a) => {
-    ctx.beginPath();
-    ctx.arc(a.x, a.y, a.radius, 0, Math.PI * 2);
+    ctx.moveTo(20, 0);
+    ctx.lineTo(-15, -10);
+    ctx.lineTo(-15, 10);
+    ctx.closePath();
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
     ctx.stroke();
-  });
+
+    if (keys.ArrowUp && screen === "playing") {
+        // A small flame behind the ship.
+        ctx.beginPath();
+        ctx.moveTo(-15, -5);
+        ctx.lineTo(-25, 0);
+        ctx.lineTo(-15, 5);
+        ctx.strokeStyle = "orange";
+        ctx.stroke();
+    }
+    ctx.restore();
 }
 
-function drawPowerUps() {
-  powerUps.forEach((p) => {
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fill();
-  });
+function drawHud() {
+    drawText("Score: " + score + "   Level: " + level, 20, 30, 20, "white", "left");
+
+    // Health bar: gray background, then the health from red to green.
+    const red = Math.round(255 - ship.health * 2.55);
+    const green = Math.round(ship.health * 2.55);
+    ctx.fillStyle = "gray";
+    ctx.fillRect(WIDTH - 120, 15, 100, 15);
+    ctx.fillStyle = "rgb(" + red + ", " + green + ", 0)";
+    ctx.fillRect(WIDTH - 120, 15, ship.health, 15);
+
+    // Seconds left of a power-up.
+    const effects = [];
+    if (gameTime < ship.shotUntil) {
+        effects.push(ship.shotType + ": " + Math.ceil((ship.shotUntil - gameTime) / 1000));
+    }
+    if (gameTime < ship.speedUntil) {
+        effects.push("speed: " + Math.ceil((ship.speedUntil - gameTime) / 1000));
+    }
+    drawText(effects.join("   "), WIDTH - 20, 50, 16, "yellow", "right");
 }
 
-function getHealthColor(health) {
-  let red = Math.min(255, 255 - health * 2.55);
-  let green = Math.min(255, health * 2.55);
-  return `rgb(${red}, ${green}, 0)`;
-}
-
-function drawHurt() {
-  if (ship.hurt) {
-    ctx.fillStyle = "rgba(225,0,0,0.5)";
-    ctx.fillRect(0, 0, uiDisplay.canvas.width, uiDisplay.canvas.height);
-  }
-}
-
-function drawLifeBar() {
-  let maxHealth = 100;
-  let barWidth = 100;
-  let marginRight = 20;
-  ctx.fillStyle = colors.GRAY;
-  ctx.fillRect(
-    uiDisplay.canvas.width - (barWidth + marginRight),
-    55,
-    barWidth,
-    15
-  );
-  ctx.fillStyle = getHealthColor(ship.health);
-  ctx.fillRect(
-    uiDisplay.canvas.width - (barWidth + marginRight),
-    55,
-    ship.health,
-    15
-  );
-  ctx.strokeStyle = colors.BLACK;
-  ctx.strokeRect(
-    uiDisplay.canvas.width - (barWidth + marginRight),
-    55,
-    barWidth,
-    15
-  );
-
-  ctx.fillStyle = colors.WHITE;
-  ctx.font = "20px Arial";
-  ctx.textAlign = "left";
-  let text = `Score: ${score} | Level: ${level}`;
-  let textWidth = ctx.measureText(text).width;
-  ctx.fillText(
-    text,
-    uiDisplay.canvas.width - (barWidth + textWidth + marginRight + marginRight),
-    70
-  );
-}
-
-function drawGame() {
-  drawStars();
-  drawShip();
-  drawBullets();
-  drawAsteroids();
-  drawPowerUps();
-  drawHurt();
+function drawMessage(title, lines) {
+    drawText(title, WIDTH / 2, HEIGHT / 2 - 60, 40);
+    lines.forEach(function (line, index) {
+        drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+    });
 }
 
 function drawMenu() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.font = "60px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(
-    "Asteroids",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 50
-  );
-
-  const startY = uiDisplay.canvas.height / 2 + 20;
-  const lineHeight = 50;
-
-  menuItems.forEach((text, index) => {
-    if (menuIndex === index) {
-      ctx.font = "20px Arial";
-      ctx.strokeStyle = colors.BLUE;
-      ctx.lineWidth = 3;
-      ctx.shadowColor = colors.BLUE;
-      ctx.shadowBlur = 7;
-      ctx.strokeText(
-        text,
-        uiDisplay.canvas.width / 2,
-        startY + index * lineHeight
-      );
+    drawText("Asteroids", WIDTH / 2, HEIGHT / 2 - 50, 60);
+    MENU_ITEMS.forEach(function (item, index) {
+        const color = index === menuIndex ? "yellow" : "white";
+        drawText(item, WIDTH / 2, HEIGHT / 2 + 20 + index * 50, 24, color);
+    });
+    drawText("Arrow keys and Enter to choose", WIDTH / 2, HEIGHT - 60, 16);
+    if (gameStarted) {
+        drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 35, 16);
     }
-    ctx.font = "20px Arial";
-    ctx.fillStyle = colors.WHITE;
-    ctx.textAlign = "center";
-    ctx.fillText(text, uiDisplay.canvas.width / 2, startY + index * lineHeight);
-  });
 }
 
-function drawControlls() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.font = "40px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(
-    "Controlls",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 100
-  );
-
-  ctx.font = "20px Arial";
-
-  ctx.fillText(
-    "Pause:",
-    uiDisplay.canvas.width / 2 - 100,
-    uiDisplay.canvas.height / 2 + 50
-  );
-  ctx.fillText(
-    "P",
-    uiDisplay.canvas.width / 2 + 100,
-    uiDisplay.canvas.height / 2 + 50
-  );
-
-  ctx.fillText(
-    "Back to Menu:",
-    uiDisplay.canvas.width / 2 - 100,
-    uiDisplay.canvas.height / 2 + 75
-  );
-  ctx.fillText(
-    "ESC",
-    uiDisplay.canvas.width / 2 + 100,
-    uiDisplay.canvas.height / 2 + 75
-  );
-
-  ctx.fillText(
-    "Move left",
-    uiDisplay.canvas.width / 2 - 100,
-    uiDisplay.canvas.height / 2 + 125
-  );
-  ctx.fillText(
-    "Arrow left",
-    uiDisplay.canvas.width / 2 + 100,
-    uiDisplay.canvas.height / 2 + 125
-  );
-
-  ctx.fillText(
-    "Move right",
-    uiDisplay.canvas.width / 2 - 100,
-    uiDisplay.canvas.height / 2 + 150
-  );
-  ctx.fillText(
-    "Arrow right",
-    uiDisplay.canvas.width / 2 + 100,
-    uiDisplay.canvas.height / 2 + 150
-  );
+function drawControls() {
+    drawText("Controls", WIDTH / 2, 150, 40);
+    const lines = [
+        ["Turn", "Arrow left / right"],
+        ["Thrust", "Arrow up"],
+        ["Shoot", "Space"],
+        ["Pause", "P"],
+        ["Menu", "Esc"]
+    ];
+    lines.forEach(function (line, index) {
+        drawText(line[0], WIDTH / 2 - 120, 240 + index * 35, 20);
+        drawText(line[1], WIDTH / 2 + 120, 240 + index * 35, 20);
+    });
+    drawText("Esc: back", WIDTH / 2, HEIGHT - 35, 16);
 }
 
-function drawPowerUp() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.textAlign = "center";
-  ctx.font = "40px Arial";
-  ctx.fillText(
-    "Power-ups",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 100
-  );
+function drawPowerUpHelp() {
+    drawText("Power-ups", WIDTH / 2, 150, 40);
+    POWER_UPS.forEach(function (kind, index) {
+        const y = 240 + index * 45;
+        drawCircle({ x: WIDTH / 2 - 200, y: y - 7, radius: 10 }, kind.color, true);
+        drawText(kind.text, WIDTH / 2 - 170, y, 20, "white", "left");
+        drawText("from level " + (index + 1), WIDTH / 2 + 170, y, 16, "gray", "left");
+    });
+    drawText("Shot and speed power-ups last 10 seconds.", WIDTH / 2, 450, 18);
+    drawText("Esc: back", WIDTH / 2, HEIGHT - 35, 16);
 }
 
-function drawPause() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.textAlign = "center";
-  ctx.font = "40px Arial";
-  ctx.fillText(
-    "Pause",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2
-  );
+function draw() {
+    drawStars();
+
+    if (screen === "menu") {
+        drawMenu();
+        return;
+    }
+    if (screen === "controls") {
+        drawControls();
+        return;
+    }
+    if (screen === "powerUps") {
+        drawPowerUpHelp();
+        return;
+    }
+
+    rocks.forEach(function (rock) {
+        drawCircle(rock, "gray", false);
+    });
+    powerUps.forEach(function (powerUp) {
+        drawCircle(powerUp, powerUp.color, true);
+    });
+    bullets.forEach(function (bullet) {
+        drawCircle(bullet, "white", true);
+    });
+    drawShip();
+    drawHud();
+
+    if (gameTime < ship.hurtUntil) {
+        ctx.fillStyle = "rgba(225, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    }
+
+    if (screen === "paused") {
+        drawMessage("Pause", ["Press P to go on"]);
+    } else if (screen === "levelDone") {
+        drawMessage("Level " + (level - 1) + " done!", ["Press Enter for level " + level]);
+    } else if (screen === "gameOver") {
+        drawMessage("Game over", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+    }
 }
 
-function drawContinue() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.textAlign = "center";
-  ctx.font = "40px Arial";
-  ctx.fillText(
-    "Next level",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 50
-  );
-  ctx.font = "20px Arial";
-  ctx.fillText(
-    "Press enter to continue",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2
-  );
+// --- The loop ------------------------------------------------------------
+
+// Run one update per 1/60 second, so the game has the same speed on
+// every screen, then draw.
+let lastTime = performance.now();
+let leftover = 0;
+
+function gameLoop(now) {
+    leftover += Math.min(now - lastTime, 250);
+    lastTime = now;
+
+    while (leftover >= STEP) {
+        if (screen === "playing") {
+            update();
+        }
+        leftover -= STEP;
+    }
+
+    draw();
+    requestAnimationFrame(gameLoop);
 }
 
-function drawWinner() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.textAlign = "center";
-  ctx.font = "40px Arial";
-  ctx.fillText(
-    "Winner",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 100
-  );
-  ctx.font = "20px Arial";
-  ctx.fillText(
-    "Press enter to play again",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 50
-  );
-  ctx.fillText(
-    "Press esc to go to menu",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 20
-  );
-}
-
-function drawGameOver() {
-  ctx.fillStyle = colors.WHITE;
-  ctx.textAlign = "center";
-  ctx.font = "40px Arial";
-  ctx.fillText(
-    "Game Over",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 100
-  );
-  ctx.font = "20px Arial";
-  ctx.fillText(
-    "Press enter to play again",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 50
-  );
-  ctx.fillText(
-    "Press esc to go to menu",
-    uiDisplay.canvas.width / 2,
-    uiDisplay.canvas.height / 2 - 20
-  );
-}
-
-function drawUI() {
-  switch (gameState) {
-    case gameStates.MENU:
-      drawGame();
-      drawMenu();
-      break;
-    case gameStates.CONTROLLS:
-      drawGame();
-      drawControlls();
-      break;
-    case gameStates.POWERUPS:
-      drawGame();
-      drawPowerUp();
-      break;
-    case gameStates.GAME:
-      updateGame();
-      drawGame();
-      drawLifeBar();
-      break;
-    case gameStates.PAUSE:
-      drawGame();
-      drawPause();
-      break;
-    case gameStates.CONTINUE:
-      drawGame();
-      drawContinue();
-      break;
-    case gameStates.WINNER:
-      drawGame();
-      drawWinner();
-      break;
-    case gameStates.GAMEOVER:
-      drawGame();
-      drawGameOver();
-      break;
-  }
-}
-
-function gameLoop() {
-  try {
-    drawUI();
-  } catch (error) {
-    console.error(error);
-  }
-  requestAnimationFrame(gameLoop);
-}
-
-document.addEventListener("keyup", (e) => {
-  const key = e.key.toLowerCase();
-  switch (key) {
-    case "arrowleft":
-      ship.rotating = 0;
-      break;
-
-    case "arrowright":
-      ship.rotating = 0;
-      break;
-
-    case " ":
-      ship.isShooting = false;
-      break;
-  }
-});
+// --- Keyboard ------------------------------------------------------------
 
 document.addEventListener("keydown", function (event) {
-  const key = event.key.toLowerCase();
-  switch (gameState) {
-    case gameStates.GAME:
-      pressGame(key);
-      break;
-    case gameStates.PAUSE:
-      pressPause(key);
-      break;
-    case gameStates.CONTINUE:
-      pressContinue(key);
-      break;
-    case gameStates.WINNER:
-      pressWinner(key);
-      break;
-    case gameStates.GAMEOVER:
-      pressGameOver(key);
-      break;
-    case gameStates.MENU:
-      pressMenu(key);
-      break;
-    case gameStates.CONTROLLS:
-      pressControlls(key);
-      break;
-    case gameStates.POWERUPS:
-      pressPowerups(key);
-      break;
-  }
+    const key = event.key;
+    keys[key] = true;
+
+    if (screen === "menu") {
+        if (key === "ArrowUp") {
+            menuIndex = (menuIndex + MENU_ITEMS.length - 1) % MENU_ITEMS.length;
+        } else if (key === "ArrowDown") {
+            menuIndex = (menuIndex + 1) % MENU_ITEMS.length;
+        } else if (key === "Enter") {
+            const item = MENU_ITEMS[menuIndex];
+            if (item === "Start") {
+                newGame();
+            } else if (item === "Controls") {
+                screen = "controls";
+            } else {
+                screen = "powerUps";
+            }
+        } else if (key === "Escape" && gameStarted) {
+            screen = "paused";
+        }
+    } else if (screen === "controls" || screen === "powerUps") {
+        if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "playing") {
+        if (key === "p" || key === "P") {
+            screen = "paused";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "paused") {
+        if (key === "p" || key === "P") {
+            screen = "playing";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "levelDone") {
+        if (key === "Enter") {
+            startLevel();
+        }
+    } else if (screen === "gameOver") {
+        if (key === "Enter") {
+            newGame();
+        } else if (key === "Escape") {
+            gameStarted = false;
+            screen = "menu";
+        }
+    }
 });
 
-function pressMenu(key) {
-  switch (key) {
-    case "arrowup":
-      menuIndex = menuIndex - 1 < 0 ? menuItems.length - 1 : menuIndex - 1;
-      break;
-    case "arrowdown":
-      menuIndex = menuIndex + 1 > menuItems.length - 1 ? 0 : menuIndex + 1;
-      break;
-    case "escape":
-      gameStarted && (gameState = gameStates.GAME);
-      break;
-    case "enter":
-      if (menuItems[menuIndex] === "Controlls") {
-        gameState = gameStates.CONTROLLS;
-      } else if (menuItems[menuIndex] === "Power-ups") {
-        gameState = gameStates.POWERUPS;
-      } else {
-        gameState = gameStates.GAME;
-        gameStarted = true;
-        initGame();
-      }
-      break;
-  }
-}
+document.addEventListener("keyup", function (event) {
+    keys[event.key] = false;
+});
 
-function pressControlls(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      break;
-  }
-}
+// If the window loses focus while a key is held, we never get its keyup.
+window.addEventListener("blur", function () {
+    for (const key in keys) {
+        keys[key] = false;
+    }
+});
 
-function pressPowerups(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      break;
-  }
-}
+// --- Start ---------------------------------------------------------------
 
-function pressGame(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      break;
-
-    case "p":
-      gameState = gameStates.PAUSE;
-      break;
-
-    case "arrowleft":
-      ship.rotating = -0.1;
-      break;
-
-    case "arrowright":
-      ship.rotating = 0.1;
-      break;
-
-    case "arrowup":
-      ship.dx += Math.cos(ship.angle) * 0.2;
-      ship.dy += Math.sin(ship.angle) * 0.2;
-      break;
-
-    case " ":
-      ship.isShooting = true;
-      break;
-  }
-}
-
-function pressPause(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      break;
-
-    case "p":
-      gameState = gameStates.GAME;
-      break;
-  }
-}
-
-function pressContinue(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      break;
-
-    case "enter":
-      gameState = gameStates.GAME;
-      initLevel();
-      break;
-  }
-}
-
-function pressWinner(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      gameStarted = false;
-      break;
-
-    case "enter":
-      gameState = gameStates.GAME;
-      gameStarted = true;
-      initGame();
-      break;
-  }
-}
-
-function pressGameOver(key) {
-  switch (key) {
-    case "escape":
-      gameState = gameStates.MENU;
-      gameStarted = false;
-      break;
-
-    case "enter":
-      gameState = gameStates.GAME;
-      gameStarted = true;
-      initGame();
-      break;
-  }
-}
-
-initIntervals();
-initStars();
-initLevel();
-gameLoop();
+ship = newShip();
+requestAnimationFrame(gameLoop);

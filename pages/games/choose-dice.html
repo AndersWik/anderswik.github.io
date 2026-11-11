@@ -10,11 +10,11 @@ js:
 ---
 <div class="container">
   <h1>Dice Roller</h1>
-  <div id="dice-preview">
+  <div id="dice-preview" class="d4">
     <span id="preview-text">4</span>
   </div>
   <div class="dice-options">
-    <select id="dice-type">
+    <select id="dice-type" aria-label="Die">
       <option value="4" selected>D4 (4 sides)</option>
       <option value="6">D6 (6 sides)</option>
       <option value="8">D8 (8 sides)</option>
@@ -23,7 +23,8 @@ js:
       <option value="20">D20 (20 sides)</option>
     </select>
   </div>
-  <button id="roll-dice-btn">Roll Dice</button>
+  <button type="button" id="roll-dice-btn">Roll Dice</button>
   <div class="dice-selected" id="dice-selected"></div>
-  <div class="dice-result" id="dice-result"></div>
+  <div class="dice-result" id="dice-result" aria-live="polite"></div>
 </div>
+<p class="text-center mt-4"><a href="/tutorials/dice/">How to build this game</a></p>

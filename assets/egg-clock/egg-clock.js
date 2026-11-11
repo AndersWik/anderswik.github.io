@@ -15,6 +15,7 @@
 let secondsLeft = 0;
 let timer = null;
 let beeper = null;
+let audio = null;   // made on the first Start, see beep()
 
 const MAX_SECONDS = 60 * 60; // one hour
 
@@ -28,7 +29,6 @@ const addMinuteButton = document.getElementById("increase-minutes");
 const removeMinuteButton = document.getElementById("decrease-minutes");
 const addSecondButton = document.getElementById("increase-seconds");
 const removeSecondButton = document.getElementById("decrease-seconds");
-const beepSound = document.getElementById("beep-sound");
 
 // --- Helpers -------------------------------------------------------------
 
@@ -43,28 +43,31 @@ function showTime() {
     secondsText.textContent = twoDigits(secondsLeft % 60);
 }
 
+// Make a short beep with the Web Audio API, so we need no sound file.
+// An oscillator makes a tone; 880 is the pitch in hertz (a high A).
 function beep() {
-    beepSound.currentTime = 0; // rewind, in case it is still playing
-    beepSound.play();
+    const tone = audio.createOscillator();
+    tone.frequency.value = 880;
+    tone.connect(audio.destination);       // to the speakers
+    tone.start();
+    tone.stop(audio.currentTime + 0.3);    // 0.3 seconds long
 }
 
 // --- Actions -------------------------------------------------------------
 
 // Add (positive) or remove (negative) time, but stay within 0 and one hour.
 function changeTime(seconds) {
-    const newTime = secondsLeft + seconds;
-
-    if (newTime >= 0 && newTime <= MAX_SECONDS) {
-        secondsLeft = newTime;
-        showTime();
-    }
+    secondsLeft = Math.min(MAX_SECONDS, Math.max(0, secondsLeft + seconds));
+    showTime();
 }
 
 // Called once every second while the clock runs.
 function tick() {
-    secondsLeft = secondsLeft - 1;
-    showTime();
-
+    if (secondsLeft > 0) {
+        secondsLeft = secondsLeft - 1;
+        showTime();
+    }
+    // Also true if the time was set to 0 with the buttons while running.
     if (secondsLeft === 0) {
         clearInterval(timer);
         timer = null;
@@ -74,11 +77,19 @@ function tick() {
 }
 
 function start() {
+    // Browsers only allow sound after the user has clicked something,
+    // so the audio is made here and not when the page loads.
+    if (audio === null) {
+        audio = new AudioContext();
+    }
     // Don't start twice (the clock would run at double speed),
     // and there is nothing to count down from 0.
     if (timer !== null || secondsLeft === 0) {
         return;
     }
+    // Stop a beep that is still going from the last time.
+    clearInterval(beeper);
+    beeper = null;
     timer = setInterval(tick, 1000);
 }
 

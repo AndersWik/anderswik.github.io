@@ -54,10 +54,21 @@ function parseDateTime(text) {
         .slice(1)
         .map((part) => Number(part || 0));
 
-    if (useUtc()) {
-        return Date.UTC(year, month - 1, day, hour, minute, second);
+    const date = useUtc()
+        ? new Date(Date.UTC(year, month - 1, day, hour, minute, second))
+        : new Date(year, month - 1, day, hour, minute, second);
+
+    // Date quietly moves impossible values forward: 2026-02-31 becomes
+    // 2026-03-03 and 24:00 becomes the next day. Check that we got back
+    // what was typed, or say we can't read it.
+    const parts = useUtc()
+        ? [date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()]
+        : [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+
+    if (parts.join() !== [year, month, day, hour, minute, second].join()) {
+        return NaN;
     }
-    return new Date(year, month - 1, day, hour, minute, second).getTime();
+    return date.getTime();
 }
 
 function toMilliseconds(text, format) {

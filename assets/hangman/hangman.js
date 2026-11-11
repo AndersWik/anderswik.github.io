@@ -1,111 +1,131 @@
-const words = [
-  "APPLE",
-  "BANANA",
-  "CHERRY",
-  "COCONUT",
-  "GRAPES",
-  "KIWI",
-  "LEMON",
-  "LIME",
-  "MANGO",
-  "MELON",
-  "ORANGE",
-  "PEAR",
-  "PINEAPPLE",
+/*
+ * Hangman: guess the word one letter at a time. Every wrong letter adds a
+ * part to the hanging man. Six wrong letters and you lose.
+ *
+ * Click the letters, or type them on your keyboard.
+ */
+
+// --- Settings ------------------------------------------------------------
+
+const WORDS = [
+    "APPLE", "BANANA", "CHERRY", "COCONUT", "GRAPES", "KIWI", "LEMON",
+    "LIME", "MANGO", "MELON", "ORANGE", "PEAR", "PINEAPPLE"
 ];
-let selectedWord = words[Math.floor(Math.random() * words.length)];
-let correctLetters = [];
-let wrongLetters = [];
-let displayWord = Array(selectedWord.length).fill("_");
-let keyboardBtns = [];
+const MAX_WRONG = 6;
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-const uiDisplay = {
-  correctList: document.getElementById("correctList"),
-  wrongList: document.getElementById("wrongList"),
-  wordDisplay: document.getElementById("wordDisplay"),
-  wrongGuessesDisplay: document.getElementById("wrongGuesses"),
-  keyboard: document.getElementById("keyboard"),
-  result: document.getElementById("result"),
-  restart: document.getElementById("restart"),
-  hangmanImage: document.getElementById("hangmanImage"),
-  overlay: document.getElementById("overlay"),
-  resultImage: document.getElementById("resultImage"),
-};
+// --- Elements on the page ------------------------------------------------
 
-function updateUI() {
-  uiDisplay.wordDisplay.textContent = displayWord.join(" ");
-  uiDisplay.correctList.innerHTML = correctLetters.join(" ");
-  uiDisplay.wrongList.innerHTML = wrongLetters.join(" ");
+const wordText = document.getElementById("word");
+const wrongText = document.getElementById("wrong");
+const messageText = document.getElementById("message");
+const keyboard = document.getElementById("keyboard");
+const newWordButton = document.getElementById("newWord");
+const parts = document.querySelectorAll(".part");  // head, body, arms, legs
 
-  if (wrongLetters.length > 0 && wrongLetters.length < 7) {
-    uiDisplay.hangmanImage.src =
-      "/assets/hangman/images/hangman-" + wrongLetters.length + ".svg";
-  } else {
-    uiDisplay.hangmanImage.src = "/assets/hangman/images/hangman.svg";
-  }
-  uiDisplay.wrongGuessesDisplay.textContent = `Wrong guesses: ${wrongLetters.length}`;
+// --- State ---------------------------------------------------------------
+
+let word = "";
+let guessed = [];      // every letter guessed so far, right or wrong
+let gameOver = false;
+const buttons = {};    // the button for each letter, e.g. buttons["A"]
+
+// --- Helpers -------------------------------------------------------------
+
+function wrongCount() {
+    return guessed.filter(function (letter) {
+        return !word.includes(letter);
+    }).length;
 }
 
-function checkLetter(letter) {
-  let isCorrect = false;
-  if (!correctLetters.includes(letter) && !wrongLetters.includes(letter)) {
-    isCorrect = selectedWord.includes(letter);
-    if (isCorrect) {
-      for (let i = 0; i < selectedWord.length; i++) {
-        if (selectedWord[i] === letter) {
-          displayWord[i] = letter;
-        }
-      }
+function isSolved() {
+    return word.split("").every(function (letter) {
+        return guessed.includes(letter);
+    });
+}
+
+// --- Showing the game ----------------------------------------------------
+
+function show() {
+    // Guessed letters are shown, the rest are _.
+    wordText.textContent = word.split("").map(function (letter) {
+        return guessed.includes(letter) ? letter : "_";
+    }).join(" ");
+
+    const wrong = wrongCount();
+    wrongText.textContent = "Wrong guesses: " + wrong + " of " + MAX_WRONG;
+
+    // One more part of the man for each wrong guess.
+    parts.forEach(function (part, index) {
+        part.style.visibility = index < wrong ? "visible" : "hidden";
+    });
+}
+
+// --- Actions -------------------------------------------------------------
+
+function guess(letter) {
+    if (gameOver || guessed.includes(letter)) {
+        return;
     }
-    isCorrect ? correctLetters.push(letter) : wrongLetters.push(letter);
-  }
-  return isCorrect;
+    guessed.push(letter);
+
+    const button = buttons[letter];
+    button.disabled = true;
+    button.classList.add(word.includes(letter) ? "correct" : "wrong");
+    show();
+
+    if (isSolved()) {
+        endGame("You win! The word was " + word + ".");
+    } else if (wrongCount() >= MAX_WRONG) {
+        endGame("Game over! The word was " + word + ".");
+    }
 }
 
-function checkGameOver() {
-  if (!displayWord.includes("_")) {
-    uiDisplay.result.innerHTML =
-      "<span>You Win!</span> The word was <span>" + selectedWord + "</span>";
-    uiDisplay.resultImage.src = "/assets/hangman/images/star.svg";
-    uiDisplay.overlay.style.display = "block";
-    disableKeyboard();
-  } else if (wrongLetters.length >= 6) {
-    uiDisplay.result.innerHTML =
-      "<span>Game Over!</span> The word was <span>" + selectedWord + "</span>";
-    uiDisplay.resultImage.src = "/assets/hangman/images/hangman-6.svg";
-    uiDisplay.overlay.style.display = "block";
-    disableKeyboard();
-  }
+function endGame(text) {
+    gameOver = true;
+    messageText.textContent = text;
+    LETTERS.split("").forEach(function (letter) {
+        buttons[letter].disabled = true;
+    });
 }
 
-function createKeyboard() {
-  for (let i = 65; i <= 90; i++) {
-    let letter = String.fromCharCode(i);
-    let btn = document.createElement("button");
-    btn.textContent = letter;
-    btn.onclick = function () {
-      btn.disabled = true;
-      let isCorrect = checkLetter(letter);
-      isCorrect ? btn.classList.add("correct") : btn.classList.add("wrong");
-      updateUI();
-      checkGameOver();
-    };
-    uiDisplay.keyboard.appendChild(btn);
-    keyboardBtns.push(btn);
-  }
+function newGame() {
+    word = WORDS[Math.floor(Math.random() * WORDS.length)];
+    guessed = [];
+    gameOver = false;
+    messageText.textContent = "";
+    LETTERS.split("").forEach(function (letter) {
+        buttons[letter].disabled = false;
+        buttons[letter].classList.remove("correct", "wrong");
+    });
+    show();
 }
 
-function disableKeyboard() {
-  keyboardBtns.forEach((element) => {
-    element.disabled = true;
-  });
-}
+// --- Connect the page ----------------------------------------------------
 
-uiDisplay.restart.addEventListener("click", function () {
-  location.reload();
+// One button per letter.
+LETTERS.split("").forEach(function (letter) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = letter;
+    button.addEventListener("click", function () {
+        guess(letter);
+    });
+    keyboard.appendChild(button);
+    buttons[letter] = button;
 });
 
-window.onload = function () {
-  createKeyboard();
-  updateUI();
-};
+// Typing a letter works too, but not Ctrl+R and the like.
+document.addEventListener("keydown", function (event) {
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+    }
+    const letter = event.key.toUpperCase();
+    if (letter.length === 1 && LETTERS.includes(letter)) {
+        guess(letter);
+    }
+});
+
+newWordButton.addEventListener("click", newGame);
+
+newGame();

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eliza</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        color: #9fef9f;
+        background-color: #101410;
+        font-family: monospace;
+        font-size: 16px;
+    }
+
+    .sub {
+        color: #5f9f5f;
+    }
+
+    #log {
+        min-height: 360px;
+        max-height: 65vh;
+        overflow-y: auto;
+        padding: 16px;
+        border: 1px solid #2a3a2a;
+        background-color: #0a0d0a;
+    }
+
+    .line {
+        margin: 0 0 10px;
+    }
+
+    .user {
+        color: #e8e8c8;
+    }
+
+    .user::before {
+        content: "> ";
+        color: #5f9f5f;
+    }
+
+    form {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    input,
+    button {
+        padding: 10px;
+        border: 1px solid #9fef9f;
+        color: inherit;
+        background-color: #0a0d0a;
+        font: inherit;
+    }
+
+    input {
+        flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Eliza</h1>
+  <p class="sub">Joseph Weizenbaum, MIT, 1966 &mdash; running the DOCTOR script</p>
+
+  <div id="log" aria-live="polite"></div>
+
+  <form id="form" autocomplete="off">
+    <input id="input" placeholder="Type here and press Enter" aria-label="Your message" autofocus>
+    <button type="submit">Send</button>
+  </form>
+
+  <script>
+    // The DOCTOR script for ELIZA, as published in the appendix of
+    // J. Weizenbaum, "ELIZA - A Computer Program For the Study of Natural Language
+    // Communication Between Man and Machine", Communications of the ACM 9(1), 1966.
+    //
+    // It is kept in its original form, nested lists in brackets, and eliza.js
+    // reads it when the page loads. It is in a .js file so the page also works
+    // when opened straight from disk, where browsers refuse to fetch() files.
+    //
+    // Format of an entry:
+    //   (KEYWORD [= SUBSTITUTE] [RANK] [DLIST(/TAGS)] (decomposition reassembly...) ...)
+    //   decomposition: 0 = any number of words, n = exactly n words,
+    //                  (* A B) = one of A/B, (/TAG) = a word tagged TAG
+    //   reassembly:    numbers insert the matching decomposition part,
+    //                  (=KEY) jumps to KEY's rules, (NEWKEY) tries the next keyword,
+    //                  (PRE (text) (=KEY)) rewrites the input and then applies KEY.
+
+    const DOCTOR_SCRIPT = `
+    (HOW DO YOU DO.  PLEASE TELL ME YOUR PROBLEM)
+
+    START
+
+    (SORRY ((0) (PLEASE DON'T APOLIGIZE)
+        (APOLOGIES ARE NOT NECESSARY) (WHAT FEELINGS
+        DO YOU HAVE WHEN YOU APOLOGIZE) (I'VE TOLD YOU
+        THAT APOLOGIES ARE NOT REQUIRED)))
+    (DONT = DON'T)
+    (CANT = CAN'T)
+    (WONT = WON'T)
+    (REMEMBER 5
+        ((0 YOU REMEMBER 0) (DO YOU OFTEN THINK OF 4)
+            (DOES THINKING OF 4 BRING ANYTHING ELSE TO MIND)
+            (WHAT ELSE DO YOU REMEMBER)
+            (WHY DO YOU REMEMBER 4 JUST NOW)
+            (WHAT IN THE PRESENT SITUATION REMINDS YOU OF 4)
+            (WHAT IS THE CONNECTION BETWEEN ME AND 4))
+        ((0 DO I REMEMBER 0) (DID YOU THINK I WOULD FORGET 5)
+            (WHY DO YOU THINK I SHOULD RECALL 5 NOW)
+            (WHAT ABOUT 5) (=WHAT) (YOU MENTIONED 5))
+        ((0) (NEWKEY)))
+    (IF 3 ((0 IF 0) (DO YOU THINK ITS LIKELY THAT 3) (DO YOU WISH THAT 3)
+        (WHAT DO YOU THINK ABOUT 3) (REALLY, 2 3)))
+    (DREAMT 4 ((0 YOU DREAMT 0)
+        (REALLY, 4) (HAVE YOU EVER FANTASIED 4 WHILE YOU WERE AWAKE)
+        (HAVE YOU DREAMT 4 BEFORE) (=DREAM) (NEWKEY)))
+    (DREAMED = DREAMT 4 (=DREAMT))
+    (DREAM 3 ((0) (WHAT DOES THAT DREAM SUGGEST TO YOU)
+        (DO YOU DREAM OFTEN) (WHAT PERSONS APPEAR IN YOUR DREAMS)
+        (DON'T YOU BELIEVE THAT DREAM HAS SOMETHING TO DO WITH
+            YOUR PROBLEM) (NEWKEY)))
+    (DREAMS = DREAM 3 (=DREAM))
+    (HOW (=WHAT))
+    (WHEN (=WHAT))
+    (ALIKE 10 (=DIT))
+    (SAME 10 (=DIT))
+    (CERTAINLY (=YES))
+    (FEEL DLIST(/BELIEF))
+    (THINK DLIST(/BELIEF))
+    (BELIEVE DLIST(/BELIEF))
+    (WISH DLIST(/BELIEF))
+    (MEMORY MY
+        (0 YOUR 0 = LETS DISCUSS FURTHER WHY YOUR 3)
+        (0 YOUR 0 = EARLIER YOU SAID YOUR 3)
+        (0 YOUR 0 = BUT YOUR 3)
+        (0 YOUR 0 = DOES THAT HAVE ANYTHING TO DO WITH THE FACT THAT YOUR 3))
+    (NONE ((0) (I AM NOT SURE I UNDERSTAND YOU FULLY)
+        (PLEASE GO ON)
+        (WHAT DOES THAT SUGGEST TO YOU)
+        (DO YOU FEEL STRONGLY ABOUT DISCUSSING SUCH THINGS)))
+    (PERHAPS ((0) (YOU DON'T SEEM QUITE CERTAIN)
+        (WHY THE UNCERTAIN TONE)
+        (CAN'T YOU BE MORE POSITIVE)
+        (YOU AREN'T SURE)
+        (DON'T YOU KNOW)))
+    (MAYBE (=PERHAPS))
+    (NAME 15 ((0) (I AM NOT INTERESTED IN NAMES)
+        (I'VE TOLD YOU BEFORE, I DON'T CARE ABOUT NAMES -
+            PLEASE CONTINUE)))
+    (DEUTSCH (=XFREMD))
+    (FRANCAIS (=XFREMD))
+    (ITALIANO (=XFREMD))
+    (ESPANOL (=XFREMD))
+    (XFREMD ((0) (I AM SORRY, I SPEAK ONLY ENGLISH)))
+    (HELLO ((0) (HOW DO YOU DO.  PLEASE STATE YOUR PROBLEM)))
+    (COMPUTER 50 ((0) (DO COMPUTERS WORRY YOU)
+        (WHY DO YOU MENTION COMPUTERS) (WHAT DO YOU THINK MACHINES
+            HAVE TO DO WITH YOUR PROBLEM) (DON'T YOU THINK COMPUTERS CAN
+            HELP PEOPLE) (WHAT ABOUT MACHINES WORRIES YOU) (WHAT DO YOU
+            THINK ABOUT MACHINES)))
+    (MACHINE 50 (=COMPUTER))
+    (MACHINES 50 (=COMPUTER))
+    (COMPUTERS 50 (=COMPUTER))
+    (AM = ARE ((0 ARE YOU 0) (DO YOU BELIEVE YOU ARE 4)
+        (WOULD YOU WANT TO BE 4) (YOU WISH I WOULD TELL YOU YOU ARE 4)
+        (WHAT WOULD IT MEAN IF YOU WERE 4) (=WHAT))
+        ((0) (WHY DO YOU SAY 'AM') (I DON'T UNDERSTAND THAT)))
+    (ARE ((0 ARE I 0)
+        (WHY ARE YOU INTERESTED IN WHETHER I AM 4 OR NOT)
+        (WOULD YOU PREFER IF I WEREN'T 4) (PERHAPS I AM 4 IN YOUR
+            FANTASIES) (DO YOU SOMETIMES THINK I AM 4) (=WHAT))
+        ((0 ARE 0) (DID YOU THINK THEY MIGHT NOT BE 3)
+        (WOULD YOU LIKE IT IF THEY WERE NOT 3) (WHAT IF THEY WERE NOT 3)
+        (POSSIBLY THEY ARE 3)))
+    (YOUR = MY ((0 MY 0) (WHY ARE YOU CONCERNED OVER MY 3)
+        (WHAT ABOUT YOUR OWN 3) (ARE YOU WORRIED ABOUT SOMEONE ELSES 3)
+        (REALLY, MY 3)))
+    (WAS 2 ((0 WAS YOU 0) (WHAT IF YOU WERE 4) (DO YOU THINK YOU WERE 4)
+        (WERE YOU 4) (WHAT WOULD IT MEAN IF YOU WERE 4)
+        (WHAT DOES ' 4 ' SUGGEST TO YOU) (=WHAT))
+        ((0 YOU WAS 0) (WERE YOU REALLY) (WHY DO YOU TELL ME YOU WERE 4 NOW)
+        (PERHAPS I ALREADY KNEW YOU WERE 4))
+        ((0 WAS I 0) (WOULD YOU LIKE TO BELIEVE I WAS 4)
+        (WHAT SUGGESTS THAT I WAS 4)
+        (WHAT DO YOU THINK) (PERHAPS I WAS 4)
+        (WHAT IF I HAD BEEN 4))
+        ((0) (NEWKEY)))
+    (WERE = WAS (=WAS))
+    (ME = YOU)
+    (YOU'RE = I'M ((0 I'M 0) (PRE (I ARE 3) (=YOU))))
+    (I'M = YOU'RE ((0 YOU'RE 0) (PRE (YOU ARE 3) (=I))))
+    (MYSELF = YOURSELF)
+    (YOURSELF = MYSELF)
+    (MOTHER DLIST(/NOUN FAMILY))
+    (MOM = MOTHER DLIST(/ FAMILY))
+    (DAD = FATHER DLIST(/ FAMILY))
+    (FATHER DLIST(/NOUN FAMILY))
+    (SISTER DLIST(/FAMILY))
+    (BROTHER DLIST(/FAMILY))
+    (WIFE DLIST(/FAMILY))
+    (CHILDREN DLIST(/FAMILY))
+    (I = YOU
+        ((0 YOU (* WANT NEED) 0) (WHAT WOULD IT MEAN TO YOU IF YOU GOT 4)
+            (WHY DO YOU WANT 4) (SUPPOSE YOU GOT 4 SOON) (WHAT IF YOU
+            NEVER GOT 4) (WHAT WOULD GETTING 4 MEAN TO YOU)
+            (WHAT DOES WANTING 4 HAVE TO DO WITH THIS DISCUSSION))
+        ((0 YOU ARE 0 (*SAD UNHAPPY DEPRESSED SICK ) 0)
+            (I AM SORRY TO HEAR YOU ARE 5)
+            (DO YOU THINK COMING HERE WILL HELP YOU NOT TO BE 5)
+            (I'M SURE ITS NOT PLEASANT TO BE 5)
+            (CAN YOU EXPLAIN WHAT MADE YOU 5))
+        ((0 YOU ARE 0 (*HAPPY ELATED GLAD BETTER) 0)
+            (HOW HAVE I HELPED YOU TO BE 5)
+            (HAS YOUR TREATMENT MADE YOU 5)
+            (WHAT MAKES YOU 5 JUST NOW)
+            (CAN YOU EXPLAIN WHY YOU ARE SUDDENLY 5))
+        ((0 YOU WAS 0) (=WAS))
+        ((0 YOU (/BELIEF) YOU 0) (DO YOU REALLY THINK SO) (BUT YOU ARE NOT
+            SURE YOU 5) (DO YOU REALLY DOUBT YOU 5))
+        ((0 YOU 0 (/BELIEF) 0 I 0) (=YOU))
+        ((0 YOU ARE 0) (IS IT BECAUSE YOU ARE 4 THAT YOU CAME TO ME)
+            (HOW LONG HAVE YOU BEEN 4)
+            (DO YOU BELIEVE IT NORMAL TO BE 4)
+            (DO YOU ENJOY BEING 4))
+        ((0 YOU (* CAN'T CANNOT) 0) (HOW DO YOU KNOW YOU CAN'T 4)
+            (HAVE YOU TRIED)
+            (PERHAPS YOU COULD 4 NOW)
+            (DO YOU REALLY WANT TO BE ABLE TO 4))
+        ((0 YOU DON'T 0) (DON'T YOU REALLY 4) (WHY DON'T YOU 4)
+            (DO YOU WISH TO BE ABLE TO 4) (DOES THAT TROUBLE YOU))
+        ((0 YOU FEEL 0) (TELL ME MORE ABOUT SUCH FEELINGS)
+            (DO YOU OFTEN FEEL 4)
+            (DO YOU ENJOY FEELING 4)
+            (OF WHAT DOES FEELING 4 REMIND YOU))
+        ((0 YOU 0 I 0) (PERHAPS IN YOUR FANTASY WE 3 EACH OTHER)
+            (DO YOU WISH TO 3 ME)
+            (YOU SEEM TO NEED TO 3 ME)
+            (DO YOU 3 ANYONE ELSE))
+        ((0) (YOU SAY 1)
+            (CAN YOU ELABORATE ON THAT)
+            (DO YOU SAY 1 FOR SOME SPECIAL REASON)
+            (THAT'S QUITE INTERESTING)))
+    (YOU = I ((0 I REMIND YOU OF 0) (=DIT))
+        ((0 I ARE 0) (WHAT MAKES YOU THINK I AM 4)
+            (DOES IT PLEASE YOU TO BELIEVE I AM 4)
+            (DO YOU SOMETIMES WISH YOU WERE 4)
+            (PERHAPS YOU WOULD LIKE TO BE 4))
+        ((0 I 0 YOU) (WHY DO YOU THINK I 3 YOU)
+            (YOU LIKE TO THINK I 3 YOU - DON'T YOU)
+            (WHAT MAKES YOU THINK I 3 YOU)
+            (REALLY, I 3 YOU)
+            (DO YOU WISH TO BELIEVE I 3 YOU)
+            (SUPPOSE I DID 3 YOU - WHAT WOULD THAT MEAN)
+            (DOES SOMEONE ELSE BELIEVE I 3 YOU))
+        ((0 I 0) (WE WERE DISCUSSING YOU - NOT ME)
+            (OH, I 3)
+            (YOU'RE NOT REALLY TALKING ABOUT ME - ARE YOU)
+            (WHAT ARE YOUR FEELINGS NOW)))
+    (YES ((0) (YOU SEEM QUITE POSITIVE) (YOU ARE SURE)
+        (I SEE) (I UNDERSTAND)))
+    (NO ((0) (ARE YOU SAYING 'NO' JUST TO BE NEGATIVE)
+        (YOU ARE BEING A BIT NEGATIVE) (WHY NOT) (WHY 'NO')))
+    (MY = YOUR 2 ((0 YOUR 0 (/FAMILY) 0)
+        (TELL ME MORE ABOUT YOUR FAMILY) (WHO ELSE IN YOUR FAMILY
+            5) (YOUR 4) (WHAT ELSE COMES TO MIND WHEN YOU THINK OF
+            YOUR 4))
+        ((0 YOUR 0) (YOUR 3) (WHY DO YOU SAY YOUR 3) (DOES THAT
+            SUGGEST ANYTHING ELSE WHICH BELONGS TO YOU) (IS IT
+            IMPORTANT TO YOU THAT 2 3)))
+    (CAN ((0 CAN I 0) (YOU BELIEVE I CAN 4 DON'T YOU) (=WHAT)
+        (YOU WANT ME TO BE ABLE TO 4) (PERHAPS YOU WOULD LIKE TO BE
+            ABLE TO 4 YOURSELF))
+        ((0 CAN YOU 0) (WHETHER OR NOT YOU CAN 4 DEPENDS ON YOU MORE
+            THAN ON ME) (DO YOU WANT TO BE ABLE TO 4)
+            (PERHAPS YOU DON'T WANT TO 4) (=WHAT)))
+    (WHAT ((0) (WHY DO YOU ASK) (DOES THAT QUESTION INTEREST YOU)
+        (WHAT IS IT YOU REALLY WANT TO KNOW)
+        (ARE SUCH QUESTIONS MUCH ON YOUR MIND)
+        (WHAT ANSWER WOULD PLEASE YOU MOST)
+        (WHAT DO YOU THINK) (WHAT COMES TO YOUR MIND WHEN YOU ASK THAT)
+        (HAVE YOU ASKED SUCH QUESTIONS BEFORE)
+        (HAVE YOU ASKED ANYONE ELSE)))
+    (BECAUSE ((0) (IS THAT THE REAL REASON) (DON'T ANY OTHER REASONS
+        COME TO MIND) (DOES THAT REASON SEEM TO EXPLAIN ANYTHING ELSE)
+        (WHAT OTHER REASONS MIGHT THERE BE)))
+    (WHY ((0 WHY DON'T I 0) (DO YOU BELIEVE I DON'T 5) (PERHAPS I
+            WILL 5 IN GOOD TIME) (SHOULD YOU 5 YOURSELF) (YOU WANT ME
+            TO 5) (=WHAT))
+        ((0 WHY CAN'T YOU 0) (DO YOU THINK YOU SHOULD BE ABLE TO 5)
+            (DO YOU WANT TO BE ABLE TO 5) (DO YOU BELIEVE THIS WILL HELP
+            YOU TO 5) (HAVE YOU ANY IDEA WHY YOU CAN'T 5) (=WHAT))
+        (=WHAT))
+    (EVERYONE 2 ((0 (* EVERYONE EVERYBODY NOBODY NOONE) 0)
+        (REALLY, 2) (SURELY NOT 2) (CAN YOU THINK OF
+            ANYONE IN PARTICULAR) (WHO, FOR EXAMPLE) (YOU ARE THINKING OF A
+            VERY SPECIAL PERSON) (WHO, MAY I ASK) (SOMEONE SPECIAL
+            PERHAPS) (YOU HAVE A PARTICULAR PERSON IN MIND, DON'T YOU)
+            (WHO DO YOU THINK YOU'RE TALKING ABOUT)))
+    (EVERYBODY 2 (= EVERYONE))
+    (NOBODY 2 (= EVERYONE))
+    (NOONE 2 (= EVERYONE))
+    (ALWAYS 1 ((0) (CAN YOU THINK OF A SPECIFIC EXAMPLE) (WHEN)
+        (WHAT INCIDENT ARE YOU THINKING OF) (REALLY, ALWAYS)))
+    (LIKE 10 ((0 (*AM IS ARE WAS) 0 LIKE 0) (=DIT))
+        ((0) (NEWKEY)))
+    (DIT ((0) (IN WHAT WAY) (WHAT RESEMBLANCE DO YOU SEE)
+        (WHAT DOES THAT SIMILARITY SUGGEST TO YOU)
+        (WHAT OTHER CONNECTIONS DO YOU SEE)
+        (WHAT DO YOU SUPPOSE THAT RESEMBLANCE MEANS)
+        (WHAT IS THE CONNECTION, DO YOU SUPPOSE)
+        (COULD THERE REALLY BE SOME CONNECTION)
+        (HOW)))
+    ()
+    `;
+
+    /*
+     * ELIZA - a JavaScript version of Joseph Weizenbaum's program (MIT, 1966).
+     * It follows the algorithm in his paper in Communications of the ACM:
+     *
+     *  1. The input is read word by word. A word that is in the script may be
+     *     swapped for another (I -> YOU, MY -> YOUR), and if it is a keyword it
+     *     goes on the "keystack", the most important (highest rank) first.
+     *  2. A comma, period or BUT ends the sentence if a keyword has been found.
+     *     If not, the words before it are thrown away and reading goes on.
+     *  3. The rules of the top keyword are tried in order. The first pattern
+     *     that matches picks an answer. The answers are used in turn, so ELIZA
+     *     doesn't say the same thing twice in a row.
+     *  4. When the top keyword is MY, a changed copy of the input is also saved.
+     *     Later, when an input has no keyword, ELIZA may bring it back:
+     *     "EARLIER YOU SAID YOUR ...".
+     *  5. With no keyword at all, the NONE rules are used.
+     *
+     * The program knows nothing about therapy. All of that is in the script
+     * (doctor.js), which is given to the constructor as text.
+     */
+
+    // --- Reading the script ---------------------------------------------------
+    //
+    // The script is written as nested lists in brackets, like Lisp:
+    //   (SORRY ((0) (PLEASE DON'T APOLOGIZE) (APOLOGIES ARE NOT NECESSARY)))
+    // readLists() turns that text into JavaScript arrays:
+    //   ["SORRY", [["0"], ["PLEASE", "DON'T", "APOLOGIZE"], [...]]]
+
+    function readLists(text) {
+        // Put spaces around brackets so they become words of their own.
+        const tokens = text.replace(/\(/g, " ( ").replace(/\)/g, " ) ").split(/\s+/).filter(Boolean);
+        let pos = 0;
+
+        // Read one word, or one whole (...) list with everything inside it.
+        // It calls itself for lists inside lists: that is called recursion.
+        function readOne() {
+            const token = tokens[pos];
+            pos++;
+
+            if (token === ")") {
+                throw new Error('ELIZA script: unexpected ")"');
+            }
+            if (token !== "(") {
+                return token;
+            }
+            const list = [];
+            while (tokens[pos] !== ")") {
+                if (pos >= tokens.length) {
+                    throw new Error('ELIZA script: missing ")"');
+                }
+                list.push(readOne());
+            }
+            pos++; // skip the ")"
+            return list;
+        }
+
+        const items = [];
+        while (pos < tokens.length) {
+            items.push(readOne());
+        }
+        return items;
+    }
+
+    // (=KEY) or (= KEY) means "use the rules of KEY". Returns "KEY", or null.
+    function linkTarget(list) {
+        if (!Array.isArray(list) || typeof list[0] !== "string" || list[0][0] !== "=") {
+            return null;
+        }
+        return list[0] === "=" ? list[1] : list[0].slice(1);
+    }
+
+    // A pattern like (0 YOU (* WANT NEED) 0) becomes a list of parts:
+    //   0        { any: true }                    any number of words
+    //   2        { count: 2 }                     exactly 2 words
+    //   YOU      { word: "YOU" }                  this word
+    //   (* A B)  { alternatives: ["A", "B"] }     one of these words
+    //   (/FAM)   { tags: ["FAM"] }                a word tagged FAM, like MOTHER
+    function parsePattern(list) {
+        return list.map(function (part) {
+            if (Array.isArray(part)) {
+                const words = part.join(" ");
+                if (words[0] === "*") {
+                    return { alternatives: words.slice(1).split(" ").filter(Boolean) };
+                }
+                if (words[0] === "/") {
+                    return { tags: words.slice(1).split(" ").filter(Boolean) };
+                }
+                throw new Error("ELIZA script: bad pattern (" + words + ")");
+            }
+            if (part === "0") {
+                return { any: true };
+            }
+            if (/^\d+$/.test(part)) {
+                return { count: Number(part) };
+            }
+            return { word: part };
+        });
+    }
+
+    // One keyword: (WORD [= SUBSTITUTE] [RANK] [DLIST(/TAGS)] rules...)
+    function parseEntry(list) {
+        const entry = { word: list[0], substitute: null, rank: 0, tags: [], rules: [] };
+        let i = 1;
+
+        if (list[i] === "=") {
+            entry.substitute = list[i + 1];
+            i += 2;
+        }
+        if (/^\d+$/.test(list[i])) {
+            entry.rank = Number(list[i]);
+            i++;
+        }
+        if (list[i] === "DLIST") {
+            entry.tags = list[i + 1].join(" ").replace(/\//g, " ").split(" ").filter(Boolean);
+            i += 2;
+        }
+
+        // Each rule is (pattern answer answer ...). A rule that is only (=KEY)
+        // means "for anything else, use KEY's rules".
+        for (; i < list.length; i++) {
+            const rule = list[i];
+            const isLink = linkTarget(rule) !== null;
+            entry.rules.push({
+                pattern: parsePattern(isLink ? ["0"] : rule[0]),
+                answers: isLink ? [rule] : rule.slice(1),
+                next: 0  // which answer to use next time
+            });
+        }
+        return entry;
+    }
+
+    // (MEMORY MY (0 YOUR 0 = LETS DISCUSS FURTHER WHY YOUR 3) ...)
+    function parseMemory(list) {
+        return {
+            keyword: list[1],
+            rules: list.slice(2).map(function (rule) {
+                const equals = rule.indexOf("=");
+                return {
+                    pattern: parsePattern(rule.slice(0, equals)),
+                    answer: rule.slice(equals + 1)
+                };
+            })
+        };
+    }
+
+    function parseScript(text) {
+        const items = readLists(text.toUpperCase());
+        const script = { greeting: items[0].join(" "), entries: {}, memory: null };
+
+        for (const item of items.slice(1)) {
+            // Skip the word START and the empty () at the end.
+            if (!Array.isArray(item) || item.length === 0) {
+                continue;
+            }
+            if (item[0] === "MEMORY") {
+                script.memory = parseMemory(item);
+            } else {
+                script.entries[item[0]] = parseEntry(item);
+            }
+        }
+        if (!script.entries.NONE) {
+            throw new Error("ELIZA script: no NONE entry");
+        }
+        return script;
+    }
+
+    // --- Matching -------------------------------------------------------------
+
+    // Match words against a pattern. Returns one array of words per pattern
+    // part, or null if it doesn't match:
+    //   pattern (0 YOU ARE 0), words I THINK YOU ARE NICE
+    //   -> [["I", "THINK"], ["YOU"], ["ARE"], ["NICE"]]
+    function match(pattern, words, tagsOf) {
+        const parts = [];
+
+        // Try to match pattern part p and everything after it, starting at
+        // word w. A 0 can take any number of words, so we try 0 words, then
+        // 1, then 2... until the rest of the pattern also matches.
+        function matchFrom(p, w) {
+            if (p === pattern.length) {
+                return w === words.length; // done only if all words are used
+            }
+            const part = pattern[p];
+
+            if (part.any) {
+                for (let n = 0; w + n <= words.length; n++) {
+                    parts[p] = words.slice(w, w + n);
+                    if (matchFrom(p + 1, w + n)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            if (part.count) {
+                if (w + part.count > words.length) {
+                    return false;
+                }
+                parts[p] = words.slice(w, w + part.count);
+                return matchFrom(p + 1, w + part.count);
+            }
+
+            // The other parts match exactly one word.
+            const word = words[w];
+            if (word === undefined) {
+                return false;
+            }
+            let ok;
+            if (part.word) {
+                ok = word === part.word;
+            } else if (part.alternatives) {
+                ok = part.alternatives.includes(word);
+            } else {
+                ok = part.tags.some(function (tag) {
+                    return tagsOf(word).includes(tag);
+                });
+            }
+            if (!ok) {
+                return false;
+            }
+            parts[p] = [word];
+            return matchFrom(p + 1, w + 1);
+        }
+
+        return matchFrom(0, 0) ? parts : null;
+    }
+
+    // Build an answer. Numbers in it are replaced by that part of the match:
+    //   (WHAT MAKES YOU THINK I AM 4) with part 4 = ["NICE"]
+    //   -> ["WHAT", "MAKES", "YOU", "THINK", "I", "AM", "NICE"]
+    function reassemble(answer, parts) {
+        const words = [];
+        for (const atom of answer) {
+            if (/^\d+$/.test(atom)) {
+                words.push(...(parts[Number(atom) - 1] || []));
+            } else {
+                words.push(atom);
+            }
+        }
+        return words;
+    }
+
+    // ["WHY", "SO", ","] -> "WHY SO,"
+    function format(words) {
+        return words.join(" ").replace(/ ,/g, ",").replace(/ \./g, ".");
+    }
+
+    // A number made from a word, always the same for the same word.
+    // Used to pick a memory rule, like the original did.
+    function hash(word) {
+        let h = 0;
+        for (let i = 0; i < word.length; i++) {
+            h = (h * 31 + word.charCodeAt(i)) >>> 0; // >>> 0 keeps it a positive 32-bit number
+        }
+        return h;
+    }
+
+    // --- The program ------------------------------------------------------------
+
+    class Eliza {
+        constructor(scriptText) {
+            this.script = parseScript(scriptText);
+            this.memory = [];  // saved sentences to bring back later
+            this.limit = 1;    // counts 1-4; memories are only used on 4
+        }
+
+        greeting() {
+            return this.script.greeting;
+        }
+
+        // The tags of a word, e.g. MOTHER -> ["FAMILY"].
+        tagsOf(word) {
+            const entry = this.script.entries[word];
+            return entry ? entry.tags : [];
+        }
+
+        respond(input) {
+            const entries = this.script.entries;
+            this.limit = this.limit % 4 + 1;
+
+            // Upper case, and punctuation as words of their own.
+            const tokens = input.toUpperCase()
+                .replace(/[‘’]/g, "'")
+                .replace(/,/g, " , ")
+                .replace(/[.?!;:]/g, " . ")
+                .replace(/[^A-Z0-9',. ]/g, " ")
+                .split(/\s+/)
+                .filter(Boolean);
+
+            // Step 1 and 2: find keywords and swap words.
+            const keystack = [];
+            let words = [];
+            for (const token of tokens) {
+                if (token === "," || token === "." || token === "BUT") {
+                    if (keystack.length > 0) {
+                        break;      // we have a keyword: ignore the rest
+                    }
+                    words = [];     // no keyword yet: forget this part
+                    continue;
+                }
+                const entry = entries[token];
+                if (entry && entry.rules.length > 0) {
+                    if (keystack.length === 0 || entry.rank > keystack[0].rank) {
+                        keystack.unshift(entry);  // most important: first
+                    } else {
+                        keystack.push(entry);
+                    }
+                }
+                words.push(entry && entry.substitute ? entry.substitute : token);
+            }
+
+            // Step 4: remember sentences about MY ...
+            const memory = this.script.memory;
+            if (keystack.length > 0 && memory && keystack[0].word === memory.keyword) {
+                this.remember(words);
+            }
+
+            // Step 3: try the keywords until one gives an answer. A rule can
+            // also point to another keyword. The guard stops endless loops.
+            let entry = keystack.shift();
+            for (let guard = 0; entry && guard < 100; guard++) {
+                const result = this.transform(entry, words);
+                if (result.reply) {
+                    return result.reply;
+                }
+                if (result.pre) {
+                    words = result.pre;
+                }
+                entry = result.link ? entries[result.link] : keystack.shift();
+            }
+
+            // Step 5: no keyword helped.
+            if (this.limit === 4 && this.memory.length > 0) {
+                return this.memory.shift();
+            }
+            return this.transform(entries.NONE, words).reply;
+        }
+
+        // Try one keyword's rules. Returns one of:
+        //   { reply }       an answer
+        //   { link }        use another keyword's rules
+        //   { pre, link }   change the words, then use another keyword
+        //   {}              try the next keyword (NEWKEY, or nothing matched)
+        transform(entry, words) {
+            const tagsOf = this.tagsOf.bind(this);
+
+            for (const rule of entry.rules) {
+                const parts = match(rule.pattern, words, tagsOf);
+                if (!parts) {
+                    continue;
+                }
+                const answer = rule.answers[rule.next];
+                rule.next = (rule.next + 1) % rule.answers.length;
+
+                const link = linkTarget(answer);
+                if (link) {
+                    return { link: link };
+                }
+                if (answer.length === 1 && answer[0] === "NEWKEY") {
+                    return {};
+                }
+                if (answer[0] === "PRE") {
+                    return { pre: reassemble(answer[1], parts), link: linkTarget(answer[2]) };
+                }
+                return { reply: format(reassemble(answer, parts)) };
+            }
+            return {};
+        }
+
+        remember(words) {
+            const rules = this.script.memory.rules;
+            const rule = rules[hash(words[words.length - 1] || "") % rules.length];
+            const parts = match(rule.pattern, words, this.tagsOf.bind(this));
+            if (parts) {
+                this.memory.push(format(reassemble(rule.answer, parts)));
+            }
+        }
+    }
+
+    /*
+     * The Eliza page: show the conversation and send what the user types to
+     * the Eliza program (eliza.js) running the DOCTOR script (doctor.js).
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const log = document.getElementById("log");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+
+    // --- The program ---------------------------------------------------------
+
+    const eliza = new Eliza(DOCTOR_SCRIPT);
+
+    // --- Actions -------------------------------------------------------------
+
+    // Add one line to the conversation. "who" is "eliza" or "user".
+    function say(text, who) {
+        const line = document.createElement("p");
+        line.className = "line " + who;
+        line.textContent = text;
+        log.appendChild(line);
+
+        // Scroll down so the newest line can be seen.
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function send(event) {
+        // Don't let the form reload the page.
+        event.preventDefault();
+
+        const text = input.value.trim();
+        if (text === "") {
+            return;
+        }
+        input.value = "";
+        say(text.toUpperCase(), "user");
+
+        // Wait a moment before answering, so it feels like a conversation.
+        setTimeout(function () {
+            say(eliza.respond(text), "eliza");
+        }, 300);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    form.addEventListener("submit", send);
+
+    // --- Start ---------------------------------------------------------------
+
+    say(eliza.greeting(), "eliza");
+  </script>
+</body>
+</html>

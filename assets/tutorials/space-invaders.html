@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Space Invaders</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        background-color: black;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        border: 2px solid #00ff00;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+  <script>
+    /*
+     * Space Invaders: a formation of aliens moves from side to side, and one
+     * row down every time it reaches an edge. Shoot them all before they get
+     * down to you. Hide behind the shields, and catch the power-ups some
+     * aliens drop. Five levels, each a little faster.
+     *
+     *   Arrow left/right   move
+     *   Space              shoot (hold it down)
+     *   P / Esc            pause / menu
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;        // one update step, in milliseconds
+    const LAST_LEVEL = 5;
+    const START_LIVES = 3;
+    const ROWS = 5;
+    const COLUMNS = 8;
+    const ALIEN_WIDTH = 40;
+    const ALIEN_HEIGHT = 20;
+    const DROP = 15;               // how far the aliens move down at an edge
+    const BULLET_SPEED = 7;
+    const ALIEN_BULLET_SPEED = 3;
+    const SHOT_TIME = 20;          // steps between shots...
+    const FAST_SHOT_TIME = 7;      // ...with rapid fire
+    const PLAYER_SPEED = 5;
+    const FAST_PLAYER_SPEED = 9;
+    const POWER_UP_TIME = 600;     // steps a power-up lasts (10 seconds)
+    const SAFE_TIME = 120;         // steps you can't be hit after a hit
+
+    const POWER_UPS = [
+        { type: "speed", color: "yellow", text: "Faster ship for 10 seconds" },
+        { type: "rapid", color: "#e81e63", text: "Rapid fire for 10 seconds" },
+        { type: "life", color: "#00ff00", text: "An extra life" }
+    ];
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, controls, powerUps, playing, paused, levelDone, won, gameOver
+    let menuIndex = 0;
+    let gameStarted = false;
+
+    let level = 1;
+    let score = 0;
+    let lives = START_LIVES;
+
+    // Everything that can hit something has x, y, width and height.
+    let player = null;
+    let aliens = [];
+    let alienSpeed = 0;      // pixels a step; negative is to the left
+    let bullets = [];        // yours, going up
+    let alienBullets = [];   // theirs, going down
+    let shields = [];        // small blocks that bullets break off
+    let powerUps = [];       // falling power-ups
+
+    let shotTimer = 0;       // steps until you can shoot again
+    let speedTime = 0;       // steps left of each power-up
+    let rapidTime = 0;
+    let safeTime = 0;        // steps left you can't be hit
+
+    const keys = {};
+
+    const MENU_ITEMS = ["Start", "Controls", "Power-ups"];
+
+    // --- Starting ------------------------------------------------------------
+
+    function newGame() {
+        level = 1;
+        score = 0;
+        lives = START_LIVES;
+        gameStarted = true;
+        startLevel();
+    }
+
+    function startLevel() {
+        player = { x: WIDTH / 2 - 25, y: HEIGHT - 30, width: 50, height: 20 };
+
+        aliens = [];
+        for (let row = 0; row < ROWS; row++) {
+            for (let col = 0; col < COLUMNS; col++) {
+                aliens.push({ x: 100 + col * 60, y: 50 + row * 40, width: ALIEN_WIDTH, height: ALIEN_HEIGHT });
+            }
+        }
+        alienSpeed = 0.5 + level * 0.3;
+
+        // Four shields, each 10 x 5 blocks of 8 x 8 pixels.
+        shields = [];
+        [120, 280, 440, 600].forEach(function (left) {
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 10; col++) {
+                    shields.push({ x: left + col * 8, y: 400 + row * 8, width: 8, height: 8 });
+                }
+            }
+        });
+
+        bullets = [];
+        alienBullets = [];
+        powerUps = [];
+        speedTime = 0;
+        rapidTime = 0;
+        safeTime = 0;
+        shotTimer = 0;
+        screen = "playing";
+    }
+
+    // --- Helpers -------------------------------------------------------------
+
+    // Do two rectangles overlap?
+    function overlaps(a, b) {
+        return a.x < b.x + b.width && a.x + a.width > b.x &&
+            a.y < b.y + b.height && a.y + a.height > b.y;
+    }
+
+    // Remove the first shield block that "thing" touches. Returns true if
+    // there was one.
+    function hitShield(thing) {
+        const index = shields.findIndex(function (block) {
+            return overlaps(thing, block);
+        });
+        if (index === -1) {
+            return false;
+        }
+        shields.splice(index, 1);
+        return true;
+    }
+
+    function newBullet(x, y) {
+        return { x: x - 2, y: y, width: 4, height: 10 };
+    }
+
+    // --- Update --------------------------------------------------------------
+
+    function movePlayer() {
+        const speed = speedTime > 0 ? FAST_PLAYER_SPEED : PLAYER_SPEED;
+        if (keys.ArrowLeft) {
+            player.x -= speed;
+        }
+        if (keys.ArrowRight) {
+            player.x += speed;
+        }
+        player.x = Math.max(0, Math.min(WIDTH - player.width, player.x));
+
+        shotTimer--;
+        if (keys[" "] && shotTimer <= 0) {
+            bullets.push(newBullet(player.x + player.width / 2, player.y));
+            shotTimer = rapidTime > 0 ? FAST_SHOT_TIME : SHOT_TIME;
+        }
+    }
+
+    // The aliens move together. If any of them would go past an edge, they
+    // all turn around and move down a row instead.
+    function moveAliens() {
+        const atEdge = aliens.some(function (alien) {
+            const x = alien.x + alienSpeed;
+            return x < 0 || x + alien.width > WIDTH;
+        });
+        aliens.forEach(function (alien) {
+            if (atEdge) {
+                alien.y += DROP;
+            } else {
+                alien.x += alienSpeed;
+            }
+            hitShield(alien);   // aliens crush the shields they fly through
+        });
+        if (atEdge) {
+            alienSpeed = -alienSpeed;
+        }
+
+        // A random alien shoots now and then. More often on later levels.
+        if (aliens.length > 0 && Math.random() < 0.01 + level * 0.005) {
+            const shooter = aliens[Math.floor(Math.random() * aliens.length)];
+            alienBullets.push(newBullet(shooter.x + shooter.width / 2, shooter.y + shooter.height));
+        }
+    }
+
+    function killAlien(alien) {
+        aliens.splice(aliens.indexOf(alien), 1);
+        score += 10;
+        // Fewer aliens move faster: a little faster for each one shot.
+        alienSpeed *= 1.03;
+        if (Math.random() < 0.1) {
+            const kind = POWER_UPS[Math.floor(Math.random() * POWER_UPS.length)];
+            powerUps.push({ x: alien.x + 12, y: alien.y, width: 15, height: 15, type: kind.type, color: kind.color });
+        }
+    }
+
+    function pickUp(type) {
+        if (type === "speed") {
+            speedTime = POWER_UP_TIME;
+        } else if (type === "rapid") {
+            rapidTime = POWER_UP_TIME;
+        } else if (type === "life") {
+            lives++;
+        }
+    }
+
+    function update() {
+        movePlayer();
+        moveAliens();
+        speedTime--;
+        rapidTime--;
+        safeTime--;
+
+        // Your bullets: they stop at a shield, or kill the first alien they hit.
+        bullets = bullets.filter(function (bullet) {
+            bullet.y -= BULLET_SPEED;
+            if (bullet.y + bullet.height < 0 || hitShield(bullet)) {
+                return false;
+            }
+            const alien = aliens.find(function (a) {
+                return overlaps(bullet, a);
+            });
+            if (alien) {
+                killAlien(alien);
+                return false;
+            }
+            return true;
+        });
+
+        alienBullets = alienBullets.filter(function (bullet) {
+            bullet.y += ALIEN_BULLET_SPEED;
+            if (bullet.y > HEIGHT || hitShield(bullet)) {
+                return false;
+            }
+            if (overlaps(bullet, player)) {
+                if (safeTime <= 0) {
+                    lives--;
+                    safeTime = SAFE_TIME;
+                }
+                return false;
+            }
+            return true;
+        });
+
+        powerUps = powerUps.filter(function (powerUp) {
+            powerUp.y += 2;
+            if (overlaps(powerUp, player)) {
+                pickUp(powerUp.type);
+                return false;
+            }
+            return powerUp.y < HEIGHT;
+        });
+
+        // The aliens win if they get down to your ship.
+        const landed = aliens.some(function (alien) {
+            return alien.y + alien.height >= player.y;
+        });
+
+        if (lives <= 0 || landed) {
+            screen = "gameOver";
+        } else if (aliens.length === 0) {
+            screen = level === LAST_LEVEL ? "won" : "levelDone";
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawText(text, x, y, size, color, align) {
+        ctx.fillStyle = color || "white";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = align || "center";
+        ctx.fillText(text, x, y);
+    }
+
+    // A rounded box with a glow around it.
+    function drawGlowing(thing, color) {
+        ctx.save();
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(thing.x, thing.y, thing.width, thing.height, 5);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawWorld() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        if (!gameStarted) {
+            return;
+        }
+
+        // After a hit the ship blinks: red and green every 6 steps.
+        const blink = safeTime > 0 && Math.floor(safeTime / 6) % 2 === 0;
+        drawGlowing(player, blink ? "red" : "#00ff00");
+
+        aliens.forEach(function (alien) {
+            drawGlowing(alien, "white");
+        });
+        ctx.fillStyle = "#3355ff";
+        shields.forEach(function (block) {
+            ctx.fillRect(block.x, block.y, block.width, block.height);
+        });
+        bullets.forEach(function (bullet) {
+            drawGlowing(bullet, "#00ff00");
+        });
+        alienBullets.forEach(function (bullet) {
+            drawGlowing(bullet, "white");
+        });
+        powerUps.forEach(function (powerUp) {
+            drawGlowing(powerUp, powerUp.color);
+        });
+
+        drawText("Score: " + score, 20, 25, 18, "white", "left");
+        drawText("Level: " + level, WIDTH / 2, 25, 18);
+        drawText("Lives: " + lives, WIDTH - 20, 25, 18, "white", "right");
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 50, 40, "#00ff00");
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+        });
+    }
+
+    function drawMenu() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText("Space Invaders", WIDTH / 2, HEIGHT / 2 - 60, 56, "#00ff00");
+        MENU_ITEMS.forEach(function (item, index) {
+            const color = index === menuIndex ? "yellow" : "white";
+            drawText(item, WIDTH / 2, HEIGHT / 2 + 10 + index * 40, 24, color);
+        });
+        drawText("Arrow keys and Enter to choose", WIDTH / 2, HEIGHT - 50, 16);
+        if (gameStarted) {
+            drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 25, 16);
+        }
+    }
+
+    function drawPowerUpHelp() {
+        drawMessage("Power-ups", []);
+        POWER_UPS.forEach(function (kind, index) {
+            const y = HEIGHT / 2 + index * 40;
+            drawGlowing({ x: WIDTH / 2 - 160, y: y - 14, width: 15, height: 15 }, kind.color);
+            drawText(kind.text, WIDTH / 2 - 130, y, 20, "white", "left");
+        });
+        drawText("Esc: back", WIDTH / 2, HEIGHT - 25, 16);
+    }
+
+    function draw() {
+        drawWorld();
+
+        if (screen === "menu") {
+            drawMenu();
+        } else if (screen === "controls") {
+            drawMessage("Controls", ["Move: arrow left / right", "Shoot: Space", "Pause: P      Menu: Esc", "", "Esc: back"]);
+        } else if (screen === "powerUps") {
+            drawPowerUpHelp();
+        } else if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "levelDone") {
+            drawMessage("Level " + level + " done!", ["Press Enter for the next level"]);
+        } else if (screen === "won") {
+            drawMessage("You win!", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+        } else if (screen === "gameOver") {
+            drawMessage("Game over", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // Run one update per 1/60 second, so the game has the same speed on
+    // every screen, then draw.
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        while (leftover >= STEP) {
+            if (screen === "playing") {
+                update();
+            }
+            leftover -= STEP;
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Keyboard ------------------------------------------------------------
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+        keys[key] = true;
+
+        if (screen === "menu") {
+            if (key === "ArrowUp") {
+                menuIndex = (menuIndex + MENU_ITEMS.length - 1) % MENU_ITEMS.length;
+            } else if (key === "ArrowDown") {
+                menuIndex = (menuIndex + 1) % MENU_ITEMS.length;
+            } else if (key === "Enter") {
+                const item = MENU_ITEMS[menuIndex];
+                if (item === "Start") {
+                    newGame();
+                } else if (item === "Controls") {
+                    screen = "controls";
+                } else {
+                    screen = "powerUps";
+                }
+            } else if (key === "Escape" && gameStarted) {
+                screen = "paused";
+            }
+        } else if (screen === "controls" || screen === "powerUps") {
+            if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "playing") {
+            if (key === "p" || key === "P") {
+                screen = "paused";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "paused") {
+            if (key === "p" || key === "P") {
+                screen = "playing";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "levelDone") {
+            if (key === "Enter") {
+                level++;
+                startLevel();
+            }
+        } else if (screen === "won" || screen === "gameOver") {
+            if (key === "Enter") {
+                newGame();
+            } else if (key === "Escape") {
+                gameStarted = false;
+                screen = "menu";
+            }
+        }
+    });
+
+    document.addEventListener("keyup", function (event) {
+        keys[event.key] = false;
+    });
+
+    // If the window loses focus while a key is held, we never get its keyup.
+    window.addEventListener("blur", function () {
+        for (const key in keys) {
+            keys[key] = false;
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>

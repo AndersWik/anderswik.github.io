@@ -1,0 +1,212 @@
+---
+layout: default
+title: Building a utility page
+permalink: /tutorials/utility-page/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, html, css, getElementById, addEventListener, textContent, developer tools, setup]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Building a utility page</h1>
+  <p>In these tutorials we build small tools, like a calculator and a color picker. Each tool is <strong>one HTML file</strong>, with a little CSS and the JavaScript inside it. You don't need a server or a framework. You make a file and open it in your browser.</p>
+  <p>This first tutorial shows the shape every tool has, by building a very small one: a word counter.</p>
+  <p><a href="/assets/tutorials/word-counter.html">Open the finished word counter</a></p>
+  <h2>What you need</h2>
+  <ul>
+    <li>A text editor.</li>
+    <li>A browser with developer tools. Press <code>F12</code> to open them. The <strong>Console</strong> tab shows errors from your JavaScript, and you can type JavaScript there to try things out.</li>
+  </ul>
+  <h2>The skeleton</h2>
+  <p>Every tool starts from this skeleton. Create a file called <code>word-counter.html</code> and paste it in:</p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Word counter&lt;/title&gt;
+  &lt;style&gt;
+    /* CSS goes here */
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!-- HTML goes here --&gt;
+
+  &lt;script&gt;
+    // JavaScript goes here
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <p>What the parts do:</p>
+  <ul>
+    <li><code>&lt;!DOCTYPE html&gt;</code> tells the browser this is a modern HTML page.</li>
+    <li><code>&lt;meta charset="utf-8"&gt;</code> makes characters like <code>åäö</code> and emojis show up correctly.</li>
+    <li><code>&lt;meta name="viewport" ...&gt;</code> makes the page fit the screen on a phone.</li>
+    <li><code>&lt;style&gt;</code> holds the CSS, which decides how things look.</li>
+    <li>The <code>&lt;script&gt;</code> is the <strong>last thing in the body</strong>. A script runs as soon as the browser reaches it, so when it comes after the HTML, every element on the page already exists when our code looks for it. If the script were at the top, <code>getElementById()</code> would find nothing.</li>
+  </ul>
+  <p>Open the file in your browser by double-clicking it, or by dragging it into a browser window. After every change, save and reload the page with <code>F5</code>.</p>
+  <h2>Step 1: The HTML</h2>
+  <p>Put this in the body, where the comment says "HTML goes here":</p>
+  <pre><code class="language-html">&lt;h1&gt;Word counter&lt;/h1&gt;
+
+&lt;label for="text"&gt;Text&lt;/label&gt;
+&lt;textarea id="text"&gt;&lt;/textarea&gt;
+
+&lt;p&gt;Words: &lt;span id="count"&gt;0&lt;/span&gt;&lt;/p&gt;</code></pre>
+  <p>Every element the script needs gets an <code>id</code>, and an id must be unique on the page. The <code>for</code> on a <code>label</code> points to the id of its text box, so clicking the label puts the cursor in the box.</p>
+  <h2>Step 2: The CSS</h2>
+  <p>Keep the CSS small. This makes the page readable and stops the text box from being tiny:</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+label {
+    display: block;
+    margin-top: 16px;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    box-sizing: border-box;
+}</code></pre>
+  <p><code>max-width</code> and <code>margin: 40px auto</code> keep the text in a column in the middle of the screen. <code>box-sizing: border-box</code> makes <code>width: 100%</code> include the border, so the box doesn't stick out on the right.</p>
+  <h2>Step 3: The JavaScript</h2>
+  <p>All the scripts in these tutorials follow the same order, with a comment line before each part. Once you know the order, it is easy to find your way in any of them.</p>
+  <ol>
+    <li>A comment at the top that explains what the tool does.</li>
+    <li><strong>Elements on the page</strong>: find the elements with <code>document.getElementById()</code> and keep them in constants.</li>
+    <li><strong>Helpers</strong>: small functions that only do calculations. They don't touch the page, so they are easy to test in the console.</li>
+    <li><strong>What the page does</strong>: functions that read from the page, use the helpers and write the answer back.</li>
+    <li><strong>Connect the page</strong>: <code>addEventListener()</code> tells the browser which function to run when something happens.</li>
+    <li><strong>Start</strong>: anything that should run once when the page loads.</li>
+  </ol>
+  <pre><code class="language-javascript">/*
+ * Word counter: count the words in a text while you type.
+ */
+
+// --- Elements on the page ------------------------------------------------
+
+const textInput = document.getElementById("text");
+const countText = document.getElementById("count");
+
+// --- Helpers -------------------------------------------------------------
+
+// "hello  big world " -&gt; 3
+function countWords(text) {
+    // trim() removes spaces at the start and end. split(/\s+/) splits on
+    // one or more spaces, tabs or new lines.
+    const words = text.trim().split(/\s+/);
+
+    // "".split() gives [""], one empty word, so handle that on its own.
+    if (words[0] === "") {
+        return 0;
+    }
+    return words.length;
+}
+
+// --- What the page does --------------------------------------------------
+
+function update() {
+    countText.textContent = countWords(textInput.value);
+}
+
+// --- Connect the page ----------------------------------------------------
+
+// "input" fires on every change: typing, pasting, deleting...
+textInput.addEventListener("input", update);</code></pre>
+  <p>Some things to notice:</p>
+  <ul>
+    <li><code>textInput.value</code> is what is typed in a form field. For other elements we use <code>textContent</code>.</li>
+    <li>We pass the function <code>update</code> to <code>addEventListener</code> without brackets. With brackets, <code>update()</code> would run once right away, and the browser would get its return value instead of the function.</li>
+    <li>We write text with <code>textContent</code>, not <code>innerHTML</code>. <code>textContent</code> always shows text as text, so nothing the user types can turn into HTML on the page.</li>
+  </ul>
+  <h2>Step 4: Test it</h2>
+  <p>Reload the page. Type a few words, then try an empty box, only spaces, and text over several lines. If nothing happens, look in the Console tab for a red error. The most common one is <code>Cannot read properties of null</code>. It means <code>getElementById</code> didn't find the element, usually because the id in the HTML and in the script are spelled differently.</p>
+  <p>You can also call the helpers directly in the console:</p>
+  <pre><code class="language-javascript">countWords("  one two\nthree ")   // 3</code></pre>
+  <h2>The complete page</h2>
+  <p><strong>word-counter.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Word counter&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    label {
+        display: block;
+        margin-top: 16px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 120px;
+        box-sizing: border-box;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Word counter&lt;/h1&gt;
+
+  &lt;label for="text"&gt;Text&lt;/label&gt;
+  &lt;textarea id="text"&gt;&lt;/textarea&gt;
+
+  &lt;p&gt;Words: &lt;span id="count"&gt;0&lt;/span&gt;&lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Word counter: count the words in a text while you type.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const textInput = document.getElementById("text");
+    const countText = document.getElementById("count");
+
+    // --- Helpers -------------------------------------------------------------
+
+    // "hello  big world " -&gt; 3
+    function countWords(text) {
+        // trim() removes spaces at the start and end. split(/\s+/) splits on
+        // one or more spaces, tabs or new lines.
+        const words = text.trim().split(/\s+/);
+
+        // "".split() gives [""], one empty word, so handle that on its own.
+        if (words[0] === "") {
+            return 0;
+        }
+        return words.length;
+    }
+
+    // --- What the page does --------------------------------------------------
+
+    function update() {
+        countText.textContent = countWords(textInput.value);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // "input" fires on every change: typing, pasting, deleting...
+    textInput.addEventListener("input", update);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Next</h2>
+  <p>The next tutorial builds a <a href="/tutorials/url-encoder/">URL encoder</a>, which has two text boxes and two buttons.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

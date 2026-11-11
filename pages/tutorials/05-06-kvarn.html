@@ -1,0 +1,786 @@
+---
+layout: default
+title: Kvarn
+permalink: /tutorials/kvarn/
+chapter: "05"
+chapter_title: "Board Games"
+keywords: [javascript, game, board game, nine men's morris, canvas, computer player, ai, minimax, undo, rules, click on canvas]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Kvarn</h1>
+  <p>Kvarn, or Nine Men's Morris, is a very old board game. Each player has nine pieces. First you take turns placing them on the 24 points of the board. Three of your pieces on one line is a <strong>mill</strong>, and lets you remove one of the other player's pieces. When all the pieces are placed, you take turns moving a piece along a line to a free point next to it. With only three pieces left, you may jump to any free point. You lose when you have fewer than three pieces, or can't move at all.</p>
+  <p>The game has more rules than <a href="/tutorials/connect-four/">Connect Four</a>, but it is built the same way: a list that holds the board, functions that know the rules, and a computer that uses <a href="/tutorials/connect-four-ai/">minimax</a> to look ahead. The new parts are drawing a board on a canvas and clicking on it, and turns that are more than one step.</p>
+  <p><a href="/assets/tutorials/kvarn.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>kvarn.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The board is a canvas, and the rest is like Connect Four vs computer:</p>
+  <pre><code class="language-html">&lt;h1&gt;Kvarn&lt;/h1&gt;
+&lt;canvas id="gameCanvas" width="600" height="600"&gt;&lt;/canvas&gt;
+&lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+&lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+&lt;p&gt;
+  &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+  &lt;select id="mode"&gt;
+    &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+    &lt;option value="easy" selected&gt;The computer (easy)&lt;/option&gt;
+    &lt;option value="hard"&gt;The computer (hard)&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/p&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    cursor: pointer;
+}
+
+#status {
+    font-size: 18px;
+    min-height: 1.5em;
+}</code></pre>
+  <h2>Step 2: The board as data</h2>
+  <p>The board is three squares inside each other, with lines joining the middles of their sides. That fits on a 7 by 7 grid, so we write every point as <code>[column, row]</code> on that grid:</p>
+  <pre><code class="language-javascript">const POINTS = [
+    [0, 0], [3, 0], [6, 0],
+    [1, 1], [3, 1], [5, 1],
+    [2, 2], [3, 2], [4, 2],
+    [0, 3], [1, 3], [2, 3], [4, 3], [5, 3], [6, 3],
+    [2, 4], [3, 4], [4, 4],
+    [1, 5], [3, 5], [5, 5],
+    [0, 6], [3, 6], [6, 6]
+];</code></pre>
+  <p>Laid out like that, the code looks like the board. Point 0 is the top left corner, point 4 the middle of the top side of the middle square, and point 23 the bottom right corner. The rest of the code only uses the numbers 0 to 23.</p>
+  <p>Then every line of three points on the board. These are the mills:</p>
+  <pre><code class="language-javascript">const MILLS = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11],
+    [12, 13, 14], [15, 16, 17], [18, 19, 20], [21, 22, 23],
+    [0, 9, 21], [3, 10, 18], [6, 11, 15], [1, 4, 7],
+    [16, 19, 22], [8, 12, 17], [5, 13, 20], [2, 14, 23]
+];</code></pre>
+  <p>The first eight go across, the last eight go down. We don't need a third list for which points are next to each other. Along a mill, the middle point is next to both ends, so we can work it out:</p>
+  <pre><code class="language-javascript">const NEIGHBORS = POINTS.map(function () {
+    return [];
+});
+MILLS.forEach(function ([a, b, c]) {
+    NEIGHBORS[a].push(b);
+    NEIGHBORS[b].push(a, c);
+    NEIGHBORS[c].push(b);
+});</code></pre>
+  <p>Now <code>NEIGHBORS[4]</code> is <code>[3, 5, 1, 7]</code>. The first version of this game had a list of all 32 connections typed in by hand next to the mills, which is twice as many numbers to get right.</p>
+  <h2>Step 3: The state</h2>
+  <pre><code class="language-javascript">let board = [];        // board[point]: null, "red" or "blue"
+let toPlace = {};      // pieces each player has left to place
+let player = "red";    // whose turn it is
+let selected = null;   // the point of the piece picked up to move
+let removing = false;  // true after a mill, until a piece is removed
+let winner = null;</code></pre>
+  <p>The first version kept the game in CSS classes on 24 <code>&lt;div&gt;</code>s, and asked <code>classList.contains("player1")</code> to find out what was on a point. Keeping the game in a plain list and only drawing it makes everything else simpler, most of all the computer player, which tries thousands of boards that are never shown.</p>
+  <h2>Step 4: The rules</h2>
+  <p>Small functions that each answer one question about the board:</p>
+  <pre><code class="language-javascript">function inMill(point, who) {
+    return MILLS.some(function (mill) {
+        return mill.includes(point) &amp;&amp; mill.every(function (p) {
+            return board[p] === who;
+        });
+    });
+}
+
+function removable(who) {
+    const pieces = piecesOf(who);
+    const free = pieces.filter(function (point) {
+        return !inMill(point, who);
+    });
+    return free.length &gt; 0 ? free : pieces;
+}</code></pre>
+  <ul>
+    <li><code>inMill</code>: is there <code>some</code> mill with this point in it, where <code>every</code> point has a piece of this color?</li>
+    <li><code>removable</code>: which pieces may be taken? Pieces in a mill are safe, unless every piece is in a mill. Then any of them can be taken.</li>
+    <li><code>piecesOf(who)</code> gives the points that have a piece of that color.</li>
+  </ul>
+  <p>Then the most important one, every move a player can make right now:</p>
+  <pre><code class="language-javascript">function moves(who) {
+    const list = [];
+    if (toPlace[who] &gt; 0) {
+        board.forEach(function (piece, point) {
+            if (piece === null) {
+                list.push({ from: null, to: point, remove: null });
+            }
+        });
+        return list;
+    }
+
+    const pieces = piecesOf(who);
+    const flying = pieces.length === 3;
+    pieces.forEach(function (from) {
+        const targets = flying ? POINTS.map(function (p, i) { return i; }) : NEIGHBORS[from];
+        targets.forEach(function (to) {
+            if (board[to] === null) {
+                list.push({ from: from, to: to, remove: null });
+            }
+        });
+    });
+    return list;
+}</code></pre>
+  <p>A move is an object: where the piece comes <code>from</code> (<code>null</code> for a new piece), where it goes <code>to</code>, and which piece to <code>remove</code> if it makes a mill. While you still have pieces to place, you can place one on any free point. After that, each piece can go to a free neighbor, or with three pieces left, to any free point. <code>POINTS.map(function (p, i) { return i; })</code> is the list 0, 1, 2 ... 23.</p>
+  <p>With <code>moves</code>, losing is easy to check:</p>
+  <pre><code class="language-javascript">function hasLost(who) {
+    return toPlace[who] === 0 &amp;&amp; (piecesOf(who).length &lt; 3 || moves(who).length === 0);
+}</code></pre>
+  <p><code>toPlace[who] === 0</code> comes first, because while you are still placing, having two pieces on the board is fine.</p>
+  <h2>Step 5: Doing and undoing a turn</h2>
+  <pre><code class="language-javascript">function doTurn(turn, who) {
+    if (turn.from === null) {
+        toPlace[who]--;
+    } else {
+        board[turn.from] = null;
+    }
+    board[turn.to] = who;
+    if (turn.remove !== null) {
+        board[turn.remove] = null;
+    }
+}
+
+function undoTurn(turn, who) {
+    if (turn.remove !== null) {
+        board[turn.remove] = other(who);
+    }
+    board[turn.to] = null;
+    if (turn.from === null) {
+        toPlace[who]++;
+    } else {
+        board[turn.from] = who;
+    }
+}</code></pre>
+  <p><code>undoTurn</code> does exactly the opposite of <code>doTurn</code>, step by step, in the opposite order. A removed piece always belonged to the other player, so we know what to put back. The computer uses these two to try turns and take them back, like <code>winsIn</code> did in Connect Four.</p>
+  <p>When a turn is over, <code>endTurn</code> switches player and checks if the new player has lost:</p>
+  <pre><code class="language-javascript">function endTurn() {
+    selected = null;
+    removing = false;
+    player = other(player);
+    if (hasLost(player)) {
+        winner = other(player);
+    }
+    show();
+    if (!winner &amp;&amp; isComputersTurn()) {
+        computerTimer = setTimeout(computerTurn, COMPUTER_DELAY);
+    }
+}</code></pre>
+  <p>We switch player <strong>first</strong>, then check the player who is about to move. Can they still move? The first version did it the other way round. When a player had no moves left, it named <em>that</em> player the winner. It also started the computer's move before checking, so the computer could move after the game was over.</p>
+  <h2>Step 6: Drawing the board</h2>
+  <p>The board is 600 pixels wide. With a margin of 60 on each side, the 7 grid places are 80 pixels apart:</p>
+  <pre><code class="language-javascript">const MARGIN = 60;
+const SPACING = (canvas.width - 2 * MARGIN) / 6;
+
+function pixel(point) {
+    return {
+        x: MARGIN + POINTS[point][0] * SPACING,
+        y: MARGIN + POINTS[point][1] * SPACING
+    };
+}</code></pre>
+  <p><code>draw()</code> fills the background, then draws one line from the first to the last point of every mill. Those 16 lines are the whole board. Then each point: a big colored circle for a piece, a small dark dot for an empty point. When a piece is picked up, the free points it can go to get a bigger green dot, so you can see the moves. A gold ring goes around the picked-up piece, or after a mill, around every piece you may remove.</p>
+  <p>Unlike the canvas games in chapter 3, there is no game loop here. Nothing moves by itself, so <code>show()</code> sets the status text and calls <code>draw()</code> after every click and every computer move, and that is enough.</p>
+  <h2>Step 7: Clicking on the board</h2>
+  <pre><code class="language-javascript">canvas.addEventListener("click", function (event) {
+    const box = canvas.getBoundingClientRect();
+    const x = (event.clientX - box.left) * (canvas.width / box.width);
+    const y = (event.clientY - box.top) * (canvas.height / box.height);
+
+    POINTS.forEach(function (p, point) {
+        const center = pixel(point);
+        if (Math.hypot(x - center.x, y - center.y) &lt; 30) {
+            clickPoint(point);
+        }
+    });
+});</code></pre>
+  <p>A click gives the mouse position on the screen. We turn that into a position on the canvas, like in <a href="/tutorials/arcade-shooter/">Arcade shooter</a>: on a small phone the canvas is shown smaller than 600 pixels, so we scale it. Then we look for a point less than 30 pixels from the click. <code>Math.hypot</code> gives the distance, like in <a href="/tutorials/asteroids/">Asteroids</a>.</p>
+  <p><code>clickPoint</code> does what the click means right now:</p>
+  <pre><code class="language-javascript">function clickPoint(point) {
+    if (winner || isComputersTurn()) {
+        return;
+    }
+
+    if (removing) {
+        if (board[point] === other(player) &amp;&amp; removable(other(player)).includes(point)) {
+            board[point] = null;
+            endTurn();
+        }
+        return;
+    }
+
+    if (board[point] === player &amp;&amp; toPlace[player] === 0) {
+        selected = point;
+        show();
+        return;
+    }
+
+    const from = toPlace[player] &gt; 0 ? null : selected;
+    const move = moves(player).find(function (m) {
+        return m.from === from &amp;&amp; m.to === point;
+    });
+    if (!move) {
+        return;
+    }
+    doTurn(move, player);
+    if (inMill(point, player) &amp;&amp; piecesOf(other(player)).length &gt; 0) {
+        removing = true;
+        selected = null;
+        show();
+    } else {
+        endTurn();
+    }
+}</code></pre>
+  <ol>
+    <li>After a mill, only a click on a piece that may be removed does anything.</li>
+    <li>When moving, a click on one of your own pieces picks it up. Clicking another of your pieces picks that one up instead.</li>
+    <li>Otherwise, is there a move from the picked-up piece (or from <code>null</code>, when placing) to this point? We don't check the rules again here. If <code>moves</code> has it, it is allowed. If the move makes a mill, the turn isn't over yet: we wait for the next click to remove a piece.</li>
+  </ol>
+  <h2>Step 8: All the turns for the computer</h2>
+  <p>For a person, a turn with a mill is two clicks. For the computer it is easier to see the whole turn at once: the move <strong>and</strong> the piece it removes. A move that makes a mill becomes one turn for every piece that could be removed:</p>
+  <pre><code class="language-javascript">function allTurns(who) {
+    const turns = [];
+    moves(who).forEach(function (move) {
+        doTurn(move, who);
+        const mill = inMill(move.to, who);
+        const targets = mill ? removable(other(who)) : [];
+        undoTurn(move, who);
+
+        if (targets.length === 0) {
+            turns.push(move);
+        }
+        targets.forEach(function (target) {
+            turns.push({ from: move.from, to: move.to, remove: target });
+        });
+    });
+    return turns;
+}</code></pre>
+  <h2>Step 9: The computer looks ahead</h2>
+  <p>This is the same minimax as in <a href="/tutorials/connect-four-ai/">Connect Four vs computer</a>. Here <code>who</code> is the player about to move:</p>
+  <pre><code class="language-javascript">function minimax(who, depth) {
+    if (hasLost(who)) {
+        return who === COMPUTER ? -1000 - depth : 1000 + depth;
+    }
+    if (depth === 0) {
+        return scoreBoard();
+    }
+    let best = who === COMPUTER ? -Infinity : Infinity;
+    allTurns(who).forEach(function (turn) {
+        doTurn(turn, who);
+        const score = minimax(other(who), depth - 1);
+        undoTurn(turn, who);
+        best = who === COMPUTER ? Math.max(best, score) : Math.min(best, score);
+    });
+    return best;
+}</code></pre>
+  <p>When nobody has lost yet, <code>scoreBoard</code> guesses. Every piece, on the board or still to place, is worth 10. Two pieces on a mill with the third point free is worth 1, because it can become a mill next turn. The human's pieces count the same, but negative.</p>
+  <p>The easy computer looks 1 turn ahead: it sees its own mills, and which piece hurts most to remove, but not your mills coming. The hard computer looks 3 turns ahead: its turn, your answer, and its answer to that. Kvarn has more turns to choose from than Connect Four, up to about 50 when pieces can jump, so 3 is as deep as it can go without making you wait.</p>
+  <p>Before choosing, the computer shuffles its turns:</p>
+  <pre><code class="language-javascript">const turns = allTurns(COMPUTER).sort(function () {
+    return Math.random() - 0.5;
+});</code></pre>
+  <p><code>sort</code> normally uses the function to compare two items. Answering at random mixes up the list. It isn't a perfectly fair shuffle, but it is good enough here. With lots of turns that score the same, like the very first move, the computer would otherwise always pick the first one, and play every game the same way.</p>
+  <h2>Step 10: Test it</h2>
+  <ul>
+    <li>Make a mill. You should have to remove a piece before it is the other player's turn, and you shouldn't be able to remove a piece that is in a mill.</li>
+    <li>Pick up a piece. Only free neighbors should get a green dot. Pick up another piece instead.</li>
+    <li>Get a player down to three pieces. The message should say it can jump, and it should be able to.</li>
+    <li>Box in all the pieces of one player so none can move. The <strong>other</strong> player should win.</li>
+    <li>Play against both computers. Leave a mill open and see that the hard one blocks it.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>kvarn.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Kvarn&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        cursor: pointer;
+    }
+
+    #status {
+        font-size: 18px;
+        min-height: 1.5em;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Kvarn&lt;/h1&gt;
+  &lt;canvas id="gameCanvas" width="600" height="600"&gt;&lt;/canvas&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+  &lt;p&gt;
+    &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+    &lt;select id="mode"&gt;
+      &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+      &lt;option value="easy" selected&gt;The computer (easy)&lt;/option&gt;
+      &lt;option value="hard"&gt;The computer (hard)&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Kvarn (Nine Men's Morris): each player has nine pieces. First you take
+     * turns placing them on the 24 points. Three in a line along a line on the
+     * board is a "mill", and lets you remove one of the other player's pieces.
+     * When all pieces are placed, you take turns moving a piece to a free point
+     * next to it. With only three pieces left, a player may jump anywhere.
+     * You lose with fewer than three pieces, or when you can't move.
+     *
+     * Blue can be played by the computer. Easy looks one turn ahead, hard
+     * three (minimax).
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const PIECES = 9;
+    const NAMES = { red: "Red", blue: "Blue" };
+    const COLORS = { red: "#e03030", blue: "#3050e0" };
+    const HUMAN = "red";
+    const COMPUTER = "blue";
+    const COMPUTER_DELAY = 600;   // ms before the computer moves
+
+    // The 24 points, as [column, row] on a 7 x 7 grid.
+    const POINTS = [
+        [0, 0], [3, 0], [6, 0],
+        [1, 1], [3, 1], [5, 1],
+        [2, 2], [3, 2], [4, 2],
+        [0, 3], [1, 3], [2, 3], [4, 3], [5, 3], [6, 3],
+        [2, 4], [3, 4], [4, 4],
+        [1, 5], [3, 5], [5, 5],
+        [0, 6], [3, 6], [6, 6]
+    ];
+
+    // Every line of three points. Three of your pieces on one is a mill.
+    const MILLS = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11],
+        [12, 13, 14], [15, 16, 17], [18, 19, 20], [21, 22, 23],
+        [0, 9, 21], [3, 10, 18], [6, 11, 15], [1, 4, 7],
+        [16, 19, 22], [8, 12, 17], [5, 13, 20], [2, 14, 23]
+    ];
+
+    // The points next to each point. The middle of a mill is next to both ends.
+    const NEIGHBORS = POINTS.map(function () {
+        return [];
+    });
+    MILLS.forEach(function ([a, b, c]) {
+        NEIGHBORS[a].push(b);
+        NEIGHBORS[b].push(a, c);
+        NEIGHBORS[c].push(b);
+    });
+
+    // --- Elements on the page ------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const statusText = document.getElementById("status");
+    const restartButton = document.getElementById("restart");
+    const modeSelect = document.getElementById("mode");
+
+    const MARGIN = 60;
+    const SPACING = (canvas.width - 2 * MARGIN) / 6;
+
+    // --- State ---------------------------------------------------------------
+
+    let board = [];        // board[point]: null, "red" or "blue"
+    let toPlace = {};      // pieces each player has left to place
+    let player = "red";    // whose turn it is
+    let selected = null;   // the point of the piece picked up to move
+    let removing = false;  // true after a mill, until a piece is removed
+    let winner = null;
+    let computerTimer = null;
+
+    // --- Rules ---------------------------------------------------------------
+
+    function other(who) {
+        return who === "red" ? "blue" : "red";
+    }
+
+    function piecesOf(who) {
+        const points = [];
+        board.forEach(function (piece, point) {
+            if (piece === who) {
+                points.push(point);
+            }
+        });
+        return points;
+    }
+
+    function inMill(point, who) {
+        return MILLS.some(function (mill) {
+            return mill.includes(point) &amp;&amp; mill.every(function (p) {
+                return board[p] === who;
+            });
+        });
+    }
+
+    // The pieces of "who" that may be removed: not those in a mill, unless
+    // every piece is in a mill.
+    function removable(who) {
+        const pieces = piecesOf(who);
+        const free = pieces.filter(function (point) {
+            return !inMill(point, who);
+        });
+        return free.length &gt; 0 ? free : pieces;
+    }
+
+    // Every move "who" can make now, as { from, to, remove }. from is null when
+    // placing a new piece. remove is filled in by allTurns.
+    function moves(who) {
+        const list = [];
+        if (toPlace[who] &gt; 0) {
+            board.forEach(function (piece, point) {
+                if (piece === null) {
+                    list.push({ from: null, to: point, remove: null });
+                }
+            });
+            return list;
+        }
+
+        const pieces = piecesOf(who);
+        const flying = pieces.length === 3;
+        pieces.forEach(function (from) {
+            const targets = flying ? POINTS.map(function (p, i) { return i; }) : NEIGHBORS[from];
+            targets.forEach(function (to) {
+                if (board[to] === null) {
+                    list.push({ from: from, to: to, remove: null });
+                }
+            });
+        });
+        return list;
+    }
+
+    // A player has lost when all pieces are placed, and there are fewer than
+    // three left or none of them can move.
+    function hasLost(who) {
+        return toPlace[who] === 0 &amp;&amp; (piecesOf(who).length &lt; 3 || moves(who).length === 0);
+    }
+
+    // --- Doing a turn --------------------------------------------------------
+
+    function doTurn(turn, who) {
+        if (turn.from === null) {
+            toPlace[who]--;
+        } else {
+            board[turn.from] = null;
+        }
+        board[turn.to] = who;
+        if (turn.remove !== null) {
+            board[turn.remove] = null;
+        }
+    }
+
+    // Exactly the opposite of doTurn, in the opposite order.
+    function undoTurn(turn, who) {
+        if (turn.remove !== null) {
+            board[turn.remove] = other(who);
+        }
+        board[turn.to] = null;
+        if (turn.from === null) {
+            toPlace[who]++;
+        } else {
+            board[turn.from] = who;
+        }
+    }
+
+    function endTurn() {
+        selected = null;
+        removing = false;
+        player = other(player);
+        if (hasLost(player)) {
+            winner = other(player);
+        }
+        show();
+        if (!winner &amp;&amp; isComputersTurn()) {
+            computerTimer = setTimeout(computerTurn, COMPUTER_DELAY);
+        }
+    }
+
+    // --- The human player ----------------------------------------------------
+
+    function clickPoint(point) {
+        if (winner || isComputersTurn()) {
+            return;
+        }
+
+        if (removing) {
+            if (board[point] === other(player) &amp;&amp; removable(other(player)).includes(point)) {
+                board[point] = null;
+                endTurn();
+            }
+            return;
+        }
+
+        if (board[point] === player &amp;&amp; toPlace[player] === 0) {
+            selected = point;  // pick up a piece, or pick another one
+            show();
+            return;
+        }
+
+        const from = toPlace[player] &gt; 0 ? null : selected;
+        const move = moves(player).find(function (m) {
+            return m.from === from &amp;&amp; m.to === point;
+        });
+        if (!move) {
+            return;
+        }
+        doTurn(move, player);
+        if (inMill(point, player) &amp;&amp; piecesOf(other(player)).length &gt; 0) {
+            removing = true;   // wait for a click on a piece to remove
+            selected = null;
+            show();
+        } else {
+            endTurn();
+        }
+    }
+
+    // --- The computer --------------------------------------------------------
+
+    function isComputersTurn() {
+        return modeSelect.value !== "pvp" &amp;&amp; player === COMPUTER;
+    }
+
+    // Every turn "who" can take: each move, and if it makes a mill, once for
+    // every piece it could remove.
+    function allTurns(who) {
+        const turns = [];
+        moves(who).forEach(function (move) {
+            doTurn(move, who);
+            const mill = inMill(move.to, who);
+            const targets = mill ? removable(other(who)) : [];
+            undoTurn(move, who);
+
+            if (targets.length === 0) {
+                turns.push(move);
+            }
+            targets.forEach(function (target) {
+                turns.push({ from: move.from, to: move.to, remove: target });
+            });
+        });
+        return turns;
+    }
+
+    // A guess at how good the board is for the computer: pieces are worth a
+    // lot, and two in a mill with the third point free a little.
+    function scoreBoard() {
+        let score = 10 * (piecesOf(COMPUTER).length + toPlace[COMPUTER]);
+        score -= 10 * (piecesOf(HUMAN).length + toPlace[HUMAN]);
+        MILLS.forEach(function (mill) {
+            const mine = mill.filter(function (p) { return board[p] === COMPUTER; }).length;
+            const theirs = mill.filter(function (p) { return board[p] === HUMAN; }).length;
+            if (mine === 2 &amp;&amp; theirs === 0) {
+                score += 1;
+            } else if (theirs === 2 &amp;&amp; mine === 0) {
+                score -= 1;
+            }
+        });
+        return score;
+    }
+
+    // How good is the board for the computer, when it is "who"'s turn?
+    function minimax(who, depth) {
+        if (hasLost(who)) {
+            return who === COMPUTER ? -1000 - depth : 1000 + depth;
+        }
+        if (depth === 0) {
+            return scoreBoard();
+        }
+        let best = who === COMPUTER ? -Infinity : Infinity;
+        allTurns(who).forEach(function (turn) {
+            doTurn(turn, who);
+            const score = minimax(other(who), depth - 1);
+            undoTurn(turn, who);
+            best = who === COMPUTER ? Math.max(best, score) : Math.min(best, score);
+        });
+        return best;
+    }
+
+    function computerTurn() {
+        const depth = modeSelect.value === "easy" ? 1 : 3;
+
+        // Shuffle the turns, so the computer doesn't play the same way every
+        // time when several turns are just as good.
+        const turns = allTurns(COMPUTER).sort(function () {
+            return Math.random() - 0.5;
+        });
+
+        let best = null;
+        let bestScore = -Infinity;
+        turns.forEach(function (turn) {
+            doTurn(turn, COMPUTER);
+            const score = minimax(HUMAN, depth - 1);
+            undoTurn(turn, COMPUTER);
+            if (score &gt; bestScore) {
+                bestScore = score;
+                best = turn;
+            }
+        });
+
+        doTurn(best, COMPUTER);
+        endTurn();
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function pixel(point) {
+        return {
+            x: MARGIN + POINTS[point][0] * SPACING,
+            y: MARGIN + POINTS[point][1] * SPACING
+        };
+    }
+
+    function circle(point, radius) {
+        const p = pixel(point);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+    }
+
+    function draw() {
+        ctx.fillStyle = "#f4e3c1";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // The lines: one from the first to the last point of every mill.
+        ctx.strokeStyle = "#333333";
+        ctx.lineWidth = 4;
+        MILLS.forEach(function (mill) {
+            const start = pixel(mill[0]);
+            const end = pixel(mill[2]);
+            ctx.beginPath();
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.stroke();
+        });
+
+        // Where the selected piece can go.
+        const targets = selected === null ? [] : moves(player).filter(function (m) {
+            return m.from === selected;
+        }).map(function (m) {
+            return m.to;
+        });
+
+        board.forEach(function (piece, point) {
+            if (piece) {
+                circle(point, 22);
+                ctx.fillStyle = COLORS[piece];
+                ctx.fill();
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            } else {
+                circle(point, targets.includes(point) ? 10 : 7);
+                ctx.fillStyle = targets.includes(point) ? "limegreen" : "#333333";
+                ctx.fill();
+            }
+        });
+
+        // Rings around the piece picked up, or the pieces that can be removed.
+        let rings = [];
+        if (selected !== null) {
+            rings = [selected];
+        } else if (removing) {
+            rings = removable(other(player));
+        }
+        rings.forEach(function (point) {
+            circle(point, 28);
+            ctx.strokeStyle = "gold";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        });
+    }
+
+    function show() {
+        const name = NAMES[player];
+        if (winner) {
+            statusText.textContent = NAMES[winner] + " wins!";
+        } else if (isComputersTurn()) {
+            statusText.textContent = name + " is thinking...";
+        } else if (removing) {
+            statusText.textContent = name + ": a mill! Remove one of " + NAMES[other(player)] + "'s pieces.";
+        } else if (toPlace[player] &gt; 0) {
+            statusText.textContent = name + ": place a piece (" + toPlace[player] + " left).";
+        } else if (piecesOf(player).length === 3) {
+            statusText.textContent = name + ": move a piece. With three left, it can jump anywhere.";
+        } else {
+            statusText.textContent = name + ": move a piece to a free point next to it.";
+        }
+        draw();
+    }
+
+    // --- Starting ------------------------------------------------------------
+
+    function newGame() {
+        clearTimeout(computerTimer);
+        board = POINTS.map(function () {
+            return null;
+        });
+        toPlace = { red: PIECES, blue: PIECES };
+        player = "red";
+        selected = null;
+        removing = false;
+        winner = null;
+        show();
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // The canvas can be shown smaller than its real size on a small screen.
+    // Convert from position on the screen to position in the canvas.
+    canvas.addEventListener("click", function (event) {
+        const box = canvas.getBoundingClientRect();
+        const x = (event.clientX - box.left) * (canvas.width / box.width);
+        const y = (event.clientY - box.top) * (canvas.height / box.height);
+
+        // The points are far apart, so at most one is this close to the click.
+        POINTS.forEach(function (p, point) {
+            const center = pixel(point);
+            if (Math.hypot(x - center.x, y - center.y) &lt; 30) {
+                clickPoint(point);
+            }
+        });
+    });
+
+    restartButton.addEventListener("click", newGame);
+    modeSelect.addEventListener("change", newGame);
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Show how many pieces each player has left to place, as small circles beside the board.</li>
+    <li>Add an Undo button. You already have <code>undoTurn</code>, so keep a list of the turns played.</li>
+    <li>Many rules say the game is a draw if nobody has made a mill in 50 moves. Add that.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

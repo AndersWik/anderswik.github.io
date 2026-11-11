@@ -1,0 +1,508 @@
+---
+layout: default
+title: Pong
+permalink: /tutorials/pong/
+chapter: "08"
+chapter_title: "Classic arcade"
+keywords: [javascript, game, canvas, game loop, two players, keyboard, held keys, computer player, angles, bounce]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Pong</h1>
+  <p>Hit the ball back with your paddle. If it gets past the other player, you get a point. First to five wins. You can play against the computer, or against a friend on the same keyboard.</p>
+  <p>Pong is <a href="/tutorials/breakout/">Breakout</a> turned on its side, with a second paddle instead of the bricks. It uses the same game loop, screens, held keys and bounce. The new parts are two players on one keyboard, a computer player that can miss, and a ball that gets faster.</p>
+  <p><a href="/assets/tutorials/pong.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>pong.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The whole game is one canvas:</p>
+  <pre><code class="language-html">&lt;canvas id="gameCanvas" width="800" height="400"&gt;&lt;/canvas&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    background-color: #222222;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border: 4px solid white;
+}</code></pre>
+  <h2>Step 2: Paddles and ball</h2>
+  <pre><code class="language-javascript">const left = { x: 20, y: 0, score: 0 };
+const right = { x: WIDTH - 20 - PADDLE_WIDTH, y: 0, score: 0 };
+const ball = { x: 0, y: 0, dx: 0, dy: 0 };</code></pre>
+  <p>Each paddle is an object with where it is and its player's score. Then the same code can move, draw and check both paddles: <code>ballTouches(left)</code> and <code>ballTouches(right)</code>.</p>
+  <h2>Step 3: Serving</h2>
+  <pre><code class="language-javascript">function serve(direction) {
+    ball.x = WIDTH / 2;
+    ball.y = HEIGHT / 2;
+    const angle = (Math.random() - 0.5) * Math.PI / 3;
+    ball.dx = direction * START_SPEED * Math.cos(angle);
+    ball.dy = START_SPEED * Math.sin(angle);
+    serveTimer = SERVE_TIME;
+}</code></pre>
+  <p>The ball starts in the middle and goes left (<code>direction</code> -1) or right (1). <code>Math.random() - 0.5</code> is between -0.5 and 0.5, and times π/3 (60°) gives an angle between -30° and 30°. cos gives the part across and sin the part up or down, like in <a href="/tutorials/artillery/">Artillery</a>.</p>
+  <p>For one second (<code>SERVE_TIME</code> = 60 steps) the ball waits, so the players can get ready. While <code>serveTimer</code> is above 0, <code>update</code> counts it down and moves only the paddles.</p>
+  <h2>Step 4: Two players, one keyboard</h2>
+  <p>Held keys are kept in <code>keys</code>, like in <a href="/tutorials/asteroids/">Asteroids</a>. A paddle is moved by a list of keys up and a list of keys down:</p>
+  <pre><code class="language-javascript">function movePlayer(paddle, upKeys, downKeys) {
+    if (upKeys.some(function (key) { return keys[key]; })) {
+        paddle.y -= PADDLE_SPEED;
+    }
+    if (downKeys.some(function (key) { return keys[key]; })) {
+        paddle.y += PADDLE_SPEED;
+    }
+}</code></pre>
+  <pre><code class="language-javascript">if (twoPlayers) {
+    movePlayer(left, ["w", "W"], ["s", "S"]);
+    movePlayer(right, ["ArrowUp"], ["ArrowDown"]);
+} else {
+    movePlayer(left, ["w", "W", "ArrowUp"], ["s", "S", "ArrowDown"]);
+    moveComputer(right);
+}</code></pre>
+  <p>With two players, the left player uses W and S on the left of the keyboard, and the right player the arrow keys on the right. The first version gave the right paddle A and Z, so the two players had their hands crossed over each other. <code>"W"</code> is there too, for when Caps Lock is on. Alone, you can use either.</p>
+  <p>The <code>keyup</code> listener sets <code>keys[event.key] = false</code> on every screen. The first version only did that while playing. Let go of a key during the pause, and it was still held when the game went on.</p>
+  <h2>Step 5: A computer that can miss</h2>
+  <pre><code class="language-javascript">function moveComputer(paddle) {
+    const coming = ball.dx &gt; 0 &amp;&amp; ball.x &gt; WIDTH / 3;
+    const target = coming ? ball.y : HEIGHT / 2;
+    const middle = paddle.y + PADDLE_HEIGHT / 2;
+    if (target &lt; middle - 10) {
+        paddle.y -= COMPUTER_SPEED;
+    } else if (target &gt; middle + 10) {
+        paddle.y += COMPUTER_SPEED;
+    }
+}</code></pre>
+  <p>The computer moves its paddle towards the ball, but only when the ball is coming its way and has crossed the first third of the table. The rest of the time it goes back to the middle. The <code>10</code> lets it stand still when it is close enough, instead of shaking up and down by one step all the time.</p>
+  <p>The important number is <code>COMPUTER_SPEED = 4</code>. In the first version the computer moved 5 pixels a step, and the ball only 3. It could always get to the ball in time, and it never missed, so you could never win. Now the computer is slower than the ball gets, so a fast ball that comes at a steep angle gets past.</p>
+  <h2>Step 6: Hitting the ball</h2>
+  <p>A ball touches a paddle with the same test as in Breakout: find the point of the rectangle nearest the ball's center. Where it hits decides the new direction, like Breakout's paddle, but sideways:</p>
+  <pre><code class="language-javascript">function bounceOff(paddle, direction) {
+    const hit = clamp((ball.y - paddle.y) / PADDLE_HEIGHT, 0, 1);
+    const angle = (hit - 0.5) * 2 * (50 * Math.PI / 180);
+    const speed = Math.min(MAX_SPEED, Math.hypot(ball.dx, ball.dy) + SPEED_UP);
+    ball.dx = direction * speed * Math.cos(angle);
+    ball.dy = speed * Math.sin(angle);
+}</code></pre>
+  <ul>
+    <li><code>hit</code> is 0 at the top of the paddle and 1 at the bottom. The middle sends the ball straight across, the ends at 50°. This is how you aim, and how you beat the computer.</li>
+    <li><code>50 * Math.PI / 180</code> turns 50 degrees into radians, which is what <code>Math.sin</code> and <code>Math.cos</code> use.</li>
+    <li>Every hit makes the ball a little faster, up to <code>MAX_SPEED</code>. A long rally gets harder and harder, until somebody misses. In the first version the ball always had the same speed, and it hit the paddle at the same angle it came in, so nothing ever changed.</li>
+  </ul>
+  <pre><code class="language-javascript">if (ball.dx &lt; 0 &amp;&amp; ball.x &gt; left.x &amp;&amp; ballTouches(left)) {
+    bounceOff(left, 1);
+} else if (ball.dx &gt; 0 &amp;&amp; ball.x &lt; right.x + PADDLE_WIDTH &amp;&amp; ballTouches(right)) {
+    bounceOff(right, -1);
+}</code></pre>
+  <p>Only a ball moving towards the paddle, and still in front of it, bounces. The first version bounced any ball near the edge of the canvas that was level with the paddle, even one already behind it.</p>
+  <h2>Step 7: Points</h2>
+  <pre><code class="language-javascript">if (ball.x &lt; -BALL_RADIUS) {
+    right.score++;
+    serve(-1);
+} else if (ball.x &gt; WIDTH + BALL_RADIUS) {
+    left.score++;
+    serve(1);
+}</code></pre>
+  <p>A ball that leaves the canvas on the left is a point for the right player, and the other way round. The next serve goes towards the player who lost the point. At <code>WIN_SCORE</code> the game is over, and <code>winnerText()</code> says "You win!" or "The computer wins" with one player, and "Left player wins!" or "Right player wins!" with two.</p>
+  <h2>Step 8: Test it</h2>
+  <ul>
+    <li>Hit the ball with the middle and with the ends of your paddle. It should go straight, and out at an angle.</li>
+    <li>Keep a rally going. The ball should get faster.</li>
+    <li>Hit steep, fast balls at the computer. It should miss sometimes.</li>
+    <li>Play with two players: W/S on the left, arrows on the right.</li>
+    <li>Hold a key, press P, let go of the key, press P again. The paddle should not move by itself.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>pong.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Pong&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        background-color: #222222;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        border: 4px solid white;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;canvas id="gameCanvas" width="800" height="400"&gt;&lt;/canvas&gt;
+
+  &lt;script&gt;
+    /*
+     * Pong: hit the ball back with your paddle. If it gets past the other
+     * player, you get a point. First to five wins. Play against the computer,
+     * or against a friend on the same keyboard.
+     *
+     *   1 player    W / S or arrow up / down
+     *   2 players   left: W / S, right: arrow up / down
+     *   P / Esc     pause / menu
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;       // one update step, in milliseconds
+    const WIN_SCORE = 5;
+    const PADDLE_WIDTH = 10;
+    const PADDLE_HEIGHT = 80;
+    const PADDLE_SPEED = 6;
+    const COMPUTER_SPEED = 4;     // slower than the ball, so it can miss
+    const BALL_RADIUS = 8;
+    const START_SPEED = 5;
+    const SPEED_UP = 0.4;         // faster after every hit...
+    const MAX_SPEED = 12;         // ...up to this
+    const SERVE_TIME = 60;        // steps to wait before a serve
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, controls, playing, paused, gameOver
+    let menuIndex = 0;
+    let gameStarted = false;
+    let twoPlayers = false;
+
+    const left = { x: 20, y: 0, score: 0 };
+    const right = { x: WIDTH - 20 - PADDLE_WIDTH, y: 0, score: 0 };
+    const ball = { x: 0, y: 0, dx: 0, dy: 0 };
+    let serveTimer = 0;    // steps left before the ball starts moving
+
+    const keys = {};       // keys held down right now
+
+    const MENU_ITEMS = ["1 player", "2 players", "Controls"];
+
+    // --- Starting ------------------------------------------------------------
+
+    function newGame(withTwoPlayers) {
+        twoPlayers = withTwoPlayers;
+        left.score = 0;
+        right.score = 0;
+        left.y = (HEIGHT - PADDLE_HEIGHT) / 2;
+        right.y = (HEIGHT - PADDLE_HEIGHT) / 2;
+        gameStarted = true;
+        serve(Math.random() &lt; 0.5 ? 1 : -1);
+        screen = "playing";
+    }
+
+    // Put the ball in the middle. After a short wait it goes towards
+    // "direction" (1 = right, -1 = left), at a random angle up to 30 degrees.
+    function serve(direction) {
+        ball.x = WIDTH / 2;
+        ball.y = HEIGHT / 2;
+        const angle = (Math.random() - 0.5) * Math.PI / 3;
+        ball.dx = direction * START_SPEED * Math.cos(angle);
+        ball.dy = START_SPEED * Math.sin(angle);
+        serveTimer = SERVE_TIME;
+    }
+
+    // --- Helpers -------------------------------------------------------------
+
+    function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
+    // Does the ball touch a paddle? The same test as in Breakout.
+    function ballTouches(paddle) {
+        const nearestX = clamp(ball.x, paddle.x, paddle.x + PADDLE_WIDTH);
+        const nearestY = clamp(ball.y, paddle.y, paddle.y + PADDLE_HEIGHT);
+        return Math.hypot(ball.x - nearestX, ball.y - nearestY) &lt; BALL_RADIUS;
+    }
+
+    // Send the ball back. Where it hits the paddle decides the angle: the
+    // middle sends it straight, the ends at up to 50 degrees.
+    function bounceOff(paddle, direction) {
+        const hit = clamp((ball.y - paddle.y) / PADDLE_HEIGHT, 0, 1);
+        const angle = (hit - 0.5) * 2 * (50 * Math.PI / 180);
+        const speed = Math.min(MAX_SPEED, Math.hypot(ball.dx, ball.dy) + SPEED_UP);
+        ball.dx = direction * speed * Math.cos(angle);
+        ball.dy = speed * Math.sin(angle);
+    }
+
+    // --- Update --------------------------------------------------------------
+
+    function movePlayer(paddle, upKeys, downKeys) {
+        if (upKeys.some(function (key) { return keys[key]; })) {
+            paddle.y -= PADDLE_SPEED;
+        }
+        if (downKeys.some(function (key) { return keys[key]; })) {
+            paddle.y += PADDLE_SPEED;
+        }
+    }
+
+    // The computer follows the ball once it is past the first third of the
+    // table and coming its way. Otherwise it goes back to the middle.
+    function moveComputer(paddle) {
+        const coming = ball.dx &gt; 0 &amp;&amp; ball.x &gt; WIDTH / 3;
+        const target = coming ? ball.y : HEIGHT / 2;
+        const middle = paddle.y + PADDLE_HEIGHT / 2;
+        if (target &lt; middle - 10) {
+            paddle.y -= COMPUTER_SPEED;
+        } else if (target &gt; middle + 10) {
+            paddle.y += COMPUTER_SPEED;
+        }
+    }
+
+    function update() {
+        if (twoPlayers) {
+            movePlayer(left, ["w", "W"], ["s", "S"]);
+            movePlayer(right, ["ArrowUp"], ["ArrowDown"]);
+        } else {
+            movePlayer(left, ["w", "W", "ArrowUp"], ["s", "S", "ArrowDown"]);
+            moveComputer(right);
+        }
+        left.y = clamp(left.y, 0, HEIGHT - PADDLE_HEIGHT);
+        right.y = clamp(right.y, 0, HEIGHT - PADDLE_HEIGHT);
+
+        if (serveTimer &gt; 0) {
+            serveTimer--;
+            return;
+        }
+
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+
+        // Top and bottom: set the direction away from the wall.
+        if (ball.y &lt; BALL_RADIUS) {
+            ball.dy = Math.abs(ball.dy);
+        } else if (ball.y &gt; HEIGHT - BALL_RADIUS) {
+            ball.dy = -Math.abs(ball.dy);
+        }
+
+        // Paddles: only a ball on its way towards the paddle, and still in
+        // front of it, bounces.
+        if (ball.dx &lt; 0 &amp;&amp; ball.x &gt; left.x &amp;&amp; ballTouches(left)) {
+            bounceOff(left, 1);
+        } else if (ball.dx &gt; 0 &amp;&amp; ball.x &lt; right.x + PADDLE_WIDTH &amp;&amp; ballTouches(right)) {
+            bounceOff(right, -1);
+        }
+
+        // Out at one side: a point to the other player. The next serve goes
+        // towards the player who lost the point.
+        if (ball.x &lt; -BALL_RADIUS) {
+            right.score++;
+            serve(-1);
+        } else if (ball.x &gt; WIDTH + BALL_RADIUS) {
+            left.score++;
+            serve(1);
+        }
+
+        if (left.score === WIN_SCORE || right.score === WIN_SCORE) {
+            screen = "gameOver";
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawText(text, x, y, size, color) {
+        ctx.fillStyle = color || "white";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(text, x, y);
+    }
+
+    function drawWorld() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // The dashed net in the middle.
+        ctx.fillStyle = "#555555";
+        for (let y = 10; y &lt; HEIGHT; y += 30) {
+            ctx.fillRect(WIDTH / 2 - 2, y, 4, 15);
+        }
+
+        if (!gameStarted) {
+            return;
+        }
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(left.x, left.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+        ctx.fillRect(right.x, right.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+
+        drawText(left.score, WIDTH / 4, 50, 40);
+        drawText(right.score, WIDTH * 3 / 4, 50, 40);
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 40, 40, "yellow");
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+        });
+    }
+
+    function drawMenu() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText("Pong", WIDTH / 2, HEIGHT / 2 - 60, 60);
+        MENU_ITEMS.forEach(function (item, index) {
+            const color = index === menuIndex ? "yellow" : "white";
+            drawText(item, WIDTH / 2, HEIGHT / 2 + index * 40, 24, color);
+        });
+        drawText("Arrow keys and Enter to choose", WIDTH / 2, HEIGHT - 40, 16);
+        if (gameStarted) {
+            drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 18, 16);
+        }
+    }
+
+    function drawControls() {
+        drawMessage("Controls", [
+            "1 player: W / S or arrow up / down",
+            "2 players: left W / S, right arrow up / down",
+            "Pause: P      Menu: Esc",
+            "",
+            "Esc: back"
+        ]);
+    }
+
+    function winnerText() {
+        if (!twoPlayers) {
+            return left.score === WIN_SCORE ? "You win!" : "The computer wins";
+        }
+        return left.score === WIN_SCORE ? "Left player wins!" : "Right player wins!";
+    }
+
+    function draw() {
+        drawWorld();
+
+        if (screen === "menu") {
+            drawMenu();
+        } else if (screen === "controls") {
+            drawControls();
+        } else if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "gameOver") {
+            drawMessage(winnerText(), [left.score + " - " + right.score, "Press Enter to play again", "Press Esc for the menu"]);
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // Run one update per 1/60 second, so the game has the same speed on
+    // every screen, then draw.
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        while (leftover &gt;= STEP) {
+            if (screen === "playing") {
+                update();
+            }
+            leftover -= STEP;
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Keyboard ------------------------------------------------------------
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+        keys[key] = true;
+
+        if (screen === "menu") {
+            if (key === "ArrowUp") {
+                menuIndex = (menuIndex + MENU_ITEMS.length - 1) % MENU_ITEMS.length;
+            } else if (key === "ArrowDown") {
+                menuIndex = (menuIndex + 1) % MENU_ITEMS.length;
+            } else if (key === "Enter") {
+                const item = MENU_ITEMS[menuIndex];
+                if (item === "Controls") {
+                    screen = "controls";
+                } else {
+                    newGame(item === "2 players");
+                }
+            } else if (key === "Escape" &amp;&amp; gameStarted) {
+                screen = "paused";
+            }
+        } else if (screen === "controls") {
+            if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "playing") {
+            if (key === "p" || key === "P") {
+                screen = "paused";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "paused") {
+            if (key === "p" || key === "P") {
+                screen = "playing";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "gameOver") {
+            if (key === "Enter") {
+                newGame(twoPlayers);
+            } else if (key === "Escape") {
+                gameStarted = false;
+                screen = "menu";
+            }
+        }
+    });
+
+    // Always note when a key is let go, whatever the screen. Otherwise a key
+    // let go during the pause would still count as held afterwards.
+    document.addEventListener("keyup", function (event) {
+        keys[event.key] = false;
+    });
+
+    // If the window loses focus while a key is held, we never get its keyup.
+    window.addEventListener("blur", function () {
+        for (const key in keys) {
+            keys[key] = false;
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Add easy, normal and hard computers, with different speeds.</li>
+    <li>Let the ball leave a short trail behind it.</li>
+    <li>Make the paddles shorter as the rally gets longer.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

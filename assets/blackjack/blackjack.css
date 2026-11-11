@@ -1,0 +1,124 @@
+.game {
+  font-family: sans-serif;
+  text-align: center;
+  background: #35654d;
+  color: white;
+}
+
+.game .hand {
+  margin: 20px;
+}
+
+.game button {
+  padding: 15px 30px;
+  margin-top: 20px;
+  font-size: 18px;
+  background-color: #f7931a;
+  color: #fff;
+  border: 5px solid #d67e00;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game button:hover {
+  box-shadow: 0px 0px 10px #f7931a;
+}
+
+.game button:disabled, .game button[disabled]{
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+.game .cards {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.game .card {
+  width: 60px;
+  height: 90px;
+  background: white;
+  color: black;
+  border: 1px solid #333;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 18px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.game .card.new {
+  transform: translateY(-30px);
+  opacity: 0;
+  animation: deal 0.3s forwards;
+}
+
+.game .card.red {
+  color: red;
+}
+
+@keyframes deal {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.game #result {
+  min-height: 3em;
+  font-size: 20px;
+  white-space: pre-line;
+}
+
+.game .player-hand {
+  display: inline-block;
+  margin: 0 10px;
+  padding: 0 10px 10px;
+  border-radius: 8px;
+}
+
+.game .player-hand.active {
+  outline: 3px solid #f7931a;
+}
+
+.game #chip-buttons .clear {
+  border-radius: 8px;
+  width: auto;
+  padding: 0 12px;
+}
+
+.game #bank {
+  font-size: 18px;
+  margin: 10px;
+}
+
+.game #chip-buttons button {
+  background-color: #f4a261;
+  padding: 0px 0px;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  margin: 5px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.game #controls button,
+.game #extra-controls button {
+  margin: 5px;
+}
+
+.game .hidden {
+  background: url("images/cardback.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 95%;
+  background-color: #fff;
+}

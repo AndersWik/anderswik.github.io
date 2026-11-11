@@ -11,26 +11,25 @@ js:
 <div class="container">
   <h1>Tic Tac Toe</h1>
   <div class="board" id="board">
-    <button class="square"></button>
-    <button class="square"></button>
-    <button class="square"></button>
-    <button class="square"></button>
-    <button class="square"></button>
-    <button class="square"></button>
-    <button class="square"></button>
-    <button class="square"></button>
-    <button class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
   </div>
-  <div class="status" id="status">Player X turn</div>
-  <button id="reset">Reset Game</button>
+  <p class="status" id="status" aria-live="polite"></p>
+  <button type="button" id="reset">New game</button>
   <div class="controls">
-    <select id="players">
-      <option value="1">1 Player</option>
-      <option value="2">2 Player</option>
-    </select>
-    <select id="difficulty">
-      <option value="normal">Normal CPU</option>
-      <option value="smart" selected>Smart CPU</option>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy">The computer (easy)</option>
+      <option value="smart" selected>The computer (smart)</option>
     </select>
   </div>
 </div>
+<p class="text-center mt-4"><a href="/tutorials/tic-tac-toe/">How to build this game</a></p>

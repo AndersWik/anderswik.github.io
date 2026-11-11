@@ -1,0 +1,520 @@
+---
+layout: default
+title: Reversi vs computer
+permalink: /tutorials/reversi-ai/
+chapter: "05"
+chapter_title: "Board and casino games"
+keywords: [javascript, game, board game, computer player, ai, minimax, greedy, weights, undo, pass]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Reversi vs computer</h1>
+  <p>The same game as <a href="/tutorials/reversi/">Reversi</a>, but white can be played by the computer. The easy computer takes the move that flips the most pieces. The hard one looks four moves ahead, and knows which squares on the board are worth having.</p>
+  <p>Start from your Reversi page. Taking turns with the computer works exactly as in <a href="/tutorials/connect-four-ai/">Connect Four vs computer</a>, and the hard computer uses the same minimax. This tutorial is mostly about why the move that flips the most pieces is often a bad move.</p>
+  <p><a href="/assets/tutorials/reversi-ai.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Add the same drop-down list as in Connect Four vs computer under the New game button:</p>
+  <pre><code class="language-html">&lt;p&gt;
+  &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+  &lt;select id="mode"&gt;
+    &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+    &lt;option value="easy" selected&gt;The computer (easy)&lt;/option&gt;
+    &lt;option value="hard"&gt;The computer (hard)&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/p&gt;</code></pre>
+  <h2>Step 2: Taking turns</h2>
+  <p>This is the same as in Connect Four vs computer:</p>
+  <ul>
+    <li><code>isComputersTurn()</code> is true when the mode isn't "pvp" and it is white's turn.</li>
+    <li>A click on a square only plays if it isn't the computer's turn.</li>
+    <li>At the end of <code>nextTurn</code>, if the game goes on and it's the computer's turn, <code>computerTimer = setTimeout(computerMove, COMPUTER_DELAY)</code>.</li>
+    <li><code>newGame</code> starts with <code>clearTimeout(computerTimer)</code>.</li>
+    <li>The hints aren't shown while the computer thinks.</li>
+  </ul>
+  <p>Passing needs no extra code. If you can't move, <code>nextTurn</code> keeps white as the player, and the computer simply moves again. In the first version, you could click during the computer's turn, and New game didn't cancel the computer's move, so it could land on the new board.</p>
+  <h2>Step 3: Doing and undoing a move</h2>
+  <pre><code class="language-javascript">function doMove(move, who) {
+    board[move.row][move.col] = who;
+    move.flips.forEach(function ([r, c]) {
+        board[r][c] = who;
+    });
+}
+
+function undoMove(move, who) {
+    board[move.row][move.col] = null;
+    move.flips.forEach(function ([r, c]) {
+        board[r][c] = other(who);
+    });
+}</code></pre>
+  <p>A move from <code>validMoves</code> already knows which pieces it flips. So undoing it is easy: empty the square, and flip those pieces back to the other color. <code>play</code> now uses <code>doMove</code> too.</p>
+  <h2>Step 4: The easy computer</h2>
+  <pre><code class="language-javascript">function computerMove() {
+    const moves = validMoves(COMPUTER);
+    let best = moves[0];
+    let bestScore = -Infinity;
+    moves.forEach(function (move) {
+        let score;
+        if (modeSelect.value === "easy") {
+            score = move.flips.length;
+        } else {
+            doMove(move, COMPUTER);
+            score = minimax(HUMAN, DEPTH - 1);
+            undoMove(move, COMPUTER);
+        }
+        if (score &gt; bestScore) {
+            bestScore = score;
+            best = move;
+        }
+    });
+    play(best.row, best.col);
+}</code></pre>
+  <p>The easy computer's score for a move is just how many pieces it flips. This is called a <strong>greedy</strong> computer: it always takes the most it can get right now. It is fun to play against, because it falls into traps.</p>
+  <h2>Step 5: Not all squares are equal</h2>
+  <p>In Reversi, a piece in a corner can never be flipped: there is no square beyond it to trap it from. Pieces on the edges are hard to flip. And the squares right next to a corner are dangerous: a piece there often lets the other player into the corner. Having many pieces in the middle of the game means little, because they flip back and forth.</p>
+  <p>So the hard computer gives every square a value:</p>
+  <pre><code class="language-javascript">const WEIGHTS = [
+    [100, -20, 10, 5, 5, 10, -20, 100],
+    [-20, -50, -2, -2, -2, -2, -50, -20],
+    [10, -2, 1, 1, 1, 1, -2, 10],
+    [5, -2, 1, 0, 0, 1, -2, 5],
+    [5, -2, 1, 0, 0, 1, -2, 5],
+    [10, -2, 1, 1, 1, 1, -2, 10],
+    [-20, -50, -2, -2, -2, -2, -50, -20],
+    [100, -20, 10, 5, 5, 10, -20, 100]
+];</code></pre>
+  <p>Laid out like that, the code looks like the board: 100 in the corners, -50 for the squares diagonally next to them. <code>scoreBoard()</code> adds up the values of the computer's squares and takes away the values of the human's.</p>
+  <h2>Step 6: Looking ahead</h2>
+  <pre><code class="language-javascript">function minimax(who, depth) {
+    const moves = validMoves(who);
+    if (moves.length === 0) {
+        if (validMoves(other(who)).length === 0) {
+            return (count(COMPUTER) - count(HUMAN)) * 1000;
+        }
+        return minimax(other(who), depth - 1);
+    }
+    if (depth &lt;= 0) {
+        return scoreBoard();
+    }
+    let best = who === COMPUTER ? -Infinity : Infinity;
+    moves.forEach(function (move) {
+        doMove(move, who);
+        const score = minimax(other(who), depth - 1);
+        undoMove(move, who);
+        best = who === COMPUTER ? Math.max(best, score) : Math.min(best, score);
+    });
+    return best;
+}</code></pre>
+  <p>This is the minimax from Connect Four vs computer, with two things that are special for Reversi:</p>
+  <ul>
+    <li>If the player can't move, but the other one can, that is a pass: go on with the other player. A pass also uses up one depth, so the search always ends.</li>
+    <li>If neither can move, the game is over, and now the number of pieces is all that counts. Times 1000, so a win always beats any square values.</li>
+  </ul>
+  <p>Four moves deep is a few thousand boards, which takes a fraction of a second. Try changing <code>DEPTH</code> to 5 or 6 and feel the difference in strength and in waiting time.</p>
+  <h2>Step 7: Test it</h2>
+  <ul>
+    <li>Play the easy computer. Give it a chance to flip many pieces next to a corner, and then take the corner.</li>
+    <li>Try the same trap on the hard computer.</li>
+    <li>Get into a position where you can't move. The computer should move again.</li>
+    <li>Press New game while the computer is thinking.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>reversi-ai.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Reversi vs computer&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #board {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 2px;
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 2px;
+        background-color: #1b4d1b;
+    }
+
+    .cell {
+        position: relative;
+        aspect-ratio: 1;
+        background-color: #2e8b57;
+        cursor: pointer;
+    }
+
+    .cell.black::after,
+    .cell.white::after,
+    .cell.hint::after {
+        content: "";
+        position: absolute;
+        inset: 10%;
+        border-radius: 50%;
+    }
+
+    .cell.black::after {
+        background-color: black;
+    }
+
+    .cell.white::after {
+        background-color: white;
+    }
+
+    .cell.hint::after {
+        inset: 40%;
+        background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    #status {
+        font-size: 18px;
+    }
+
+    #message {
+        color: #c25e00;
+        min-height: 1.5em;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Reversi&lt;/h1&gt;
+  &lt;div id="board"&gt;&lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;p id="message"&gt;&lt;/p&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+  &lt;p&gt;
+    &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+    &lt;select id="mode"&gt;
+      &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+      &lt;option value="easy" selected&gt;The computer (easy)&lt;/option&gt;
+      &lt;option value="hard"&gt;The computer (hard)&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Reversi against the computer: the same game as Reversi for two players,
+     * but white can be played by the computer.
+     *
+     *   Easy: takes the move that flips the most pieces.
+     *   Hard: looks 4 moves ahead (minimax), and knows that corners are good
+     *         and the squares next to them are bad.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SIZE = 8;
+    const NAMES = { black: "Black", white: "White" };
+    const HUMAN = "black";
+    const COMPUTER = "white";
+    const DEPTH = 4;               // moves the hard computer looks ahead
+    const COMPUTER_DELAY = 500;    // ms before the computer moves
+
+    // How good each square is to own. Corners can never be flipped back, so
+    // they are worth most. The squares next to a corner give it away.
+    const WEIGHTS = [
+        [100, -20, 10, 5, 5, 10, -20, 100],
+        [-20, -50, -2, -2, -2, -2, -50, -20],
+        [10, -2, 1, 1, 1, 1, -2, 10],
+        [5, -2, 1, 0, 0, 1, -2, 5],
+        [5, -2, 1, 0, 0, 1, -2, 5],
+        [10, -2, 1, 1, 1, 1, -2, 10],
+        [-20, -50, -2, -2, -2, -2, -50, -20],
+        [100, -20, 10, 5, 5, 10, -20, 100]
+    ];
+
+    // The eight directions from a square: up, down, sideways and diagonal.
+    const DIRECTIONS = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1], [0, 1],
+        [1, -1], [1, 0], [1, 1]
+    ];
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const statusText = document.getElementById("status");
+    const messageText = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+    const modeSelect = document.getElementById("mode");
+
+    // --- State ---------------------------------------------------------------
+
+    let board = [];        // board[row][col]: null, "black" or "white"
+    let cells = [];        // cells[row][col]: the &lt;div&gt; for each square
+    let player = "black";  // whose turn it is
+    let gameOver = false;
+    let computerTimer = null;
+
+    // --- Rules ---------------------------------------------------------------
+
+    function other(who) {
+        return who === "black" ? "white" : "black";
+    }
+
+    function isInside(row, col) {
+        return row &gt;= 0 &amp;&amp; row &lt; SIZE &amp;&amp; col &gt;= 0 &amp;&amp; col &lt; SIZE;
+    }
+
+    // The pieces that "who" would flip by playing at (row, col). An empty
+    // list means the move isn't allowed.
+    function flipsFor(row, col, who) {
+        if (board[row][col] !== null) {
+            return [];
+        }
+        let flips = [];
+        for (const [dRow, dCol] of DIRECTIONS) {
+            // Walk over the other player's pieces...
+            const line = [];
+            let r = row + dRow;
+            let c = col + dCol;
+            while (isInside(r, c) &amp;&amp; board[r][c] === other(who)) {
+                line.push([r, c]);
+                r += dRow;
+                c += dCol;
+            }
+            // ...and if one of ours is at the end, they are trapped.
+            if (line.length &gt; 0 &amp;&amp; isInside(r, c) &amp;&amp; board[r][c] === who) {
+                flips = flips.concat(line);
+            }
+        }
+        return flips;
+    }
+
+    // Every move "who" can make, as { row, col, flips }.
+    function validMoves(who) {
+        const moves = [];
+        for (let row = 0; row &lt; SIZE; row++) {
+            for (let col = 0; col &lt; SIZE; col++) {
+                const flips = flipsFor(row, col, who);
+                if (flips.length &gt; 0) {
+                    moves.push({ row: row, col: col, flips: flips });
+                }
+            }
+        }
+        return moves;
+    }
+
+    function count(who) {
+        return board.flat().filter(function (piece) {
+            return piece === who;
+        }).length;
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function play(row, col) {
+        if (gameOver) {
+            return;
+        }
+        const flips = flipsFor(row, col, player);
+        if (flips.length === 0) {
+            return;   // not a valid move
+        }
+        doMove({ row: row, col: col, flips: flips }, player);
+        nextTurn();
+    }
+
+    function doMove(move, who) {
+        board[move.row][move.col] = who;
+        move.flips.forEach(function ([r, c]) {
+            board[r][c] = who;
+        });
+    }
+
+    // Exactly the opposite of doMove: empty the square, flip the pieces back.
+    function undoMove(move, who) {
+        board[move.row][move.col] = null;
+        move.flips.forEach(function ([r, c]) {
+            board[r][c] = other(who);
+        });
+    }
+
+    // The other player's turn, if they can move. If not, they pass. If nobody
+    // can move, the game is over.
+    function nextTurn() {
+        const next = other(player);
+        messageText.textContent = "";
+        if (validMoves(next).length &gt; 0) {
+            player = next;
+        } else if (validMoves(player).length &gt; 0) {
+            messageText.textContent = NAMES[next] + " can't move and has to pass.";
+        } else {
+            gameOver = true;
+        }
+        show();
+        if (!gameOver &amp;&amp; isComputersTurn()) {
+            computerTimer = setTimeout(computerMove, COMPUTER_DELAY);
+        }
+    }
+
+    // --- The computer --------------------------------------------------------
+
+    function isComputersTurn() {
+        return modeSelect.value !== "pvp" &amp;&amp; player === COMPUTER;
+    }
+
+    function computerMove() {
+        const moves = validMoves(COMPUTER);
+        let best = moves[0];
+        let bestScore = -Infinity;
+        moves.forEach(function (move) {
+            let score;
+            if (modeSelect.value === "easy") {
+                score = move.flips.length;
+            } else {
+                doMove(move, COMPUTER);
+                score = minimax(HUMAN, DEPTH - 1);
+                undoMove(move, COMPUTER);
+            }
+            if (score &gt; bestScore) {
+                bestScore = score;
+                best = move;
+            }
+        });
+        play(best.row, best.col);
+    }
+
+    // How good is the board for the computer, when it is "who"'s turn?
+    function minimax(who, depth) {
+        const moves = validMoves(who);
+        if (moves.length === 0) {
+            if (validMoves(other(who)).length === 0) {
+                // Game over: count the pieces. Winning is worth more than any
+                // square.
+                return (count(COMPUTER) - count(HUMAN)) * 1000;
+            }
+            return minimax(other(who), depth - 1);   // "who" has to pass
+        }
+        if (depth &lt;= 0) {
+            return scoreBoard();
+        }
+        let best = who === COMPUTER ? -Infinity : Infinity;
+        moves.forEach(function (move) {
+            doMove(move, who);
+            const score = minimax(other(who), depth - 1);
+            undoMove(move, who);
+            best = who === COMPUTER ? Math.max(best, score) : Math.min(best, score);
+        });
+        return best;
+    }
+
+    // A guess at how good the board is: add up the weights of the computer's
+    // squares, and take away the weights of the human's.
+    function scoreBoard() {
+        let score = 0;
+        for (let row = 0; row &lt; SIZE; row++) {
+            for (let col = 0; col &lt; SIZE; col++) {
+                if (board[row][col] === COMPUTER) {
+                    score += WEIGHTS[row][col];
+                } else if (board[row][col] === HUMAN) {
+                    score -= WEIGHTS[row][col];
+                }
+            }
+        }
+        return score;
+    }
+
+    // --- Showing the board ---------------------------------------------------
+
+    function show() {
+        const hints = gameOver || isComputersTurn() ? [] : validMoves(player);
+        for (let row = 0; row &lt; SIZE; row++) {
+            for (let col = 0; col &lt; SIZE; col++) {
+                const cell = cells[row][col];
+                cell.className = "cell";
+                if (board[row][col]) {
+                    cell.classList.add(board[row][col]);
+                }
+            }
+        }
+        // A small dot on every square where the player may move.
+        hints.forEach(function (move) {
+            cells[move.row][move.col].classList.add("hint");
+        });
+
+        const black = count("black");
+        const white = count("white");
+        let text = "Black " + black + " - White " + white + ". ";
+        if (!gameOver &amp;&amp; isComputersTurn()) {
+            text += NAMES[player] + " is thinking...";
+        } else if (!gameOver) {
+            text += NAMES[player] + "'s turn.";
+        } else if (black &gt; white) {
+            text += "Black wins!";
+        } else if (white &gt; black) {
+            text += "White wins!";
+        } else {
+            text += "It's a draw!";
+        }
+        statusText.textContent = text;
+    }
+
+    // --- Starting ------------------------------------------------------------
+
+    function newGame() {
+        // A computer move that is waiting to happen belongs to the old game.
+        clearTimeout(computerTimer);
+
+        board = [];
+        cells = [];
+        boardElement.innerHTML = "";
+        for (let row = 0; row &lt; SIZE; row++) {
+            board.push([]);
+            cells.push([]);
+            for (let col = 0; col &lt; SIZE; col++) {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+                cell.addEventListener("click", function () {
+                    if (!isComputersTurn()) {
+                        play(row, col);
+                    }
+                });
+                boardElement.appendChild(cell);
+                board[row].push(null);
+                cells[row].push(cell);
+            }
+        }
+
+        // The four pieces in the middle.
+        board[3][3] = "white";
+        board[3][4] = "black";
+        board[4][3] = "black";
+        board[4][4] = "white";
+
+        player = "black";
+        gameOver = false;
+        messageText.textContent = "";
+        show();
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    restartButton.addEventListener("click", newGame);
+    modeSelect.addEventListener("change", newGame);
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Change the weights and see if the computer gets better or worse.</li>
+    <li>Add "mobility" to <code>scoreBoard</code>: a point for each move the computer can make, minus one for each move the human can make. Having moves to choose from is worth a lot in Reversi.</li>
+    <li>Let the human choose to play white, so the computer starts.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
