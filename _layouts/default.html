@@ -5,6 +5,9 @@
 <body>
   {% include header.html %}
   {{ content }}
+  {% comment %}Apps in _data/pwa.yml can be installed, see _scripts/make-pwa.py.{% endcomment %}
+  {% assign pwa_app = site.data.pwa | where: "page", page.path | first %}
+  {% if pwa_app %}<p class="text-center mb-5"><a href="{{ '/assets/' | append: pwa_app.slug | append: '/app.html' | relative_url }}">Install as an app</a></p>{% endif %}
   {% for script in page.js %}
   <script src="{{ script | relative_url }}"></script>
   {% endfor %}

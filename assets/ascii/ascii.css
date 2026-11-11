@@ -1,3 +1,8 @@
 .ascii {
   background-color: #fff;
 }
+
+/* The table is wider than a phone; let it scroll sideways instead of being cut off. */
+.ascii .col {
+  overflow-x: auto;
+}
