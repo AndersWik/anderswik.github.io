@@ -3,47 +3,35 @@ layout: default
 title: Utils
 permalink: /utils/
 nonav: true
+# Thumbnails live in /assets/images/games/utils/<slug>.webp
+categories:
+  - title: Utils
+    items:
+      - { slug: ascii, name: Ascii }
+      - { slug: calculator, name: Calculator }
+      - { slug: colorhex, name: Colorhex }
+      - { slug: crontab, name: Crontab }
+      - { slug: data-conversion, name: Data Conversion }
+      - { slug: decode-base64, name: Decode base64 }
+      - { slug: decode-url, name: Decode Url }
+      - { slug: encode-base64, name: Encode Base64 }
+      - { slug: encode-url, name: Encode Url }
+      - { slug: unix-timestamp-convertor, name: Unix Timestamp Convertor }
+      - { slug: vagrant, name: Vagrant }
 ---
 
-<div class="utils container-sm mt-3 mb-3 pt-5 pb-5 text-center">
-    <div class="row align-items-start mt-5">
-        <div class="col">
-            <h2>Utils</h2>
-            <ul class="list-group">
-                <li class="list-group-item">
-                    <a href="/utils/ascii/">Ascii</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/calculator/">Calculator</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/colorhex/">Colorhex</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/crontab/">Crontab</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/data-conversion/">Data Conversion</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/decode-base64/">Decode base64</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/decode-url/">Decode Url</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/encode-base64/">Encode Base64</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/encode-url/">Encode Url</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/unix-timestamp-convertor/">Unix Timestamp Convertor</a>
-                </li>
-                <li class="list-group-item">
-                    <a href="/utils/vagrant/">Vagrant</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
+<section class="games">
+  {% for category in page.categories %}
+  <h2 class="category-title">{{ category.title }}</h2>
+  <ul class="badges">
+    {% for item in category.items %}
+    <li>
+      <a class="badge-card" href="{{ '/utils/' | append: item.slug | append: '/' | relative_url }}">
+        <img src="{{ '/assets/images/games/utils/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
+        <span class="badge-name">{{ item.name }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+</section>
