@@ -23,3 +23,13 @@ $ sass --watch input.scss output.css
 ```bash
 $ sass _sass/_style.scss css/style.css
 ```
+
+### Build Production
+
+```bash
+$ vagrant ssh
+$ cd /var/www/public_html
+$ JEKYLL_ENV=production jekyll build
+```
+
+This uses `url` from `_config.yml` (https://www.anderswik.se). `jekyll serve` overrides it with the local address, so never deploy a `_site` built by `serve`.
