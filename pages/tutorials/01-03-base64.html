@@ -1,0 +1,234 @@
+---
+layout: default
+title: Base64 encoder
+permalink: /tutorials/base64/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, base64, btoa, atob, TextEncoder, TextDecoder, utf-8, bytes, Uint8Array]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Base64 encoder</h1>
+  <p>We build a Base64 encoder. The page looks almost exactly like the <a href="/tutorials/url-encoder/">URL encoder</a>, but the JavaScript has to deal with a classic problem: text and bytes are not the same thing.</p>
+  <p><a href="/assets/tutorials/base64.html">Open the finished Base64 encoder</a></p>
+  <h2>What Base64 is</h2>
+  <p>Base64 writes any data, text or images, using only 64 safe characters: <code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, <code>+</code> and <code>/</code>, plus <code>=</code> as padding at the end. It is used where only plain text is allowed, like email attachments, data URLs and tokens in JSON. Every 3 bytes become 4 characters, so the result is about a third longer.</p>
+  <p>Base64 is not encryption. Anyone can decode it.</p>
+  <h2>The problem with btoa and atob</h2>
+  <p>The browser has <code>btoa()</code> (binary to ASCII, which encodes) and <code>atob()</code> (which decodes). They were made long ago and only accept characters with codes 0-255, one character per byte:</p>
+  <pre><code class="language-javascript">btoa("hello")   // "aGVsbG8="
+btoa("åäö")     // works, but gives the wrong answer for UTF-8
+btoa("😀")      // error: "The string contains characters outside of the Latin1 range"</code></pre>
+  <p>Text on the web is UTF-8, where <code>å</code> is two bytes and <code>😀</code> is four. So we first turn the text into UTF-8 bytes, and then give <code>btoa()</code> one character per byte.</p>
+  <h2>Step 1: The page and CSS</h2>
+  <p>Create <code>base64.html</code> from the skeleton in <a href="/tutorials/utility-page/">Building a utility page</a>. The HTML:</p>
+  <pre><code class="language-html">&lt;h1&gt;Base64 encoder&lt;/h1&gt;
+
+&lt;label for="decoded-text"&gt;Text&lt;/label&gt;
+&lt;textarea id="decoded-text"&gt;&lt;/textarea&gt;
+
+&lt;label for="encoded-text"&gt;Base64 encoded text&lt;/label&gt;
+&lt;textarea id="encoded-text"&gt;&lt;/textarea&gt;
+
+&lt;button type="button" id="encode-btn"&gt;Encode&lt;/button&gt;
+&lt;button type="button" id="decode-btn"&gt;Decode&lt;/button&gt;</code></pre>
+  <p>The CSS:</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+label {
+    display: block;
+    margin-top: 16px;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 8px 16px;
+    margin-top: 16px;
+}</code></pre>
+  <p>Then find the elements at the start of the script:</p>
+  <pre><code class="language-javascript">const plainText = document.getElementById("decoded-text");
+const base64Text = document.getElementById("encoded-text");
+const encodeButton = document.getElementById("encode-btn");
+const decodeButton = document.getElementById("decode-btn");</code></pre>
+  <h2>Step 2: Text to bytes</h2>
+  <p><code>TextEncoder</code> turns text into UTF-8 bytes. The result is a <code>Uint8Array</code>, a list of numbers from 0 to 255. Try it in the console:</p>
+  <pre><code class="language-javascript">new TextEncoder().encode("åä")   // Uint8Array [195, 165, 195, 164]</code></pre>
+  <p><code>String.fromCharCode(195)</code> gives the character with code 195. We do that for every byte and join the characters into a string, which <code>btoa()</code> accepts:</p>
+  <pre><code class="language-javascript">// "åäö" -&gt; "w6XDpMO2"
+function textToBase64(text) {
+    const bytes = new TextEncoder().encode(text);
+
+    let binary = "";
+    bytes.forEach(function (byte) {
+        binary += String.fromCharCode(byte);
+    });
+
+    return btoa(binary);
+}</code></pre>
+  <h2>Step 3: Bytes back to text</h2>
+  <p>Decoding is the same steps in reverse. <code>atob()</code> gives one character per byte. <code>charCodeAt(0)</code> gives the number of a character, and <code>Uint8Array.from()</code> builds the byte list. <code>TextDecoder</code> turns UTF-8 bytes back into text:</p>
+  <pre><code class="language-javascript">// "w6XDpMO2" -&gt; "åäö"
+function base64ToText(base64) {
+    const binary = atob(base64.trim());
+
+    const bytes = Uint8Array.from(binary, function (character) {
+        return character.charCodeAt(0);
+    });
+
+    return new TextDecoder().decode(bytes);
+}</code></pre>
+  <p><code>trim()</code> removes spaces and new lines at the start and end, which are easy to get when you copy and paste.</p>
+  <h2>Step 4: The buttons</h2>
+  <p><code>atob()</code> throws an error if the text is not valid Base64, so decoding goes in a <code>try</code>:</p>
+  <pre><code class="language-javascript">function encode() {
+    base64Text.value = textToBase64(plainText.value);
+}
+
+function decode() {
+    try {
+        plainText.value = base64ToText(base64Text.value);
+    } catch (error) {
+        plainText.value = "That is not valid Base64.";
+    }
+}
+
+encodeButton.addEventListener("click", encode);
+decodeButton.addEventListener("click", decode);</code></pre>
+  <h2>Step 5: Test it</h2>
+  <table class="table table-striped"><tr><th>Text</th><th>Base64</th></tr><tr><td><code>hello</code></td><td><code>aGVsbG8=</code></td></tr><tr><td><code>åäö</code></td><td><code>w6XDpMO2</code></td></tr><tr><td><code>åäö 😀</code></td><td><code>w6XDpMO2IPCfmIA=</code></td></tr><tr><td><code>@@@</code> (decode)</td><td>That is not valid Base64.</td></tr></table>
+  <p>Encode each text, clear the text box, and decode again. You should get the same text back.</p>
+  <h2>The complete page</h2>
+  <p><strong>base64.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Base64 encoder&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    label {
+        display: block;
+        margin-top: 16px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 120px;
+        box-sizing: border-box;
+    }
+
+    button {
+        padding: 8px 16px;
+        margin-top: 16px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Base64 encoder&lt;/h1&gt;
+
+  &lt;label for="decoded-text"&gt;Text&lt;/label&gt;
+  &lt;textarea id="decoded-text"&gt;&lt;/textarea&gt;
+
+  &lt;label for="encoded-text"&gt;Base64 encoded text&lt;/label&gt;
+  &lt;textarea id="encoded-text"&gt;&lt;/textarea&gt;
+
+  &lt;button type="button" id="encode-btn"&gt;Encode&lt;/button&gt;
+  &lt;button type="button" id="decode-btn"&gt;Decode&lt;/button&gt;
+
+  &lt;script&gt;
+    /*
+     * Base64 encode / decode.
+     *
+     * Base64 turns any data into plain letters, digits, "+" and "/", so it can
+     * be sent where only text is allowed (emails, URLs, JSON...).
+     *
+     * The browser has two built-in functions for this: btoa() encodes and
+     * atob() decodes. They only understand simple English characters, so
+     * text like "åäö" or emojis must first be turned into bytes (UTF-8).
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const plainText = document.getElementById("decoded-text");
+    const base64Text = document.getElementById("encoded-text");
+    const encodeButton = document.getElementById("encode-btn");
+    const decodeButton = document.getElementById("decode-btn");
+
+    // --- Helpers -------------------------------------------------------------
+
+    // "åäö" -&gt; "w6XDpMO2"
+    function textToBase64(text) {
+        // Turn the text into UTF-8 bytes (numbers 0-255).
+        const bytes = new TextEncoder().encode(text);
+
+        // btoa() wants one character per byte, so build such a string.
+        let binary = "";
+        bytes.forEach(function (byte) {
+            binary += String.fromCharCode(byte);
+        });
+
+        return btoa(binary);
+    }
+
+    // "w6XDpMO2" -&gt; "åäö"
+    function base64ToText(base64) {
+        // atob() gives one character per byte...
+        const binary = atob(base64.trim());
+
+        // ...turn them back into bytes, and the bytes back into text.
+        const bytes = Uint8Array.from(binary, function (character) {
+            return character.charCodeAt(0);
+        });
+
+        return new TextDecoder().decode(bytes);
+    }
+
+    // --- What the buttons do -------------------------------------------------
+
+    function encode() {
+        base64Text.value = textToBase64(plainText.value);
+    }
+
+    function decode() {
+        // atob() throws an error if the text is not valid Base64.
+        try {
+            plainText.value = base64ToText(base64Text.value);
+        } catch (error) {
+            plainText.value = "That is not valid Base64.";
+        }
+    }
+
+    // --- Connect the buttons -------------------------------------------------
+
+    encodeButton.addEventListener("click", encode);
+    decodeButton.addEventListener("click", decode);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Base64URL, used in web tokens, uses <code>-</code> and <code>_</code> instead of <code>+</code> and <code>/</code> and drops the <code>=</code>. Add a checkbox that converts the result with <code>replaceAll</code>.</li>
+    <li>Let the user pick a file with <code>&lt;input type="file"&gt;</code> and show it as Base64. <code>FileReader.readAsDataURL()</code> does the work.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

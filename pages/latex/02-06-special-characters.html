@@ -1,0 +1,56 @@
+---
+layout: default
+title: Special characters
+permalink: /latex/special-characters/
+chapter: "02"
+chapter_title: "Document"
+keywords: [latex, special characters, escape, comments, percent, dollar, ampersand, backslash, dash, unicode]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Special characters</h1>
+  <p>Some characters have a special meaning in LaTeX and must be escaped with a backslash to be printed.</p>
+  <h2>Reserved characters</h2>
+  <pre><code class="language-latex">\#   \$   \%   \&amp;   \_   \{   \}
+\textbackslash
+\textasciitilde
+\textasciicircum</code></pre>
+  <h2>Comments</h2>
+  <p>Everything after <code>%</code> on a line is a comment. The <code>comment</code> package can hide whole blocks.</p>
+  <pre><code class="language-latex">This is shown. % This is a comment
+
+\usepackage{comment}
+\begin{comment}
+This is not shown.
+\end{comment}</code></pre>
+  <h2>Dashes</h2>
+  <pre><code class="language-latex">well-known      % hyphen
+1990--2000      % en dash, for ranges
+Wait---what?    % em dash
+$-1$            % minus sign, in math</code></pre>
+  <h2>Spaces</h2>
+  <pre><code class="language-latex">Dr.~Smith       % non-breaking space
+Mr.\ Smith      % normal space after a dot that is not the end of a sentence
+10\,km          % thin space</code></pre>
+  <h2>Other symbols</h2>
+  <pre><code class="language-latex">\ldots          % ...
+\copyright      % ©
+\textregistered % ®
+\texttrademark  % ™
+\S              % §
+\P              % ¶
+\dag            % †
+\pounds         % £
+\euro           % € with the eurosym package
+\LaTeX \TeX     % the logos</code></pre>
+  <h2>More about special characters</h2>
+  <ul>
+    <li>Write <code>``text''</code> or use <a href="/latex/quotes/">csquotes</a> for quotation marks</li>
+    <li>With <code>xelatex</code> and <code>lualatex</code> you can type most Unicode characters directly</li>
+    <li>Use <a href="https://detexify.kirelabs.org/classify.html">Detexify</a> to find the command for a symbol</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

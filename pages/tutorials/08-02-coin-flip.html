@@ -1,0 +1,246 @@
+---
+layout: default
+title: Coin flip
+permalink: /tutorials/coin-flip/
+chapter: "08"
+chapter_title: "Novelty Games"
+keywords: [javascript, game, random, svg, setInterval, setTimeout, hidden, disabled]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Coin flip</h1>
+  <p>Flip a coin: it spins for two seconds, lands on heads or tails, and the page counts how many of each you have had. It is a small game, but it shows two useful things: drawing pictures with SVG right in the HTML, and making sure a button can't be pressed again while something is still going on.</p>
+  <p><a href="/assets/tutorials/coin-flip.html">Open the finished game</a></p>
+  <h2>Step 1: The page, with pictures made of SVG</h2>
+  <p>Create <code>coin-flip.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Coin flip&lt;/h1&gt;
+
+&lt;div id="resultCoinHeads"&gt;
+  &lt;svg viewBox="0 0 200 200" role="img" aria-label="Heads"&gt;
+    &lt;circle cx="100" cy="100" r="95" fill="#f7931a" stroke="#d67e00" stroke-width="5"/&gt;
+    &lt;text x="100" y="140" font-size="120" font-weight="bold" font-family="Arial" fill="white" text-anchor="middle"&gt;₿&lt;/text&gt;
+  &lt;/svg&gt;
+&lt;/div&gt;
+&lt;div id="resultCoinTails" hidden&gt;
+  &lt;svg viewBox="0 0 200 200" role="img" aria-label="Tails"&gt;
+    &lt;circle cx="100" cy="100" r="95" fill="#f7931a" stroke="#d67e00" stroke-width="5"/&gt;
+    &lt;rect x="50" y="50" width="100" height="100" fill="none" stroke="white" stroke-width="3"/&gt;
+    &lt;circle cx="100" cy="100" r="20" fill="none" stroke="white" stroke-width="3"/&gt;
+  &lt;/svg&gt;
+&lt;/div&gt;
+
+&lt;button type="button" id="flipCoinBtn"&gt;Flip coin!&lt;/button&gt;
+&lt;p id="resultHeads"&gt;Heads: 0&lt;/p&gt;
+&lt;p id="resultTails"&gt;Tails: 0&lt;/p&gt;</code></pre>
+  <p>The two sides of the coin are <strong>SVG</strong>: pictures described with tags, right in the HTML. <code>viewBox="0 0 200 200"</code> sets up a 200 x 200 drawing area. Then:</p>
+  <ul>
+    <li><code>&lt;circle cx="100" cy="100" r="95"&gt;</code> is a circle in the middle.</li>
+    <li><code>&lt;text&gt;</code> writes the ₿ sign. <code>text-anchor="middle"</code> centers it.</li>
+    <li><code>&lt;rect&gt;</code> is a rectangle. <code>fill="none"</code> draws only the outline.</li>
+  </ul>
+  <p>SVG pictures stay sharp at any size, and since they are part of the page there are no files to keep track of. <code>role="img"</code> and <code>aria-label</code> tell screen readers what the picture shows.</p>
+  <p>The tails side starts with <code>hidden</code>, so only heads shows.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+svg {
+    width: 200px;
+    height: 200px;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 18px;
+}
+
+p {
+    font-size: 24px;
+}</code></pre>
+  <h2>Step 2: Showing one side</h2>
+  <pre><code class="language-javascript">function showSide(isHeads) {
+    headsSide.hidden = !isHeads;
+    tailsSide.hidden = isHeads;
+}</code></pre>
+  <p><code>!</code> turns true into false and false into true. One of the two sides is always hidden.</p>
+  <h2>Step 3: Spinning</h2>
+  <p>While the coin spins, we switch sides every 150 milliseconds with <code>setInterval</code>. After two seconds, <code>setTimeout</code> stops the switching with <code>clearInterval</code> and picks the real result:</p>
+  <pre><code class="language-javascript">let showingHeads = true;
+const spin = setInterval(function () {
+    showingHeads = !showingHeads;
+    showSide(showingHeads);
+}, SWITCH_TIME);
+
+setTimeout(function () {
+    clearInterval(spin);
+
+    const isHeads = Math.random() &lt; 0.5;
+    ...
+}, FLIP_TIME);</code></pre>
+  <p>The switching is only for show. The result is decided at the end: <code>Math.random()</code> is below 0.5 exactly half of the time.</p>
+  <h2>Step 4: One flip at a time</h2>
+  <p>What happens if you click twice quickly? Without a check, two flips would run at the same time, two intervals would fight over the picture, and the counter would go up by two. A <code>flipping</code> flag stops that, and disabling the button shows it:</p>
+  <pre><code class="language-javascript">function flipCoin() {
+    if (flipping) {
+        return;
+    }
+    flipping = true;
+    flipButton.disabled = true;
+    ...
+    // when the flip is done:
+    flipping = false;
+    flipButton.disabled = false;
+}</code></pre>
+  <p>The flag is the real protection. A disabled button can't be clicked, but the function could still be called in other ways, for example from the console.</p>
+  <h2>Step 5: Test it</h2>
+  <ul>
+    <li>Flip ten times and check that heads plus tails is 10.</li>
+    <li>Click the button many times quickly. It should still count only one flip at a time.</li>
+    <li>In the console, <code>Math.random = () =&gt; 0.2</code> makes every flip heads. Reload the page to undo it.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>coin-flip.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Coin flip&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    svg {
+        width: 200px;
+        height: 200px;
+    }
+
+    button {
+        padding: 12px 24px;
+        font-size: 18px;
+    }
+
+    p {
+        font-size: 24px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Coin flip&lt;/h1&gt;
+
+  &lt;div id="resultCoinHeads"&gt;
+    &lt;svg viewBox="0 0 200 200" role="img" aria-label="Heads"&gt;
+      &lt;circle cx="100" cy="100" r="95" fill="#f7931a" stroke="#d67e00" stroke-width="5"/&gt;
+      &lt;text x="100" y="140" font-size="120" font-weight="bold" font-family="Arial" fill="white" text-anchor="middle"&gt;₿&lt;/text&gt;
+    &lt;/svg&gt;
+  &lt;/div&gt;
+  &lt;div id="resultCoinTails" hidden&gt;
+    &lt;svg viewBox="0 0 200 200" role="img" aria-label="Tails"&gt;
+      &lt;circle cx="100" cy="100" r="95" fill="#f7931a" stroke="#d67e00" stroke-width="5"/&gt;
+      &lt;rect x="50" y="50" width="100" height="100" fill="none" stroke="white" stroke-width="3"/&gt;
+      &lt;circle cx="100" cy="100" r="20" fill="none" stroke="white" stroke-width="3"/&gt;
+    &lt;/svg&gt;
+  &lt;/div&gt;
+
+  &lt;button type="button" id="flipCoinBtn"&gt;Flip coin!&lt;/button&gt;
+  &lt;p id="resultHeads"&gt;Heads: 0&lt;/p&gt;
+  &lt;p id="resultTails"&gt;Tails: 0&lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Coin flip: the coin switches between heads and tails for a while, then
+     * lands on one side at random. The page counts heads and tails.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const headsSide = document.getElementById("resultCoinHeads");
+    const tailsSide = document.getElementById("resultCoinTails");
+    const flipButton = document.getElementById("flipCoinBtn");
+    const headsText = document.getElementById("resultHeads");
+    const tailsText = document.getElementById("resultTails");
+
+    // --- State ---------------------------------------------------------------
+
+    let headsCount = 0;
+    let tailsCount = 0;
+    let flipping = false;
+
+    const FLIP_TIME = 2000;   // ms the coin spins
+    const SWITCH_TIME = 150;  // ms between showing heads and tails while it spins
+
+    // --- Helpers -------------------------------------------------------------
+
+    function showSide(isHeads) {
+        headsSide.hidden = !isHeads;
+        tailsSide.hidden = isHeads;
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function flipCoin() {
+        // One flip at a time; otherwise a fast double click counts twice.
+        if (flipping) {
+            return;
+        }
+        flipping = true;
+        flipButton.disabled = true;
+
+        // Switch sides quickly so it looks like the coin is spinning.
+        let showingHeads = true;
+        const spin = setInterval(function () {
+            showingHeads = !showingHeads;
+            showSide(showingHeads);
+        }, SWITCH_TIME);
+
+        setTimeout(function () {
+            clearInterval(spin);
+
+            // Math.random() is below 0.5 half of the time.
+            const isHeads = Math.random() &lt; 0.5;
+            if (isHeads) {
+                headsCount++;
+            } else {
+                tailsCount++;
+            }
+            showSide(isHeads);
+            headsText.textContent = "Heads: " + headsCount;
+            tailsText.textContent = "Tails: " + tailsCount;
+
+            flipping = false;
+            flipButton.disabled = false;
+        }, FLIP_TIME);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    flipButton.addEventListener("click", flipCoin);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Show the result in words too, like "Heads!", for screen readers.</li>
+    <li>Add a "Best of 5" mode that stops when one side has 3.</li>
+    <li>Make the coin really turn with a CSS 3D animation: <code>transform: rotateY(...)</code>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

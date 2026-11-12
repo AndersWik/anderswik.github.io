@@ -1,0 +1,25 @@
+---
+layout: game
+title: Artillery Game
+permalink: /games/artillery-game/
+nonav: true
+css:
+  - /assets/artillery-game/artillery-game.css
+js:
+  - /assets/artillery-game/artillery-game.js
+---
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<div class="controls">
+  <label>
+    Angle:
+    <input type="range" id="angleSlider" min="0" max="90" value="45" />
+    <span id="angleValue">45°</span>
+  </label>
+  <label>
+    Power:
+    <input type="range" id="powerSlider" min="10" max="100" value="50" />
+    <span id="powerValue">50</span>
+  </label>
+  <button type="button" id="fireBtn">Fire!</button>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/artillery/">How to build this game</a></p>

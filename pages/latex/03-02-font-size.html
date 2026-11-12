@@ -1,0 +1,44 @@
+---
+layout: default
+title: Font size
+permalink: /latex/font-size/
+chapter: "03"
+chapter_title: "Text"
+keywords: [latex, font size, size, huge, large, small, tiny, fontsize]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Font size</h1>
+  <p>Size commands are switches. They change the size of all text after them until the end of the group.</p>
+  <h2>Sizes</h2>
+  <pre><code class="language-latex">\tiny
+\scriptsize
+\footnotesize
+\small
+\normalsize
+\large
+\Large
+\LARGE
+\huge
+\Huge</code></pre>
+  <h2>Change a part of the text</h2>
+  <pre><code class="language-latex">{\Large This is large.} This is normal.
+
+\begin{small}
+A small paragraph.
+\end{small}</code></pre>
+  <h2>Exact size</h2>
+  <p><code>\fontsize{size}{line spacing}</code> followed by <code>\selectfont</code>.</p>
+  <pre><code class="language-latex">{\fontsize{30}{36}\selectfont Big text}</code></pre>
+  <h2>Document font size</h2>
+  <pre><code class="language-latex">\documentclass[12pt]{article}</code></pre>
+  <h2>More about font size</h2>
+  <ul>
+    <li>The real size of <code>\large</code> depends on the document font size</li>
+    <li>End a paragraph with <code>\par</code> inside the group so the line spacing also changes</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

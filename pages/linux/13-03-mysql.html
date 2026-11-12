@@ -1,0 +1,50 @@
+---
+layout: default
+title: Mysql
+permalink: /linux/mysql/
+chapter: "13"
+chapter_title: "Databases"
+keywords: [linux, mysql, mariadb, database, sql, mysqldump]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Mysql</h1>
+  <p>MySQL is one of the most popular database servers. The server runs as a service, and the <code>mysql</code> command is the client used to connect to it and run SQL.</p>
+  <h2>Start</h2>
+  <pre><code class="language-bash">$ sudo /etc/init.d/mysql start</code></pre>
+  <h2>Stop</h2>
+  <pre><code class="language-bash">$ sudo /etc/init.d/mysql stop</code></pre>
+  <h2>Restart</h2>
+  <pre><code class="language-bash">$ sudo /etc/init.d/mysql restart</code></pre>
+  <h2>Status</h2>
+  <pre><code class="language-bash">$ sudo /etc/init.d/mysql status</code></pre>
+  <p>On systems with systemd the same can be done with <a href="/linux/systemctl/">systemctl</a>.</p>
+  <pre><code class="language-bash">$ sudo systemctl status mysql</code></pre>
+  <h2>Connect</h2>
+  <p><code>-u</code> gives the user and <code>-p</code> asks for the password.</p>
+  <pre><code class="language-bash">$ mysql -u root -p
+$ mysql -u root -p mydb</code></pre>
+  <h2>Backup and restore</h2>
+  <pre><code class="language-bash">$ mysqldump -u root -p mydb &gt; mydb.sql
+$ mysql -u root -p mydb &lt; mydb.sql</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>mysql</code> and all its options. <code>-h</code> does not show help, it sets the host to connect to.</p>
+  <pre><code class="language-bash">$ mysql --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>mysql</code> is installed. <code>-v</code> does not show the version, it makes <code>mysql</code> print more details (verbose).</p>
+  <pre><code class="language-bash">$ mysql --version
+$ mysql -V</code></pre>
+  <h2>More about mysql</h2>
+  <ul>
+    <li><a href="https://ubuntu.com/server/docs/databases-mysql">https://ubuntu.com/server/docs/databases-mysql</a></li>
+    <li>Run <code>sudo mysql_secure_installation</code> after installing to set a root password and remove test data</li>
+    <li><a href="/mysql/">MySQL notes</a> on this site — databases, tables, select, import and export</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/mysql.txt">man mysql</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, mysql, mariadb, database, sql, mysqldump</p>
+  {% include trail.html %}
+</div>

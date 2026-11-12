@@ -1,0 +1,37 @@
+---
+layout: default
+title: System
+permalink: /linux/system/
+chapter: "08"
+chapter_title: "System"
+keywords: [linux, system, hardware, information, updates]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>System</h1>
+  <p>This chapter is about getting information about the system itself: how long it has been running, which kernel and hardware it has, and how to keep it up to date.</p>
+  <h2>Quick system overview</h2>
+  <pre><code class="language-bash">$ hostnamectl
+$ uptime
+$ uname -a</code></pre>
+  <h2>Hardware information</h2>
+  <pre><code class="language-bash">$ lscpu        # processor
+$ lsblk        # disks
+$ lspci        # PCI devices, like graphics and network cards
+$ lsusb        # USB devices</code></pre>
+  <h2>Commands in this chapter</h2>
+  <ul>
+    <li><code>uptime</code> — how long the system has run and the load</li>
+    <li><code>uname</code> — kernel and system information</li>
+    <li>Update — keeping the system up to date with <code>apt-get</code></li>
+    <li><code>mokutil</code> — Secure Boot and machine owner keys</li>
+    <li><code>lspci</code> — list PCI devices</li>
+    <li><code>lsusb</code> — list USB devices</li>
+    <li><code>lshw</code> — detailed overview of the hardware</li>
+    <li><code>lscpu</code> — information about the processor</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, system, hardware, information, updates</p>
+  {% include trail.html %}
+</div>

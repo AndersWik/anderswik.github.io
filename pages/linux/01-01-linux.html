@@ -1,0 +1,47 @@
+---
+layout: default
+title: Linux
+permalink: /linux/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [linux, introduction, terminal, distribution, lsb_release, apt-get, kernel]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Linux</h1>
+  <p>Linux is a free and open source operating system built around the Linux kernel, first released by Linus Torvalds in 1991. It is shipped as distributions such as Ubuntu, Debian, Fedora and Arch, each bundling the kernel with tools, a package manager and often a desktop environment. Most of the work on a Linux server is done in a terminal, by typing commands into a shell.</p>
+  <p>Every command follows the same basic shape: the name of the program, optional flags that change its behaviour, and the arguments it works on.</p>
+  <pre><code class="language-bash">$ command -flags arguments
+$ ls -l /home</code></pre>
+  <h2>Linux release</h2>
+  <p>To see which distribution and version you are running, use <code>lsb_release</code>. The <code>-a</code> flag prints all information: distributor, description, release number and codename.</p>
+  <pre><code class="language-bash">$ lsb_release -a</code></pre>
+  <p>Another way, which works on almost every modern distribution, is to read the os-release file.</p>
+  <pre><code class="language-bash">$ cat /etc/os-release</code></pre>
+  <h2>Linux update</h2>
+  <p>On Debian based systems like Ubuntu the package manager <code>apt-get</code> keeps the system up to date. First refresh the list of available packages, then upgrade. A reboot is sometimes needed, for example after a kernel update. Read more in <a href="/linux/update/">Update</a>.</p>
+  <pre><code class="language-bash">$ sudo apt-get update         # Get list of available updates
+$ sudo apt-get upgrade        # Only upgrade the current packages
+$ sudo apt-get dist-upgrade   # Installs new updates
+
+$ sudo reboot		              # Reboot</code></pre>
+  <h2>Remove old Kernels</h2>
+  <p>Over time old kernels and cached package files fill up the disk. <code>autoclean</code> removes downloaded package files that can no longer be downloaded, and <code>autoremove</code> removes packages, such as old kernels, that were installed as dependencies and are no longer needed.</p>
+  <pre><code class="language-bash">$ sudo apt-get autoclean &amp;&amp; sudo apt-get autoremove</code></pre>
+  <h2>Truncate a file</h2>
+  <p>Redirecting the empty device <code>/dev/null</code> into a file empties it without deleting it. This is handy for log files that a running program still has open.</p>
+  <pre><code class="language-bash">$ cat /dev/null &gt; filename</code></pre>
+  <p>The <code>truncate</code> command does the same thing more explicitly.</p>
+  <pre><code class="language-bash">$ truncate -s 0 filename</code></pre>
+  <h2>More about linux</h2>
+  <ul>
+    <li><a href="https://www.kernel.org/">The Linux Kernel Archives</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Linux">Linux on Wikipedia</a></li>
+    <li><a href="/man/">Man pages</a> — exported manuals for the commands in this trail</li>
+    <li><a href="/linux/links/">Links</a> — more useful links about Linux</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, introduction, terminal, distribution, lsb_release, apt-get, kernel</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,48 @@
+---
+layout: default
+title: Echo
+permalink: /linux/echo/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, echo, print, variables, redirection]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Echo</h1>
+  <p><code>echo</code> prints text to the terminal. It is used to show messages in scripts, print the value of variables and, together with redirection, write text into files.</p>
+  <h2>Print text</h2>
+  <pre><code class="language-bash">$ echo "Hello world"
+Hello world</code></pre>
+  <h2>Print variables</h2>
+  <pre><code class="language-bash">$ echo $HOME
+$ echo "Logged in as $USER"</code></pre>
+  <p>Single quotes print the text exactly as written, without expanding variables.</p>
+  <pre><code class="language-bash">$ echo 'Logged in as $USER'</code></pre>
+  <h2>Write to a file</h2>
+  <p><code>&gt;</code> replaces the content of the file and <code>&gt;&gt;</code> adds a line at the end.</p>
+  <pre><code class="language-bash">$ echo "first line" &gt; file.txt
+$ echo "second line" &gt;&gt; file.txt</code></pre>
+  <h2>Escape sequences</h2>
+  <p><code>-e</code> interprets escape sequences like <code>\n</code> for a new line and <code>\t</code> for a tab. <code>-n</code> skips the newline at the end.</p>
+  <pre><code class="language-bash">$ echo -e "one\ntwo"
+$ echo -n "no newline"</code></pre>
+  <h2>Help</h2>
+  <p>The <code>echo</code> built into the shell does not understand <code>--help</code>, it just prints the text. Use <code>help echo</code> for the builtin, or call the program <code>/bin/echo</code> from GNU coreutils.</p>
+  <pre><code class="language-bash">$ help echo
+$ /bin/echo --help</code></pre>
+  <h2>Version</h2>
+  <p>The <code>echo</code> built into the shell has no version, but <code>/bin/echo</code> does.</p>
+  <pre><code class="language-bash">$ /bin/echo --version</code></pre>
+  <h2>More about echo</h2>
+  <ul>
+    <li><code>printf</code> gives more control over formatting, for example <code>printf "%s is %d\n" age 42</code></li>
+    <li>Bash has its own built in <code>echo</code>; <code>help echo</code> shows its documentation</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/echo.txt">man echo</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, echo, print, variables, redirection</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,652 @@
+---
+layout: default
+title: Sudoku
+permalink: /tutorials/sudoku/
+chapter: "07"
+chapter_title: "Trivia and Puzzle games"
+keywords: [javascript, game, puzzle, backtracking, recursion, inputs, regex, keyboard, arrow keys, unique solution]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Sudoku</h1>
+  <p>Fill the board so that every row, every column and every 3 by 3 box has the numbers 1 to 9 once each. The page makes a new puzzle every game, in four difficulties, and helps you along: it lights up the row, column and box you are in, can check your numbers, and gives hints.</p>
+  <p>The interesting part is how the computer makes a puzzle. It fills a whole board by trying numbers and going back when it gets stuck. This is called <strong>backtracking</strong>. Then it takes numbers away, as long as the puzzle still has exactly one solution.</p>
+  <p><a href="/assets/tutorials/sudoku.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>sudoku.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
+  <pre><code class="language-html">&lt;h1&gt;Sudoku&lt;/h1&gt;
+&lt;label&gt;
+  Difficulty
+  &lt;select id="difficulty"&gt;
+    &lt;option value="easy" selected&gt;Easy&lt;/option&gt;
+    &lt;option value="medium"&gt;Medium&lt;/option&gt;
+    &lt;option value="hard"&gt;Hard&lt;/option&gt;
+    &lt;option value="expert"&gt;Expert&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/label&gt;
+&lt;div id="board"&gt;&lt;/div&gt;
+&lt;div id="numberPad"&gt;
+  &lt;button type="button" data-number="1"&gt;1&lt;/button&gt;
+  ...
+  &lt;button type="button" data-number="9"&gt;9&lt;/button&gt;
+  &lt;button type="button" data-number="" aria-label="Erase"&gt;&amp;times;&lt;/button&gt;
+&lt;/div&gt;
+&lt;button type="button" id="check"&gt;Check&lt;/button&gt;
+&lt;button type="button" id="hint"&gt;Hint&lt;/button&gt;
+&lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+&lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;</code></pre>
+  <p>The number pad is for phones, where typing in a small square is fiddly. The last button has an empty <code>data-number</code>, which erases.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    max-width: 450px;
+    aspect-ratio: 1;
+    margin: 20px auto;
+    border: 3px solid black;
+}
+
+.cell {
+    min-width: 0;
+    padding: 0;
+    text-align: center;
+    font-size: 22px;
+    border: 1px solid #cccccc;
+    outline: none;
+    caret-color: transparent;
+}
+
+.cell[data-col="2"],
+.cell[data-col="5"] {
+    border-right: 2px solid black;
+}
+
+.cell[data-row="2"],
+.cell[data-row="5"] {
+    border-bottom: 2px solid black;
+}
+
+.cell.related {
+    background-color: #eef3fb;
+}
+
+.cell.given {
+    background-color: #e0e0e0;
+    font-weight: bold;
+}
+
+.cell.hinted {
+    background-color: #d0f0d0;
+}
+
+.cell.wrong {
+    background-color: #ffdddd;
+    color: #bb0000;
+}
+
+.cell.selected {
+    background-color: #cfe0fa;
+}
+
+#numberPad {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    max-width: 450px;
+    margin: 0 auto 16px;
+}
+
+button {
+    padding: 10px 16px;
+    font-size: 18px;
+}
+
+#status {
+    min-height: 1.5em;
+    font-size: 18px;
+}</code></pre>
+  <p>The thick lines between the 3 by 3 boxes come from the squares' <code>data-row</code> and <code>data-col</code> attributes. <code>.cell[data-col="2"]</code> means "a square whose <code>data-col</code> is 2", so columns 2 and 5 get a thick right border and rows 2 and 5 a thick bottom border. <code>caret-color: transparent</code> hides the blinking text cursor in the squares.</p>
+  <h2>Step 2: Can a number go here?</h2>
+  <pre><code class="language-javascript">function canPlace(board, row, col, num) {
+    for (let i = 0; i &lt; 9; i++) {
+        if (board[row][i] === num || board[i][col] === num) {
+            return false;
+        }
+    }
+    const boxRow = row - row % 3;
+    const boxCol = col - col % 3;
+    for (let r = 0; r &lt; 3; r++) {
+        for (let c = 0; c &lt; 3; c++) {
+            if (board[boxRow + r][boxCol + c] === num) {
+                return false;
+            }
+        }
+    }
+    return true;
+}</code></pre>
+  <p>These are all the rules of Sudoku. One loop checks the row and the column at the same time. For the box: <code>row % 3</code> is how far into its box the row is, so <code>row - row % 3</code> is the box's first row: 0, 3 or 6.</p>
+  <h2>Step 3: Filling a board by backtracking</h2>
+  <pre><code class="language-javascript">function fillBoard(board) {
+    for (let row = 0; row &lt; 9; row++) {
+        for (let col = 0; col &lt; 9; col++) {
+            if (board[row][col] !== 0) {
+                continue;
+            }
+            for (const num of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+                if (canPlace(board, row, col, num)) {
+                    board[row][col] = num;
+                    if (fillBoard(board)) {
+                        return true;
+                    }
+                    board[row][col] = 0;
+                }
+            }
+            return false;
+        }
+    }
+    return true;
+}</code></pre>
+  <p>Find the first empty square (0). Try the numbers 1 to 9 in random order. For each one that fits, put it in and ask <code>fillBoard</code> to fill the <strong>rest</strong> of the board, the same way. If that works, we are done. If it gets stuck, take the number out again and try the next one. If no number works here, return false: the square <em>before</em> this one must change, and the call that asked us will try its next number.</p>
+  <p>That is backtracking: go forward while you can, and step back when you are stuck. It sounds slow, but most numbers fit the first or second time, and a full board takes a few milliseconds. The random order makes every board different.</p>
+  <h2>Step 4: Exactly one solution</h2>
+  <p>A good Sudoku has only one solution. So we take away numbers one by one, in random order, and after each one we count the solutions. If there is more than one, the number goes back:</p>
+  <pre><code class="language-javascript">for (const square of shuffle(squares)) {
+    if (filled &lt;= given) {
+        break;
+    }
+    const row = Math.floor(square / 9);
+    const col = square % 9;
+    const value = puzzle[row][col];
+    puzzle[row][col] = 0;
+    if (countSolutions(puzzle, 2) === 1) {
+        filled--;
+    } else {
+        puzzle[row][col] = value;
+    }
+}</code></pre>
+  <p><code>squares</code> is the numbers 0 to 80, one for each square. <code>Math.floor(square / 9)</code> is the row and <code>square % 9</code> the column.</p>
+  <p><code>countSolutions</code> is backtracking again, but instead of stopping at the first solution it counts them. We only need to know if there is one or more than one, so it stops at <code>limit</code> = 2. It also has a trick to be fast: instead of the first empty square, it fills the empty square with the <em>fewest</em> possible numbers first. A square with only one possible number can't go wrong, and the search shrinks a lot.</p>
+  <p>Expert asks for only 25 numbers. If the puzzle runs out of numbers that can be taken away, it keeps a few more. That is why the comment at the top says the hard puzzles can end up with more.</p>
+  <h2>Step 5: The squares</h2>
+  <p>Each square is an <code>&lt;input&gt;</code>, so it can be typed in. The given numbers are <code>readOnly</code> with the class <code>given</code>. Typing goes through one function:</p>
+  <pre><code class="language-javascript">function setValue(cell, text) {
+    if (cell.readOnly) {
+        return;
+    }
+    const digits = String(text).replace(/[^1-9]/g, "");
+    cell.value = digits.slice(-1);
+    cell.classList.remove("wrong");
+    statusText.textContent = "";
+}</code></pre>
+  <p><code>/[^1-9]/g</code> is a regular expression for "every character that is not 1 to 9", like the ones in chapter 1. They are replaced with nothing. Then <code>slice(-1)</code> keeps only the last digit, so typing a new number replaces the old one. The number pad calls the same function, with the button's <code>data-number</code>.</p>
+  <p>When a square gets the focus, <code>selectCell</code> lights up its row, column and box with <code>classList.toggle("related", ...)</code>. The arrow keys move between squares:</p>
+  <pre><code class="language-javascript">cells[(row + move[0] + 9) % 9][(col + move[1] + 9) % 9].focus();</code></pre>
+  <p><code>+ 9</code> and <code>% 9</code> make it wrap around: up from row 0 is row 8.</p>
+  <h2>Step 6: Check and hint</h2>
+  <p>We made the full solution first, so checking is easy: compare each filled square with <code>solution</code>, and mark the wrong ones red. A hint writes the right number in the chosen square, or in a random empty or wrong square, and locks it.</p>
+  <h2>Step 7: Test it</h2>
+  <ul>
+    <li>Type a letter, and two digits. Only the last digit should stay.</li>
+    <li>Put in a wrong number and press Check. It should turn red.</li>
+    <li>Use Hint until the board is solved, then press Check.</li>
+    <li>Try Expert. The new board should still come in a moment.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>sudoku.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Sudoku&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #board {
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        max-width: 450px;
+        aspect-ratio: 1;
+        margin: 20px auto;
+        border: 3px solid black;
+    }
+
+    .cell {
+        min-width: 0;
+        padding: 0;
+        text-align: center;
+        font-size: 22px;
+        border: 1px solid #cccccc;
+        outline: none;
+        caret-color: transparent;
+    }
+
+    .cell[data-col="2"],
+    .cell[data-col="5"] {
+        border-right: 2px solid black;
+    }
+
+    .cell[data-row="2"],
+    .cell[data-row="5"] {
+        border-bottom: 2px solid black;
+    }
+
+    .cell.related {
+        background-color: #eef3fb;
+    }
+
+    .cell.given {
+        background-color: #e0e0e0;
+        font-weight: bold;
+    }
+
+    .cell.hinted {
+        background-color: #d0f0d0;
+    }
+
+    .cell.wrong {
+        background-color: #ffdddd;
+        color: #bb0000;
+    }
+
+    .cell.selected {
+        background-color: #cfe0fa;
+    }
+
+    #numberPad {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+        max-width: 450px;
+        margin: 0 auto 16px;
+    }
+
+    button {
+        padding: 10px 16px;
+        font-size: 18px;
+    }
+
+    #status {
+        min-height: 1.5em;
+        font-size: 18px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Sudoku&lt;/h1&gt;
+  &lt;label&gt;
+    Difficulty
+    &lt;select id="difficulty"&gt;
+      &lt;option value="easy" selected&gt;Easy&lt;/option&gt;
+      &lt;option value="medium"&gt;Medium&lt;/option&gt;
+      &lt;option value="hard"&gt;Hard&lt;/option&gt;
+      &lt;option value="expert"&gt;Expert&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/label&gt;
+  &lt;div id="board"&gt;&lt;/div&gt;
+  &lt;div id="numberPad"&gt;
+    &lt;button type="button" data-number="1"&gt;1&lt;/button&gt;
+    &lt;button type="button" data-number="2"&gt;2&lt;/button&gt;
+    &lt;button type="button" data-number="3"&gt;3&lt;/button&gt;
+    &lt;button type="button" data-number="4"&gt;4&lt;/button&gt;
+    &lt;button type="button" data-number="5"&gt;5&lt;/button&gt;
+    &lt;button type="button" data-number="6"&gt;6&lt;/button&gt;
+    &lt;button type="button" data-number="7"&gt;7&lt;/button&gt;
+    &lt;button type="button" data-number="8"&gt;8&lt;/button&gt;
+    &lt;button type="button" data-number="9"&gt;9&lt;/button&gt;
+    &lt;button type="button" data-number="" aria-label="Erase"&gt;&amp;times;&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;button type="button" id="check"&gt;Check&lt;/button&gt;
+  &lt;button type="button" id="hint"&gt;Hint&lt;/button&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Sudoku: fill the board so every row, every column and every 3x3 box has
+     * the numbers 1 to 9 once each. A new puzzle is made every game: first a
+     * full, random board, then numbers are taken away for as long as the
+     * puzzle still has only one solution.
+     *
+     *   click a square, then type a number or use the number pad
+     *   arrow keys   move between squares
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    // How many numbers are given at the start, for each difficulty. Hard
+    // puzzles can end up with a few more, if taking away another number would
+    // give the puzzle more than one solution.
+    const GIVEN = { easy: 40, medium: 35, hard: 30, expert: 25 };
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const difficultySelect = document.getElementById("difficulty");
+    const numberPad = document.getElementById("numberPad");
+    const statusText = document.getElementById("status");
+    const checkButton = document.getElementById("check");
+    const hintButton = document.getElementById("hint");
+    const restartButton = document.getElementById("restart");
+
+    // --- State ---------------------------------------------------------------
+
+    let solution = [];     // solution[row][col]: the right number, 1-9
+    let cells = [];        // cells[row][col]: the &lt;input&gt; for each square
+    let activeCell = null; // the square the player last clicked
+
+    // --- Making a puzzle -----------------------------------------------------
+
+    // Shuffle a list in place (the Fisher-Yates shuffle) and return it.
+    function shuffle(list) {
+        for (let i = list.length - 1; i &gt; 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const temp = list[i];
+            list[i] = list[j];
+            list[j] = temp;
+        }
+        return list;
+    }
+
+    // Can "num" go at (row, col)? Not if it is already in the row, the column
+    // or the 3x3 box.
+    function canPlace(board, row, col, num) {
+        for (let i = 0; i &lt; 9; i++) {
+            if (board[row][i] === num || board[i][col] === num) {
+                return false;
+            }
+        }
+        const boxRow = row - row % 3;
+        const boxCol = col - col % 3;
+        for (let r = 0; r &lt; 3; r++) {
+            for (let c = 0; c &lt; 3; c++) {
+                if (board[boxRow + r][boxCol + c] === num) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Fill every empty square (0) with a random number that fits. If a square
+    // has no number that fits, go back and try another number in the square
+    // before. This is called backtracking.
+    function fillBoard(board) {
+        for (let row = 0; row &lt; 9; row++) {
+            for (let col = 0; col &lt; 9; col++) {
+                if (board[row][col] !== 0) {
+                    continue;
+                }
+                for (const num of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+                    if (canPlace(board, row, col, num)) {
+                        board[row][col] = num;
+                        if (fillBoard(board)) {
+                            return true;
+                        }
+                        board[row][col] = 0;   // didn't work: undo and try the next
+                    }
+                }
+                return false;   // nothing fits here
+            }
+        }
+        return true;   // no empty squares left
+    }
+
+    // How many solutions does the board have? We only need to know if it is
+    // one or more than one, so stop counting at "limit". Always fill the empty
+    // square with the fewest possible numbers first; that is much faster.
+    function countSolutions(board, limit) {
+        let bestRow = -1;
+        let bestCol = -1;
+        let bestOptions = null;
+        for (let row = 0; row &lt; 9; row++) {
+            for (let col = 0; col &lt; 9; col++) {
+                if (board[row][col] !== 0) {
+                    continue;
+                }
+                const options = [];
+                for (let num = 1; num &lt;= 9; num++) {
+                    if (canPlace(board, row, col, num)) {
+                        options.push(num);
+                    }
+                }
+                if (options.length === 0) {
+                    return 0;   // a dead end
+                }
+                if (bestOptions === null || options.length &lt; bestOptions.length) {
+                    bestRow = row;
+                    bestCol = col;
+                    bestOptions = options;
+                }
+            }
+        }
+        if (bestOptions === null) {
+            return 1;   // the board is full: that is one solution
+        }
+
+        let count = 0;
+        for (const num of bestOptions) {
+            board[bestRow][bestCol] = num;
+            count += countSolutions(board, limit - count);
+            if (count &gt;= limit) {
+                break;
+            }
+        }
+        board[bestRow][bestCol] = 0;
+        return count;
+    }
+
+    // Take away numbers in random order, but only if the puzzle still has
+    // exactly one solution afterwards.
+    function makePuzzle(full, given) {
+        const puzzle = full.map(function (row) {
+            return row.slice();
+        });
+        const squares = [];
+        for (let i = 0; i &lt; 81; i++) {
+            squares.push(i);
+        }
+        let filled = 81;
+        for (const square of shuffle(squares)) {
+            if (filled &lt;= given) {
+                break;
+            }
+            const row = Math.floor(square / 9);
+            const col = square % 9;
+            const value = puzzle[row][col];
+            puzzle[row][col] = 0;
+            if (countSolutions(puzzle, 2) === 1) {
+                filled--;
+            } else {
+                puzzle[row][col] = value;   // put it back
+            }
+        }
+        return puzzle;
+    }
+
+    // --- The board -----------------------------------------------------------
+
+    function newGame() {
+        const full = [];
+        for (let row = 0; row &lt; 9; row++) {
+            full.push([0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        }
+        fillBoard(full);
+        solution = full;
+        const puzzle = makePuzzle(full, GIVEN[difficultySelect.value]);
+
+        boardElement.innerHTML = "";
+        cells = [];
+        activeCell = null;
+        statusText.textContent = "";
+
+        for (let row = 0; row &lt; 9; row++) {
+            cells.push([]);
+            for (let col = 0; col &lt; 9; col++) {
+                const cell = document.createElement("input");
+                cell.type = "text";
+                cell.inputMode = "numeric";
+                cell.autocomplete = "off";
+                cell.className = "cell";
+                cell.setAttribute("aria-label", "Row " + (row + 1) + ", column " + (col + 1));
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+
+                if (puzzle[row][col] !== 0) {
+                    cell.value = puzzle[row][col];
+                    cell.readOnly = true;
+                    cell.classList.add("given");
+                }
+                cell.addEventListener("input", function () {
+                    setValue(cell, cell.value);
+                });
+                cell.addEventListener("focus", function () {
+                    selectCell(cell);
+                });
+                cell.addEventListener("keydown", function (event) {
+                    moveWithArrows(event, row, col);
+                });
+
+                boardElement.appendChild(cell);
+                cells[row].push(cell);
+            }
+        }
+    }
+
+    // Keep only one digit, 1-9. Typing a new digit replaces the old one.
+    function setValue(cell, text) {
+        if (cell.readOnly) {
+            return;
+        }
+        const digits = String(text).replace(/[^1-9]/g, "");
+        cell.value = digits.slice(-1);
+        cell.classList.remove("wrong");
+        statusText.textContent = "";
+    }
+
+    // Light up the row, column and box of the chosen square.
+    function selectCell(cell) {
+        activeCell = cell;
+        cell.select();
+        const row = Number(cell.dataset.row);
+        const col = Number(cell.dataset.col);
+        cells.flat().forEach(function (other) {
+            const r = Number(other.dataset.row);
+            const c = Number(other.dataset.col);
+            const sameBox = Math.floor(r / 3) === Math.floor(row / 3) &amp;&amp; Math.floor(c / 3) === Math.floor(col / 3);
+            other.classList.toggle("related", r === row || c === col || sameBox);
+            other.classList.toggle("selected", other === cell);
+        });
+    }
+
+    function moveWithArrows(event, row, col) {
+        const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+        const move = moves[event.key];
+        if (!move) {
+            return;
+        }
+        event.preventDefault();
+        // + 9 and % 9: going off one side comes back on the other.
+        cells[(row + move[0] + 9) % 9][(col + move[1] + 9) % 9].focus();
+    }
+
+    // --- Checking and hints --------------------------------------------------
+
+    function check() {
+        let empty = 0;
+        let wrong = 0;
+        cells.flat().forEach(function (cell) {
+            cell.classList.remove("wrong");
+            if (cell.readOnly) {
+                return;
+            }
+            if (cell.value === "") {
+                empty++;
+            } else if (Number(cell.value) !== solution[cell.dataset.row][cell.dataset.col]) {
+                wrong++;
+                cell.classList.add("wrong");
+            }
+        });
+
+        if (wrong &gt; 0) {
+            statusText.textContent = wrong + (wrong === 1 ? " number is" : " numbers are") + " wrong.";
+        } else if (empty &gt; 0) {
+            statusText.textContent = "No mistakes so far. " + empty + (empty === 1 ? " square" : " squares") + " left.";
+        } else {
+            statusText.textContent = "Solved! Well done!";
+        }
+    }
+
+    // Fill in the right number in the chosen square, or in a random square
+    // that is empty or wrong if no square is chosen.
+    function hint() {
+        let cell = activeCell;
+        if (!cell || cell.readOnly) {
+            const open = cells.flat().filter(function (c) {
+                return !c.readOnly &amp;&amp; Number(c.value) !== solution[c.dataset.row][c.dataset.col];
+            });
+            if (open.length === 0) {
+                return;
+            }
+            cell = open[Math.floor(Math.random() * open.length)];
+        }
+        cell.value = solution[cell.dataset.row][cell.dataset.col];
+        cell.classList.remove("wrong");
+        cell.classList.add("hinted");
+        cell.readOnly = true;   // a hint is always right, so lock it
+        statusText.textContent = "";
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    checkButton.addEventListener("click", check);
+    hintButton.addEventListener("click", hint);
+    restartButton.addEventListener("click", newGame);
+    difficultySelect.addEventListener("change", newGame);
+
+    // The number pad, for phones. Clicking it would take the focus away from
+    // the square, so we stop that with preventDefault on mousedown.
+    numberPad.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+    });
+    numberPad.addEventListener("click", function (event) {
+        const button = event.target.closest("button");
+        if (button &amp;&amp; activeCell) {
+            setValue(activeCell, button.dataset.number);
+        }
+    });
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a clock, and save the best time for each difficulty in <code>localStorage</code>.</li>
+    <li>Let the player write small "pencil marks": several possible numbers in one square.</li>
+    <li>Light up every square with the same number as the chosen one.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

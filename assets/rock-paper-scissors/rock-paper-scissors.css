@@ -1,0 +1,82 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  box-sizing: border-box;
+  text-align: center;
+  width: min(100% - 40px, 450px);
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.game .game-container {
+  text-align: center;
+}
+
+.game h1 {
+  color: #3498db;
+  text-shadow: 2px 2px #0a629d;
+}
+
+.game .score {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  font-size: clamp(18px, 5vw, 24px);
+  margin: 20px 0;
+}
+
+.game .score img {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.game .score #player, .game .score #cpu {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.game .score #cpu img {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
+.game #result {
+  font-size: 1.5em;
+  line-height: 2;
+  background-color: #3498db;
+  color: #fff;
+  margin: 0px;
+}
+
+.game .choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.game button {
+  flex: 1 1 auto;
+  padding: 15px 20px;
+  font-size: 18px;
+  background-color: #3498db;
+  color: #fff;
+  border: 5px solid #0a629d;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game button:hover {
+  box-shadow: 0px 0px 10px #0a629d;
+}

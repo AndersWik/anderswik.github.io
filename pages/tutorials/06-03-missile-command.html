@@ -1,0 +1,534 @@
+---
+layout: default
+title: Missile Command
+permalink: /tutorials/missile-command/
+chapter: "06"
+chapter_title: "Classic arcade"
+keywords: [javascript, game, canvas, game loop, mouse, click, straight line, direction, distance, explosions, filter, levels]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Missile Command</h1>
+  <p>Enemy missiles fall from the sky towards your six cities. Click anywhere to fire a rocket from the launcher in the middle. It flies to where you clicked and explodes there, and every enemy missile that flies into the explosion is destroyed. Each level has more and faster missiles. Lose all your cities and the game is over.</p>
+  <p>The game uses the game loop and screens from <a href="/tutorials/breakout/">Breakout</a>, and the mouse from <a href="/tutorials/arcade-shooter/">Arcade shooter</a>. The new part is making something fly in a straight line from one point to another, at a speed you choose.</p>
+  <p><a href="/assets/tutorials/missile-command.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>missile-command.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
+  <pre><code class="language-html">&lt;p&gt;Score: &lt;span id="score"&gt;0&lt;/span&gt; | Level: &lt;span id="level"&gt;1&lt;/span&gt;&lt;/p&gt;
+&lt;canvas id="gameCanvas" width="800" height="500"&gt;&lt;/canvas&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    color: white;
+    background-color: black;
+    text-align: center;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    cursor: crosshair;
+}</code></pre>
+  <h2>Step 2: Flying from A to B</h2>
+  <p>Your rockets and the enemy missiles are the same thing: something that starts at one point and flies straight to another. One function makes them all:</p>
+  <pre><code class="language-javascript">function newMissile(x, y, targetX, targetY, speed) {
+    const distance = Math.hypot(targetX - x, targetY - y);
+    return {
+        startX: x,
+        startY: y,
+        x: x,
+        y: y,
+        targetX: targetX,
+        targetY: targetY,
+        dx: (targetX - x) / distance * speed,
+        dy: (targetY - y) / distance * speed
+    };
+}</code></pre>
+  <p>This is the main idea of the game, so let's take it slowly. Say the missile starts at (400, 430) and the target is (700, 30):</p>
+  <ul>
+    <li>The way there is 300 across and -400 up. <code>Math.hypot(300, -400)</code> is the length of that line: 500.</li>
+    <li>Divide both parts by the length: 300 / 500 = 0.6 and -400 / 500 = -0.8. That is the <strong>direction</strong>, as a step that is exactly 1 pixel long.</li>
+    <li>Times <code>speed</code>: with speed 6, every step moves 3.6 across and -4.8 up, which is 6 pixels along the line.</li>
+  </ul>
+  <p>So <code>dx</code> and <code>dy</code> are worked out once, when the missile is made. After that, flying is just adding them on each step:</p>
+  <pre><code class="language-javascript">function fly(missile) {
+    missile.x += missile.dx;
+    missile.y += missile.dy;
+    return Math.hypot(missile.targetX - missile.x, missile.targetY - missile.y) &lt;= Math.hypot(missile.dx, missile.dy);
+}</code></pre>
+  <p><code>fly</code> returns true when the missile has got there. We can't check if <code>x</code> is exactly <code>targetX</code>: with steps of 3.6 it will almost never land on it. Instead: is the distance left shorter than one step? Then the next step would go past it, so it counts as there.</p>
+  <p>The start point is kept too, because a missile is drawn as a line from where it started to where it is now. That is the trail you see behind it.</p>
+  <h2>Step 3: Enemy missiles</h2>
+  <pre><code class="language-javascript">function spawnEnemy() {
+    const alive = cities.filter(function (city) {
+        return city.alive;
+    });
+    const target = alive[Math.floor(Math.random() * alive.length)];
+    const speed = 0.4 + level * 0.15;
+    enemies.push(newMissile(Math.random() * WIDTH, 0, target.x, GROUND, speed));
+    enemiesLeft--;
+}</code></pre>
+  <p>Every second (<code>SPAWN_TIME</code> = 60 steps) a new missile starts at a random place at the top and flies towards a city that is still standing. On level 1 it moves 0.55 pixels a step, on level 5 1.15. A level has <code>15 + level * 5</code> missiles: 20 on the first, 40 on the last.</p>
+  <p>The first version used <code>setInterval</code> to make a missile every second, and started a new interval every time a game started, without stopping the old one. Every new game made missiles come faster: two a second, then three... Counting steps in <code>update</code> can't go wrong like that, and stops by itself during a pause.</p>
+  <h2>Step 4: Firing</h2>
+  <pre><code class="language-javascript">function fire(x, y) {
+    y = Math.min(y, GROUND - 30);
+    rockets.push(newMissile(LAUNCHER_X, GROUND - 20, x, y, ROCKET_SPEED));
+}</code></pre>
+  <p>A click fires a rocket from the top of the launcher to where you clicked. You can't aim lower than just above the cities, or you could blow them up yourself. The position of the click is turned into canvas pixels like in Arcade shooter, so it also works on a small phone where the canvas is shown smaller. The first version used <code>event.offsetX</code>, which is in screen pixels, so on a phone the rockets went to the wrong place.</p>
+  <h2>Step 5: Explosions</h2>
+  <pre><code class="language-javascript">rockets = rockets.filter(function (rocket) {
+    if (fly(rocket)) {
+        explosions.push({ x: rocket.targetX, y: rocket.targetY, radius: 1, growing: true });
+        return false;
+    }
+    return true;
+});
+
+explosions = explosions.filter(function (explosion) {
+    explosion.radius += explosion.growing ? 1.5 : -1;
+    if (explosion.radius &gt;= EXPLOSION_SIZE) {
+        explosion.growing = false;
+    }
+    return explosion.radius &gt; 0;
+});</code></pre>
+  <p>We use <code>filter</code> again to move things and remove them in one go: return <code>false</code> to drop an item from the list. A rocket that has arrived is removed and leaves an explosion. An explosion grows to a radius of 40, then shrinks until it is gone. That takes a bit over a second, and all that time it can catch missiles.</p>
+  <h2>Step 6: Hits and lost cities</h2>
+  <pre><code class="language-javascript">enemies = enemies.filter(function (enemy) {
+    const hit = explosions.some(function (explosion) {
+        return Math.hypot(enemy.x - explosion.x, enemy.y - explosion.y) &lt; explosion.radius;
+    });
+    if (hit) {
+        score += 25;
+        return false;
+    }
+    if (fly(enemy)) {
+        cities.forEach(function (city) {
+            if (city.x === enemy.targetX) {
+                city.alive = false;
+            }
+        });
+        return false;
+    }
+    return true;
+});</code></pre>
+  <p>An enemy missile whose tip is inside any explosion (closer to its center than its radius) is destroyed, and you get points. One that reaches the ground destroys the city it was aimed at.</p>
+  <p>In the first version, enemy missiles exploded too when they hit the ground, and their explosions destroyed other enemy missiles, which gave you points. Losing a city could win you points! Here only your rockets make explosions.</p>
+  <h2>Step 7: Levels</h2>
+  <pre><code class="language-javascript">if (citiesLeft === 0) {
+    screen = "gameOver";
+} else if (enemiesLeft === 0 &amp;&amp; enemies.length === 0) {
+    bonus = citiesLeft * 100;
+    score += bonus;
+    screen = level === LAST_LEVEL ? "won" : "levelDone";
+}</code></pre>
+  <p>A level is over when all its missiles have come and none are left in the air. Every city still standing is worth 100 points. The next level starts with all the cities built again.</p>
+  <h2>Step 8: Drawing</h2>
+  <p>Everything is simple shapes: a blue ground, a gray triangle for the launcher, three gray boxes of different heights for each city, a brown strip for a destroyed one, white lines for your rockets, red lines for the enemies, and orange circles for the explosions. Have a look at <code>drawWorld()</code> in the complete page.</p>
+  <h2>Step 9: Test it</h2>
+  <ul>
+    <li>Fire at an enemy missile. Aim a little below it, so it flies into the explosion.</li>
+    <li>Let a missile through. Its city should be destroyed, and your score should not go up.</li>
+    <li>Click below the cities. The rocket should explode just above them.</li>
+    <li>Press Enter for a new game several times. Missiles should come at the same pace every time.</li>
+    <li>Finish a level and check the bonus: 100 for each city left.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>missile-command.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Missile Command&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        color: white;
+        background-color: black;
+        text-align: center;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        cursor: crosshair;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;p&gt;Score: &lt;span id="score"&gt;0&lt;/span&gt; | Level: &lt;span id="level"&gt;1&lt;/span&gt;&lt;/p&gt;
+  &lt;canvas id="gameCanvas" width="800" height="500"&gt;&lt;/canvas&gt;
+
+  &lt;script&gt;
+    /*
+     * Missile Command: enemy missiles fall towards your cities. Click to fire
+     * a rocket from the launcher. It explodes where you clicked, and the
+     * explosion destroys every enemy missile that flies into it. Save as many
+     * cities as you can. Five levels, each with more and faster missiles.
+     *
+     *   click     fire
+     *   P / Esc   pause / menu
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;        // one update step, in milliseconds
+    const LAST_LEVEL = 5;
+    const GROUND = 450;            // y of the ground
+    const CITY_X = [100, 200, 300, 500, 600, 700];
+    const LAUNCHER_X = 400;
+    const ROCKET_SPEED = 6;
+    const EXPLOSION_SIZE = 40;     // biggest radius of an explosion
+    const SPAWN_TIME = 60;         // steps between enemy missiles
+
+    // --- Elements on the page ------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    const scoreText = document.getElementById("score");
+    const levelText = document.getElementById("level");
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, playing, paused, levelDone, won, gameOver
+    let gameStarted = false;
+
+    let level = 1;
+    let score = 0;
+    let bonus = 0;         // points for the cities saved this level
+    let cities = [];       // { x, alive }
+    let rockets = [];      // yours, on the way up
+    let enemies = [];      // enemy missiles, on the way down
+    let explosions = [];
+    let enemiesLeft = 0;   // enemy missiles still to come this level
+    let spawnTimer = 0;
+
+    // --- Starting ------------------------------------------------------------
+
+    function newGame() {
+        score = 0;
+        level = 1;
+        gameStarted = true;
+        startLevel();
+    }
+
+    // Every level starts with all cities rebuilt.
+    function startLevel() {
+        cities = CITY_X.map(function (x) {
+            return { x: x, alive: true };
+        });
+        rockets = [];
+        enemies = [];
+        explosions = [];
+        enemiesLeft = 15 + level * 5;
+        spawnTimer = SPAWN_TIME;
+        screen = "playing";
+    }
+
+    // --- Missiles ------------------------------------------------------------
+
+    // Something that flies in a straight line from (x, y) to (targetX,
+    // targetY) at "speed" pixels a step. dx and dy are worked out once.
+    function newMissile(x, y, targetX, targetY, speed) {
+        const distance = Math.hypot(targetX - x, targetY - y);
+        return {
+            startX: x,
+            startY: y,
+            x: x,
+            y: y,
+            targetX: targetX,
+            targetY: targetY,
+            dx: (targetX - x) / distance * speed,
+            dy: (targetY - y) / distance * speed
+        };
+    }
+
+    // Move one step. Returns true when it has got to its target.
+    function fly(missile) {
+        missile.x += missile.dx;
+        missile.y += missile.dy;
+        return Math.hypot(missile.targetX - missile.x, missile.targetY - missile.y) &lt;= Math.hypot(missile.dx, missile.dy);
+    }
+
+    function spawnEnemy() {
+        const alive = cities.filter(function (city) {
+            return city.alive;
+        });
+        const target = alive[Math.floor(Math.random() * alive.length)];
+        const speed = 0.4 + level * 0.15;
+        enemies.push(newMissile(Math.random() * WIDTH, 0, target.x, GROUND, speed));
+        enemiesLeft--;
+    }
+
+    function fire(x, y) {
+        // Not below the top of the cities: you would hit your own.
+        y = Math.min(y, GROUND - 30);
+        rockets.push(newMissile(LAUNCHER_X, GROUND - 20, x, y, ROCKET_SPEED));
+    }
+
+    // --- Update --------------------------------------------------------------
+
+    // One step of the game: about 1/60 of a second.
+    function update() {
+        spawnTimer--;
+        if (spawnTimer &lt;= 0 &amp;&amp; enemiesLeft &gt; 0) {
+            spawnEnemy();
+            spawnTimer = SPAWN_TIME;
+        }
+
+        // A rocket that gets to where you clicked explodes there.
+        rockets = rockets.filter(function (rocket) {
+            if (fly(rocket)) {
+                explosions.push({ x: rocket.targetX, y: rocket.targetY, radius: 1, growing: true });
+                return false;
+            }
+            return true;
+        });
+
+        // Explosions grow to full size, then shrink away.
+        explosions = explosions.filter(function (explosion) {
+            explosion.radius += explosion.growing ? 1.5 : -1;
+            if (explosion.radius &gt;= EXPLOSION_SIZE) {
+                explosion.growing = false;
+            }
+            return explosion.radius &gt; 0;
+        });
+
+        enemies = enemies.filter(function (enemy) {
+            // Inside an explosion: destroyed.
+            const hit = explosions.some(function (explosion) {
+                return Math.hypot(enemy.x - explosion.x, enemy.y - explosion.y) &lt; explosion.radius;
+            });
+            if (hit) {
+                score += 25;
+                return false;
+            }
+            // At the ground: the city there is destroyed.
+            if (fly(enemy)) {
+                cities.forEach(function (city) {
+                    if (city.x === enemy.targetX) {
+                        city.alive = false;
+                    }
+                });
+                return false;
+            }
+            return true;
+        });
+
+        const citiesLeft = cities.filter(function (city) {
+            return city.alive;
+        }).length;
+
+        if (citiesLeft === 0) {
+            screen = "gameOver";
+        } else if (enemiesLeft === 0 &amp;&amp; enemies.length === 0) {
+            bonus = citiesLeft * 100;
+            score += bonus;
+            screen = level === LAST_LEVEL ? "won" : "levelDone";
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawText(text, x, y, size, color) {
+        ctx.fillStyle = color || "white";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(text, x, y);
+    }
+
+    function drawLine(missile, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(missile.startX, missile.startY);
+        ctx.lineTo(missile.x, missile.y);
+        ctx.stroke();
+    }
+
+    function drawWorld() {
+        ctx.fillStyle = "#111111";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // The ground and the launcher.
+        ctx.fillStyle = "#0000aa";
+        ctx.fillRect(0, GROUND, WIDTH, HEIGHT - GROUND);
+        ctx.fillStyle = "#888888";
+        ctx.beginPath();
+        ctx.moveTo(LAUNCHER_X - 25, GROUND);
+        ctx.lineTo(LAUNCHER_X, GROUND - 25);
+        ctx.lineTo(LAUNCHER_X + 25, GROUND);
+        ctx.fill();
+
+        // A city is three houses; a destroyed one is a pile of rubble.
+        cities.forEach(function (city) {
+            if (city.alive) {
+                ctx.fillStyle = "#cccccc";
+                ctx.fillRect(city.x - 20, GROUND - 15, 12, 15);
+                ctx.fillRect(city.x - 6, GROUND - 25, 12, 25);
+                ctx.fillRect(city.x + 8, GROUND - 18, 12, 18);
+            } else {
+                ctx.fillStyle = "#553322";
+                ctx.fillRect(city.x - 20, GROUND - 5, 40, 5);
+            }
+        });
+
+        rockets.forEach(function (rocket) {
+            drawLine(rocket, "white");
+        });
+        enemies.forEach(function (enemy) {
+            drawLine(enemy, "red");
+        });
+
+        ctx.fillStyle = "orange";
+        explosions.forEach(function (explosion) {
+            ctx.beginPath();
+            ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 60, 40, "yellow");
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+        });
+    }
+
+    function draw() {
+        drawWorld();
+
+        if (screen === "menu") {
+            const lines = ["Click to fire. Save your cities!", "P: pause    Esc: menu", "Press Enter to start"];
+            if (gameStarted) {
+                lines.push("Esc: back to the game");
+            }
+            drawMessage("Missile Command", lines);
+        } else if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "levelDone") {
+            drawMessage("Level " + level + " done!", ["Cities saved: " + bonus + " points", "Press Enter for the next level"]);
+        } else if (screen === "won") {
+            drawMessage("You win!", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+        } else if (screen === "gameOver") {
+            drawMessage("The end", ["All your cities are gone", "Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+        }
+
+        scoreText.textContent = score;
+        levelText.textContent = level;
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // Run one update per 1/60 second, so the game has the same speed on
+    // every screen, then draw.
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        while (leftover &gt;= STEP) {
+            if (screen === "playing") {
+                update();
+            }
+            leftover -= STEP;
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Mouse and keyboard --------------------------------------------------
+
+    // The canvas can be shown smaller than 800x500 on a small screen. Convert
+    // from position on the screen to position in the canvas.
+    function canvasPosition(event) {
+        const box = canvas.getBoundingClientRect();
+        return {
+            x: (event.clientX - box.left) * (WIDTH / box.width),
+            y: (event.clientY - box.top) * (HEIGHT / box.height)
+        };
+    }
+
+    canvas.addEventListener("click", function (event) {
+        if (screen === "playing") {
+            const position = canvasPosition(event);
+            fire(position.x, position.y);
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+
+        if (screen === "menu") {
+            if (key === "Enter") {
+                newGame();
+            } else if (key === "Escape" &amp;&amp; gameStarted) {
+                screen = "paused";
+            }
+        } else if (screen === "playing") {
+            if (key === "p" || key === "P") {
+                screen = "paused";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "paused") {
+            if (key === "p" || key === "P") {
+                screen = "playing";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "levelDone") {
+            if (key === "Enter") {
+                level++;
+                startLevel();
+            }
+        } else if (screen === "won" || screen === "gameOver") {
+            if (key === "Enter") {
+                newGame();
+            } else if (key === "Escape") {
+                gameStarted = false;
+                screen = "menu";
+            }
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Give the launcher a limited number of rockets per level, and show how many are left.</li>
+    <li>Let some enemy missiles split into three halfway down.</li>
+    <li>Add two more launchers at the sides, and fire from the one nearest the click.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

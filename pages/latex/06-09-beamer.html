@@ -1,0 +1,78 @@
+---
+layout: default
+title: Beamer
+permalink: /latex/beamer/
+chapter: "06"
+chapter_title: "More features"
+keywords: [latex, beamer, presentation, slides, frame, theme, pause, columns, overlay]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Beamer</h1>
+  <p>Beamer is a document class for presentations. Each slide is a <code>frame</code>.</p>
+  <h2>Presentation</h2>
+  <pre><code class="language-latex">\documentclass{beamer}
+\usetheme{Madrid}
+
+\title{My talk}
+\author{Anders Wik}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{First slide}
+  \begin{itemize}
+    \item One
+    \item Two
+  \end{itemize}
+\end{frame}
+
+\end{document}</code></pre>
+  <h2>Step by step</h2>
+  <pre><code class="language-latex">\begin{frame}{Step by step}
+  \begin{itemize}
+    \item&lt;1-&gt; Shown first
+    \item&lt;2-&gt; Shown second
+    \item&lt;3-&gt; Shown third
+  \end{itemize}
+  \pause
+  Shown last.
+\end{frame}</code></pre>
+  <h2>Columns</h2>
+  <pre><code class="language-latex">\begin{frame}{Two columns}
+  \begin{columns}
+    \column{0.5\textwidth}
+    Text on the left.
+    \column{0.5\textwidth}
+    \includegraphics[width=\linewidth]{penguin}
+  \end{columns}
+\end{frame}</code></pre>
+  <h2>Blocks</h2>
+  <pre><code class="language-latex">\begin{block}{Title}
+  A box.
+\end{block}
+\begin{alertblock}{Warning}
+  A red box.
+\end{alertblock}
+\begin{exampleblock}{Example}
+  A green box.
+\end{exampleblock}</code></pre>
+  <h2>Themes</h2>
+  <pre><code class="language-latex">\usetheme{default}      % also Madrid, Berlin, Warsaw, metropolis
+\usecolortheme{beaver}  % also dolphin, whale, seahorse
+\setbeamertemplate{navigation symbols}{}   % hide the navigation icons</code></pre>
+  <h2>More about Beamer</h2>
+  <ul>
+    <li>Use <code>\begin{frame}[fragile]</code> for slides with <a href="/latex/code-listings/">code</a></li>
+    <li>The <code>handout</code> class option removes the steps, for printing</li>
+    <li><a href="https://deic.uab.cat/~iblanes/beamer_gallery/">Beamer theme gallery</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

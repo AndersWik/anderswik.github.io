@@ -1,0 +1,43 @@
+---
+layout: default
+title: Rm
+permalink: /linux/rm/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, rm, remove, delete, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Rm</h1>
+  <p><code>rm</code> removes files and directories. There is no trash can on the command line: removed files are gone, so be careful, especially with wildcards and <code>sudo</code>.</p>
+  <h2>Remove files</h2>
+  <pre><code class="language-bash">$ rm notes.txt
+$ rm *.tmp</code></pre>
+  <h2>Remove directories</h2>
+  <p><code>-r</code> removes a directory and everything in it. <code>-f</code> never asks and ignores missing files. Double check the path before running <code>rm -rf</code>.</p>
+  <pre><code class="language-bash">$ rm -r old-project
+$ rm -rf node_modules</code></pre>
+  <p>An empty directory can also be removed with <a href="/linux/rmdir/">rmdir</a>.</p>
+  <pre><code class="language-bash">$ rmdir empty-dir</code></pre>
+  <h2>Ask before removing</h2>
+  <pre><code class="language-bash">$ rm -i *.txt</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>rm</code> and all its options.</p>
+  <pre><code class="language-bash">$ rm --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>rm</code> is installed. <code>-v</code> does not show the version, it makes <code>rm</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ rm --version</code></pre>
+  <h2>More about rm</h2>
+  <ul>
+    <li>Run <code>ls</code> with the same pattern first to see what will be removed</li>
+    <li><code>-v</code> prints each file as it is removed</li>
+    <li><code>trash-cli</code> (<code>trash-put</code>) moves files to the desktop trash instead of deleting them</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/rm.txt">man rm</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, rm, remove, delete, files</p>
+  {% include trail.html %}
+</div>

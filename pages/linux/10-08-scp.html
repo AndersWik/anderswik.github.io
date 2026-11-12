@@ -1,0 +1,35 @@
+---
+layout: default
+title: Scp
+permalink: /linux/scp/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, scp, ssh, copy, remote, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Scp</h1>
+  <p><code>scp</code> (secure copy) copies files between computers over SSH. It works like <a href="/linux/cp/">cp</a>, but one of the paths can be on another computer, written as <code>user@host:path</code>.</p>
+  <h2>Copy from a server</h2>
+  <p>Download a database dump from the home directory on the server to the current directory.</p>
+  <pre><code class="language-bash">$ scp username@domain.se:~/domain.se/sqldumpname.sql ./localsqldumpname.sql</code></pre>
+  <h2>Copy to a server</h2>
+  <pre><code class="language-bash">$ scp backup.tar.gz username@domain.se:~/backups/</code></pre>
+  <h2>Copy a directory</h2>
+  <pre><code class="language-bash">$ scp -r website username@domain.se:~/</code></pre>
+  <h2>Other port</h2>
+  <p>Note that <code>scp</code> uses a capital <code>-P</code> for the port.</p>
+  <pre><code class="language-bash">$ scp -P 2222 file.txt username@domain.se:~/</code></pre>
+  <h2>More about scp</h2>
+  <ul>
+    <li>Hosts defined in <code>~/.ssh/config</code> also work with scp, see <a href="/linux/ssh/">ssh</a></li>
+    <li>For large or repeated copies <a href="/linux/rsync/">rsync</a> is faster since it only sends changes</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/scp.txt">man scp</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, scp, ssh, copy, remote, files</p>
+  {% include trail.html %}
+</div>

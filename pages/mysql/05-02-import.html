@@ -1,0 +1,37 @@
+---
+layout: default
+title: Import
+permalink: /mysql/import/
+chapter: "05"
+chapter_title: "Export and import"
+keywords: [mysql, sql, import, database, source, dump, restore, multiple files, loop]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Import</h1>
+  <p>A dump made with <a href="/mysql/export/">export</a> can be imported into a database. The database must exist first, see <a href="/mysql/create/">create database</a>.</p>
+  <h2>Import from the client</h2>
+  <p>Inside the <code>mysql</code> client, select the database and run the dump with <code>source</code>.</p>
+  <pre><code class="language-sql">mysql&gt; use {db name};
+mysql&gt; source {path to db dump}/mysqldump.sql;</code></pre>
+  <p>Example:</p>
+  <pre><code class="language-sql">mysql&gt; source /mysqldump.sql;</code></pre>
+  <h2>Import from the terminal</h2>
+  <pre><code class="language-bash">$ mysql -u {user} -p {db name} &lt; {db dump name}.sql</code></pre>
+  <h2>Import multiple database dumps</h2>
+  <h3>Dry run</h3>
+  <p>This loops over all files in the current directory that start with <code>example_</code> and end with <code>.sql</code>. First do a dry run with <code>echo</code> to see which files are selected.</p>
+  <pre><code class="language-bash">$ for SQL in example_*.sql; do echo $SQL; done</code></pre>
+  <h3>Import</h3>
+  <p>This loops over all <code>.sql</code> files in the current folder. The password must be given in the command with the <code>-p</code> flag, written together with the password with no space. For example <code>-p</code> + <code>root</code> = <code>-proot</code>. The password is then saved in the shell history, so only do this on a development machine.</p>
+  <pre><code class="language-bash">$ for SQL in *.sql; do mysql -u root "-proot" "mydatabase" &lt; $SQL; done</code></pre>
+  <h2>More about import</h2>
+  <ul>
+    <li><a href="/mysql/remote-server/">Remote server</a> shows how to import to another server</li>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/mysql-batch-commands.html">Executing SQL statements from a text file</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,37 @@
+---
+layout: default
+title: Whoami
+permalink: /linux/whoami/
+chapter: "04"
+chapter_title: "Users"
+keywords: [linux, whoami, user, users]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Whoami</h1>
+  <p><code>whoami</code> prints the name of the user you are currently running commands as. It is useful after switching users or inside scripts.</p>
+  <h2>Print the current user</h2>
+  <pre><code class="language-bash">$ whoami
+anders
+$ sudo whoami
+root</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>whoami</code> and all its options.</p>
+  <pre><code class="language-bash">$ whoami --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>whoami</code> is installed.</p>
+  <pre><code class="language-bash">$ whoami --version</code></pre>
+  <h2>More about whoami</h2>
+  <ul>
+    <li>The same name is stored in the <code>$USER</code> variable</li>
+    <li><code>who</code> lists everyone who is logged in to the machine</li>
+    <li><a href="/linux/id/">id</a> shows the user together with its groups</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/whoami.txt">man whoami</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, whoami, user, users</p>
+  {% include trail.html %}
+</div>

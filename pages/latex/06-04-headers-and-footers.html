@@ -1,0 +1,38 @@
+---
+layout: default
+title: Headers and footers
+permalink: /latex/headers-and-footers/
+chapter: "06"
+chapter_title: "More features"
+keywords: [latex, headers, footers, fancyhdr, page header, page footer, page number, running head]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Headers and footers</h1>
+  <p>The <code>fancyhdr</code> package puts your own text in the header and footer. Each has a left, center and right part.</p>
+  <h2>Header and footer</h2>
+  <pre><code class="language-latex">\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}                     % clear everything
+
+\fancyhead[L]{My report}
+\fancyhead[R]{\leftmark}       % current section
+\fancyfoot[C]{\thepage}        % page number
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}</code></pre>
+  <h2>Page X of Y</h2>
+  <pre><code class="language-latex">\usepackage{lastpage}
+\fancyfoot[C]{Page \thepage\ of \pageref{LastPage}}</code></pre>
+  <h2>Left and right pages</h2>
+  <p>With the <code>twoside</code> option, <code>E</code> is for even pages and <code>O</code> for odd.</p>
+  <pre><code class="language-latex">\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE,LO]{My book}</code></pre>
+  <h2>More about headers and footers</h2>
+  <ul>
+    <li>Chapter pages use the <code>plain</code> style, change it with <code>\fancypagestyle{plain}{...}</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

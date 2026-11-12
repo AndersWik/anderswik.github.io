@@ -1,0 +1,55 @@
+---
+layout: default
+title: Vscodium
+permalink: /open-source/Vscodium/
+---
+
+<div class="open-source container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>VSCodium</h1>
+  <p>Community-driven, freely-licensed binary distribution of Microsoft’s editor VS Code.</p>
+
+  <h2>License</h2>
+  <p>MIT</p>
+
+  <h2>Website</h2>
+  <ul>
+    <li><a href="https://vscodium.com">https://vscodium.com</a></li>
+  </ul>
+
+  <h2>Repository</h2>
+  <ul>
+    <li><a href="https://github.com/VSCodium/vscodium">https://github.com/VSCodium/vscodium</a></li>
+  </ul>
+
+  <h2>Wikipedia</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Visual_Studio_Code">https://en.wikipedia.org/wiki/Visual_Studio_Code</a></li>
+  </ul>
+
+  <h2>Operating system</h2>
+  <p>Windows, macOS, Linux</p>
+
+  <h2>Install on macOS</h2>
+  <pre><code class="language-bash">$ brew install --cask vscodium</code></pre>
+
+  <h2>Install on Debian</h2>
+  <p>Add the signing key and the VSCodium repository, then install <code>codium</code>.</p>
+  <pre><code class="language-bash">$ wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
+    | gpg --dearmor \
+    | sudo dd of=/usr/share/keyrings/vscodium-archive-keyring.gpg</code></pre>
+  <pre><code class="language-bash">$ echo 'deb [ signed-by=/usr/share/keyrings/vscodium-archive-keyring.gpg ] https://download.vscodium.com/debs vscodium main' \
+    | sudo tee /etc/apt/sources.list.d/vscodium.list</code></pre>
+  <pre><code class="language-bash">$ sudo apt update &amp;&amp; sudo apt install codium</code></pre>
+
+  <h2>Install on Ubuntu</h2>
+  <p>Newer Ubuntu versions use the <code>.sources</code> format for repositories. See also the <a href="https://vscodium.com/#install-on-debian-ubuntu-deb-package">install instructions</a> on vscodium.com.</p>
+  <pre><code class="language-bash">$ wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
+    | gpg --dearmor \
+    | sudo dd of=/usr/share/keyrings/vscodium-archive-keyring.gpg</code></pre>
+  <pre><code class="language-bash">$ echo -e 'Types: deb\nURIs: https://download.vscodium.com/debs\nSuites: vscodium\nComponents: main\nArchitectures: amd64 arm64\nSigned-by: /usr/share/keyrings/vscodium-archive-keyring.gpg' \
+    | sudo tee /etc/apt/sources.list.d/vscodium.sources</code></pre>
+  <pre><code class="language-bash">$ sudo apt update &amp;&amp; sudo apt install codium</code></pre>
+
+  <h2>Install with Snap</h2>
+  <pre><code class="language-bash">$ sudo snap install codium --classic</code></pre>
+</div>

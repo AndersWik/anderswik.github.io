@@ -1,0 +1,41 @@
+---
+layout: default
+title: Df
+permalink: /linux/df/
+chapter: "07"
+chapter_title: "Disc"
+keywords: [linux, df, disk free, disk usage, storage]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Df</h1>
+  <p>df can be used to check disk usage. The name stands for disk free, and it reports how much space is used and available on each mounted file system.</p>
+  <h2>Using df</h2>
+  <p>df -H will report how much space is used, available, percentage used, and the mount point of every disk attached to your system. Lower case <code>-h</code> uses powers of 1024 (GiB) and upper case <code>-H</code> uses powers of 1000 (GB).</p>
+  <pre><code class="language-bash">df -h</code></pre>
+  <h2>Check one disk</h2>
+  <p>Give a path to see the file system it is on.</p>
+  <pre><code class="language-bash">$ df -h /home
+$ df -h .</code></pre>
+  <h2>Show file system type and inodes</h2>
+  <pre><code class="language-bash">$ df -hT       # include the file system type, like ext4
+$ df -i        # inode usage; a disk can be "full" when it runs out of inodes</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>df</code> and all its options. <code>-h</code> does not show help, it shows the sizes in human readable form.</p>
+  <pre><code class="language-bash">$ df --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>df</code> is installed.</p>
+  <pre><code class="language-bash">$ df --version</code></pre>
+  <h2>More about df</h2>
+  <ul>
+    <li><code>df</code> shows the totals; use <a href="/linux/du/">du</a> to find what is using the space</li>
+    <li><code>ncdu</code> is an interactive tool to explore disk usage</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/df.txt">man df</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, df, disk free, disk usage, storage</p>
+  {% include trail.html %}
+</div>

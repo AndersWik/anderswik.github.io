@@ -1,0 +1,22 @@
+---
+layout: default
+title: Man pages
+permalink: /man/
+nonav: true
+---
+
+<div class="utils container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+    <div class="row align-items-start mt-5">
+        <div class="col">
+            <h2>Man pages</h2>
+            <ul class="list-group">
+                {% assign man_pages = site.static_files | where_exp: "file", "file.path contains '/pages/man/'" | where: "extname", ".txt" | sort: "basename" %}
+                {% for page in man_pages %}
+                <li class="list-group-item">
+                    <a href="{{ site.baseurl }}{{ page.path }}">{{ page.basename }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>

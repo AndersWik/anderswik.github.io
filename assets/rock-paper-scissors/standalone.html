@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rock Paper Scissors</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    .score {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        max-width: 450px;
+        margin: 0 auto;
+        font-size: 22px;
+    }
+
+    .score img {
+        width: 100%;
+    }
+
+    #cpu img {
+        transform: scaleX(-1);
+    }
+
+    #result {
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    .choices button {
+        padding: 12px 20px;
+        font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Rock Paper Scissors</h1>
+  <div class="score">
+    <div id="player">
+      <p>You</p>
+      <p id="playerScore">0</p>
+      <img id="playerImage" src="images/Rock.svg" alt="Rock">
+      <p id="playerChoice">Rock</p>
+    </div>
+    <div id="cpu">
+      <p>Computer</p>
+      <p id="computerScore">0</p>
+      <img id="computerImage" src="images/Scissors.svg" alt="Scissors">
+      <p id="computerChoice">Scissors</p>
+    </div>
+  </div>
+  <p id="result" aria-live="polite">Make your choice!</p>
+  <div class="choices">
+    <button type="button" data-choice="Rock">Rock</button>
+    <button type="button" data-choice="Paper">Paper</button>
+    <button type="button" data-choice="Scissors">Scissors</button>
+  </div>
+
+  <script>
+    /*
+     * Rock Paper Scissors against the computer. Rock beats scissors, scissors
+     * beat paper, and paper beats rock. The computer picks at random.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    // Where the pictures are: a folder called "images" next to this page.
+    const IMAGE_FOLDER = "images/";
+
+    const CHOICES = ["Rock", "Paper", "Scissors"];
+
+    // What each choice beats.
+    const BEATS = { Rock: "Scissors", Paper: "Rock", Scissors: "Paper" };
+
+    // --- Elements on the page ------------------------------------------------
+
+    const playerImage = document.getElementById("playerImage");
+    const playerChoiceText = document.getElementById("playerChoice");
+    const playerScoreText = document.getElementById("playerScore");
+    const computerImage = document.getElementById("computerImage");
+    const computerChoiceText = document.getElementById("computerChoice");
+    const computerScoreText = document.getElementById("computerScore");
+    const resultText = document.getElementById("result");
+
+    // --- State ---------------------------------------------------------------
+
+    let playerScore = 0;
+    let computerScore = 0;
+
+    // --- The game ------------------------------------------------------------
+
+    function showChoice(choice, image, text) {
+        image.src = IMAGE_FOLDER + choice + ".svg";
+        image.alt = choice;
+        text.textContent = choice;
+    }
+
+    function play(playerChoice) {
+        const computerChoice = CHOICES[Math.floor(Math.random() * CHOICES.length)];
+        showChoice(playerChoice, playerImage, playerChoiceText);
+        showChoice(computerChoice, computerImage, computerChoiceText);
+
+        if (playerChoice === computerChoice) {
+            resultText.textContent = "It's a draw!";
+        } else if (BEATS[playerChoice] === computerChoice) {
+            playerScore++;
+            resultText.textContent = playerChoice + " beats " + computerChoice + ". You win!";
+        } else {
+            computerScore++;
+            resultText.textContent = computerChoice + " beats " + playerChoice + ". The computer wins!";
+        }
+        playerScoreText.textContent = playerScore;
+        computerScoreText.textContent = computerScore;
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // One button for each choice: <button data-choice="Rock">.
+    document.querySelectorAll("[data-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            play(button.dataset.choice);
+        });
+    });
+  </script>
+</body>
+</html>

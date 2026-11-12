@@ -1,0 +1,44 @@
+---
+layout: default
+title: Emphasis
+permalink: /markdown/emphasis/
+chapter: "02"
+chapter_title: "Text"
+keywords: [markdown, emphasis, bold, italic, strong, strikethrough, highlight, subscript, superscript, underline]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Emphasis</h1>
+  <p>Wrap text in <code>*</code> or <code>_</code> to make it italic or bold. One for italic, two for bold, three for both.</p>
+  <h2>Italic</h2>
+  <pre><code class="language-markdown">*italic*
+_italic_</code></pre>
+  <h2>Bold</h2>
+  <pre><code class="language-markdown">**bold**
+__bold__</code></pre>
+  <h2>Bold and italic</h2>
+  <pre><code class="language-markdown">***bold and italic***
+**bold with _italic_ inside**</code></pre>
+  <h2>Strikethrough</h2>
+  <p>Two tildes strike the text through. This is part of GitHub Flavored Markdown and works in most editors.</p>
+  <pre><code class="language-markdown">~~no longer true~~</code></pre>
+  <h2>Inside a word</h2>
+  <p>Use <code>*</code> for emphasis in the middle of a word. <code>_</code> inside a word is usually left as it is, so <code>snake_case_name</code> stays the same.</p>
+  <pre><code class="language-markdown">un*believ*able</code></pre>
+  <h2>Highlight, subscript and superscript</h2>
+  <p>These are not in standard Markdown. Some editors and Pandoc support them, otherwise use <a href="/markdown/inline-html/">HTML</a>.</p>
+  <pre><code class="language-markdown">==highlighted==        &lt;mark&gt;highlighted&lt;/mark&gt;
+H~2~O                  H&lt;sub&gt;2&lt;/sub&gt;O
+x^2^                   x&lt;sup&gt;2&lt;/sup&gt;
+                       &lt;ins&gt;underlined&lt;/ins&gt;</code></pre>
+  <h2>More about emphasis</h2>
+  <ul>
+    <li>No space between the symbol and the text: <code>** bold **</code> does not work</li>
+    <li>Pick one style and stick with it, for example <code>*italic*</code> and <code>**bold**</code></li>
+    <li>To show a literal <code>*</code>, <a href="/markdown/escaping/">escape it</a> with <code>\*</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

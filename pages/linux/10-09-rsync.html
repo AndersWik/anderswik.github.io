@@ -1,0 +1,45 @@
+---
+layout: default
+title: Rsync
+permalink: /linux/rsync/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, rsync, sync, backup, ssh, copy]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Rsync</h1>
+  <p><code>rsync</code> copies and synchronizes files, locally or between computers over SSH. It only transfers the parts that have changed, so it is fast for backups and for keeping directories in sync.</p>
+  <h2>Sync a directory</h2>
+  <pre><code class="language-bash">rsync</code></pre>
+  <p><code>-a</code> (archive) copies recursively and keeps permissions and timestamps, <code>-v</code> shows the files and <code>-h</code> uses readable sizes.</p>
+  <pre><code class="language-bash">$ rsync -avh Documents/ /media/backup/Documents/</code></pre>
+  <p>A trailing <code>/</code> on the source copies the content of the directory; without it the directory itself is copied into the destination.</p>
+  <h2>Sync to a server</h2>
+  <p><code>-z</code> compresses the data during the transfer and <code>-P</code> shows progress and allows resuming.</p>
+  <pre><code class="language-bash">$ rsync -avzP website/ user@example.com:/var/www/website/</code></pre>
+  <h2>Mirror and test first</h2>
+  <p><code>--delete</code> removes files in the destination that no longer exist in the source. Use <code>-n</code> (dry run) to see what would happen first.</p>
+  <pre><code class="language-bash">$ rsync -avhn --delete Documents/ /media/backup/Documents/
+$ rsync -avh --delete Documents/ /media/backup/Documents/</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>rsync</code> and all its options. <code>-h</code> only means help when it is used alone. Together with other options it means human readable sizes.</p>
+  <pre><code class="language-bash">$ rsync --help
+$ rsync -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>rsync</code> is installed. <code>-v</code> does not show the version, it makes <code>rsync</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ rsync --version
+$ rsync -V</code></pre>
+  <h2>More about rsync</h2>
+  <ul>
+    <li><code>--exclude "node_modules"</code> skips files and directories</li>
+    <li>Combine with <a href="/linux/crontab/">crontab</a> for automatic backups</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/rsync.txt">man rsync</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, rsync, sync, backup, ssh, copy</p>
+  {% include trail.html %}
+</div>

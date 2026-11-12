@@ -1,0 +1,33 @@
+---
+layout: game
+title: Hangman
+permalink: /games/hangman/
+nonav: true
+css:
+  - /assets/hangman/hangman.css
+js:
+  - /assets/hangman/hangman.js
+---
+<div class="container">
+  <h1>Hangman</h1>
+  <svg viewBox="0 0 200 220" role="img" aria-label="The hanging man">
+    <g class="gallows">
+      <line x1="20" y1="210" x2="180" y2="210"/>
+      <line x1="60" y1="210" x2="60" y2="20"/>
+      <line x1="60" y1="20" x2="140" y2="20"/>
+      <line x1="140" y1="20" x2="140" y2="50"/>
+    </g>
+    <circle class="part" cx="140" cy="70" r="20"/>
+    <line class="part" x1="140" y1="90" x2="140" y2="150"/>
+    <line class="part" x1="140" y1="105" x2="115" y2="130"/>
+    <line class="part" x1="140" y1="105" x2="165" y2="130"/>
+    <line class="part" x1="140" y1="150" x2="120" y2="190"/>
+    <line class="part" x1="140" y1="150" x2="160" y2="190"/>
+  </svg>
+  <p id="word"></p>
+  <p id="wrong"></p>
+  <p id="message" aria-live="polite"></p>
+  <div id="keyboard"></div>
+  <button type="button" id="newWord">New word</button>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/hangman/">How to build this game</a></p>

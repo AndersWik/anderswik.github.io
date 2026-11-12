@@ -1,0 +1,42 @@
+---
+layout: default
+title: Install on macOS
+permalink: /vagrant/install-macos/
+chapter: "02"
+chapter_title: "Install"
+keywords: [vagrant, install, macos, osx, mac, homebrew, brew, apple silicon, virtualbox, vmware fusion]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Install on macOS</h1>
+  <p>The easiest way to install Vagrant on a Mac is with <a href="https://brew.sh/">Homebrew</a>.</p>
+  <h2>Install Vagrant</h2>
+  <pre><code class="language-bash">$ brew tap hashicorp/tap
+$ brew install hashicorp/tap/hashicorp-vagrant</code></pre>
+  <p>You can also download the installer from <a href="https://developer.hashicorp.com/vagrant/install">HashiCorp</a> and double click it.</p>
+  <h2>Install a provider</h2>
+  <p>Vagrant needs a <a href="/vagrant/providers/">provider</a> to run the machines. Which one works depends on the processor in your Mac.</p>
+  <pre><code class="language-bash">$ uname -m</code></pre>
+  <ul>
+    <li><code>x86_64</code> — an Intel Mac. VirtualBox, VMware Fusion and Parallels all work</li>
+    <li><code>arm64</code> — Apple silicon (M1 and later). Use VMware Fusion, Parallels or VirtualBox 7.1 or later, and pick boxes built for <code>arm64</code></li>
+  </ul>
+  <p>VirtualBox can also be installed with Homebrew.</p>
+  <pre><code class="language-bash">$ brew install --cask virtualbox</code></pre>
+  <p>With another provider than VirtualBox, tell Vagrant which one to use.</p>
+  <pre><code class="language-bash">$ vagrant up --provider=vmware_desktop</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-v</code> show which version of Vagrant is installed.</p>
+  <pre><code class="language-bash">$ vagrant --version
+$ vagrant -v</code></pre>
+  <h2>More about Vagrant on macOS</h2>
+  <ul>
+    <li><a href="https://developer.hashicorp.com/vagrant/install">Install Vagrant</a> at HashiCorp</li>
+    <li>VMware needs an extra plugin, see <a href="/vagrant/vmware/">VMware</a></li>
+    <li>Upgrade later with <code>brew upgrade hashicorp/tap/hashicorp-vagrant</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,44 @@
+---
+layout: default
+title: Wireguard
+permalink: /linux/wireguard/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, wireguard, vpn, wg-quick, network, security]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Wireguard</h1>
+  <p>WireGuard is a fast, modern and simple VPN built into the Linux kernel. Each side has a key pair, and the connection settings are kept in a configuration file such as <code>/etc/wireguard/wg0.conf</code>.</p>
+  <h2>Install and create keys</h2>
+  <pre><code class="language-bash">$ sudo apt install wireguard
+$ wg genkey | tee privatekey | wg pubkey &gt; publickey</code></pre>
+  <h2>Start the VPN</h2>
+  <p><code>wg-quick</code> reads the configuration file and brings the interface up.</p>
+  <pre><code class="language-bash">$ wg-quick up wg0</code></pre>
+  <p>If a message like the following is shown in this step:</p>
+  <pre><code class="language-bash">Warning: `/etc/wireguard/wg0.conf' is world accessible</code></pre>
+  <p>This means that the configuration file permissions are too broad - and they shouldn’t, as there’s a private key in there. This can be fixed with</p>
+  <pre><code class="language-bash">$ chmod 600 /etc/wireguard/wg0.conf</code></pre>
+  <h2>Status and stop</h2>
+  <pre><code class="language-bash">$ sudo wg show
+$ wg-quick down wg0</code></pre>
+  <h2>Start at boot</h2>
+  <pre><code class="language-bash">$ sudo systemctl enable --now wg-quick@wg0</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>wg</code> and all its options. Each subcommand also has its own help, for example <code>wg show --help</code>.</p>
+  <pre><code class="language-bash">$ wg --help
+$ wg -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-v</code> show which version of <code>wg</code> is installed.</p>
+  <pre><code class="language-bash">$ wg --version
+$ wg -v</code></pre>
+  <h2>More about Wireguard</h2>
+  <ul>
+    <li><a href="https://www.wireguard.com/">The WireGuard website</a></li>
+    <li>See <a href="/linux/chmod/">chmod</a> about file permissions and <a href="/linux/systemctl/">systemctl</a> about services</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, wireguard, vpn, wg-quick, network, security</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reversi vs computer</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #board {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 2px;
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 2px;
+        background-color: #1b4d1b;
+    }
+
+    .cell {
+        position: relative;
+        aspect-ratio: 1;
+        background-color: #2e8b57;
+        cursor: pointer;
+    }
+
+    .cell.black::after,
+    .cell.white::after,
+    .cell.hint::after {
+        content: "";
+        position: absolute;
+        inset: 10%;
+        border-radius: 50%;
+    }
+
+    .cell.black::after {
+        background-color: black;
+    }
+
+    .cell.white::after {
+        background-color: white;
+    }
+
+    .cell.hint::after {
+        inset: 40%;
+        background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    #status {
+        font-size: 18px;
+    }
+
+    #message {
+        color: #c25e00;
+        min-height: 1.5em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reversi</h1>
+  <div id="board"></div>
+  <p id="status" aria-live="polite"></p>
+  <p id="message"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy" selected>The computer (easy)</option>
+      <option value="hard">The computer (hard)</option>
+    </select>
+  </p>
+
+  <script>
+    /*
+     * Reversi against the computer: the same game as Reversi for two players,
+     * but white can be played by the computer.
+     *
+     *   Easy: takes the move that flips the most pieces.
+     *   Hard: looks 4 moves ahead (minimax), and knows that corners are good
+     *         and the squares next to them are bad.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SIZE = 8;
+    const NAMES = { black: "Black", white: "White" };
+    const HUMAN = "black";
+    const COMPUTER = "white";
+    const DEPTH = 4;               // moves the hard computer looks ahead
+    const COMPUTER_DELAY = 500;    // ms before the computer moves
+
+    // How good each square is to own. Corners can never be flipped back, so
+    // they are worth most. The squares next to a corner give it away.
+    const WEIGHTS = [
+        [100, -20, 10, 5, 5, 10, -20, 100],
+        [-20, -50, -2, -2, -2, -2, -50, -20],
+        [10, -2, 1, 1, 1, 1, -2, 10],
+        [5, -2, 1, 0, 0, 1, -2, 5],
+        [5, -2, 1, 0, 0, 1, -2, 5],
+        [10, -2, 1, 1, 1, 1, -2, 10],
+        [-20, -50, -2, -2, -2, -2, -50, -20],
+        [100, -20, 10, 5, 5, 10, -20, 100]
+    ];
+
+    // The eight directions from a square: up, down, sideways and diagonal.
+    const DIRECTIONS = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1], [0, 1],
+        [1, -1], [1, 0], [1, 1]
+    ];
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const statusText = document.getElementById("status");
+    const messageText = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+    const modeSelect = document.getElementById("mode");
+
+    // --- State ---------------------------------------------------------------
+
+    let board = [];        // board[row][col]: null, "black" or "white"
+    let cells = [];        // cells[row][col]: the <div> for each square
+    let player = "black";  // whose turn it is
+    let gameOver = false;
+    let computerTimer = null;
+
+    // --- Rules ---------------------------------------------------------------
+
+    function other(who) {
+        return who === "black" ? "white" : "black";
+    }
+
+    function isInside(row, col) {
+        return row >= 0 && row < SIZE && col >= 0 && col < SIZE;
+    }
+
+    // The pieces that "who" would flip by playing at (row, col). An empty
+    // list means the move isn't allowed.
+    function flipsFor(row, col, who) {
+        if (board[row][col] !== null) {
+            return [];
+        }
+        let flips = [];
+        for (const [dRow, dCol] of DIRECTIONS) {
+            // Walk over the other player's pieces...
+            const line = [];
+            let r = row + dRow;
+            let c = col + dCol;
+            while (isInside(r, c) && board[r][c] === other(who)) {
+                line.push([r, c]);
+                r += dRow;
+                c += dCol;
+            }
+            // ...and if one of ours is at the end, they are trapped.
+            if (line.length > 0 && isInside(r, c) && board[r][c] === who) {
+                flips = flips.concat(line);
+            }
+        }
+        return flips;
+    }
+
+    // Every move "who" can make, as { row, col, flips }.
+    function validMoves(who) {
+        const moves = [];
+        for (let row = 0; row < SIZE; row++) {
+            for (let col = 0; col < SIZE; col++) {
+                const flips = flipsFor(row, col, who);
+                if (flips.length > 0) {
+                    moves.push({ row: row, col: col, flips: flips });
+                }
+            }
+        }
+        return moves;
+    }
+
+    function count(who) {
+        return board.flat().filter(function (piece) {
+            return piece === who;
+        }).length;
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function play(row, col) {
+        if (gameOver) {
+            return;
+        }
+        const flips = flipsFor(row, col, player);
+        if (flips.length === 0) {
+            return;   // not a valid move
+        }
+        doMove({ row: row, col: col, flips: flips }, player);
+        nextTurn();
+    }
+
+    function doMove(move, who) {
+        board[move.row][move.col] = who;
+        move.flips.forEach(function ([r, c]) {
+            board[r][c] = who;
+        });
+    }
+
+    // Exactly the opposite of doMove: empty the square, flip the pieces back.
+    function undoMove(move, who) {
+        board[move.row][move.col] = null;
+        move.flips.forEach(function ([r, c]) {
+            board[r][c] = other(who);
+        });
+    }
+
+    // The other player's turn, if they can move. If not, they pass. If nobody
+    // can move, the game is over.
+    function nextTurn() {
+        const next = other(player);
+        messageText.textContent = "";
+        if (validMoves(next).length > 0) {
+            player = next;
+        } else if (validMoves(player).length > 0) {
+            messageText.textContent = NAMES[next] + " can't move and has to pass.";
+        } else {
+            gameOver = true;
+        }
+        show();
+        if (!gameOver && isComputersTurn()) {
+            computerTimer = setTimeout(computerMove, COMPUTER_DELAY);
+        }
+    }
+
+    // --- The computer --------------------------------------------------------
+
+    function isComputersTurn() {
+        return modeSelect.value !== "pvp" && player === COMPUTER;
+    }
+
+    function computerMove() {
+        const moves = validMoves(COMPUTER);
+        let best = moves[0];
+        let bestScore = -Infinity;
+        moves.forEach(function (move) {
+            let score;
+            if (modeSelect.value === "easy") {
+                score = move.flips.length;
+            } else {
+                doMove(move, COMPUTER);
+                score = minimax(HUMAN, DEPTH - 1);
+                undoMove(move, COMPUTER);
+            }
+            if (score > bestScore) {
+                bestScore = score;
+                best = move;
+            }
+        });
+        play(best.row, best.col);
+    }
+
+    // How good is the board for the computer, when it is "who"'s turn?
+    function minimax(who, depth) {
+        const moves = validMoves(who);
+        if (moves.length === 0) {
+            if (validMoves(other(who)).length === 0) {
+                // Game over: count the pieces. Winning is worth more than any
+                // square.
+                return (count(COMPUTER) - count(HUMAN)) * 1000;
+            }
+            return minimax(other(who), depth - 1);   // "who" has to pass
+        }
+        if (depth <= 0) {
+            return scoreBoard();
+        }
+        let best = who === COMPUTER ? -Infinity : Infinity;
+        moves.forEach(function (move) {
+            doMove(move, who);
+            const score = minimax(other(who), depth - 1);
+            undoMove(move, who);
+            best = who === COMPUTER ? Math.max(best, score) : Math.min(best, score);
+        });
+        return best;
+    }
+
+    // A guess at how good the board is: add up the weights of the computer's
+    // squares, and take away the weights of the human's.
+    function scoreBoard() {
+        let score = 0;
+        for (let row = 0; row < SIZE; row++) {
+            for (let col = 0; col < SIZE; col++) {
+                if (board[row][col] === COMPUTER) {
+                    score += WEIGHTS[row][col];
+                } else if (board[row][col] === HUMAN) {
+                    score -= WEIGHTS[row][col];
+                }
+            }
+        }
+        return score;
+    }
+
+    // --- Showing the board ---------------------------------------------------
+
+    function show() {
+        const hints = gameOver || isComputersTurn() ? [] : validMoves(player);
+        for (let row = 0; row < SIZE; row++) {
+            for (let col = 0; col < SIZE; col++) {
+                const cell = cells[row][col];
+                cell.className = "cell";
+                if (board[row][col]) {
+                    cell.classList.add(board[row][col]);
+                }
+            }
+        }
+        // A small dot on every square where the player may move.
+        hints.forEach(function (move) {
+            cells[move.row][move.col].classList.add("hint");
+        });
+
+        const black = count("black");
+        const white = count("white");
+        let text = "Black " + black + " - White " + white + ". ";
+        if (!gameOver && isComputersTurn()) {
+            text += NAMES[player] + " is thinking...";
+        } else if (!gameOver) {
+            text += NAMES[player] + "'s turn.";
+        } else if (black > white) {
+            text += "Black wins!";
+        } else if (white > black) {
+            text += "White wins!";
+        } else {
+            text += "It's a draw!";
+        }
+        statusText.textContent = text;
+    }
+
+    // --- Starting ------------------------------------------------------------
+
+    function newGame() {
+        // A computer move that is waiting to happen belongs to the old game.
+        clearTimeout(computerTimer);
+
+        board = [];
+        cells = [];
+        boardElement.innerHTML = "";
+        for (let row = 0; row < SIZE; row++) {
+            board.push([]);
+            cells.push([]);
+            for (let col = 0; col < SIZE; col++) {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+                cell.addEventListener("click", function () {
+                    if (!isComputersTurn()) {
+                        play(row, col);
+                    }
+                });
+                boardElement.appendChild(cell);
+                board[row].push(null);
+                cells[row].push(cell);
+            }
+        }
+
+        // The four pieces in the middle.
+        board[3][3] = "white";
+        board[3][4] = "black";
+        board[4][3] = "black";
+        board[4][4] = "white";
+
+        player = "black";
+        gameOver = false;
+        messageText.textContent = "";
+        show();
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    restartButton.addEventListener("click", newGame);
+    modeSelect.addEventListener("change", newGame);
+
+    newGame();
+  </script>
+</body>
+</html>

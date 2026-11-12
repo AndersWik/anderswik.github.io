@@ -1,0 +1,45 @@
+---
+layout: game
+title: Sudoku
+permalink: /games/sudoku/
+nonav: true
+css:
+  - /assets/sudoku/sudoku.css
+js:
+  - /assets/sudoku/sudoku.js
+---
+<div class="container">
+  <h1>Sudoku</h1>
+  <label class="difficulty">
+    Difficulty
+    <select id="difficulty">
+      <option value="easy" selected>Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+      <option value="expert">Expert</option>
+    </select>
+  </label>
+
+  <div id="board"></div>
+
+  <div class="number-pad" id="numberPad">
+    <button type="button" data-number="1">1</button>
+    <button type="button" data-number="2">2</button>
+    <button type="button" data-number="3">3</button>
+    <button type="button" data-number="4">4</button>
+    <button type="button" data-number="5">5</button>
+    <button type="button" data-number="6">6</button>
+    <button type="button" data-number="7">7</button>
+    <button type="button" data-number="8">8</button>
+    <button type="button" data-number="9">9</button>
+    <button type="button" data-number="" aria-label="Erase">&times;</button>
+  </div>
+
+  <div class="actions">
+    <button type="button" id="check">Check</button>
+    <button type="button" id="hint">Hint</button>
+    <button type="button" id="restart">New game</button>
+  </div>
+  <p id="status" class="status" aria-live="polite"></p>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/sudoku/">How to build this game</a></p>

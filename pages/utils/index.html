@@ -1,0 +1,37 @@
+---
+layout: default
+title: Utils
+permalink: /utils/
+nonav: true
+# Thumbnails live in /assets/images/games/utils/<slug>.webp
+categories:
+  - title: Utils
+    items:
+      - { slug: ascii, name: Ascii }
+      - { slug: calculator, name: Calculator }
+      - { slug: colorhex, name: Colorhex }
+      - { slug: crontab, name: Crontab }
+      - { slug: data-conversion, name: Data Conversion }
+      - { slug: decode-base64, name: Decode base64 }
+      - { slug: decode-url, name: Decode Url }
+      - { slug: encode-base64, name: Encode Base64 }
+      - { slug: encode-url, name: Encode Url }
+      - { slug: unix-timestamp-convertor, name: Unix Timestamp Convertor }
+      - { slug: vagrant, name: Vagrant }
+---
+
+<section class="games">
+  {% for category in page.categories %}
+  <h2 class="category-title">{{ category.title }}</h2>
+  <ul class="badges">
+    {% for item in category.items %}
+    <li>
+      <a class="badge-card" href="{{ '/utils/' | append: item.slug | append: '/' | relative_url }}">
+        <img src="{{ '/assets/images/games/utils/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
+        <span class="badge-name">{{ item.name }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+</section>

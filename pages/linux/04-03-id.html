@@ -1,0 +1,40 @@
+---
+layout: default
+title: Id
+permalink: /linux/id/
+chapter: "04"
+chapter_title: "Users"
+keywords: [linux, id, user, uid, groups]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Id</h1>
+  <p><code>id</code> prints the user id (uid), group id (gid) and all groups of a user. Without arguments it shows information about the current user.</p>
+  <h2>Show user and groups</h2>
+  <pre><code class="language-bash">$ id
+uid=1000(anders) gid=1000(anders) groups=1000(anders),27(sudo)</code></pre>
+  <p>Show another user.</p>
+  <pre><code class="language-bash">$ id anna</code></pre>
+  <h2>Print one value</h2>
+  <pre><code class="language-bash">$ id -u    # user id
+$ id -gn   # name of the primary group
+$ id -Gn   # names of all groups</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>id</code> and all its options.</p>
+  <pre><code class="language-bash">$ id --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>id</code> is installed.</p>
+  <pre><code class="language-bash">$ id --version</code></pre>
+  <h2>More about id</h2>
+  <ul>
+    <li>The root user always has uid 0</li>
+    <li>After being added to a new group you have to log out and in again before <code>id</code> shows it</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/id.txt">man id</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, id, user, uid, groups</p>
+  {% include trail.html %}
+</div>

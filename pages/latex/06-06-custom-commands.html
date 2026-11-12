@@ -1,0 +1,58 @@
+---
+layout: default
+title: Custom commands
+permalink: /latex/custom-commands/
+chapter: "06"
+chapter_title: "More features"
+keywords: [latex, custom commands, newcommand, renewcommand, newenvironment, macro, arguments, counter]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Custom commands</h1>
+  <p>Make your own commands for things you write often. Then a change in one place updates the whole document.</p>
+  <h2>New command</h2>
+  <pre><code class="language-latex">\newcommand{\R}{\mathbb{R}}
+\newcommand{\product}{\textsc{SuperApp}}
+
+Let $x \in \R$. Download \product{} today.</code></pre>
+  <h2>With arguments</h2>
+  <p>The number in square brackets is how many arguments the command takes. Use them with <code>#1</code>, <code>#2</code>.</p>
+  <pre><code class="language-latex">\newcommand{\important}[1]{\textbf{\textcolor{red}{#1}}}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\pair}[2]{(#1, #2)}
+
+\important{Back up first!}
+$\abs{x}$ and $\pair{a}{b}$</code></pre>
+  <h2>Optional argument</h2>
+  <p>The second square bracket is the default value of the first argument.</p>
+  <pre><code class="language-latex">\newcommand{\greet}[1][world]{Hello, #1!}
+
+\greet       % Hello, world!
+\greet[you]  % Hello, you!</code></pre>
+  <h2>Change a command</h2>
+  <pre><code class="language-latex">\renewcommand{\contentsname}{Index}
+\renewcommand{\figurename}{Picture}</code></pre>
+  <h2>New environment</h2>
+  <pre><code class="language-latex">\newenvironment{note}
+  {\begin{quote}\textbf{Note:}}
+  {\end{quote}}
+
+\begin{note}
+  Remember to save.
+\end{note}</code></pre>
+  <h2>Counters</h2>
+  <pre><code class="language-latex">\newcounter{step}
+\stepcounter{step}
+Step \thestep
+\setcounter{page}{5}</code></pre>
+  <h2>More about custom commands</h2>
+  <ul>
+    <li><code>\newcommand</code> gives an error if the command already exists, <code>\renewcommand</code> if it does not</li>
+    <li>Put your commands in a file and load it with <code>\input{commands}</code></li>
+    <li>The <code>amsthm</code> package makes theorem environments with <code>\newtheorem{theorem}{Theorem}</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,52 @@
+---
+layout: default
+title: Grep
+permalink: /linux/grep/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, grep, search, regular expressions, regex, text]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Grep</h1>
+  <p><code>grep</code> searches for lines matching a pattern in files or in the output of another command. The pattern can be plain text or a regular expression. It is one of the most used commands on the command line.</p>
+  <h2>Search in a file</h2>
+  <pre><code class="language-bash">grep</code></pre>
+  <pre><code class="language-bash">$ grep "error" /var/log/syslog</code></pre>
+  <h2>Common flags</h2>
+  <pre><code class="language-bash">$ grep -i "error" app.log    # ignore case
+$ grep -n "error" app.log    # show line numbers
+$ grep -v "debug" app.log    # lines that do NOT match
+$ grep -c "error" app.log    # count matching lines</code></pre>
+  <h2>Search in many files</h2>
+  <p><code>-r</code> searches recursively through a directory. <code>-l</code> only prints the names of the files that match.</p>
+  <pre><code class="language-bash">$ grep -r "TODO" src/
+$ grep -rl "password" /etc</code></pre>
+  <h2>Filter the output of other commands</h2>
+  <pre><code class="language-bash">$ ps aux | grep nginx
+$ history | grep ssh</code></pre>
+  <h2>Regular expressions</h2>
+  <p><code>-E</code> enables extended regular expressions, for example to match several words.</p>
+  <pre><code class="language-bash">$ grep -E "error|warning" app.log
+$ grep "^#" config.conf      # lines starting with #</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>grep</code> and all its options. <code>-h</code> does not show help, it hides the file names in the output.</p>
+  <pre><code class="language-bash">$ grep --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>grep</code> is installed. <code>-v</code> does not show the version, it shows the lines that do not match.</p>
+  <pre><code class="language-bash">$ grep --version
+$ grep -V</code></pre>
+  <h2>More about grep</h2>
+  <ul>
+    <li><code>-A 3</code> and <code>-B 3</code> print 3 lines after or before each match for context</li>
+    <li><code>-w</code> only matches whole words</li>
+    <li><a href="https://github.com/BurntSushi/ripgrep">ripgrep</a> (<code>rg</code>) is a faster modern alternative</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/grep.txt">man grep</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, grep, search, regular expressions, regex, text</p>
+  {% include trail.html %}
+</div>

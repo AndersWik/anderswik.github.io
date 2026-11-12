@@ -1,0 +1,51 @@
+---
+layout: default
+title: VirtualBox
+permalink: /vagrant/virtualbox/
+chapter: "05"
+chapter_title: "Providers"
+keywords: [vagrant, virtualbox, provider, oracle, guest additions, linked clone, host-only, modifyvm]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>VirtualBox</h1>
+  <p>VirtualBox is a free hypervisor from Oracle that works on Linux, Windows and macOS. Support for it is built into Vagrant, and it is the default provider, so no plugin or extra options are needed.</p>
+  <h2>Install</h2>
+  <p>Download VirtualBox from <a href="https://www.virtualbox.org/wiki/Downloads">virtualbox.org</a> and install it before you start a machine. Check that it is installed.</p>
+  <pre><code class="language-bash">$ VBoxManage --version</code></pre>
+  <h2>Start a machine</h2>
+  <p>VirtualBox is used when no other provider is chosen, but you can also name it.</p>
+  <pre><code class="language-bash">$ vagrant up
+$ vagrant up --provider=virtualbox</code></pre>
+  <h2>Settings</h2>
+  <pre><code class="language-ruby">config.vm.provider "virtualbox" do |vb|
+  vb.name = "dev"
+  vb.memory = 2048
+  vb.cpus = 2
+  vb.gui = false
+  vb.linked_clone = true
+end</code></pre>
+  <ul>
+    <li><code>gui</code> — show the machine's screen in a window</li>
+    <li><code>linked_clone</code> — create new machines from a copy of the box instead of a full import. Faster and uses less disk</li>
+  </ul>
+  <p>Settings that Vagrant has no option for can be set with <code>customize</code>, which runs <code>VBoxManage modifyvm</code>.</p>
+  <pre><code class="language-ruby">config.vm.provider "virtualbox" do |vb|
+  vb.customize ["modifyvm", :id, "--clipboard-mode", "bidirectional"]
+end</code></pre>
+  <h2>Guest Additions</h2>
+  <p>Guest Additions are drivers installed in the machine. They are needed for VirtualBox <a href="/vagrant/synced-folders/">synced folders</a> and a better screen. Most <a href="/vagrant/boxes/">boxes</a> already have them installed.</p>
+  <h2>Private network</h2>
+  <p>On Linux and macOS, VirtualBox only allows host-only <a href="/vagrant/networking/">networks</a> in the range <code>192.168.56.0/21</code>. Use an address such as <code>192.168.56.10</code>, or allow other ranges in <code>/etc/vbox/networks.conf</code>.</p>
+  <pre><code class="language-bash">* 10.0.0.0/8 192.168.0.0/16</code></pre>
+  <h2>More about VirtualBox</h2>
+  <ul>
+    <li>VirtualBox can be slower when Hyper-V is turned on in Windows</li>
+    <li><a href="https://www.virtualbox.org/manual/">VirtualBox manual</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/providers/virtualbox">VirtualBox provider</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

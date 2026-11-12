@@ -1,0 +1,354 @@
+.discgolf {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.discgolf [hidden] {
+  display: none !important;
+}
+
+.discgolf .dg-container {
+  box-sizing: border-box;
+  text-align: center;
+  width: min(100% - 40px, 500px);
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.discgolf h1 {
+  color: #2e9e5b;
+  text-shadow: 2px 2px #1b5e37;
+  font-size: clamp(26px, 7vw, 36px);
+}
+
+.discgolf h2 {
+  font-size: 20px;
+  margin: 20px 0 10px;
+  text-align: left;
+}
+
+.discgolf .dg-muted {
+  color: #777;
+  margin: 10px 0;
+}
+
+/* ---------- Buttons ---------- */
+
+.discgolf .dg-btn {
+  padding: 12px 20px;
+  font-size: 18px;
+  background-color: #fff;
+  color: #1b5e37;
+  border: 3px solid #2e9e5b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.discgolf .dg-btn-primary {
+  background-color: #2e9e5b;
+  color: #fff;
+  border-color: #1b5e37;
+}
+
+.discgolf .dg-btn-danger {
+  color: #b02a2a;
+  border-color: #b02a2a;
+}
+
+.discgolf .dg-btn:hover:not(:disabled) {
+  box-shadow: 0 0 10px #2e9e5b;
+}
+
+.discgolf button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.discgolf .dg-small-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  line-height: 1;
+  border: 2px solid #2e9e5b;
+  border-radius: 50%;
+  background: #fff;
+  color: #1b5e37;
+  cursor: pointer;
+}
+
+/* ---------- Setup ---------- */
+
+.discgolf .dg-row {
+  display: flex;
+  gap: 10px;
+}
+
+.discgolf input[type="text"],
+.discgolf input[type="number"] {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 10px;
+  font-size: 18px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+}
+
+.discgolf .dg-row input {
+  flex: 1;
+}
+
+.discgolf #player-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+
+.discgolf #player-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background-color: #eef8f2;
+  border-radius: 5px;
+  font-size: 18px;
+  text-align: left;
+}
+
+.discgolf #player-list li span {
+  overflow-wrap: anywhere;
+}
+
+.discgolf .dg-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.discgolf .dg-options label {
+  flex: 1 1 0;
+  padding: 10px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.discgolf .dg-options label:has(input:checked) {
+  border-color: #2e9e5b;
+  background-color: #eef8f2;
+}
+
+.discgolf #custom-holes {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.discgolf .dg-par-default {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 20px 0;
+  font-size: 18px;
+}
+
+.discgolf .dg-par-default input {
+  width: 90px;
+}
+
+.discgolf #start-round {
+  width: 100%;
+}
+
+/* ---------- Scoring ---------- */
+
+.discgolf .dg-hole-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.discgolf .dg-hole-title {
+  font-size: clamp(22px, 6vw, 28px);
+  font-weight: bold;
+}
+
+.discgolf .dg-par {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 18px;
+}
+
+.discgolf .dg-icon-btn {
+  width: 48px;
+  height: 48px;
+  font-size: 26px;
+  border: none;
+  border-radius: 50%;
+  background: #eef8f2;
+  color: #1b5e37;
+  cursor: pointer;
+}
+
+.discgolf .dg-player-card {
+  margin: 20px 0;
+  padding: 20px 10px;
+  border: 3px solid #2e9e5b;
+  border-radius: 10px;
+}
+
+.discgolf .dg-player-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.discgolf .dg-player-name {
+  flex: 1;
+  min-width: 0;
+  font-size: clamp(22px, 6vw, 30px);
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.discgolf .dg-arrow {
+  flex: none;
+  width: 60px;
+  height: 60px;
+  font-size: 30px;
+  border: 3px solid #1b5e37;
+  border-radius: 50%;
+  background: #2e9e5b;
+  color: #fff;
+  cursor: pointer;
+}
+
+.discgolf .dg-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(15px, 6vw, 40px);
+  margin: 25px 0 15px;
+}
+
+.discgolf .dg-score-btn {
+  width: 64px;
+  height: 64px;
+  font-size: 34px;
+  border: 3px solid #2e9e5b;
+  border-radius: 10px;
+  background: #fff;
+  color: #1b5e37;
+  cursor: pointer;
+}
+
+.discgolf .dg-score-value {
+  font-size: 72px;
+  font-weight: bold;
+  line-height: 1;
+  min-width: 1.5em;
+}
+
+.discgolf .dg-score-value.dg-pending {
+  color: #bbb;
+}
+
+.discgolf .dg-score-label {
+  margin-top: 5px;
+  color: #555;
+}
+
+.discgolf .dg-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.discgolf .dg-dot {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 2px solid #2e9e5b;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+.discgolf .dg-dot-done {
+  background: #2e9e5b;
+}
+
+.discgolf .dg-dot-active {
+  transform: scale(1.4);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1b5e37;
+}
+
+.discgolf .dg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.discgolf .dg-actions .dg-btn {
+  flex: 1 1 auto;
+}
+
+/* ---------- Score card ---------- */
+
+.discgolf .dg-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 10px;
+}
+
+.discgolf #scorecard {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.discgolf #scorecard th,
+.discgolf #scorecard td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+.discgolf #scorecard thead th,
+.discgolf #scorecard tfoot td {
+  background-color: #2e9e5b;
+  color: #fff;
+  font-weight: bold;
+}
+
+.discgolf #scorecard tbody td:nth-child(n + 3) {
+  cursor: pointer;
+}
+
+.discgolf .dg-under {
+  color: #1a7f37;
+  font-weight: bold;
+}
+
+.discgolf .dg-even {
+  color: #333;
+}
+
+.discgolf .dg-over {
+  color: #b02a2a;
+}

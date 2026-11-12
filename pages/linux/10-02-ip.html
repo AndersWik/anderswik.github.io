@@ -1,0 +1,46 @@
+---
+layout: default
+title: Ip
+permalink: /linux/ip/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, ip, network, ip address, routing, interfaces]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Ip</h1>
+  <p><code>ip</code> shows and changes network settings: interfaces, IP addresses and routes. It replaces the older <code>ifconfig</code> and <code>route</code> commands.</p>
+  <h2>Show IP addresses</h2>
+  <pre><code class="language-bash">$ ip</code></pre>
+  <pre><code class="language-bash">$ ip addr
+$ ip -br addr    # short, one line per interface</code></pre>
+  <h2>Interfaces</h2>
+  <pre><code class="language-bash">$ ip link
+$ sudo ip link set wlan0 down
+$ sudo ip link set wlan0 up</code></pre>
+  <h2>Routes</h2>
+  <p>The default route shows which gateway the computer uses to reach the internet.</p>
+  <pre><code class="language-bash">$ ip route</code></pre>
+  <h2>Add an address</h2>
+  <pre><code class="language-bash">$ sudo ip addr add 192.168.1.50/24 dev eth0</code></pre>
+  <p>Changes made with <code>ip</code> are lost on reboot; permanent settings are made in NetworkManager or netplan.</p>
+  <h2>Help</h2>
+  <p><code>ip help</code> prints a short summary. Every object has its own help as well, for example <code>ip address help</code>. <code>-h</code> does not show help, it shows numbers in human readable form.</p>
+  <pre><code class="language-bash">$ ip help
+$ ip address help</code></pre>
+  <h2>Version</h2>
+  <p><code>-V</code> shows which version of <code>ip</code> is installed. <code>ip</code> has no <code>--version</code>.</p>
+  <pre><code class="language-bash">$ ip -V</code></pre>
+  <h2>More about ip</h2>
+  <ul>
+    <li>Most subcommands can be shortened: <code>ip a</code>, <code>ip r</code>, <code>ip l</code></li>
+    <li><code>ip neigh</code> shows the ARP table of nearby devices</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/ip.txt">man ip</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, ip, network, ip address, routing, interfaces</p>
+  {% include trail.html %}
+</div>

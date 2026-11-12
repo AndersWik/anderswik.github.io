@@ -1,0 +1,39 @@
+---
+layout: default
+title: Setup
+permalink: /git/setup/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [git, setup, init, repository, remote, origin, set-url]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Setup</h1>
+  <p>A repository can be created from an existing folder with <code>git init</code>, or copied from somewhere else with <a href="/git/clone/">git clone</a>.</p>
+  <h2>Create a repository</h2>
+  <p>Go to the project folder and run <code>init</code>. Git creates the hidden folder <code>.git</code> where the history is stored.</p>
+  <pre><code class="language-bash">$ cd my-project
+$ git init</code></pre>
+  <h2>Connect to a remote</h2>
+  <p>A remote is a copy of the repository on a server, for example on GitHub. The main remote is usually called <code>origin</code>.</p>
+  <pre><code class="language-bash">$ git remote add origin git@github.com:user/my-project.git</code></pre>
+  <p>List the remotes and their addresses.</p>
+  <pre><code class="language-bash">$ git remote -v</code></pre>
+  <h2>Change the address of a remote</h2>
+  <p>If the repository has moved, point <code>origin</code> to the new address.</p>
+  <pre><code class="language-bash">$ git remote set-url origin git@github.com:user/new-name.git</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git init</code>. <code>--help</code> opens the full manual page, the same as <code>git help init</code>.</p>
+  <pre><code class="language-bash">$ git init -h
+$ git init --help</code></pre>
+  <h2>More about setup</h2>
+  <ul>
+    <li>Set your name and email before the first commit, see <a href="/git/config/">Config</a></li>
+    <li>Send your commits to the remote with <a href="/git/push/">git push</a></li>
+    <li>A file called <code>.gitignore</code> lists files Git should not track, for example <code>node_modules/</code> or <code>*.log</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

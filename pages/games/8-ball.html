@@ -1,0 +1,24 @@
+---
+layout: game
+title: 8-Ball
+permalink: /games/8-ball/
+nonav: true
+css:
+  - /assets/8-ball/8-ball.css
+js:
+  - /assets/8-ball/8-ball.js
+---
+<div class="container">
+  <h1>Magic 8 Ball</h1>
+  <img
+    id="eightball"
+    src="{{ site.baseurl }}/assets/8-ball/images/eightball.svg"
+    alt="A magic 8 ball"
+  />
+  <form id="ask-form" autocomplete="off">
+    <input type="text" id="question" placeholder="Ask your question..." aria-label="Your question" />
+    <button type="submit">Shake the Ball</button>
+  </form>
+  <div id="result" aria-live="polite"></div>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/8-ball/">How to build this game</a></p>

@@ -1,0 +1,23 @@
+---
+layout: default
+title: Describe table
+permalink: /mysql/describe-table/
+chapter: "03"
+chapter_title: "Tables"
+keywords: [mysql, sql, describe, table, columns]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Describe table</h1>
+  <p><code>describe</code> shows the columns of a table, with their type and if they can be null.</p>
+  <h2>Describe table</h2>
+  <pre><code class="language-sql">mysql&gt; describe mytable;</code></pre>
+  <h2>More about describe</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/describe.html">DESCRIBE</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

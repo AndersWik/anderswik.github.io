@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Discgolf score card</title>
+
+  <!-- Makes this page an installable app, see _scripts/make-pwa.py. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
+  <!-- iPhone and iPad read these instead of the manifest. -->
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Discgolf score card">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/assets/discgolf/discgolf.css">
+  <style>
+    /* Without the site header the games would touch the top of the screen. */
+    .game { padding-block: 16px; }
+  </style>
+</head>
+<body>
+<div class="discgolf">
+  <div class="dg-container">
+    <h1>Disc Golf Score Card</h1>
+
+    <!-- Setup -->
+    <section id="setup">
+      <h2>Players</h2>
+      <form id="player-form" class="dg-row">
+        <input type="text" id="player-name" placeholder="Player name" maxlength="20" autocomplete="off" />
+        <button type="submit" class="dg-btn">Add</button>
+      </form>
+      <ul id="player-list"></ul>
+      <p id="no-players" class="dg-muted">No players added yet.</p>
+
+      <h2>Course size</h2>
+      <div class="dg-options">
+        <label><input type="radio" name="course-size" value="9" checked /> 9 holes</label>
+        <label><input type="radio" name="course-size" value="18" /> 18 holes</label>
+        <label><input type="radio" name="course-size" value="custom" /> Custom</label>
+      </div>
+      <input type="number" id="custom-holes" min="1" max="99" value="12" hidden />
+
+      <label class="dg-par-default">
+        Default par
+        <input type="number" id="default-par" min="2" max="9" value="3" />
+      </label>
+
+      <button id="start-round" class="dg-btn dg-btn-primary" disabled>Start round</button>
+    </section>
+
+    <!-- Scoring -->
+    <section id="play" hidden>
+      <div class="dg-hole-nav">
+        <button id="prev-hole" class="dg-icon-btn" aria-label="Previous hole">&laquo;</button>
+        <div>
+          <div class="dg-hole-title">Hole <span id="hole-number">1</span> / <span id="hole-count">9</span></div>
+          <div class="dg-par">
+            Par
+            <button id="par-minus" class="dg-small-btn" aria-label="Decrease par">&minus;</button>
+            <span id="par-value">3</span>
+            <button id="par-plus" class="dg-small-btn" aria-label="Increase par">+</button>
+          </div>
+        </div>
+        <button id="next-hole" class="dg-icon-btn" aria-label="Next hole">&raquo;</button>
+      </div>
+
+      <div class="dg-player-card">
+        <div class="dg-player-nav">
+          <button id="prev-player" class="dg-arrow" aria-label="Previous player">&larr;</button>
+          <div id="player-current" class="dg-player-name"></div>
+          <button id="next-player" class="dg-arrow" aria-label="Next player">&rarr;</button>
+        </div>
+
+        <div class="dg-score">
+          <button id="score-minus" class="dg-score-btn" aria-label="Decrease score">&minus;</button>
+          <div>
+            <div id="score-value" class="dg-score-value">3</div>
+            <div id="score-label" class="dg-score-label">Par</div>
+          </div>
+          <button id="score-plus" class="dg-score-btn" aria-label="Increase score">+</button>
+        </div>
+
+        <div id="player-total" class="dg-muted"></div>
+        <div id="player-dots" class="dg-dots"></div>
+      </div>
+
+      <div class="dg-actions">
+        <button id="show-card" class="dg-btn">Score card</button>
+        <button id="new-round" class="dg-btn dg-btn-danger">New round</button>
+      </div>
+    </section>
+
+    <!-- Score card -->
+    <section id="card" hidden>
+      <div class="dg-table-wrap">
+        <table id="scorecard"></table>
+      </div>
+      <div class="dg-actions">
+        <button id="back-to-play" class="dg-btn dg-btn-primary">Back to scoring</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="/assets/discgolf/discgolf.js"></script>
+<script>
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+</body>
+</html>

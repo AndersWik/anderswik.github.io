@@ -1,0 +1,11 @@
+<!-- Back Side of Bitcoin Coin -->
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="100" cy="100" r="95" fill="#f7931a" stroke="#d67e00" stroke-width="5"/>
+    <g stroke="white" stroke-width="3">
+        <line x1="50" y1="50" x2="150" y2="50" />
+        <line x1="50" y1="150" x2="150" y2="150" />
+        <line x1="50" y1="50" x2="50" y2="150" />
+        <line x1="150" y1="50" x2="150" y2="150" />
+        <circle cx="100" cy="100" r="20" fill="none" stroke="white" />
+    </g>
+</svg>

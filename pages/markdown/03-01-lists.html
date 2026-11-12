@@ -1,0 +1,79 @@
+---
+layout: default
+title: Lists
+permalink: /markdown/lists/
+chapter: "03"
+chapter_title: "Lists and tables"
+keywords: [markdown, lists, list, unordered, ordered, numbered, bullet, nested, ul, ol]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lists</h1>
+  <p>Markdown has unordered lists with bullets and ordered lists with numbers. Lists can be nested and can hold paragraphs, code and other lists.</p>
+  <h2>Unordered list</h2>
+  <p>Start each line with <code>*</code>, <code>-</code> or <code>+</code> and a space.</p>
+  <pre><code class="language-markdown">* Apples
+* Pears
+* Plums
+
+- Apples
+- Pears
+
++ Apples
++ Pears</code></pre>
+  <h2>Ordered list</h2>
+  <p>Start each line with a number and a dot. The first number sets where the list starts. The rest do not matter, so you can write <code>1.</code> on every line.</p>
+  <pre><code class="language-markdown">1. First
+2. Second
+3. Third
+
+1. First
+1. Second
+1. Third
+
+5. Starts at five
+6. Six</code></pre>
+  <h2>Nested lists</h2>
+  <p>Indent the inner list so it lines up with the text of the item above, two spaces after <code>*</code> and three after <code>1.</code>. Four spaces works in most flavors.</p>
+  <pre><code class="language-markdown">* Fruit
+  * Apples
+  * Pears
+* Vegetables
+  * Carrots
+
+1. Install
+   1. Download
+   2. Run the installer
+2. Configure
+   * Set the language
+   * Set the time zone</code></pre>
+  <h2>Paragraphs and code in a list</h2>
+  <p>Indent the content the same as the item text. Leave an empty line before it.</p>
+  <pre><code class="language-markdown">1. Update the package list.
+
+   This can take a minute.
+
+2. Install the package.
+
+   ```bash
+   sudo apt install pandoc
+   ```</code></pre>
+  <h2>Two lists after each other</h2>
+  <p>Changing the symbol, or putting a <a href="/markdown/comments/">comment</a> between them, starts a new list.</p>
+  <pre><code class="language-markdown">* First list
+* First list
+
+- Second list
+- Second list</code></pre>
+  <h2>More about lists</h2>
+  <ul>
+    <li>Leave an empty line before and after the list</li>
+    <li>Leaving empty lines between items makes a loose list, with more space between items</li>
+    <li>A line that starts with a number and a dot becomes a list, <a href="/markdown/escaping/">escape</a> the dot to stop it: <code>2024\.</code></li>
+    <li>Lists with checkboxes are <a href="/markdown/task-lists/">task lists</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

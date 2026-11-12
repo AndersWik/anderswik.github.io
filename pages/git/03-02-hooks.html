@@ -1,0 +1,45 @@
+---
+layout: default
+title: Hooks
+permalink: /git/hooks/
+chapter: "03"
+chapter_title: "Tools"
+keywords: [git, hooks, pre-commit, commit-msg, script, automation, hooksPath]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Hooks</h1>
+  <p>Hooks are scripts that Git runs automatically at certain moments, for example before a commit. They can check code style, run tests or stop a commit with a bad message.</p>
+  <h2>Where hooks live</h2>
+  <p>Hooks are stored in <code>.git/hooks</code> in each repository. Git creates examples there that end with <code>.sample</code>.</p>
+  <pre><code class="language-bash">$ ls .git/hooks</code></pre>
+  <h2>Create a hook</h2>
+  <p>The file name decides when the hook runs. This <code>pre-commit</code> hook stops the commit if a file contains the text <code>TODO</code>. If the script exits with anything other than 0, the commit is cancelled.</p>
+  <pre><code class="language-bash">$ nano .git/hooks/pre-commit</code></pre>
+  <pre><code class="language-bash">#!/bin/bash
+if git diff --cached | grep -q "TODO"; then
+  echo "Remove TODO before committing"
+  exit 1
+fi</code></pre>
+  <p>The hook must be executable, see <a href="/linux/chmod/">chmod</a>.</p>
+  <pre><code class="language-bash">$ chmod +x .git/hooks/pre-commit</code></pre>
+  <h2>Common hooks</h2>
+  <ul>
+    <li><code>pre-commit</code> — before the commit is created</li>
+    <li><code>commit-msg</code> — checks the commit message</li>
+    <li><code>pre-push</code> — before pushing, for example to run tests</li>
+    <li><code>post-merge</code> — after a merge or pull</li>
+  </ul>
+  <h2>Share hooks with the team</h2>
+  <p>The <code>.git</code> folder is not committed, so hooks are not shared. Put them in a folder in the repository and tell Git to use it.</p>
+  <pre><code class="language-bash">$ git config core.hooksPath .githooks</code></pre>
+  <h2>More about hooks</h2>
+  <ul>
+    <li>Skip the <code>pre-commit</code> and <code>commit-msg</code> hooks once with <code>git commit --no-verify</code></li>
+    <li><a href="https://git-scm.com/docs/githooks">githooks</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

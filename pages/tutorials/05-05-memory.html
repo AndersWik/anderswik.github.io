@@ -1,0 +1,371 @@
+---
+layout: default
+title: Memory
+permalink: /tutorials/memory/
+chapter: "05"
+chapter_title: "Board Games"
+keywords: [javascript, game, memory, cards, pairs, shuffle, images, objects, setTimeout, clearTimeout, css background]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Memory</h1>
+  <p>All the cards lie face down, and every picture is on two of them. Turn up two cards. If they match, they stay up. If not, they turn back after a moment, and you try to remember where they were. Find all the pairs in as few moves as you can. You can choose how many cards to play with.</p>
+  <p>The game uses the shuffle from <a href="/tutorials/quiz/">Quiz</a>. The new parts are keeping a card's data and its button together in one object, and making sure the player can only have two cards up at a time.</p>
+  <p><a href="/assets/memory/standalone.html">Open the finished game</a></p>
+  <h2>The pictures</h2>
+  <p>Make a folder for the game, with the page and a folder called <code>images</code>:</p>
+  <pre><code class="language-plaintext">memory/
+    memory.html
+    images/
+        card.svg
+        blue-star.svg
+        ...</code></pre>
+  <p>Download these into <code>images</code> (right-click a link and save it):</p>
+  <p><a href="/assets/memory/images/card.svg">card.svg</a>, <a href="/assets/memory/images/blue-star.svg">blue-star.svg</a>, <a href="/assets/memory/images/green-star.svg">green-star.svg</a>, <a href="/assets/memory/images/purple-star.svg">purple-star.svg</a>, <a href="/assets/memory/images/yellow-star.svg">yellow-star.svg</a>, <a href="/assets/memory/images/blue-triangel.svg">blue-triangel.svg</a>, <a href="/assets/memory/images/green-triangel.svg">green-triangel.svg</a>, <a href="/assets/memory/images/purple-triangel.svg">purple-triangel.svg</a>, <a href="/assets/memory/images/yellow-triangel.svg">yellow-triangel.svg</a>, <a href="/assets/memory/images/blue-square.svg">blue-square.svg</a>, <a href="/assets/memory/images/green-square.svg">green-square.svg</a>, <a href="/assets/memory/images/purple-square.svg">purple-square.svg</a>, <a href="/assets/memory/images/yellow-square.svg">yellow-square.svg</a></p>
+  <p><code>card.svg</code> is the back of the cards. The others are the pictures on the front.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>memory.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
+  <pre><code class="language-html">&lt;h1&gt;Memory&lt;/h1&gt;
+&lt;div id="board"&gt;&lt;/div&gt;
+&lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+&lt;label for="size"&gt;Size:&lt;/label&gt;
+&lt;select id="size"&gt;
+  &lt;option value="4"&gt;XS (8 cards)&lt;/option&gt;
+  &lt;option value="6"&gt;S (12 cards)&lt;/option&gt;
+  &lt;option value="8" selected&gt;M (16 cards)&lt;/option&gt;
+  &lt;option value="10"&gt;L (20 cards)&lt;/option&gt;
+  &lt;option value="12"&gt;XL (24 cards)&lt;/option&gt;
+&lt;/select&gt;
+&lt;button type="button" id="restart"&gt;New game&lt;/button&gt;</code></pre>
+  <p>The value of each size is the number of <strong>pairs</strong>. The code can use it right away, instead of looking up what "M" means. The first version also had an XL size in the code, but not in the list, so nobody could choose it.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 440px;
+    margin: 0 auto;
+}
+
+.card {
+    aspect-ratio: 1;
+    padding: 6px;
+    background: #dddddd;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.card img {
+    width: 100%;
+    height: 100%;
+}
+
+.card.down {
+    background: black url("images/card.svg") center / cover no-repeat;
+}
+
+.card.down img {
+    visibility: hidden;
+}
+
+#status {
+    font-size: 18px;
+}</code></pre>
+  <p>Every card is a button with its picture inside. A card lying face down has the class <code>down</code>. Then the back of the card is shown as the button's background, and the picture is hidden with <code>visibility: hidden</code>. Turning a card is just adding or removing <code>down</code>.</p>
+  <p><code>background: black url(...) center / cover no-repeat</code> is a short way to write five background settings at once: the color, the picture, its position, its size (<code>cover</code> fills the whole button) and that it should not repeat.</p>
+  <h2>Step 2: The deck</h2>
+  <pre><code class="language-javascript">const IMAGE_FOLDER = "images/";
+
+const PICTURES = [
+    "blue-star", "green-star", "purple-star", "yellow-star",
+    "blue-triangel", "green-triangel", "purple-triangel", "yellow-triangel",
+    "blue-square", "green-square", "purple-square", "yellow-square"
+];
+
+const pairs = Number(sizeSelect.value);
+const names = PICTURES.slice(0, pairs);
+const deck = shuffle(names.concat(names));</code></pre>
+  <p>Take as many pictures as there are pairs. <code>names.concat(names)</code> puts the list after itself, so every picture is there twice. Then shuffle it with the same <code>shuffle</code> as in <a href="/tutorials/quiz/">Quiz</a>.</p>
+  <p><code>sizeSelect.value</code> is always text, like <code>"8"</code>, even if it looks like a number. <code>Number()</code> makes it a real number.</p>
+  <h2>Step 3: A card is an object</h2>
+  <pre><code class="language-javascript">cards = deck.map(function (name) {
+    const element = document.createElement("button");
+    element.type = "button";
+    element.className = "card down";
+    const image = document.createElement("img");
+    image.src = IMAGE_FOLDER + name + ".svg";
+    image.alt = name.replace("-", " ");
+    element.appendChild(image);
+    board.appendChild(element);
+
+    const card = { name: name, element: element, up: false };
+    element.addEventListener("click", function () {
+        turnUp(card);
+    });
+    return card;
+});</code></pre>
+  <p>For each name in the deck, we make a button with the picture in it, and an object for the card: its <code>name</code>, its button <code>element</code>, and if it is <code>up</code>. <code>map</code> collects the objects into the list <code>cards</code>.</p>
+  <p>The click handler gets the card object itself, not just the button. The first version kept the data in <code>data-</code> attributes on the buttons, and had to read them back as text all the time. With an object, <code>card.name</code> and <code>card.up</code> are just there.</p>
+  <p><code>alt</code> is the text a screen reader reads. <code>"blue-star".replace("-", " ")</code> gives "blue star". A face down card has its picture hidden with <code>visibility</code>, which hides it from screen readers too, so the alt text doesn't give the game away.</p>
+  <h2>Step 4: Turning cards</h2>
+  <pre><code class="language-javascript">function turnUp(card) {
+    if (open.length === 2 || card.up) {
+        return;
+    }
+    card.up = true;
+    card.element.classList.remove("down");
+    open.push(card);
+
+    if (open.length === 2) {
+        moves++;
+        if (open[0].name === open[1].name) {
+            pairsFound++;
+            open = [];
+        } else {
+            turnBackTimer = setTimeout(turnBack, TURN_BACK_TIME);
+        }
+    }
+    showStatus();
+}</code></pre>
+  <p><code>open</code> is the list of cards turned up in this move. The first line is the important one:</p>
+  <ul>
+    <li><code>card.up</code>: a card that is already up can't be turned again. In the first version you could click the same card twice. It then matched itself and counted as a pair.</li>
+    <li><code>open.length === 2</code>: while two cards that don't match are showing, more clicks are ignored. In the first version, a third click started another timer, and when that timer ran there were no cards to turn back, and the game stopped with an error.</li>
+  </ul>
+  <p>If the two cards match, they just stay up and <code>open</code> is emptied for the next move. If not, <code>turnBack</code> runs after <code>TURN_BACK_TIME</code> (0.8 seconds), so you have time to see them:</p>
+  <pre><code class="language-javascript">function turnBack() {
+    open.forEach(function (card) {
+        card.up = false;
+        card.element.classList.add("down");
+    });
+    open = [];
+}</code></pre>
+  <p>When <code>pairsFound</code> is half the number of cards, every card has been found, and <code>showStatus</code> shows how many moves it took.</p>
+  <h2>Step 5: A new game</h2>
+  <p><code>newGame</code> runs when the page loads, when you press New game, and when you choose a new size. It starts with <code>clearTimeout(turnBackTimer)</code>, like in <a href="/tutorials/connect-four-ai/">Connect Four vs computer</a>. Otherwise a timer from the old game could turn back two cards in the new one.</p>
+  <h2>Step 6: Test it</h2>
+  <ul>
+    <li>Click the same card twice. It should not count as a pair.</li>
+    <li>Turn up two cards that don't match and quickly click a third. Nothing should happen until the two have turned back.</li>
+    <li>Find all pairs. The message should say how many moves it took.</li>
+    <li>Try every size.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>memory.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Memory&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #board {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        max-width: 440px;
+        margin: 0 auto;
+    }
+
+    .card {
+        aspect-ratio: 1;
+        padding: 6px;
+        background: #dddddd;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .card img {
+        width: 100%;
+        height: 100%;
+    }
+
+    .card.down {
+        background: black url("images/card.svg") center / cover no-repeat;
+    }
+
+    .card.down img {
+        visibility: hidden;
+    }
+
+    #status {
+        font-size: 18px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Memory&lt;/h1&gt;
+  &lt;div id="board"&gt;&lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;label for="size"&gt;Size:&lt;/label&gt;
+  &lt;select id="size"&gt;
+    &lt;option value="4"&gt;XS (8 cards)&lt;/option&gt;
+    &lt;option value="6"&gt;S (12 cards)&lt;/option&gt;
+    &lt;option value="8" selected&gt;M (16 cards)&lt;/option&gt;
+    &lt;option value="10"&gt;L (20 cards)&lt;/option&gt;
+    &lt;option value="12"&gt;XL (24 cards)&lt;/option&gt;
+  &lt;/select&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+
+  &lt;script&gt;
+    /*
+     * Memory: all cards lie face down, and every picture is on two cards.
+     * Turn up two cards. If they match, they stay up; if not, they turn back.
+     * Find all the pairs in as few moves as you can.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    // Where the pictures are: a folder called "images" next to this page.
+    const IMAGE_FOLDER = "images/";
+
+    const PICTURES = [
+        "blue-star", "green-star", "purple-star", "yellow-star",
+        "blue-triangel", "green-triangel", "purple-triangel", "yellow-triangel",
+        "blue-square", "green-square", "purple-square", "yellow-square"
+    ];
+    const TURN_BACK_TIME = 800;   // ms to look at two cards that don't match
+
+    // --- Elements on the page ------------------------------------------------
+
+    const board = document.getElementById("board");
+    const sizeSelect = document.getElementById("size");
+    const statusText = document.getElementById("status");
+    const restartButton = document.getElementById("restart");
+
+    // --- State ---------------------------------------------------------------
+
+    let cards = [];        // { name, element, up }
+    let open = [];         // the cards turned up this move (0, 1 or 2)
+    let moves = 0;
+    let pairsFound = 0;
+    let turnBackTimer = null;
+
+    // --- Helpers -------------------------------------------------------------
+
+    // A shuffled copy of a list (the Fisher-Yates shuffle).
+    function shuffle(list) {
+        const copy = list.slice();
+        for (let i = copy.length - 1; i &gt; 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const temp = copy[i];
+            copy[i] = copy[j];
+            copy[j] = temp;
+        }
+        return copy;
+    }
+
+    function showStatus() {
+        if (pairsFound === cards.length / 2) {
+            statusText.textContent = "You found all the pairs in " + moves + " moves!";
+        } else {
+            statusText.textContent = "Moves: " + moves;
+        }
+    }
+
+    // --- The game ------------------------------------------------------------
+
+    function newGame() {
+        clearTimeout(turnBackTimer);
+
+        // Two of each picture, in random order.
+        const pairs = Number(sizeSelect.value);
+        const names = PICTURES.slice(0, pairs);
+        const deck = shuffle(names.concat(names));
+
+        board.innerHTML = "";
+        cards = deck.map(function (name) {
+            const element = document.createElement("button");
+            element.type = "button";
+            element.className = "card down";
+            const image = document.createElement("img");
+            image.src = IMAGE_FOLDER + name + ".svg";
+            image.alt = name.replace("-", " ");
+            element.appendChild(image);
+            board.appendChild(element);
+
+            const card = { name: name, element: element, up: false };
+            element.addEventListener("click", function () {
+                turnUp(card);
+            });
+            return card;
+        });
+
+        open = [];
+        moves = 0;
+        pairsFound = 0;
+        showStatus();
+    }
+
+    function turnUp(card) {
+        // Not while two cards are showing, and not a card that is already up.
+        if (open.length === 2 || card.up) {
+            return;
+        }
+        card.up = true;
+        card.element.classList.remove("down");
+        open.push(card);
+
+        if (open.length === 2) {
+            moves++;
+            if (open[0].name === open[1].name) {
+                pairsFound++;
+                open = [];   // a pair: they stay up
+            } else {
+                turnBackTimer = setTimeout(turnBack, TURN_BACK_TIME);
+            }
+        }
+        showStatus();
+    }
+
+    function turnBack() {
+        open.forEach(function (card) {
+            card.up = false;
+            card.element.classList.add("down");
+        });
+        open = [];
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    sizeSelect.addEventListener("change", newGame);
+    restartButton.addEventListener("click", newGame);
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a clock that shows how long the game has taken.</li>
+    <li>Make it a game for two players: a player who finds a pair goes again, and gets a point.</li>
+    <li>Turn the cards with a CSS animation, using <code>transform: rotateY(180deg)</code>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

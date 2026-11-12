@@ -1,0 +1,18 @@
+{% comment %}Previous / next links for a section. The section is the folder under pages/, e.g. pages/linux/ or pages/vagrant/.{% endcomment %}
+{% assign path_parts = page.path | split: "/" %}{% assign trail_section = path_parts[1] %}
+{% assign trail_folder = "pages/" | append: trail_section | append: "/" %}
+{% assign trail = site.pages | where_exp: "p", "p.path contains trail_folder" | where_exp: "p", "p.chapter != nil" | sort: "path" %}
+{% for p in trail %}{% if p.url == page.url %}{% assign trail_index = forloop.index0 %}{% endif %}{% endfor %}
+<nav class="section-trail d-flex justify-content-between border-top mt-5 pt-3" aria-label="{{ trail_section | capitalize }} trail">
+  <span>
+    {% if trail_index > 0 %}{% assign prev_index = trail_index | minus: 1 %}{% assign prev_page = trail[prev_index] %}
+    <a href="{{ prev_page.url | relative_url }}">&larr; {{ prev_page.title }}</a>
+    {% endif %}
+  </span>
+  <a href="{{ '/' | append: trail_section | append: '/' | relative_url }}">All chapters</a>
+  <span>
+    {% assign next_index = trail_index | plus: 1 %}{% if next_index < trail.size %}{% assign next_page = trail[next_index] %}
+    <a href="{{ next_page.url | relative_url }}">{{ next_page.title }} &rarr;</a>
+    {% endif %}
+  </span>
+</nav>

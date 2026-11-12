@@ -1,0 +1,26 @@
+---
+layout: default
+title: Delete
+permalink: /mysql/delete/
+chapter: "04"
+chapter_title: "Data"
+keywords: [mysql, sql, delete, remove, rows, where, truncate]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Delete</h1>
+  <p><code>delete</code> removes rows from a table. <code>WHERE</code> chooses the rows. Without <code>WHERE</code> every row in the table is removed.</p>
+  <h2>Delete</h2>
+  <pre><code class="language-sql">mysql&gt; DELETE FROM mytable WHERE id = 1;</code></pre>
+  <h2>Delete all rows</h2>
+  <pre><code class="language-sql">mysql&gt; DELETE FROM mytable;</code></pre>
+  <h2>More about delete</h2>
+  <ul>
+    <li><a href="/mysql/drop-table/">Drop table</a> removes the table itself</li>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/delete.html">DELETE</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

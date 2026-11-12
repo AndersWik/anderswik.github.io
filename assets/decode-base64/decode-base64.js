@@ -1,0 +1,66 @@
+/*
+ * Base64 decode / encode.
+ *
+ * Base64 turns any data into plain letters, digits, "+" and "/", so it can
+ * be sent where only text is allowed (emails, URLs, JSON...).
+ *
+ * The browser has two built-in functions for this: btoa() encodes and
+ * atob() decodes. They only understand simple English characters, so
+ * text like "åäö" or emojis must first be turned into bytes (UTF-8).
+ */
+
+// --- Elements on the page ------------------------------------------------
+
+const base64Text = document.getElementById("encoded-text");
+const plainText = document.getElementById("decoded-text");
+const decodeButton = document.getElementById("decode-btn");
+const encodeButton = document.getElementById("encode-btn");
+
+// --- Helpers -------------------------------------------------------------
+
+// "w6XDpMO2" -> "åäö"
+function base64ToText(base64) {
+    // atob() gives one character per byte...
+    const binary = atob(base64.trim());
+
+    // ...turn them back into bytes, and the bytes back into text.
+    const bytes = Uint8Array.from(binary, function (character) {
+        return character.charCodeAt(0);
+    });
+
+    return new TextDecoder().decode(bytes);
+}
+
+// "åäö" -> "w6XDpMO2"
+function textToBase64(text) {
+    // Turn the text into UTF-8 bytes (numbers 0-255).
+    const bytes = new TextEncoder().encode(text);
+
+    // btoa() wants one character per byte, so build such a string.
+    let binary = "";
+    bytes.forEach(function (byte) {
+        binary += String.fromCharCode(byte);
+    });
+
+    return btoa(binary);
+}
+
+// --- What the buttons do -------------------------------------------------
+
+function decode() {
+    // atob() throws an error if the text is not valid Base64.
+    try {
+        plainText.value = base64ToText(base64Text.value);
+    } catch (error) {
+        plainText.value = "That is not valid Base64.";
+    }
+}
+
+function encode() {
+    base64Text.value = textToBase64(plainText.value);
+}
+
+// --- Connect the buttons -------------------------------------------------
+
+decodeButton.addEventListener("click", decode);
+encodeButton.addEventListener("click", encode);

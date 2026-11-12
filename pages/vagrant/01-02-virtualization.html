@@ -1,0 +1,46 @@
+---
+layout: default
+title: Virtualization
+permalink: /vagrant/virtualization/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [vagrant, virtualization, virtual machine, vm, host, guest, hypervisor, vt-x, amd-v]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Virtualization</h1>
+  <p>Virtualization lets one physical computer run several virtual computers at the same time. Each virtual machine (VM) has its own operating system and acts like a separate computer, but shares the CPU, memory and disk of the real machine. Vagrant is built on top of this.</p>
+  <h2>Host and guest</h2>
+  <ul>
+    <li><strong>Host</strong> — the physical computer that runs the virtual machines</li>
+    <li><strong>Guest</strong> — a virtual machine running on the host</li>
+  </ul>
+  <h2>Hypervisor</h2>
+  <p>The hypervisor is the software that creates and runs virtual machines and shares the host's hardware between them. It is also called a Virtual Machine Monitor (VMM). There are two kinds:</p>
+  <ul>
+    <li><strong>Type 1</strong> runs directly on the hardware, for example Hyper-V and KVM</li>
+    <li><strong>Type 2</strong> runs as a program on a normal operating system, for example VirtualBox and VMware Workstation</li>
+  </ul>
+  <p>In Vagrant the hypervisor is called a <a href="/vagrant/providers/">provider</a>.</p>
+  <h2>Virtual machine image</h2>
+  <p>An image is a file with a ready installed operating system that a virtual machine can start from. Vagrant calls its images <a href="/vagrant/boxes/">boxes</a>.</p>
+  <h2>Hardware support</h2>
+  <p>Virtual machines run much faster when the CPU supports virtualization: Intel VT-x or AMD-V. It is sometimes turned off in the BIOS or UEFI settings. On Linux you can check it with <a href="/linux/lscpu/">lscpu</a>.</p>
+  <pre><code class="language-bash">$ lscpu | grep Virtualization
+Virtualization:                  VT-x</code></pre>
+  <h2>Why use virtual machines</h2>
+  <ul>
+    <li>Test software on another operating system without a second computer</li>
+    <li>Keep projects separated, each with its own tools and versions</li>
+    <li>Throw a machine away and start over in minutes</li>
+  </ul>
+  <h2>More about virtualization</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Virtualization">Virtualization on Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Hypervisor">Hypervisor on Wikipedia</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

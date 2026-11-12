@@ -1,0 +1,81 @@
+---
+layout: default
+title: Tables
+permalink: /latex/tables/
+chapter: "05"
+chapter_title: "Tables and figures"
+keywords: [latex, tables, table, tabular, booktabs, multicolumn, multirow, columns, rows, hline, caption]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tables</h1>
+  <p>Tables are made with the <code>tabular</code> environment. The column types are set after it, <code>&amp;</code> splits the columns and <code>\\</code> ends a row.</p>
+  <h2>Table</h2>
+  <pre><code class="language-latex">\begin{tabular}{l c r}
+  Left &amp; Center &amp; Right \\
+  a    &amp; b      &amp; c     \\
+\end{tabular}</code></pre>
+  <h2>Column types</h2>
+  <pre><code class="language-latex">l           % left
+c           % center
+r           % right
+p{4cm}      % paragraph with a fixed width, text wraps
+|           % vertical line between columns</code></pre>
+  <h2>Lines</h2>
+  <pre><code class="language-latex">\begin{tabular}{|l|r|}
+  \hline
+  Name  &amp; Price \\
+  \hline
+  Apple &amp; 5     \\
+  Pear  &amp; 7     \\
+  \hline
+\end{tabular}</code></pre>
+  <h2>booktabs</h2>
+  <p><code>booktabs</code> gives nicer horizontal lines. Skip the vertical lines.</p>
+  <pre><code class="language-latex">\usepackage{booktabs}
+
+\begin{tabular}{lr}
+  \toprule
+  Name  &amp; Price \\
+  \midrule
+  Apple &amp; 5     \\
+  Pear  &amp; 7     \\
+  \bottomrule
+\end{tabular}</code></pre>
+  <h2>Table with caption</h2>
+  <p>Put the <code>tabular</code> inside a <code>table</code> <a href="/latex/floats/">float</a> to add a caption and number.</p>
+  <pre><code class="language-latex">\begin{table}[htbp]
+  \centering
+  \caption{Fruit prices}
+  \label{tab:prices}
+  \begin{tabular}{lr}
+    \toprule
+    Name  &amp; Price \\
+    \midrule
+    Apple &amp; 5     \\
+    \bottomrule
+  \end{tabular}
+\end{table}</code></pre>
+  <h2>Merge cells</h2>
+  <pre><code class="language-latex">\usepackage{multirow}
+
+\multicolumn{2}{c}{Two columns} \\
+\multirow{2}{*}{Two rows} &amp; a \\
+                          &amp; b \\</code></pre>
+  <h2>Full width</h2>
+  <pre><code class="language-latex">\usepackage{tabularx}
+
+\begin{tabularx}{\textwidth}{l X}
+  Name &amp; A long text that fills the rest of the line. \\
+\end{tabularx}</code></pre>
+  <h2>More about tables</h2>
+  <ul>
+    <li><code>longtable</code> makes tables that continue on the next page</li>
+    <li><code>siunitx</code> aligns numbers on the decimal point with the column type <code>S</code></li>
+    <li><a href="https://www.tablesgenerator.com/">Tables Generator</a> makes LaTeX tables from a spreadsheet</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

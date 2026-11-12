@@ -1,0 +1,40 @@
+---
+layout: default
+title: Bisect
+permalink: /git/bisect/
+chapter: "03"
+chapter_title: "Tools"
+keywords: [git, bisect, bug, debug, find commit, good, bad, binary search]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Bisect</h1>
+  <p><code>git bisect</code> finds the commit that introduced a bug. You tell Git one commit where the bug exists and one where it did not. Git then checks out the commit in the middle and you test it. Each answer halves the number of commits left, so even long histories take only a few steps.</p>
+  <h2>Find the bad commit</h2>
+  <p>Start, mark the current commit as bad and an older one as good.</p>
+  <pre><code class="language-bash">$ git bisect start
+$ git bisect bad
+$ git bisect good a1b2c3d</code></pre>
+  <p>Git checks out a commit in between. Test it and answer.</p>
+  <pre><code class="language-bash">$ git bisect good
+$ git bisect bad</code></pre>
+  <p>Repeat until Git prints <em>is the first bad commit</em>. Then go back to where you started.</p>
+  <pre><code class="language-bash">$ git bisect reset</code></pre>
+  <h2>Let a script do the testing</h2>
+  <p>If a script or test can tell good from bad, Git can run it for you. The script should exit with 0 for good and 1 for bad.</p>
+  <pre><code class="language-bash">$ git bisect start HEAD a1b2c3d
+$ git bisect run ./test.sh</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git bisect</code>. <code>--help</code> opens the full manual page, the same as <code>git help bisect</code>.</p>
+  <pre><code class="language-bash">$ git bisect -h
+$ git bisect --help</code></pre>
+  <h2>More about bisect</h2>
+  <ul>
+    <li><code>git bisect skip</code> skips a commit that cannot be tested</li>
+    <li><a href="https://git-scm.com/docs/git-bisect">git bisect</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

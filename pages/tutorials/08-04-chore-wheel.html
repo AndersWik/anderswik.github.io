@@ -1,0 +1,526 @@
+---
+layout: default
+title: Chore wheel
+permalink: /tutorials/chore-wheel/
+chapter: "08"
+chapter_title: "Novelty Games"
+keywords: [javascript, game, canvas, wheel, css transition, rotate, angles, textContent, form]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Chore wheel</h1>
+  <p>Add chores and people, spin the wheel, and the names around it show who does what. The chores are colored slices drawn on a canvas, the wheel spins with a CSS transition, and when it stops each person gets the slice their name points at.</p>
+  <p>The tricky part is working out which slice ends up under each name. That takes a little maths with angles.</p>
+  <p><a href="/assets/tutorials/chore-wheel.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>chore-wheel.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Chore wheel&lt;/h1&gt;
+
+&lt;form id="chore-form" autocomplete="off"&gt;
+  &lt;input type="text" id="choreInput" placeholder="A chore" aria-label="Chore"&gt;
+  &lt;button type="submit"&gt;Add chore&lt;/button&gt;
+&lt;/form&gt;
+&lt;form id="person-form" autocomplete="off"&gt;
+  &lt;input type="text" id="personInput" placeholder="A person" aria-label="Person"&gt;
+  &lt;button type="submit"&gt;Add person&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;div id="wheel-container"&gt;
+  &lt;canvas id="wheel" width="300" height="300"&gt;&lt;/canvas&gt;
+  &lt;div id="names-container"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;button type="button" id="spinButton"&gt;Spin the wheel&lt;/button&gt;
+&lt;p id="result" aria-live="polite"&gt;&lt;/p&gt;
+
+&lt;div class="lists"&gt;
+  &lt;div&gt;
+    &lt;h2&gt;Chores&lt;/h2&gt;
+    &lt;ul id="choreList"&gt;&lt;/ul&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;h2&gt;People&lt;/h2&gt;
+    &lt;ul id="peopleList"&gt;&lt;/ul&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+  <p>The two input rows are forms, so Enter adds an item. The names go in <code>names-container</code>, on top of the wheel.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    max-width: 450px;
+    text-align: center;
+}
+
+form {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+form input {
+    flex: 1;
+    padding: 8px;
+    font-size: 16px;
+}
+
+button {
+    padding: 8px 16px;
+    font-size: 16px;
+}
+
+/* The names are placed around the wheel with position: absolute,
+   measured from the wheel container. */
+#wheel-container {
+    position: relative;
+    width: min(300px, 100% - 80px);
+    margin: 40px auto 30px;
+}
+
+#wheel {
+    display: block;
+    width: 100%;
+    border-radius: 50%;
+}
+
+.name-label {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+#result {
+    font-size: 18px;
+    white-space: pre-line;
+}
+
+.lists {
+    display: flex;
+    gap: 16px;
+    text-align: left;
+}
+
+.lists &gt; div {
+    flex: 1;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 6px;
+}
+
+.remove {
+    margin-right: 8px;
+    padding: 0 8px;
+}</code></pre>
+  <p><code>#wheel-container</code> has <code>position: relative</code>, and the name labels inside it have <code>position: absolute</code>. That means <code>left: 50%; top: 0%</code> is measured from the container's own corner. <code>transform: translate(-50%, -50%)</code> moves each label back by half its size, so the middle of the label is at the point, not its corner.</p>
+  <h2>Step 2: Angles on a screen</h2>
+  <p>On a canvas, and in CSS, 0° points <strong>right</strong>, and angles go <strong>clockwise</strong>, because y counts downwards. So 90° points down and -90° points up.</p>
+  <h2>Step 3: Drawing the wheel</h2>
+  <p>Each chore is a slice. With 4 chores, each slice is 360 / 4 = 90°. A slice is drawn as: start in the center, go along the edge with <code>arc</code>, back to the center.</p>
+  <pre><code class="language-javascript">const sliceAngle = 2 * Math.PI / chores.length;
+
+chores.forEach(function (chore, i) {
+    ctx.beginPath();
+    ctx.moveTo(center, center);
+    ctx.arc(center, center, center, i * sliceAngle, (i + 1) * sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = COLORS[i % COLORS.length];
+    ctx.fill();
+    ctx.stroke();
+    ...
+});</code></pre>
+  <p><code>arc</code> uses radians: a whole turn is <code>2 * Math.PI</code>. <code>i % COLORS.length</code> starts the colors over if there are more chores than colors.</p>
+  <p>The text is written along the slice. We turn the canvas to the middle of the slice and write from the center outwards, with the end of the text near the edge (<code>textAlign = "right"</code>):</p>
+  <pre><code class="language-javascript">ctx.save();
+ctx.translate(center, center);
+ctx.rotate(i * sliceAngle + sliceAngle / 2);
+ctx.textAlign = "right";
+ctx.fillText(chore, center - 30, 5);
+ctx.restore();</code></pre>
+  <h2>Step 4: Names around the wheel</h2>
+  <p>The people are spread evenly around the wheel, starting at the top:</p>
+  <pre><code class="language-javascript">function personAngle(index) {
+    return index * 360 / people.length - 90;
+}</code></pre>
+  <p>With 3 people that is -90° (top), 30° (lower right) and 150° (lower left). Each name is placed with cos and sin, in percent of the container, so it follows the wheel when the page is narrow:</p>
+  <pre><code class="language-javascript">const radians = personAngle(i) * Math.PI / 180;
+label.style.left = (50 + Math.cos(radians) * 57) + "%";
+label.style.top = (50 + Math.sin(radians) * 57) + "%";</code></pre>
+  <p>50% is the center. The wheel's edge is 50% from the center, so 57% puts the names just outside it.</p>
+  <h2>Step 5: Lists that are safe for any text</h2>
+  <p>The lists show what the user typed, with a remove button. We build them with <code>createElement</code> and add the text with <code>append</code>, which always adds text as text:</p>
+  <pre><code class="language-javascript">const li = document.createElement("li");
+const button = document.createElement("button");
+button.type = "button";
+button.className = "remove";
+button.textContent = "X";
+button.addEventListener("click", function () {
+    remove(index);
+});
+li.append(button, item);</code></pre>
+  <p>The first version built the list by joining text into HTML: <code>li.innerHTML = "&lt;button&gt;X&lt;/button&gt; " + item</code>. Then a chore called <code>&lt;img src=x onerror=alert(1)&gt;</code> would run code on the page. Here it shows up as text.</p>
+  <h2>Step 6: Spinning with CSS</h2>
+  <p>The canvas itself turns with a CSS <code>transform</code>. With a <code>transition</code>, the browser animates the change smoothly, and <code>ease-out</code> makes it slow down at the end, like a real wheel:</p>
+  <pre><code class="language-javascript">const extra = Math.floor(Math.random() * 360);
+wheel.style.transition = "transform " + SPIN_TIME + "ms ease-out";
+wheel.style.transform = "rotate(" + (rotation + TURNS * 360 + extra) + "deg)";</code></pre>
+  <p>It turns 10 whole turns plus a random extra angle, starting from where it is now. When it has stopped, we jump to the same angle without the 10 turns, and without a transition. It looks exactly the same, but the numbers stay small:</p>
+  <pre><code class="language-javascript">rotation = (rotation + extra) % 360;
+wheel.style.transition = "none";
+wheel.style.transform = "rotate(" + rotation + "deg)";</code></pre>
+  <h2>Step 7: Who got what?</h2>
+  <p>The wheel has turned <code>rotation</code> degrees clockwise. A person sits at a fixed angle on the screen. Which part of the wheel is under them now? The part that was <code>rotation</code> degrees <strong>before</strong> them, counter-clockwise, before the spin. So we turn the person's angle back by the rotation, and see which slice that angle is in:</p>
+  <pre><code class="language-javascript">function choreAt(angle) {
+    const sliceSize = 360 / chores.length;
+    const onWheel = ((angle - rotation) % 360 + 360) % 360;
+    return chores[Math.floor(onWheel / sliceSize)];
+}</code></pre>
+  <p><code>% 360</code> keeps the angle within one turn, but in JavaScript <code>%</code> of a negative number is negative: <code>-90 % 360</code> is <code>-90</code>. Adding 360 and taking <code>% 360</code> again always gives 0 to 359.</p>
+  <p>An example with 4 chores (90° each) and the wheel turned 37°: the person at the top is at -90°. -90 - 37 = -127, which is 233° on the wheel, in slice 2 (180°-270°).</p>
+  <pre><code class="language-javascript">resultText.textContent = people.map(function (person, i) {
+    return person + ": " + choreAt(personAngle(i));
+}).join("\n");</code></pre>
+  <h2>Step 8: Test it</h2>
+  <ul>
+    <li>Try to spin with no chores or no people.</li>
+    <li>Add four chores and three people, spin, and check that each name's chore in the result is the slice the name points at.</li>
+    <li>Try to add or remove something while it spins. Nothing should change.</li>
+    <li>Add a chore called <code>&lt;b&gt;Dishes&lt;/b&gt;</code>. It should show with the tags as text.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>chore-wheel.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Chore wheel&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        max-width: 450px;
+        text-align: center;
+    }
+
+    form {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    form input {
+        flex: 1;
+        padding: 8px;
+        font-size: 16px;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 16px;
+    }
+
+    /* The names are placed around the wheel with position: absolute,
+       measured from the wheel container. */
+    #wheel-container {
+        position: relative;
+        width: min(300px, 100% - 80px);
+        margin: 40px auto 30px;
+    }
+
+    #wheel {
+        display: block;
+        width: 100%;
+        border-radius: 50%;
+    }
+
+    .name-label {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    #result {
+        font-size: 18px;
+        white-space: pre-line;
+    }
+
+    .lists {
+        display: flex;
+        gap: 16px;
+        text-align: left;
+    }
+
+    .lists &gt; div {
+        flex: 1;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    li {
+        margin-bottom: 6px;
+    }
+
+    .remove {
+        margin-right: 8px;
+        padding: 0 8px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Chore wheel&lt;/h1&gt;
+
+  &lt;form id="chore-form" autocomplete="off"&gt;
+    &lt;input type="text" id="choreInput" placeholder="A chore" aria-label="Chore"&gt;
+    &lt;button type="submit"&gt;Add chore&lt;/button&gt;
+  &lt;/form&gt;
+  &lt;form id="person-form" autocomplete="off"&gt;
+    &lt;input type="text" id="personInput" placeholder="A person" aria-label="Person"&gt;
+    &lt;button type="submit"&gt;Add person&lt;/button&gt;
+  &lt;/form&gt;
+
+  &lt;div id="wheel-container"&gt;
+    &lt;canvas id="wheel" width="300" height="300"&gt;&lt;/canvas&gt;
+    &lt;div id="names-container"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;button type="button" id="spinButton"&gt;Spin the wheel&lt;/button&gt;
+  &lt;p id="result" aria-live="polite"&gt;&lt;/p&gt;
+
+  &lt;div class="lists"&gt;
+    &lt;div&gt;
+      &lt;h2&gt;Chores&lt;/h2&gt;
+      &lt;ul id="choreList"&gt;&lt;/ul&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;h2&gt;People&lt;/h2&gt;
+      &lt;ul id="peopleList"&gt;&lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Chore wheel: add chores and people, spin the wheel, and see who does what.
+     *
+     * The chores are slices of a wheel drawn on a canvas. The people's names
+     * sit around the wheel. The wheel spins with a CSS transition, and when it
+     * stops, each person gets the chore their name points at.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const COLORS = ["#ff0000", "#ffff00", "#00ff00", "#0000ff", "#ff00ff", "#ffa500", "#a020f0", "#6495ed"];
+    const SPIN_TIME = 4000;   // ms, the same as the transition in the CSS
+    const TURNS = 10;         // whole turns before it slows down
+
+    // --- Elements on the page ------------------------------------------------
+
+    const wheel = document.getElementById("wheel");
+    const ctx = wheel.getContext("2d");
+    const namesContainer = document.getElementById("names-container");
+    const choreForm = document.getElementById("chore-form");
+    const choreInput = document.getElementById("choreInput");
+    const personForm = document.getElementById("person-form");
+    const personInput = document.getElementById("personInput");
+    const spinButton = document.getElementById("spinButton");
+    const choreList = document.getElementById("choreList");
+    const peopleList = document.getElementById("peopleList");
+    const resultText = document.getElementById("result");
+
+    // --- State ---------------------------------------------------------------
+
+    let chores = [];
+    let people = [];
+    let rotation = 0;      // degrees the wheel is turned, 0-359
+    let spinning = false;
+
+    // --- Helpers -------------------------------------------------------------
+
+    // Angles of the people around the wheel, in degrees. The first person is
+    // at the top (-90°, because 0° points right and angles go clockwise).
+    function personAngle(index) {
+        return index * 360 / people.length - 90;
+    }
+
+    // Which chore is under the person at this angle when the wheel has turned
+    // "rotation" degrees? Turn the angle back by the rotation to find the place
+    // on the unturned wheel, then see which slice that is.
+    function choreAt(angle) {
+        const sliceSize = 360 / chores.length;
+        const onWheel = ((angle - rotation) % 360 + 360) % 360; // keep it 0-359
+        return chores[Math.floor(onWheel / sliceSize)];
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawWheel() {
+        const center = wheel.width / 2;
+        const sliceAngle = 2 * Math.PI / chores.length;
+
+        ctx.clearRect(0, 0, wheel.width, wheel.height);
+
+        chores.forEach(function (chore, i) {
+            // A slice: from the center, along the edge, back to the center.
+            ctx.beginPath();
+            ctx.moveTo(center, center);
+            ctx.arc(center, center, center, i * sliceAngle, (i + 1) * sliceAngle);
+            ctx.closePath();
+            ctx.fillStyle = COLORS[i % COLORS.length];
+            ctx.fill();
+            ctx.stroke();
+
+            // The text: turn the canvas to the middle of the slice and write
+            // it along the radius, ending near the edge.
+            ctx.save();
+            ctx.translate(center, center);
+            ctx.rotate(i * sliceAngle + sliceAngle / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "black";
+            ctx.font = "bold 16px Arial";
+            ctx.fillText(chore, center - 30, 5);
+            ctx.restore();
+        });
+
+        // The names are HTML elements around the wheel. Their positions are in
+        // percent, so they follow the wheel when it is shown smaller.
+        namesContainer.innerHTML = "";
+        people.forEach(function (person, i) {
+            const radians = personAngle(i) * Math.PI / 180;
+            const label = document.createElement("div");
+            label.className = "name-label";
+            label.style.left = (50 + Math.cos(radians) * 57) + "%";
+            label.style.top = (50 + Math.sin(radians) * 57) + "%";
+            label.textContent = person;
+            namesContainer.appendChild(label);
+        });
+    }
+
+    // A list of items, each with a remove button.
+    function showList(list, items, remove) {
+        list.innerHTML = "";
+        items.forEach(function (item, index) {
+            const li = document.createElement("li");
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "remove";
+            button.textContent = "X";
+            button.setAttribute("aria-label", "Remove " + item);
+            button.addEventListener("click", function () {
+                remove(index);
+            });
+            li.append(button, item);   // append() with text adds it as text, not HTML
+            list.appendChild(li);
+        });
+    }
+
+    function render() {
+        showList(choreList, chores, removeChore);
+        showList(peopleList, people, removePerson);
+        drawWheel();
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function addItem(event, input, items) {
+        event.preventDefault();   // don't let the form reload the page
+        const text = input.value.trim();
+        if (spinning || text === "") {
+            return;
+        }
+        items.push(text);
+        input.value = "";
+        resultText.textContent = "";
+        render();
+    }
+
+    function removeChore(index) {
+        if (!spinning) {
+            chores.splice(index, 1);
+            render();
+        }
+    }
+
+    function removePerson(index) {
+        if (!spinning) {
+            people.splice(index, 1);
+            render();
+        }
+    }
+
+    function spinWheel() {
+        if (spinning) {
+            return;
+        }
+        if (chores.length === 0 || people.length === 0) {
+            resultText.textContent = "Please add at least one chore and one person first!";
+            return;
+        }
+
+        spinning = true;
+        spinButton.disabled = true;
+        resultText.textContent = "";
+
+        // Spin from where the wheel is now, many turns plus a random angle.
+        // The CSS transition makes the turn smooth and slow down at the end.
+        const extra = Math.floor(Math.random() * 360);
+        wheel.style.transition = "transform " + SPIN_TIME + "ms ease-out";
+        wheel.style.transform = "rotate(" + (rotation + TURNS * 360 + extra) + "deg)";
+
+        setTimeout(function () {
+            // Jump back to the same angle without the extra turns, so the
+            // numbers don't keep growing. It looks exactly the same.
+            rotation = (rotation + extra) % 360;
+            wheel.style.transition = "none";
+            wheel.style.transform = "rotate(" + rotation + "deg)";
+
+            resultText.textContent = people.map(function (person, i) {
+                return person + ": " + choreAt(personAngle(i));
+            }).join("\n");
+
+            spinning = false;
+            spinButton.disabled = false;
+        }, SPIN_TIME);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    choreForm.addEventListener("submit", function (event) {
+        addItem(event, choreInput, chores);
+    });
+    personForm.addEventListener("submit", function (event) {
+        addItem(event, personInput, people);
+    });
+    spinButton.addEventListener("click", spinWheel);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Save the chores and people in <code>localStorage</code>, so the list is there next week.</li>
+    <li>Add a pointer at the top and pick one chore instead of one per person.</li>
+    <li>Make the slices for some chores bigger, so they come up more often.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

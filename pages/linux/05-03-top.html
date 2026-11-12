@@ -1,0 +1,45 @@
+---
+layout: default
+title: Top
+permalink: /linux/top/
+chapter: "05"
+chapter_title: "Processes"
+keywords: [linux, top, htop, processes, cpu, memory, monitoring]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Top</h1>
+  <p><code>top</code> shows a live, updating view of the running processes and how much CPU and memory they use. The top of the screen shows the uptime, load average and total memory usage.</p>
+  <h2>Start top</h2>
+  <pre><code class="language-bash">$ top</code></pre>
+  <h2>Keys</h2>
+  <ul>
+    <li><code>P</code> — sort by CPU usage</li>
+    <li><code>M</code> — sort by memory usage</li>
+    <li><code>k</code> — kill a process (asks for the PID)</li>
+    <li><code>u</code> — only show one user's processes</li>
+    <li><code>1</code> — show every CPU core</li>
+    <li><code>q</code> — quit</li>
+  </ul>
+  <h2>Options</h2>
+  <pre><code class="language-bash">$ top -u anders         # only processes from user anders
+$ top -n 1 -b | head    # print one snapshot, useful in scripts</code></pre>
+  <h2>Help</h2>
+  <p><code>top</code> has no <code>--help</code>. <code>-h</code> prints the version and a short usage line. While <code>top</code> is running, press <code>h</code> to see all keys.</p>
+  <pre><code class="language-bash">$ top -h</code></pre>
+  <h2>Version</h2>
+  <p><code>top</code> has no <code>--version</code>. <code>-v</code> shows the version, the same output as <code>-h</code>.</p>
+  <pre><code class="language-bash">$ top -v</code></pre>
+  <h2>More about top</h2>
+  <ul>
+    <li><code>htop</code> is a more colourful and easier to use version (<code>sudo apt install htop</code>)</li>
+    <li><code>btop</code> is another modern alternative with graphs</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/top.txt">man top</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, top, htop, processes, cpu, memory, monitoring</p>
+  {% include trail.html %}
+</div>

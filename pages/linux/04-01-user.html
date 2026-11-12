@@ -1,0 +1,28 @@
+---
+layout: default
+title: User
+permalink: /linux/user/
+chapter: "04"
+chapter_title: "Users"
+keywords: [linux, user, users, groups, permissions, root]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>User</h1>
+  <p>Linux is a multi user system. Every file and every running process belongs to a user and a group, and permissions decide who can read, write and run what. The user <code>root</code> is the administrator and can do anything; normal users borrow root's powers with <code>sudo</code> when they need to.</p>
+  <h2>Users and groups</h2>
+  <p>Users are listed in <code>/etc/passwd</code> and groups in <code>/etc/group</code>. A user can be a member of many groups, which is how access to things like Docker or serial ports is given.</p>
+  <pre><code class="language-bash">$ cat /etc/passwd
+$ groups</code></pre>
+  <h2>Add a user</h2>
+  <pre><code class="language-bash">$ sudo adduser anna
+$ sudo usermod -aG sudo anna    # give anna sudo rights</code></pre>
+  <h2>Permissions</h2>
+  <p><code>ls -l</code> shows the permissions of a file as three groups of <code>rwx</code>: for the owner, the group and everyone else.</p>
+  <pre><code class="language-bash">$ ls -l script.sh
+-rwxr-x--- 1 anders staff 120 Jan 1 12:00 script.sh</code></pre>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, user, users, groups, permissions, root</p>
+  {% include trail.html %}
+</div>

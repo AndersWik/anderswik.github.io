@@ -1,0 +1,20 @@
+---
+layout: game
+title: Quiz
+permalink: /games/quiz/
+nonav: true
+css:
+  - /assets/quiz/quiz.css
+js:
+  - /assets/quiz/quiz.js
+---
+<div class="container">
+  <h1>Quiz!</h1>
+  <p class="info">Score: <span id="score">0</span></p>
+  <p id="progress"></p>
+  <p id="question"></p>
+  <div id="answers"></div>
+  <p id="result" aria-live="polite"></p>
+  <button type="button" id="restart" hidden>Play again</button>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/quiz/">How to build this game</a></p>

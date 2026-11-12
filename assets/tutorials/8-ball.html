@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Magic 8 ball</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    .ball {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #555555, #000000 60%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ball span {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: white;
+        font-size: 48px;
+        font-weight: bold;
+        line-height: 80px;
+    }
+
+    .shake-ball {
+        animation: shake 0.5s infinite;
+    }
+
+    @keyframes shake {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        25% { transform: translate(-4px, 2px) rotate(-3deg); }
+        50% { transform: translate(4px, -2px) rotate(3deg); }
+        75% { transform: translate(-2px, -2px) rotate(-2deg); }
+        100% { transform: translate(0, 0) rotate(0deg); }
+    }
+
+    input,
+    button {
+        padding: 10px;
+        font-size: 18px;
+    }
+
+    #result {
+        min-height: 1.5em;
+        font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Magic 8 ball</h1>
+
+  <div class="ball" id="eightball"><span>8</span></div>
+
+  <form id="ask-form" autocomplete="off">
+    <input type="text" id="question" placeholder="Ask your question..." aria-label="Your question">
+    <button type="submit">Shake the ball</button>
+  </form>
+
+  <p id="result" aria-live="polite"></p>
+
+  <script>
+    /*
+     * Magic 8 ball: ask a question, shake the ball, get a random answer.
+     *
+     * The question is not used for anything; the answer is picked at random.
+     * The shaking is a CSS animation that we turn on by adding a class.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const ball = document.getElementById("eightball");
+    const form = document.getElementById("ask-form");
+    const questionInput = document.getElementById("question");
+    const resultText = document.getElementById("result");
+
+    // --- Data ----------------------------------------------------------------
+
+    const ANSWERS = [
+        "Yes, definitely.",
+        "It is certain.",
+        "Most likely.",
+        "Ask again later.",
+        "Cannot predict right now.",
+        "Don’t count on it.",
+        "Very doubtful.",
+        "No way.",
+        "Probably not.",
+        "Maybe."
+    ];
+
+    const SHAKE_TIME = 500; // milliseconds, the same as the animation in the CSS
+
+    // --- Helpers -------------------------------------------------------------
+
+    // Math.random() gives a number from 0 up to (not including) 1.
+    // Times the length, rounded down, gives an index from 0 to length - 1.
+    function randomItem(list) {
+        return list[Math.floor(Math.random() * list.length)];
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function shake(event) {
+        // The form would reload the page; we handle it here instead.
+        event.preventDefault();
+
+        if (questionInput.value.trim() === "") {
+            resultText.textContent = "Please ask a question first!";
+            return;
+        }
+
+        // Already shaking? Then wait for that answer.
+        if (ball.classList.contains("shake-ball")) {
+            return;
+        }
+
+        resultText.textContent = "";
+        ball.classList.add("shake-ball");
+
+        setTimeout(function () {
+            ball.classList.remove("shake-ball");
+            resultText.textContent = randomItem(ANSWERS);
+        }, SHAKE_TIME);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // A form lets the user press Enter as well as click the button.
+    form.addEventListener("submit", shake);
+  </script>
+</body>
+</html>

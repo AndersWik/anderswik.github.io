@@ -1,0 +1,46 @@
+---
+layout: default
+title: Commit
+permalink: /git/commit/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [git, commit, status, add, stage, staging area, restore, diff]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Commit</h1>
+  <p>Saving changes in Git is done in two steps. First you choose which changes to include with <code>git add</code>, this is called staging. Then you save them with <code>git commit</code>.</p>
+  <h2>See what has changed</h2>
+  <p><code>status</code> shows changed files, staged files and new files Git does not track yet. <code>diff</code> shows the changes line by line.</p>
+  <pre><code class="language-bash">$ git status
+$ git diff
+$ git diff --staged</code></pre>
+  <h2>Stage changes</h2>
+  <pre><code class="language-bash">$ git add notes.txt
+$ git add dir/
+$ git add -A</code></pre>
+  <p><code>-A</code> stages all changes, including new and deleted files.</p>
+  <h2>Unstage a file</h2>
+  <p>Undo a <code>git add</code>. The changes in the file are kept.</p>
+  <pre><code class="language-bash">$ git restore --staged notes.txt</code></pre>
+  <p>Older guides use <code>git reset notes.txt</code>, which does the same.</p>
+  <h2>Commit</h2>
+  <pre><code class="language-bash">$ git commit -m "Add notes about Git"</code></pre>
+  <p><code>-a</code> stages all changed files before committing, so you can skip <code>git add</code>. It does not include new files.</p>
+  <pre><code class="language-bash">$ git commit -am "Fix typo in notes"</code></pre>
+  <p>Without <code>-m</code>, Git opens an editor for the message.</p>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git commit</code>. <code>--help</code> opens the full manual page, the same as <code>git help commit</code>.</p>
+  <pre><code class="language-bash">$ git commit -h
+$ git commit --help</code></pre>
+  <h2>More about commit</h2>
+  <ul>
+    <li>Write the message as a short summary of what the commit does, for example <em>Add login page</em></li>
+    <li>Change the last commit with <a href="/git/amend/">amend</a></li>
+    <li>See earlier commits with <a href="/git/log/">git log</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

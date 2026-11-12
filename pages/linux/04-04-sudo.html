@@ -1,0 +1,44 @@
+---
+layout: default
+title: Sudo
+permalink: /linux/sudo/
+chapter: "04"
+chapter_title: "Users"
+keywords: [linux, sudo, root, administrator, permissions]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Sudo</h1>
+  <p><code>sudo</code> runs a command as another user, by default as root. It asks for your own password and lets administrators work as a normal user and only use root's powers when needed. Who may use sudo is set in <code>/etc/sudoers</code>.</p>
+  <h2>Run a command as root</h2>
+  <pre><code class="language-bash">$ sudo apt update
+$ sudo nano /etc/hosts</code></pre>
+  <h2>Repeat the last command with sudo</h2>
+  <pre><code class="language-bash">$ sudo !!</code></pre>
+  <h2>Open a root shell</h2>
+  <p><code>-i</code> starts a login shell as root. Type <code>exit</code> to go back.</p>
+  <pre><code class="language-bash">$ sudo -i</code></pre>
+  <h2>Run as another user</h2>
+  <pre><code class="language-bash">$ sudo -u www-data ls /var/www</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>sudo</code> and all its options.</p>
+  <pre><code class="language-bash">$ sudo --help
+$ sudo -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>sudo</code> is installed. <code>-v</code> does not show the version, it refreshes your cached password so you are not asked again for a while.</p>
+  <pre><code class="language-bash">$ sudo --version
+$ sudo -V</code></pre>
+  <h2>More about sudo</h2>
+  <ul>
+    <li><code>sudo -l</code> lists what you are allowed to run</li>
+    <li>Always edit the sudoers file with <code>sudo visudo</code>, which checks the syntax before saving</li>
+    <li>Members of the <code>sudo</code> group (<code>admin</code> on older Ubuntu, <code>wheel</code> on Fedora) may use sudo</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/sudo.txt">man sudo</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, sudo, root, administrator, permissions</p>
+  {% include trail.html %}
+</div>

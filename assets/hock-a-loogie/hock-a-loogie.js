@@ -1,0 +1,554 @@
+/*
+ * Hock-A-Loogie: you stand in front of the school and spit at whatever
+ * passes by: cars on the roof, a bike, paper planes, the principal and a
+ * squirrel. Reach the score for each level before the time runs out.
+ *
+ *   mouse        move left and right
+ *   hold button  aim: the arrow on the left climbs and falls
+ *   let go       spit as high as the arrow
+ *   Shift        hold it when you let go to spit a green loogie (2x points)
+ *   P / Esc      pause / menu
+ */
+
+// --- Settings ------------------------------------------------------------
+
+// Where the pictures are. On a page of your own: "images/".
+const IMAGE_FOLDER = "/assets/hock-a-loogie/images/";
+
+const STEP = 1000 / 60;           // one update step, in milliseconds
+const GAME_TIME = 120;            // seconds
+const GOALS = [20, 72, 167, 307, 514]; // the score to reach on each level
+const SPAWN_TIME = 2000;          // ms between chances for something new
+const MAX_LOOGIES = 3;
+
+const ARROW_TOP = 10;             // how high you can spit
+const ARROW_BOTTOM = 550;
+const ARROW_SPEED = 4;
+const SPIT_SPEED = 6;
+const PLAYER_WIDTH = 310;
+const PLAYER_HEIGHT = 278;
+
+// What there is to hit: points, size, a color to draw if the pictures are
+// missing, and the pictures when it moves and when it is hit.
+const KINDS = {
+    car:       { points: 10, width: 160, height: 60, color: "orange",
+                 frames: ["car-1.png", "car-2.png"], hit: ["car-3.png"] },
+    bike:      { points: 5, width: 120, height: 90, color: "green",
+                 frames: ["bike-1.png", "bike-2.png"], hit: ["bike-3.png"] },
+    plane:     { points: 10, width: 60, height: 50, color: "white",
+                 frames: ["plain.png"], hit: ["plain-left.png"] },
+    principal: { points: 1, width: 60, height: 100, color: "brown",
+                 frames: ["mr-walk-1.png", "mr-walk-2.png"], hit: ["mr-hit-1.png", "mr-hit-2.png"] },
+    squirrel:  { points: 15, width: 40, height: 40, color: "sienna",
+                 frames: ["squirrel-left-jump-01.png"], hit: ["squirrel-hit-01.png", "squirrel-hit-02.png"] }
+};
+
+const PRINCIPAL_LOOK = ["mr-look-1.png", "mr-look-2.png"];
+const SQUIRREL_JUMP_ON = ["squirrel-left-jump-02.png"];
+const SQUIRREL_MOVES = [
+    { dx: 1.5, frames: ["squirrel-walk-01.png", "squirrel-walk-02.png", "squirrel-walk-03.png"] },
+    { dx: 2.5, frames: ["squirrel-jump-01.png", "squirrel-jump-02.png", "squirrel-jump-03.png"] },
+    { dx: 0, frames: ["squirrel-stop-01.png", "squirrel-stop-02.png", "squirrel-stop-03.png"] }
+];
+const FLAGS = ["background-flag-1.png", "background-flag-2.png", "background-flag-3.png"];
+const PLAYER = { stand: "player1-1.png", aim: "player1-2.png", spit: "player1-3.png" };
+
+// --- Canvas --------------------------------------------------------------
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+
+// --- Pictures ------------------------------------------------------------
+
+const images = {};
+
+function loadImage(name) {
+    if (!images[name]) {
+        images[name] = new Image();
+        images[name].src = IMAGE_FOLDER + name;
+    }
+    return images[name];
+}
+
+function isLoaded(image) {
+    return image.complete && image.naturalWidth > 0;
+}
+
+// Draw a picture, or a plain box if it hasn't loaded (yet).
+function drawImage(name, x, y, width, height, fallbackColor) {
+    const image = loadImage(name);
+    if (isLoaded(image)) {
+        ctx.drawImage(image, x, y, width, height);
+    } else if (fallbackColor) {
+        ctx.fillStyle = fallbackColor;
+        ctx.fillRect(x, y, width, height);
+    }
+}
+
+// Load everything at the start, so nothing pops in late during the game.
+function loadAllImages() {
+    ["background.png", "arrow.png", "loogie.png", "plain-right.png"].forEach(loadImage);
+    FLAGS.concat(Object.values(PLAYER), PRINCIPAL_LOOK, SQUIRREL_JUMP_ON).forEach(loadImage);
+    SQUIRREL_MOVES.forEach(function (move) {
+        move.frames.forEach(loadImage);
+    });
+    Object.values(KINDS).forEach(function (kind) {
+        kind.frames.concat(kind.hit).forEach(loadImage);
+    });
+}
+
+// --- State ---------------------------------------------------------------
+
+let screen = "menu";   // menu, controls, playing, paused, levelDone, won, gameOver
+let menuIndex = 0;
+let gameStarted = false;
+
+let level = 0;
+let score = 0;
+let timeLeft = GAME_TIME;   // seconds
+let bonus = 0;              // seconds won at the end of a level
+let spawnTimer = SPAWN_TIME;
+let steps = 0;              // update steps so far, for animations
+
+let targets = [];      // things to spit at
+let spits = [];        // spit on its way up
+let loogies = 0;       // green loogies you have
+
+let playerX = WIDTH / 2;
+let aiming = false;
+let arrowY = ARROW_BOTTOM;
+let arrowDirection = -1;    // -1 = up, 1 = down
+let spitPictureTime = 0;    // steps left to show the spitting picture
+
+const MENU_ITEMS = ["Start", "Controls"];
+
+// --- Starting ------------------------------------------------------------
+
+function newGame() {
+    level = 0;
+    score = 0;
+    timeLeft = GAME_TIME;
+    spawnTimer = SPAWN_TIME;
+    targets = [];
+    spits = [];
+    loogies = 0;
+    aiming = false;
+    gameStarted = true;
+    screen = "playing";
+}
+
+// --- Targets -------------------------------------------------------------
+
+function count(kind) {
+    return targets.filter(function (t) {
+        return t.kind === kind;
+    }).length;
+}
+
+function addTarget(kind, x, y, dx, dy) {
+    targets.push({
+        kind: kind,
+        x: x,
+        y: y,
+        dx: dx,
+        dy: dy,
+        age: 0,                     // steps since it showed up
+        hitTime: 0,                 // steps left of being hit
+        lookTime: 0,                // steps left of looking around
+        frames: KINDS[kind].frames, // the pictures it shows now
+        hitFrames: KINDS[kind].hit  // the pictures when it is hit
+    });
+}
+
+// Every two seconds there is a chance that something new shows up. There
+// is never more than one of each.
+function spawn() {
+    const roll = Math.random();
+    if (roll < 0.1 && count("principal") === 0) {
+        addTarget("principal", -80, HEIGHT - 340, 0.5, 0);
+    } else if (roll < 0.2 && count("bike") === 0) {
+        addTarget("bike", WIDTH + 50, HEIGHT / 3, -0.5, 0);
+    } else if (roll < 0.3 && count("plane") === 0) {
+        const fromLeft = Math.random() < 0.5;
+        addTarget("plane", fromLeft ? 120 : WIDTH - 160, HEIGHT - 160, 0, -0.5);
+    } else if (roll < 0.4 && count("squirrel") === 0) {
+        addTarget("squirrel", 260, 60, 0, 0);
+    } else if (roll < 0.45 && count("car") === 0) {
+        addTarget("car", WIDTH + 50, 0, -1, 0);
+    } else if (roll < 0.5 && loogies < MAX_LOOGIES) {
+        loogies++;
+    }
+}
+
+// The squirrel peeks out for a second, runs along the planter on the
+// roof, and jumps off at the other end.
+function moveSquirrel(t) {
+    if (t.age < 60) {
+        return;                      // peeking
+    }
+    if (t.x < 330) {
+        t.frames = SQUIRREL_JUMP_ON; // jumping onto the planter
+        t.x += 2;
+        t.y = 70;
+    } else if (t.hitTime === 0) {
+        // Every second: walk, jump or stop, at random.
+        if (t.age % 60 === 0 || t.frames === SQUIRREL_JUMP_ON) {
+            const move = SQUIRREL_MOVES[Math.floor(Math.random() * SQUIRREL_MOVES.length)];
+            t.dx = move.dx;
+            t.frames = move.frames;
+        }
+        t.x += t.dx;
+    }
+}
+
+function moveTarget(t) {
+    t.age++;
+    if (t.hitTime > 0) {
+        t.hitTime--;
+    }
+
+    if (t.kind === "squirrel") {
+        moveSquirrel(t);
+    } else if (t.kind === "principal") {
+        // He stops now and then to look around. When he is hit, he stops too.
+        if (t.lookTime > 0) {
+            t.lookTime--;
+            t.frames = t.lookTime > 0 ? PRINCIPAL_LOOK : KINDS.principal.frames;
+        } else if (Math.random() < 0.005) {
+            t.lookTime = 60;
+        } else if (t.hitTime === 0) {
+            t.x += t.dx;
+        }
+    } else {
+        t.x += t.dx;
+        t.y += t.dy;
+    }
+}
+
+function isGone(t) {
+    return t.x < -200 || t.x > WIDTH + 100 || t.y < -100 ||
+        (t.kind === "squirrel" && t.x > 470);
+}
+
+// --- Spitting ------------------------------------------------------------
+
+function startAiming() {
+    aiming = true;
+    arrowY = ARROW_BOTTOM;
+    arrowDirection = -1;
+}
+
+function spit(isLoogie) {
+    aiming = false;
+    if (isLoogie) {
+        loogies--;
+    }
+    spits.push({ x: playerX, y: HEIGHT - 100, targetY: arrowY, isLoogie: isLoogie });
+    spitPictureTime = 10;
+}
+
+// The spit has landed at (x, y). Did it hit something?
+function land(x, y, isLoogie) {
+    // The last target is drawn on top, so look at it first.
+    for (let i = targets.length - 1; i >= 0; i--) {
+        const t = targets[i];
+        const kind = KINDS[t.kind];
+        const inside = x > t.x && x < t.x + kind.width && y > t.y && y < t.y + kind.height;
+        const peeking = t.kind === "squirrel" && t.age < 60;
+        if (inside && t.hitTime === 0 && !peeking) {
+            score += isLoogie ? kind.points * 2 : kind.points;
+            t.hitTime = 60;
+            if (t.kind === "plane") {
+                // A plane that is hit flies away to one side, and can't be
+                // hit again: Infinity - 1 is still Infinity.
+                t.dx = Math.random() < 0.5 ? -1.5 : 1.5;
+                t.dy = -1.5;
+                t.hitTime = Infinity;
+                t.hitFrames = [t.dx < 0 ? "plain-left.png" : "plain-right.png"];
+            }
+            return;
+        }
+    }
+}
+
+// --- Update --------------------------------------------------------------
+
+// One step of the game: about 1/60 of a second.
+function update() {
+    steps++;
+    timeLeft -= STEP / 1000;
+
+    spawnTimer -= STEP;
+    if (spawnTimer <= 0) {
+        spawn();
+        spawnTimer = SPAWN_TIME;
+    }
+
+    // While the button is held, the arrow climbs to the top and falls back.
+    if (aiming) {
+        arrowY += arrowDirection * ARROW_SPEED;
+        if (arrowY <= ARROW_TOP) {
+            arrowDirection = 1;
+        } else if (arrowY >= ARROW_BOTTOM) {
+            arrowDirection = -1;
+        }
+    }
+    if (spitPictureTime > 0) {
+        spitPictureTime--;
+    }
+
+    targets.forEach(moveTarget);
+    targets = targets.filter(function (t) {
+        return !isGone(t);
+    });
+
+    // Spit flies up, and can only hit something where it lands.
+    spits = spits.filter(function (s) {
+        s.y -= SPIT_SPEED;
+        if (s.y <= s.targetY) {
+            land(s.x, s.targetY, s.isLoogie);
+            return false;
+        }
+        return true;
+    });
+
+    if (score >= GOALS[level]) {
+        if (level === GOALS.length - 1) {
+            screen = "won";
+        } else {
+            bonus = Math.ceil(timeLeft);
+            aiming = false;
+            screen = "levelDone";
+        }
+    } else if (timeLeft <= 0) {
+        timeLeft = 0;
+        screen = "gameOver";
+    }
+}
+
+function nextLevel() {
+    level++;
+    timeLeft += bonus;   // the time you had left counts twice
+    screen = "playing";
+}
+
+// --- Drawing -------------------------------------------------------------
+
+function drawText(text, x, y, size, color, align) {
+    ctx.fillStyle = color || "white";
+    ctx.font = size + "px Arial";
+    ctx.textAlign = align || "center";
+    ctx.fillText(text, x, y);
+}
+
+// The picture for a target right now. Animations change picture every 20
+// steps (a third of a second).
+function pictureOf(t) {
+    const frames = t.hitTime > 0 ? t.hitFrames : t.frames;
+    return frames[Math.floor(t.age / 20) % frames.length];
+}
+
+function drawTarget(t) {
+    const kind = KINDS[t.kind];
+    drawImage(pictureOf(t), t.x, t.y, kind.width, kind.height, kind.color);
+}
+
+function drawWorld() {
+    drawImage("background.png", 0, 0, WIDTH, HEIGHT, "#4f5b69");
+
+    // Cars drive on the roof, behind the flag. The rest is in front.
+    targets.filter(function (t) { return t.kind === "car"; }).forEach(drawTarget);
+    drawImage(FLAGS[Math.floor(steps / 20) % FLAGS.length], 0, 0, WIDTH, HEIGHT);
+    targets.filter(function (t) { return t.kind !== "car"; }).forEach(drawTarget);
+
+    spits.forEach(function (s) {
+        ctx.fillStyle = s.isLoogie ? "green" : "#f0f8ff";
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // The player: standing, aiming, or spitting.
+    let picture = PLAYER.stand;
+    if (spitPictureTime > 0) {
+        picture = PLAYER.spit;
+    } else if (aiming) {
+        picture = PLAYER.aim;
+    }
+    drawImage(picture, playerX - PLAYER_WIDTH / 2, HEIGHT - PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
+}
+
+function drawHud() {
+    drawText("Score: " + score + " / " + GOALS[level], 20, 30, 20, "white", "left");
+    drawText("Level " + (level + 1), WIDTH / 2, 30, 20);
+    drawText("Time: " + Math.ceil(timeLeft), WIDTH - 20, 30, 20, "white", "right");
+
+    drawImage("arrow.png", 10, arrowY - 20, 16, 40, "darkred");
+
+    for (let i = 0; i < loogies; i++) {
+        drawImage("loogie.png", 10 + i * 35, HEIGHT - 40, 30, 30, "green");
+    }
+}
+
+function drawMessage(title, lines) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    drawText(title, WIDTH / 2, HEIGHT / 2 - 60, 40, "yellow");
+    lines.forEach(function (line, index) {
+        drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+    });
+}
+
+function drawMenu() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    drawText("Hock-A-Loogie", WIDTH / 2, HEIGHT / 2 - 50, 60, "yellow");
+    MENU_ITEMS.forEach(function (item, index) {
+        const color = index === menuIndex ? "yellow" : "white";
+        drawText(item, WIDTH / 2, HEIGHT / 2 + 20 + index * 50, 24, color);
+    });
+    drawText("Arrow keys and Enter to choose", WIDTH / 2, HEIGHT - 60, 16);
+    if (gameStarted) {
+        drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 35, 16);
+    }
+}
+
+function drawControls() {
+    drawMessage("Controls", [
+        "Move: the mouse",
+        "Aim: hold the mouse button, the arrow goes up and down",
+        "Spit: let go of the mouse button",
+        "Green loogie (2x points): hold Shift when you let go",
+        "Pause: P      Menu: Esc",
+        "",
+        "Esc: back"
+    ]);
+}
+
+function draw() {
+    drawWorld();
+
+    if (screen === "menu") {
+        drawMenu();
+    } else if (screen === "controls") {
+        drawControls();
+    } else if (screen === "playing") {
+        drawHud();
+    } else if (screen === "paused") {
+        drawMessage("Pause", ["Press P to go on"]);
+    } else if (screen === "levelDone") {
+        drawMessage("Level " + (level + 1) + " done!", [
+            "Time bonus: " + bonus + " seconds",
+            "Next goal: " + GOALS[level + 1] + " points",
+            "Press Enter to go on"
+        ]);
+    } else if (screen === "won") {
+        drawMessage("You win!", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+    } else if (screen === "gameOver") {
+        drawMessage("Time's up!", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+    }
+}
+
+// --- The loop ------------------------------------------------------------
+
+// Run one update per 1/60 second, so the game has the same speed on
+// every screen, then draw.
+let lastTime = performance.now();
+let leftover = 0;
+
+function gameLoop(now) {
+    leftover += Math.min(now - lastTime, 250);
+    lastTime = now;
+
+    while (leftover >= STEP) {
+        if (screen === "playing") {
+            update();
+        }
+        leftover -= STEP;
+    }
+
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+// --- Mouse and keyboard --------------------------------------------------
+
+// The canvas can be shown smaller than 800x600 on a small screen. Convert
+// from position on the screen to position in the canvas.
+function canvasX(event) {
+    const box = canvas.getBoundingClientRect();
+    return (event.clientX - box.left) * (WIDTH / box.width);
+}
+
+canvas.addEventListener("mousemove", function (event) {
+    playerX = canvasX(event);
+});
+
+canvas.addEventListener("mousedown", function (event) {
+    if (screen === "playing" && event.button === 0) {
+        event.preventDefault();   // don't start selecting text
+        startAiming();
+    }
+});
+
+// On the whole window, so letting go outside the canvas still spits.
+window.addEventListener("mouseup", function (event) {
+    if (aiming && screen === "playing") {
+        spit(event.shiftKey && loogies > 0);
+    }
+    aiming = false;
+});
+
+document.addEventListener("keydown", function (event) {
+    const key = event.key;
+
+    if (screen === "menu") {
+        if (key === "ArrowUp") {
+            menuIndex = (menuIndex + MENU_ITEMS.length - 1) % MENU_ITEMS.length;
+        } else if (key === "ArrowDown") {
+            menuIndex = (menuIndex + 1) % MENU_ITEMS.length;
+        } else if (key === "Enter") {
+            if (MENU_ITEMS[menuIndex] === "Start") {
+                newGame();
+            } else {
+                screen = "controls";
+            }
+        } else if (key === "Escape" && gameStarted) {
+            screen = "paused";
+        }
+    } else if (screen === "controls") {
+        if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "playing") {
+        if (key === "p" || key === "P") {
+            screen = "paused";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "paused") {
+        if (key === "p" || key === "P") {
+            screen = "playing";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "levelDone") {
+        if (key === "Enter") {
+            nextLevel();
+        }
+    } else if (screen === "won" || screen === "gameOver") {
+        if (key === "Enter") {
+            newGame();
+        } else if (key === "Escape") {
+            gameStarted = false;
+            screen = "menu";
+        }
+    }
+});
+
+// --- Start ---------------------------------------------------------------
+
+loadAllImages();
+requestAnimationFrame(gameLoop);

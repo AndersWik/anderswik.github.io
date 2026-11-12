@@ -1,0 +1,46 @@
+---
+layout: default
+title: Images
+permalink: /markdown/images/
+chapter: "04"
+chapter_title: "Links and media"
+keywords: [markdown, images, image, img, picture, alt text, size, width, clickable]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Images</h1>
+  <p>Images are written like <a href="/markdown/links/">links</a> with a <code>!</code> in front. The text in the square brackets is the alt text, shown if the image cannot be loaded and read by screen readers.</p>
+  <h2>Image</h2>
+  <pre><code class="language-markdown">![A penguin](images/penguin.png)
+![Logo](https://example.com/logo.png)</code></pre>
+  <h2>Image with a title</h2>
+  <pre><code class="language-markdown">![A penguin](images/penguin.png "Tux the penguin")</code></pre>
+  <h2>Reference image</h2>
+  <pre><code class="language-markdown">![A penguin][tux]
+
+[tux]: images/penguin.png "Tux the penguin"</code></pre>
+  <h2>Clickable image</h2>
+  <p>Put the image inside the square brackets of a link.</p>
+  <pre><code class="language-markdown">[![A penguin](images/penguin.png)](https://kernel.org)</code></pre>
+  <h2>Size</h2>
+  <p>Markdown cannot set the size of an image. Use <a href="/markdown/inline-html/">HTML</a>, or attributes in kramdown and Pandoc.</p>
+  <pre><code class="language-markdown">&lt;img src="images/penguin.png" alt="A penguin" width="200"&gt;
+
+![A penguin](images/penguin.png){: width="200"}     kramdown
+![A penguin](images/penguin.png){width=200px}       Pandoc</code></pre>
+  <h2>Center an image</h2>
+  <pre><code class="language-markdown">&lt;p align="center"&gt;
+  &lt;img src="images/penguin.png" alt="A penguin" width="200"&gt;
+&lt;/p&gt;</code></pre>
+  <h2>More about images</h2>
+  <ul>
+    <li>Always write a short alt text that says what the image shows</li>
+    <li>On GitHub you can paste or drag an image into an issue or comment and the link is added for you</li>
+    <li>Badges in README files are just images inside links</li>
+    <li>Videos cannot be embedded with Markdown, see <a href="/markdown/youtube-videos/">YouTube videos</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

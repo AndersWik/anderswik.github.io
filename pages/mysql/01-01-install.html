@@ -1,0 +1,42 @@
+---
+layout: default
+title: Install
+permalink: /mysql/install/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [mysql, sql, install, mysql_secure_installation, restart, log on, root]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Install</h1>
+  <p>MySQL is a database server. The server runs as a service. Connect with the <code>mysql</code> client. Query by writing SQL. These notes show the most common commands, from creating a database to <a href="/mysql/import/">importing</a> and <a href="/mysql/export/">exporting</a> it.</p>
+  <h2>Installation</h2>
+  <pre><code class="language-bash">$ sudo apt install mysql-server</code></pre>
+  <h2>Mysql secure installation</h2>
+  <p><code>mysql_secure_installation</code> asks a few questions to make the server safer, such as removing anonymous users and the test database. The answers can be given in advance. This example is for a <a href="/vagrant/vagrantfile/">Vagrant</a> machine.</p>
+  <pre><code class="language-bash">$ sudo mysql_secure_installation &lt;&lt;EOF
+
+n
+n
+Y
+Y
+Y
+Y
+EOF</code></pre>
+  <h2>Restart</h2>
+  <pre><code class="language-bash">$ sudo service mysql restart</code></pre>
+  <h2>Log on</h2>
+  <p><code>-u</code> gives the user and <code>-p</code> asks for the password. When you are logged on the prompt changes to <code>mysql&gt;</code>.</p>
+  <pre><code class="language-bash">$ mysql -u root -p</code></pre>
+  <p>Leave the client with <code>exit</code>.</p>
+  <pre><code class="language-sql">mysql&gt; exit</code></pre>
+  <h2>More about MySQL</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/">MySQL documentation</a></li>
+    <li><a href="/linux/mysql/">Mysql</a> in the Linux notes — start, stop and status of the service</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

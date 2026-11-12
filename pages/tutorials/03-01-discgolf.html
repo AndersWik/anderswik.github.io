@@ -1,0 +1,1175 @@
+---
+layout: default
+title: Disc golf score card
+permalink: /tutorials/discgolf/
+chapter: "03"
+chapter_title: "Scorecards"
+keywords: [javascript, state, render, localStorage, json, form, preventDefault, table, createElement, keyboard, views]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Disc golf score card</h1>
+  <p>A score card for a round of disc golf, made for a phone. Add players, choose the number of holes, and enter scores one player and one hole at a time. You can look at the whole card as a table. Nothing is lost if you close the browser in the middle of a round.</p>
+  <p>This is the biggest app so far, but it is built from one simple idea, which keeps it under control.</p>
+  <p><a href="/assets/tutorials/discgolf.html">Open the finished page</a></p>
+  <h2>The idea: one state object, one render function</h2>
+  <p>Everything the app knows is in one object:</p>
+  <pre><code class="language-javascript">function newState() {
+    return {
+        view: "setup",  // "setup", "play" or "card"
+        players: [],    // ["Anna", "Bo"]
+        holes: 0,       // number of holes on the course
+        par: [],        // par[hole]
+        scores: [],     // scores[player][hole], null until entered
+        hole: 0,        // the hole shown in the play view
+        player: 0       // the player shown in the play view
+    };
+}</code></pre>
+  <p>And every button follows the same pattern:</p>
+  <ol>
+    <li>Change the state.</li>
+    <li>Call <code>changed()</code>, which saves the state and draws the page again from it.</li>
+  </ol>
+  <pre><code class="language-javascript">function changed() {
+    saveState();
+    render();
+}</code></pre>
+  <p>The buttons never change the page directly. Only <code>render()</code> does that. So the page always shows what is in the state, and to find a bug you only have to ask: is the state wrong, or is the drawing wrong?</p>
+  <p>The state uses index numbers. <code>scores[1][0]</code> is the second player's score on the first hole. <code>null</code> means "not entered yet", which is different from any real score.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>discgolf.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The HTML has three <code>&lt;section&gt;</code>s, one per view, and only one of them is shown at a time. The two that aren't shown have the <code>hidden</code> attribute.</p>
+  <pre><code class="language-html">&lt;h1&gt;Disc Golf Score Card&lt;/h1&gt;
+
+&lt;!-- Setup --&gt;
+&lt;section id="setup"&gt;
+  &lt;h2&gt;Players&lt;/h2&gt;
+  &lt;form id="player-form" class="dg-row"&gt;
+    &lt;input type="text" id="player-name" placeholder="Player name" maxlength="20" autocomplete="off" /&gt;
+    &lt;button type="submit" class="dg-btn"&gt;Add&lt;/button&gt;
+  &lt;/form&gt;
+  &lt;ul id="player-list"&gt;&lt;/ul&gt;
+  &lt;p id="no-players" class="dg-muted"&gt;No players added yet.&lt;/p&gt;
+
+  &lt;h2&gt;Course size&lt;/h2&gt;
+  &lt;div class="dg-options"&gt;
+    &lt;label&gt;&lt;input type="radio" name="course-size" value="9" checked /&gt; 9 holes&lt;/label&gt;
+    &lt;label&gt;&lt;input type="radio" name="course-size" value="18" /&gt; 18 holes&lt;/label&gt;
+    &lt;label&gt;&lt;input type="radio" name="course-size" value="custom" /&gt; Custom&lt;/label&gt;
+  &lt;/div&gt;
+  &lt;input type="number" id="custom-holes" min="1" max="99" value="12" hidden /&gt;
+
+  &lt;label class="dg-par-default"&gt;
+    Default par
+    &lt;input type="number" id="default-par" min="2" max="9" value="3" /&gt;
+  &lt;/label&gt;
+
+  &lt;button id="start-round" class="dg-btn dg-btn-primary" disabled&gt;Start round&lt;/button&gt;
+&lt;/section&gt;
+
+&lt;!-- Scoring --&gt;
+&lt;section id="play" hidden&gt;
+  &lt;div class="dg-hole-nav"&gt;
+    &lt;button id="prev-hole" class="dg-icon-btn" aria-label="Previous hole"&gt;&amp;laquo;&lt;/button&gt;
+    &lt;div&gt;
+      &lt;div class="dg-hole-title"&gt;Hole &lt;span id="hole-number"&gt;1&lt;/span&gt; / &lt;span id="hole-count"&gt;9&lt;/span&gt;&lt;/div&gt;
+      &lt;div class="dg-par"&gt;
+        Par
+        &lt;button id="par-minus" class="dg-small-btn" aria-label="Decrease par"&gt;&amp;minus;&lt;/button&gt;
+        &lt;span id="par-value"&gt;3&lt;/span&gt;
+        &lt;button id="par-plus" class="dg-small-btn" aria-label="Increase par"&gt;+&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;button id="next-hole" class="dg-icon-btn" aria-label="Next hole"&gt;&amp;raquo;&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;div class="dg-player-card"&gt;
+    &lt;div class="dg-player-nav"&gt;
+      &lt;button id="prev-player" class="dg-arrow" aria-label="Previous player"&gt;&amp;larr;&lt;/button&gt;
+      &lt;div id="player-current" class="dg-player-name"&gt;&lt;/div&gt;
+      &lt;button id="next-player" class="dg-arrow" aria-label="Next player"&gt;&amp;rarr;&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div class="dg-score"&gt;
+      &lt;button id="score-minus" class="dg-score-btn" aria-label="Decrease score"&gt;&amp;minus;&lt;/button&gt;
+      &lt;div&gt;
+        &lt;div id="score-value" class="dg-score-value"&gt;3&lt;/div&gt;
+        &lt;div id="score-label" class="dg-score-label"&gt;Par&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;button id="score-plus" class="dg-score-btn" aria-label="Increase score"&gt;+&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div id="player-total" class="dg-muted"&gt;&lt;/div&gt;
+    &lt;div id="player-dots" class="dg-dots"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class="dg-actions"&gt;
+    &lt;button id="show-card" class="dg-btn"&gt;Score card&lt;/button&gt;
+    &lt;button id="new-round" class="dg-btn dg-btn-danger"&gt;New round&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- Score card --&gt;
+&lt;section id="card" hidden&gt;
+  &lt;div class="dg-table-wrap"&gt;
+    &lt;table id="scorecard"&gt;&lt;/table&gt;
+  &lt;/div&gt;
+  &lt;div class="dg-actions"&gt;
+    &lt;button id="back-to-play" class="dg-btn dg-btn-primary"&gt;Back to scoring&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+  <h2>Step 2: The CSS</h2>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+h1 {
+    color: #2e9e5b;
+    text-align: center;
+}
+
+button {
+    padding: 8px 16px;
+    font-size: 18px;
+}
+
+button:disabled {
+    opacity: 0.35;
+}
+
+.dg-muted {
+    color: #777777;
+}
+
+/* Setup */
+
+#player-form {
+    display: flex;
+    gap: 8px;
+}
+
+#player-form input {
+    flex: 1;
+    padding: 8px;
+    font-size: 18px;
+}
+
+#player-list li {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+}
+
+.dg-small-btn {
+    padding: 0 10px;
+}
+
+.dg-options label,
+.dg-par-default {
+    display: block;
+    margin: 8px 0;
+}
+
+#start-round {
+    margin-top: 16px;
+}
+
+/* Play */
+
+#play,
+#card {
+    text-align: center;
+}
+
+.dg-hole-nav,
+.dg-player-nav,
+.dg-score {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dg-hole-title,
+.dg-player-name {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.dg-player-nav {
+    margin-top: 24px;
+}
+
+.dg-score {
+    justify-content: center;
+    gap: 32px;
+}
+
+.dg-score-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 32px;
+}
+
+.dg-score-value {
+    font-size: 64px;
+    font-weight: bold;
+}
+
+.dg-pending {
+    color: #aaaaaa;
+}
+
+.dg-under {
+    color: #1e7b3c;
+}
+
+.dg-over {
+    color: #b02a2a;
+}
+
+.dg-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.dg-dot {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 2px solid #2e9e5b;
+    border-radius: 50%;
+    background-color: white;
+}
+
+.dg-dot-done {
+    background-color: #2e9e5b;
+}
+
+.dg-dot-active {
+    outline: 3px solid #c98a00;
+}
+
+.dg-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+/* Score card */
+
+.dg-table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 6px;
+    border: 1px solid #cccccc;
+}
+
+tbody td {
+    cursor: pointer;
+}
+
+tfoot td {
+    font-weight: bold;
+}</code></pre>
+  <p>The first rule is important. <code>hidden</code> works by setting <code>display: none</code>, but a CSS rule like <code>display: flex</code> on the same element wins over it, and the element shows anyway. <code>[hidden] { display: none !important; }</code> makes <code>hidden</code> always win.</p>
+  <h2>Step 3: Saving in the browser</h2>
+  <p><code>localStorage</code> stores text in the browser, under a name you choose, and keeps it after the page is closed. <code>JSON.stringify</code> turns the state object into text, and <code>JSON.parse</code> turns it back:</p>
+  <pre><code class="language-javascript">function saveState() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+        // Not saved, but the app still works until the page is closed.
+    }
+}
+
+function loadState() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved &amp;&amp; Array.isArray(saved.players) &amp;&amp; Array.isArray(saved.scores)) {
+            return saved;
+        }
+    } catch (error) {
+        // Fall through and start fresh.
+    }
+    return newState();
+}
+
+let state = loadState();</code></pre>
+  <p>Two kinds of things can go wrong, and we handle both:</p>
+  <ul>
+    <li>Some browsers turn storage off, for example in private windows, and then <code>localStorage</code> throws an error. With <code>try</code>/<code>catch</code> the app still works, it just doesn't remember.</li>
+    <li>What we load may be broken, or saved by an older version of the app. <code>JSON.parse</code> throws on broken text. Text that isn't ours could crash <code>render()</code> later, so we check that it has the parts we need before using it, and otherwise start fresh.</li>
+  </ul>
+  <p><code>localStorage.getItem</code> gives <code>null</code> when nothing is saved, and <code>JSON.parse(null)</code> is <code>null</code>, so a first visit also starts fresh.</p>
+  <h2>Step 4: Setup: adding players with a form</h2>
+  <p>The player name box and the Add button are in a <code>&lt;form&gt;</code>. That gives us Enter to add a player for free. A form normally sends the page to a server and reloads it, so we stop that with <code>event.preventDefault()</code>:</p>
+  <pre><code class="language-javascript">function addPlayer(event) {
+    event.preventDefault();
+
+    const name = playerNameInput.value.trim();
+    if (name === "") {
+        return;
+    }
+    state.players.push(name);
+    playerNameInput.value = "";
+    playerNameInput.focus();
+    changed();
+}
+
+playerForm.addEventListener("submit", addPlayer);</code></pre>
+  <p>Drawing the list builds each item with <code>createElement</code>. Names are set with <code>textContent</code>, so a name like <code>&lt;b&gt;Bo&lt;/b&gt;</code> shows as text and not as HTML. Each item gets a remove button. <code>splice(index, 1)</code> removes one item at that position from an array:</p>
+  <pre><code class="language-javascript">state.players.forEach(function (name, index) {
+    const item = document.createElement("li");
+    const nameText = document.createElement("span");
+    nameText.textContent = name;
+
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.className = "dg-small-btn";
+    removeButton.textContent = "×";
+    removeButton.setAttribute("aria-label", "Remove " + name);
+    removeButton.addEventListener("click", function () {
+        state.players.splice(index, 1);
+        changed();
+    });
+
+    item.append(nameText, removeButton);
+    playerList.appendChild(item);
+});</code></pre>
+  <p>The button shows only "×", so <code>aria-label</code> gives it a name that screen readers can read out.</p>
+  <h2>Step 5: Starting a round</h2>
+  <pre><code class="language-javascript">function startRound() {
+    const holes = selectedHoleCount();
+    const par = clamp(parseInt(defaultParInput.value, 10) || 3, 2, 9);
+
+    state.holes = holes;
+    state.par = Array(holes).fill(par);
+    state.scores = state.players.map(function () {
+        return Array(holes).fill(null);
+    });
+    state.hole = 0;
+    state.player = 0;
+    state.view = "play";
+    changed();
+}</code></pre>
+  <p><code>Array(9).fill(3)</code> makes <code>[3, 3, 3, 3, 3, 3, 3, 3, 3]</code>. <code>map</code> makes one empty score list per player. Values typed into a number box are still text, and the user can type anything, so we use <code>parseInt</code> and keep the result inside the allowed range with <code>clamp()</code>. <code>|| 3</code> uses 3 when <code>parseInt</code> gives <code>NaN</code>.</p>
+  <p>The selected radio button is found with a CSS selector: <code>input[name='course-size']:checked</code>.</p>
+  <h2>Step 6: The play view</h2>
+  <p><code>render()</code> shows the right section and calls the drawing function for that view:</p>
+  <pre><code class="language-javascript">function render() {
+    for (const name in views) {
+        views[name].hidden = name !== state.view;
+    }
+
+    if (state.view === "setup") {
+        renderSetup();
+    } else if (state.view === "play") {
+        renderPlay();
+    } else {
+        renderCard();
+    }
+}</code></pre>
+  <p>Before a score is entered, the play view shows par in grey. Par is the most likely score, so for most players you only need to press "next". Moving on saves the shown score:</p>
+  <pre><code class="language-javascript">function nextPlayer() {
+    setCurrentScore(currentScore());
+
+    if (state.player &lt; state.players.length - 1) {
+        state.player++;
+    } else if (state.hole &lt; state.holes - 1) {
+        state.player = 0;
+        state.hole++;
+    }
+    changed();
+}</code></pre>
+  <p><code>currentScore()</code> gives the saved score, or par if nothing is saved. The score's name comes from a lookup table, keyed by the difference to par:</p>
+  <pre><code class="language-javascript">const SCORE_NAMES = {
+    "-3": "Albatross",
+    "-2": "Eagle",
+    "-1": "Birdie",
+    "0": "Par",
+    "1": "Bogey",
+    "2": "Double bogey",
+    "3": "Triple bogey"
+};</code></pre>
+  <p><code>SCORE_NAMES[diff]</code> works with the number <code>-1</code> too, because object keys are always text and <code>-1</code> becomes <code>"-1"</code>. For differences that aren't in the table, <code>||</code> falls back to text like <code>+4</code>.</p>
+  <h2>Step 7: The score card table</h2>
+  <p>A table can be built with <code>createTHead()</code>, <code>createTBody()</code>, <code>insertRow()</code> and <code>insertCell()</code>, which is shorter than <code>createElement</code> for each part. Each score cell gets a click listener that opens that player and hole in the play view:</p>
+  <pre><code class="language-javascript">cell.addEventListener("click", function () {
+    state.hole = hole;
+    state.player = player;
+    state.view = "play";
+    changed();
+});</code></pre>
+  <p>The total par row adds up all the pars with <code>reduce</code>, which goes through an array and builds one value:</p>
+  <pre><code class="language-javascript">state.par.reduce(function (sum, par) {
+    return sum + par;
+}, 0);</code></pre>
+  <h2>Step 8: Keyboard and new round</h2>
+  <p>In the play view, the arrow keys move between players and change the score. We skip the keys while the user is typing in a box, and <code>preventDefault()</code> stops the arrows from also scrolling the page:</p>
+  <pre><code class="language-javascript">function onKey(event) {
+    if (state.view !== "play" || event.target.tagName === "INPUT") {
+        return;
+    }
+    const actions = {
+        ArrowRight: nextPlayer,
+        ArrowLeft: prevPlayer,
+        ArrowUp: function () { changeScore(1); },
+        ArrowDown: function () { changeScore(-1); }
+    };
+    if (actions[event.key]) {
+        event.preventDefault();
+        actions[event.key]();
+    }
+}</code></pre>
+  <p>"New round" asks first with <code>confirm()</code>, because it throws away all the scores. It keeps the players, since the same people often play again.</p>
+  <h2>Step 9: Test it</h2>
+  <ul>
+    <li>Add two players, and try an empty name. Start a 9 hole round.</li>
+    <li>Press + once for the first player (Bogey), then → twice. You are on hole 2.</li>
+    <li>Reload the page. You are still on hole 2 with the same scores.</li>
+    <li>Open the score card. Click a score to jump to it.</li>
+    <li>In the console, run <code>localStorage.setItem("discgolf-scorecard", "broken")</code> and reload. The app should start fresh instead of crashing.</li>
+    <li>Look at the saved state in the developer tools under <strong>Application</strong> (Chrome) or <strong>Storage</strong> (Firefox), then <strong>Local Storage</strong>.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>discgolf.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Disc golf score card&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+
+    h1 {
+        color: #2e9e5b;
+        text-align: center;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 18px;
+    }
+
+    button:disabled {
+        opacity: 0.35;
+    }
+
+    .dg-muted {
+        color: #777777;
+    }
+
+    /* Setup */
+
+    #player-form {
+        display: flex;
+        gap: 8px;
+    }
+
+    #player-form input {
+        flex: 1;
+        padding: 8px;
+        font-size: 18px;
+    }
+
+    #player-list li {
+        display: flex;
+        justify-content: space-between;
+        margin: 4px 0;
+    }
+
+    .dg-small-btn {
+        padding: 0 10px;
+    }
+
+    .dg-options label,
+    .dg-par-default {
+        display: block;
+        margin: 8px 0;
+    }
+
+    #start-round {
+        margin-top: 16px;
+    }
+
+    /* Play */
+
+    #play,
+    #card {
+        text-align: center;
+    }
+
+    .dg-hole-nav,
+    .dg-player-nav,
+    .dg-score {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .dg-hole-title,
+    .dg-player-name {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .dg-player-nav {
+        margin-top: 24px;
+    }
+
+    .dg-score {
+        justify-content: center;
+        gap: 32px;
+    }
+
+    .dg-score-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 32px;
+    }
+
+    .dg-score-value {
+        font-size: 64px;
+        font-weight: bold;
+    }
+
+    .dg-pending {
+        color: #aaaaaa;
+    }
+
+    .dg-under {
+        color: #1e7b3c;
+    }
+
+    .dg-over {
+        color: #b02a2a;
+    }
+
+    .dg-dots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .dg-dot {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        border: 2px solid #2e9e5b;
+        border-radius: 50%;
+        background-color: white;
+    }
+
+    .dg-dot-done {
+        background-color: #2e9e5b;
+    }
+
+    .dg-dot-active {
+        outline: 3px solid #c98a00;
+    }
+
+    .dg-actions {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 24px;
+    }
+
+    /* Score card */
+
+    .dg-table-wrap {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: 6px;
+        border: 1px solid #cccccc;
+    }
+
+    tbody td {
+        cursor: pointer;
+    }
+
+    tfoot td {
+        font-weight: bold;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Disc Golf Score Card&lt;/h1&gt;
+
+  &lt;!-- Setup --&gt;
+  &lt;section id="setup"&gt;
+    &lt;h2&gt;Players&lt;/h2&gt;
+    &lt;form id="player-form" class="dg-row"&gt;
+      &lt;input type="text" id="player-name" placeholder="Player name" maxlength="20" autocomplete="off" /&gt;
+      &lt;button type="submit" class="dg-btn"&gt;Add&lt;/button&gt;
+    &lt;/form&gt;
+    &lt;ul id="player-list"&gt;&lt;/ul&gt;
+    &lt;p id="no-players" class="dg-muted"&gt;No players added yet.&lt;/p&gt;
+
+    &lt;h2&gt;Course size&lt;/h2&gt;
+    &lt;div class="dg-options"&gt;
+      &lt;label&gt;&lt;input type="radio" name="course-size" value="9" checked /&gt; 9 holes&lt;/label&gt;
+      &lt;label&gt;&lt;input type="radio" name="course-size" value="18" /&gt; 18 holes&lt;/label&gt;
+      &lt;label&gt;&lt;input type="radio" name="course-size" value="custom" /&gt; Custom&lt;/label&gt;
+    &lt;/div&gt;
+    &lt;input type="number" id="custom-holes" min="1" max="99" value="12" hidden /&gt;
+
+    &lt;label class="dg-par-default"&gt;
+      Default par
+      &lt;input type="number" id="default-par" min="2" max="9" value="3" /&gt;
+    &lt;/label&gt;
+
+    &lt;button id="start-round" class="dg-btn dg-btn-primary" disabled&gt;Start round&lt;/button&gt;
+  &lt;/section&gt;
+
+  &lt;!-- Scoring --&gt;
+  &lt;section id="play" hidden&gt;
+    &lt;div class="dg-hole-nav"&gt;
+      &lt;button id="prev-hole" class="dg-icon-btn" aria-label="Previous hole"&gt;&amp;laquo;&lt;/button&gt;
+      &lt;div&gt;
+        &lt;div class="dg-hole-title"&gt;Hole &lt;span id="hole-number"&gt;1&lt;/span&gt; / &lt;span id="hole-count"&gt;9&lt;/span&gt;&lt;/div&gt;
+        &lt;div class="dg-par"&gt;
+          Par
+          &lt;button id="par-minus" class="dg-small-btn" aria-label="Decrease par"&gt;&amp;minus;&lt;/button&gt;
+          &lt;span id="par-value"&gt;3&lt;/span&gt;
+          &lt;button id="par-plus" class="dg-small-btn" aria-label="Increase par"&gt;+&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;button id="next-hole" class="dg-icon-btn" aria-label="Next hole"&gt;&amp;raquo;&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div class="dg-player-card"&gt;
+      &lt;div class="dg-player-nav"&gt;
+        &lt;button id="prev-player" class="dg-arrow" aria-label="Previous player"&gt;&amp;larr;&lt;/button&gt;
+        &lt;div id="player-current" class="dg-player-name"&gt;&lt;/div&gt;
+        &lt;button id="next-player" class="dg-arrow" aria-label="Next player"&gt;&amp;rarr;&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class="dg-score"&gt;
+        &lt;button id="score-minus" class="dg-score-btn" aria-label="Decrease score"&gt;&amp;minus;&lt;/button&gt;
+        &lt;div&gt;
+          &lt;div id="score-value" class="dg-score-value"&gt;3&lt;/div&gt;
+          &lt;div id="score-label" class="dg-score-label"&gt;Par&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;button id="score-plus" class="dg-score-btn" aria-label="Increase score"&gt;+&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div id="player-total" class="dg-muted"&gt;&lt;/div&gt;
+      &lt;div id="player-dots" class="dg-dots"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class="dg-actions"&gt;
+      &lt;button id="show-card" class="dg-btn"&gt;Score card&lt;/button&gt;
+      &lt;button id="new-round" class="dg-btn dg-btn-danger"&gt;New round&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;!-- Score card --&gt;
+  &lt;section id="card" hidden&gt;
+    &lt;div class="dg-table-wrap"&gt;
+      &lt;table id="scorecard"&gt;&lt;/table&gt;
+    &lt;/div&gt;
+    &lt;div class="dg-actions"&gt;
+      &lt;button id="back-to-play" class="dg-btn dg-btn-primary"&gt;Back to scoring&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;script&gt;
+    /*
+     * Disc golf score card.
+     *
+     * The page has three views: setup (players and course), play (one hole and
+     * one player at a time) and card (a table with every score).
+     *
+     * Everything the app knows is in one object, "state". Every button changes
+     * the state and then calls changed(), which saves the state in the browser
+     * and draws the page again from it. So a reload, or closing the phone,
+     * never loses the round.
+     */
+
+    // --- State ---------------------------------------------------------------
+
+    const STORAGE_KEY = "discgolf-scorecard";
+
+    function newState() {
+        return {
+            view: "setup",  // "setup", "play" or "card"
+            players: [],    // ["Anna", "Bo"]
+            holes: 0,       // number of holes on the course
+            par: [],        // par[hole]
+            scores: [],     // scores[player][hole], null until entered
+            hole: 0,        // the hole shown in the play view
+            player: 0       // the player shown in the play view
+        };
+    }
+
+    let state = loadState();
+
+    // --- Elements on the page ------------------------------------------------
+
+    function byId(id) {
+        return document.getElementById(id);
+    }
+
+    const views = { setup: byId("setup"), play: byId("play"), card: byId("card") };
+
+    // Setup
+    const playerForm = byId("player-form");
+    const playerNameInput = byId("player-name");
+    const playerList = byId("player-list");
+    const noPlayersText = byId("no-players");
+    const courseSizeRadios = document.querySelectorAll("input[name='course-size']");
+    const customHolesInput = byId("custom-holes");
+    const defaultParInput = byId("default-par");
+    const startRoundButton = byId("start-round");
+
+    // Play
+    const holeNumberText = byId("hole-number");
+    const holeCountText = byId("hole-count");
+    const prevHoleButton = byId("prev-hole");
+    const nextHoleButton = byId("next-hole");
+    const parText = byId("par-value");
+    const parMinusButton = byId("par-minus");
+    const parPlusButton = byId("par-plus");
+    const playerNameText = byId("player-current");
+    const prevPlayerButton = byId("prev-player");
+    const nextPlayerButton = byId("next-player");
+    const scoreText = byId("score-value");
+    const scoreLabel = byId("score-label");
+    const scoreMinusButton = byId("score-minus");
+    const scorePlusButton = byId("score-plus");
+    const playerTotalText = byId("player-total");
+    const playerDots = byId("player-dots");
+    const showCardButton = byId("show-card");
+    const newRoundButton = byId("new-round");
+
+    // Card
+    const scorecardTable = byId("scorecard");
+    const backToPlayButton = byId("back-to-play");
+
+    // --- Saving --------------------------------------------------------------
+
+    // localStorage keeps text in the browser, also after a reload. It can be
+    // turned off (private windows), so every use is inside try/catch.
+    function saveState() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (error) {
+            // Not saved, but the app still works until the page is closed.
+        }
+    }
+
+    function loadState() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            // Only use it if it looks like our state, not something old or broken.
+            if (saved &amp;&amp; Array.isArray(saved.players) &amp;&amp; Array.isArray(saved.scores)) {
+                return saved;
+            }
+        } catch (error) {
+            // Fall through and start fresh.
+        }
+        return newState();
+    }
+
+    // Call this after every change to the state.
+    function changed() {
+        saveState();
+        render();
+    }
+
+    // --- Helpers -------------------------------------------------------------
+
+    // Keep a number between min and max.
+    function clamp(number, min, max) {
+        return Math.min(max, Math.max(min, number));
+    }
+
+    function selectedHoleCount() {
+        const size = document.querySelector("input[name='course-size']:checked").value;
+
+        if (size === "custom") {
+            return clamp(parseInt(customHolesInput.value, 10) || 1, 1, 99);
+        }
+        return Number(size);
+    }
+
+    // The score shown for the current player and hole. Before anything is
+    // entered we show par, which is the most likely score.
+    function currentScore() {
+        const score = state.scores[state.player][state.hole];
+        return score === null ? state.par[state.hole] : score;
+    }
+
+    function setCurrentScore(score) {
+        state.scores[state.player][state.hole] = Math.max(1, score);
+    }
+
+    // Strokes so far, and how far over or under par that is.
+    function playerTotals(player) {
+        let strokes = 0;
+        let par = 0;
+
+        state.scores[player].forEach(function (score, hole) {
+            if (score !== null) {
+                strokes += score;
+                par += state.par[hole];
+            }
+        });
+        return { strokes: strokes, diff: strokes - par };
+    }
+
+    // 0 -&gt; "E" (even), 2 -&gt; "+2", -1 -&gt; "-1"
+    function formatDiff(diff) {
+        if (diff === 0) {
+            return "E";
+        }
+        return diff &gt; 0 ? "+" + diff : String(diff);
+    }
+
+    const SCORE_NAMES = {
+        "-3": "Albatross",
+        "-2": "Eagle",
+        "-1": "Birdie",
+        "0": "Par",
+        "1": "Bogey",
+        "2": "Double bogey",
+        "3": "Triple bogey"
+    };
+
+    function scoreName(score, par) {
+        if (score === 1) {
+            return "Ace!";
+        }
+        const diff = score - par;
+        return SCORE_NAMES[diff] || formatDiff(diff);
+    }
+
+    // A CSS class that colors a score: under, even or over par.
+    function scoreClass(score, par) {
+        if (score === null) {
+            return "";
+        }
+        if (score &lt; par) {
+            return "dg-under";
+        }
+        if (score &gt; par) {
+            return "dg-over";
+        }
+        return "dg-even";
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function render() {
+        // Show the current view and hide the other two.
+        for (const name in views) {
+            views[name].hidden = name !== state.view;
+        }
+
+        if (state.view === "setup") {
+            renderSetup();
+        } else if (state.view === "play") {
+            renderPlay();
+        } else {
+            renderCard();
+        }
+    }
+
+    function renderSetup() {
+        playerList.innerHTML = "";
+
+        state.players.forEach(function (name, index) {
+            const item = document.createElement("li");
+            const nameText = document.createElement("span");
+            nameText.textContent = name;
+
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "dg-small-btn";
+            removeButton.textContent = "×";
+            removeButton.setAttribute("aria-label", "Remove " + name);
+            removeButton.addEventListener("click", function () {
+                state.players.splice(index, 1);   // remove 1 item at index
+                changed();
+            });
+
+            item.append(nameText, removeButton);
+            playerList.appendChild(item);
+        });
+
+        noPlayersText.hidden = state.players.length &gt; 0;
+        startRoundButton.disabled = state.players.length === 0;
+        showCustomHoles();
+    }
+
+    function renderPlay() {
+        const par = state.par[state.hole];
+        const score = currentScore();
+        const entered = state.scores[state.player][state.hole] !== null;
+        const isFirst = state.hole === 0 &amp;&amp; state.player === 0;
+        const isLast = state.hole === state.holes - 1 &amp;&amp; state.player === state.players.length - 1;
+
+        holeNumberText.textContent = state.hole + 1;
+        holeCountText.textContent = state.holes;
+        prevHoleButton.disabled = state.hole === 0;
+        nextHoleButton.disabled = state.hole === state.holes - 1;
+        parText.textContent = par;
+
+        playerNameText.textContent = state.players[state.player];
+        prevPlayerButton.disabled = isFirst;
+        nextPlayerButton.disabled = isLast;
+
+        // A score that is only a suggestion (par) is shown grey.
+        scoreText.textContent = score;
+        scoreText.className = "dg-score-value " + (entered ? scoreClass(score, par) : "dg-pending");
+        scoreLabel.textContent = scoreName(score, par);
+
+        const totals = playerTotals(state.player);
+        playerTotalText.textContent = "Total: " + totals.strokes + " (" + formatDiff(totals.diff) + ")";
+
+        // One dot per player: filled when their score on this hole is entered.
+        playerDots.innerHTML = "";
+        state.players.forEach(function (name, index) {
+            const dot = document.createElement("button");
+            dot.type = "button";
+            dot.className = "dg-dot";
+            dot.classList.toggle("dg-dot-active", index === state.player);
+            dot.classList.toggle("dg-dot-done", state.scores[index][state.hole] !== null);
+            dot.title = name;
+            dot.setAttribute("aria-label", name);
+            dot.addEventListener("click", function () {
+                state.player = index;
+                changed();
+            });
+            playerDots.appendChild(dot);
+        });
+    }
+
+    function renderCard() {
+        scorecardTable.innerHTML = "";
+
+        // Header: Hole, Par, then one column per player.
+        const head = scorecardTable.createTHead().insertRow();
+        ["Hole", "Par"].concat(state.players).forEach(function (text) {
+            const cell = document.createElement("th");
+            cell.textContent = text;
+            head.appendChild(cell);
+        });
+
+        // One row per hole. Clicking a score opens it in the play view.
+        const body = scorecardTable.createTBody();
+        for (let hole = 0; hole &lt; state.holes; hole++) {
+            const row = body.insertRow();
+            row.insertCell().textContent = hole + 1;
+            row.insertCell().textContent = state.par[hole];
+
+            state.players.forEach(function (name, player) {
+                const score = state.scores[player][hole];
+                const cell = row.insertCell();
+                cell.textContent = score === null ? "–" : score;
+                cell.className = scoreClass(score, state.par[hole]);
+                cell.addEventListener("click", function () {
+                    state.hole = hole;
+                    state.player = player;
+                    state.view = "play";
+                    changed();
+                });
+            });
+        }
+
+        // Footer: the totals.
+        const foot = scorecardTable.createTFoot().insertRow();
+        foot.insertCell().textContent = "Total";
+        foot.insertCell().textContent = state.par.reduce(function (sum, par) {
+            return sum + par;
+        }, 0);
+        state.players.forEach(function (name, player) {
+            const totals = playerTotals(player);
+            foot.insertCell().textContent = totals.strokes + " (" + formatDiff(totals.diff) + ")";
+        });
+    }
+
+    // The number box is only shown when "Custom" is picked.
+    function showCustomHoles() {
+        const size = document.querySelector("input[name='course-size']:checked").value;
+        customHolesInput.hidden = size !== "custom";
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function addPlayer(event) {
+        // A form normally sends the page to the server and reloads it. We
+        // handle it here instead, so stop that.
+        event.preventDefault();
+
+        const name = playerNameInput.value.trim();
+        if (name === "") {
+            return;
+        }
+        state.players.push(name);
+        playerNameInput.value = "";
+        playerNameInput.focus();
+        changed();
+    }
+
+    function startRound() {
+        const holes = selectedHoleCount();
+        const par = clamp(parseInt(defaultParInput.value, 10) || 3, 2, 9);
+
+        state.holes = holes;
+        state.par = Array(holes).fill(par);
+        // One list of scores per player, all empty (null) to begin with.
+        state.scores = state.players.map(function () {
+            return Array(holes).fill(null);
+        });
+        state.hole = 0;
+        state.player = 0;
+        state.view = "play";
+        changed();
+    }
+
+    // Next player, or the first player on the next hole. Moving on also
+    // saves the score that is shown, so par only needs one tap.
+    function nextPlayer() {
+        setCurrentScore(currentScore());
+
+        if (state.player &lt; state.players.length - 1) {
+            state.player++;
+        } else if (state.hole &lt; state.holes - 1) {
+            state.player = 0;
+            state.hole++;
+        }
+        changed();
+    }
+
+    function prevPlayer() {
+        if (state.player &gt; 0) {
+            state.player--;
+        } else if (state.hole &gt; 0) {
+            state.player = state.players.length - 1;
+            state.hole--;
+        }
+        changed();
+    }
+
+    function changeHole(step) {
+        state.hole = clamp(state.hole + step, 0, state.holes - 1);
+        state.player = 0;
+        changed();
+    }
+
+    function changePar(step) {
+        state.par[state.hole] = clamp(state.par[state.hole] + step, 2, 9);
+        changed();
+    }
+
+    function changeScore(step) {
+        setCurrentScore(currentScore() + step);
+        changed();
+    }
+
+    function showView(view) {
+        state.view = view;
+        changed();
+    }
+
+    function newRound() {
+        if (!confirm("Start a new round? The current scores will be cleared.")) {
+            return;
+        }
+        state.scores = [];
+        showView("setup");
+    }
+
+    // Arrow keys work in the play view, but not while typing in a box.
+    function onKey(event) {
+        if (state.view !== "play" || event.target.tagName === "INPUT") {
+            return;
+        }
+        const actions = {
+            ArrowRight: nextPlayer,
+            ArrowLeft: prevPlayer,
+            ArrowUp: function () { changeScore(1); },
+            ArrowDown: function () { changeScore(-1); }
+        };
+        if (actions[event.key]) {
+            event.preventDefault();   // don't scroll the page
+            actions[event.key]();
+        }
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    playerForm.addEventListener("submit", addPlayer);
+    courseSizeRadios.forEach(function (radio) {
+        radio.addEventListener("change", showCustomHoles);
+    });
+    startRoundButton.addEventListener("click", startRound);
+
+    prevHoleButton.addEventListener("click", function () { changeHole(-1); });
+    nextHoleButton.addEventListener("click", function () { changeHole(1); });
+    parMinusButton.addEventListener("click", function () { changePar(-1); });
+    parPlusButton.addEventListener("click", function () { changePar(1); });
+    prevPlayerButton.addEventListener("click", prevPlayer);
+    nextPlayerButton.addEventListener("click", nextPlayer);
+    scoreMinusButton.addEventListener("click", function () { changeScore(-1); });
+    scorePlusButton.addEventListener("click", function () { changeScore(1); });
+
+    showCardButton.addEventListener("click", function () { showView("card"); });
+    backToPlayButton.addEventListener("click", function () { showView("play"); });
+    newRoundButton.addEventListener("click", newRound);
+
+    document.addEventListener("keydown", onKey);
+
+    // --- Start ---------------------------------------------------------------
+
+    render();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Let the user name the course, and show the name on the score card.</li>
+    <li>Save finished rounds in a list in <code>localStorage</code> and show a history.</li>
+    <li>Show each player's best and worst hole on the score card.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

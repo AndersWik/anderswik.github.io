@@ -1,0 +1,32 @@
+---
+layout: default
+title: Other
+permalink: /other/
+nonav: true
+# Thumbnails live in /assets/images/games/other/<slug>.webp
+categories:
+  - title: Other
+    items:
+      - { slug: countdown, name: Countdown }
+      - { slug: discgolf, name: Discgolf scorecard }
+      - { slug: egg-clock, name: Egg Clock }
+      - { slug: eliza, name: Eliza }
+      - { slug: myip, name: My Ip }
+      - { slug: week, name: Week }
+---
+
+<section class="games">
+  {% for category in page.categories %}
+  <h2 class="category-title">{{ category.title }}</h2>
+  <ul class="badges">
+    {% for item in category.items %}
+    <li>
+      <a class="badge-card" href="{{ '/other/' | append: item.slug | append: '/' | relative_url }}">
+        <img src="{{ '/assets/images/games/other/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
+        <span class="badge-name">{{ item.name }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+</section>

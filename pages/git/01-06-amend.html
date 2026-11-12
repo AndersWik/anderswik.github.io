@@ -1,0 +1,38 @@
+---
+layout: default
+title: Amend
+permalink: /git/amend/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [git, amend, commit, message, author, fix, last commit]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Amend</h1>
+  <p><code>git commit --amend</code> changes the last commit. Use it to fix the message, add a forgotten file or change the author.</p>
+  <h2>Change the message</h2>
+  <pre><code class="language-bash">$ git commit --amend -m "New commit message"</code></pre>
+  <h2>Add forgotten files</h2>
+  <p>Stage the files and amend. <code>--no-edit</code> keeps the old message.</p>
+  <pre><code class="language-bash">$ git add .
+$ git commit --amend --no-edit</code></pre>
+  <h2>Change the author</h2>
+  <pre><code class="language-bash">$ git commit --amend --author="New Name &lt;new@example.com&gt;" --no-edit</code></pre>
+  <p>To change the author of an older commit, see <a href="/git/rebase/">Rebase</a>.</p>
+  <h2>Amend a pushed commit</h2>
+  <p>Amend creates a new commit that replaces the old one. If the old commit was already pushed, you have to force push. Avoid this on branches that others work on.</p>
+  <pre><code class="language-bash">$ git push --force-with-lease</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git commit</code>. <code>--help</code> opens the full manual page, the same as <code>git help commit</code>.</p>
+  <pre><code class="language-bash">$ git commit -h
+$ git commit --help</code></pre>
+  <h2>More about amend</h2>
+  <ul>
+    <li><code>--force-with-lease</code> is safer than <code>--force</code>, it refuses to overwrite commits someone else has pushed</li>
+    <li>To undo the last commit completely, see <a href="/git/reset/">Reset</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

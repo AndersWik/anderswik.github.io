@@ -1,0 +1,42 @@
+---
+layout: default
+title: Colors
+permalink: /latex/colors/
+chapter: "06"
+chapter_title: "More features"
+keywords: [latex, colors, color, xcolor, textcolor, colorbox, highlight, rgb, hex]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Colors</h1>
+  <p>The <code>xcolor</code> package adds colors to text and backgrounds.</p>
+  <h2>Text color</h2>
+  <pre><code class="language-latex">\usepackage{xcolor}
+
+\textcolor{red}{Red text}
+{\color{blue} Blue text}
+\textcolor{red!50}{50% red}
+\textcolor{blue!60!black}{Dark blue}</code></pre>
+  <h2>Background</h2>
+  <pre><code class="language-latex">\colorbox{yellow}{Highlighted}
+\fcolorbox{red}{white}{With a red frame}
+\pagecolor{black}</code></pre>
+  <h2>Own colors</h2>
+  <pre><code class="language-latex">\definecolor{myblue}{RGB}{0, 102, 204}
+\definecolor{mygreen}{HTML}{2E8B57}
+\definecolor{mygray}{gray}{0.6}</code></pre>
+  <h2>Named colors</h2>
+  <pre><code class="language-latex">red green blue cyan magenta yellow black white gray
+darkgray lightgray brown lime olive orange pink purple teal violet
+
+\usepackage[dvipsnames]{xcolor}   % 68 more, like ForestGreen and NavyBlue</code></pre>
+  <h2>More about colors</h2>
+  <ul>
+    <li><code>\usepackage[table]{xcolor}</code> adds <code>\rowcolor</code> and <code>\cellcolor</code> for <a href="/latex/tables/">tables</a></li>
+    <li>The <code>soul</code> package has <code>\hl{text}</code> to highlight across lines</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

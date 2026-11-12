@@ -1,0 +1,37 @@
+---
+layout: default
+title: Build a .deb package
+permalink: /linux/build-deb/
+chapter: "17"
+chapter_title: "Packages"
+keywords: [linux, deb, debian, package, dkms, build-essential, debhelper]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Build a .deb package</h1>
+  <p>A <code>.deb</code> file is a package format used in Debian and Debian-based Linux distributions, such as Ubuntu and Linux Mint. This software package contains everything needed for installation: the program's files, details about the software, and scripts to manage the installation process.</p>
+  <h2>Install the build tools</h2>
+  <p><code>build-essential</code> gives you compilers and <code>make</code>, <code>debhelper</code> helps build Debian packages, <code>dkms</code> builds kernel modules for every installed kernel and <code>git</code> gets the source code.</p>
+  <pre><code class="language-bash">$ sudo apt install debhelper dh-modaliases dkms git build-essential</code></pre>
+  <h2>Build a package</h2>
+  <p>Many projects include a <code>debian/</code> directory with the packaging rules. From the project directory, build an unsigned package; the <code>.deb</code> file ends up in the parent directory.</p>
+  <pre><code class="language-bash">$ dpkg-buildpackage -us -uc -b</code></pre>
+  <h2>Install the package</h2>
+  <pre><code class="language-bash">$ sudo apt install ../package_1.0_amd64.deb
+$ dpkg -c ../package_1.0_amd64.deb   # list the files in the package</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>dpkg-buildpackage</code> and all its options.</p>
+  <pre><code class="language-bash">$ dpkg-buildpackage --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>dpkg-buildpackage</code> is installed.</p>
+  <pre><code class="language-bash">$ dpkg-buildpackage --version</code></pre>
+  <h2>More about .deb packages</h2>
+  <ul>
+    <li><a href="https://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers' Guide</a></li>
+    <li>See <a href="/linux/package-manager/">Package Managers</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, deb, debian, package, dkms, build-essential, debhelper</p>
+  {% include trail.html %}
+</div>

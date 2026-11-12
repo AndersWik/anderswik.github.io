@@ -1,0 +1,50 @@
+---
+layout: default
+title: Title page
+permalink: /latex/title-page/
+chapter: "02"
+chapter_title: "Document"
+keywords: [latex, title, author, date, maketitle, titlepage, abstract, thanks]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Title page</h1>
+  <p>Set the title, author and date in the preamble and print them with <code>\maketitle</code>.</p>
+  <h2>Title</h2>
+  <pre><code class="language-latex">\title{My report}
+\author{Anders Wik}
+\date{\today}
+
+\begin{document}
+\maketitle</code></pre>
+  <h2>Several authors</h2>
+  <pre><code class="language-latex">\author{Anders Wik \and Jane Doe}
+\author{Anders Wik\thanks{University of Somewhere} \\ \texttt{about@example.com}}</code></pre>
+  <h2>No date</h2>
+  <pre><code class="language-latex">\date{}
+\date{8 November 2026}</code></pre>
+  <h2>Abstract</h2>
+  <pre><code class="language-latex">\begin{abstract}
+A short summary of the document.
+\end{abstract}</code></pre>
+  <h2>Custom title page</h2>
+  <p>The <code>titlepage</code> environment gives you an empty page to design yourself.</p>
+  <pre><code class="language-latex">\begin{titlepage}
+  \centering
+  \vspace*{4cm}
+  {\Huge\bfseries My report\par}
+  \vspace{1cm}
+  {\Large Anders Wik\par}
+  \vfill
+  {\large \today\par}
+\end{titlepage}</code></pre>
+  <h2>More about title pages</h2>
+  <ul>
+    <li>In <code>article</code> the title is on the first page. Add the class option <code>titlepage</code> to put it on its own page</li>
+    <li>Change the <a href="/latex/font-size/">font size</a> with commands like <code>\Huge</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

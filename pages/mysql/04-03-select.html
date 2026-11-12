@@ -1,0 +1,49 @@
+---
+layout: default
+title: Select
+permalink: /mysql/select/
+chapter: "04"
+chapter_title: "Data"
+keywords: [mysql, sql, select, from, where, order by, asc, desc, and, or, not, null, limit, min, max, like, wildcard]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Select</h1>
+  <p><code>select</code> reads rows from a table. <code>*</code> means all columns.</p>
+  <h2>SELECT FROM table</h2>
+  <pre><code class="language-sql">mysql&gt; SELECT * FROM mytable;
+mysql&gt; SELECT column1, column2 FROM mytable;</code></pre>
+  <h2>ORDER BY</h2>
+  <p><code>ASC</code> sorts from low to high, which is the default. <code>DESC</code> sorts from high to low.</p>
+  <pre><code class="language-sql">mysql&gt; SELECT * FROM mytable ORDER BY column1 ASC;
+mysql&gt; SELECT * FROM mytable ORDER BY column1 DESC;</code></pre>
+  <h2>WHERE</h2>
+  <p><code>WHERE</code> only returns the rows that match.</p>
+  <pre><code class="language-sql">mysql&gt; SELECT * FROM `mytable` WHERE id=1;</code></pre>
+  <h2>AND, OR and NOT</h2>
+  <pre><code class="language-sql">mysql&gt; SELECT * FROM mytable WHERE column1 = 'a' AND column2 = 'b';
+mysql&gt; SELECT * FROM mytable WHERE column1 = 'a' OR column1 = 'b';
+mysql&gt; SELECT * FROM mytable WHERE NOT column1 = 'a';</code></pre>
+  <h2>IS NULL and IS NOT NULL</h2>
+  <pre><code class="language-sql">mysql&gt; SELECT * FROM mytable WHERE column1 IS NULL;
+mysql&gt; SELECT * FROM mytable WHERE column1 IS NOT NULL;</code></pre>
+  <h2>LIMIT</h2>
+  <p><code>LIMIT</code> returns at most the given number of rows.</p>
+  <pre><code class="language-sql">mysql&gt; SELECT * FROM mytable WHERE column1 IS NOT NULL LIMIT 10;</code></pre>
+  <h2>MIN and MAX</h2>
+  <pre><code class="language-sql">mysql&gt; SELECT MIN(id) FROM mytable;
+mysql&gt; SELECT MAX(id) FROM mytable;</code></pre>
+  <h2>Wildcard</h2>
+  <p><code>LIKE</code> matches a pattern. <code>%</code> means any characters, so <code>'/%'</code> matches everything that starts with a slash.</p>
+  <pre><code class="language-sql">mysql&gt; SELECT * FROM `mytable` WHERE column1 LIKE '/%';
+mysql&gt; SELECT * FROM `mytable` WHERE column1 NOT LIKE '/%';</code></pre>
+  <h2>More about select</h2>
+  <ul>
+    <li><a href="/mysql/select-distinct/">Select distinct</a> returns every value only once</li>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/select.html">SELECT</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,37 @@
+---
+layout: default
+title: Clone
+permalink: /git/clone/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [git, clone, copy, download, repository, https, ssh, depth]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Clone</h1>
+  <p><code>git clone</code> copies a repository, with its whole history, to your computer. The remote it was copied from is saved as <code>origin</code>.</p>
+  <h2>Clone a repository</h2>
+  <p>Repositories can be cloned over HTTPS or SSH. SSH needs a key added to your account, but then you do not have to log in every time.</p>
+  <pre><code class="language-bash">$ git clone https://github.com/user/project.git
+$ git clone git@github.com:user/project.git</code></pre>
+  <h2>Choose the folder name</h2>
+  <pre><code class="language-bash">$ git clone git@github.com:user/project.git my-folder</code></pre>
+  <h2>Clone a specific branch</h2>
+  <pre><code class="language-bash">$ git clone --branch develop git@github.com:user/project.git</code></pre>
+  <h2>Only the latest version</h2>
+  <p><code>--depth 1</code> skips the history and only downloads the latest commit. Much faster for large projects when you only need the files.</p>
+  <pre><code class="language-bash">$ git clone --depth 1 https://github.com/user/project.git</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git clone</code>. <code>--help</code> opens the full manual page, the same as <code>git help clone</code>.</p>
+  <pre><code class="language-bash">$ git clone -h
+$ git clone --help</code></pre>
+  <h2>More about clone</h2>
+  <ul>
+    <li>Use several SSH keys, for example for work and private, see <a href="/git/multiple-ssh/">Multiple ssh</a></li>
+    <li><a href="https://git-scm.com/docs/git-clone">git clone</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,44 @@
+---
+layout: default
+title: Ps
+permalink: /linux/ps/
+chapter: "05"
+chapter_title: "Processes"
+keywords: [linux, ps, processes, pid]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Ps</h1>
+  <p><code>ps</code> stands for process status. It prints a snapshot of the running processes. Without options it only shows processes started from the current terminal.</p>
+  <h2>List processes</h2>
+  <p><code>aux</code> shows all processes from all users, with owner, CPU and memory usage.</p>
+  <pre><code class="language-bash">$ ps aux</code></pre>
+  <h2>Find a process</h2>
+  <pre><code class="language-bash">$ ps aux | grep nginx
+$ pgrep -a nginx</code></pre>
+  <h2>Sort by usage</h2>
+  <pre><code class="language-bash">$ ps aux --sort=-%mem | head    # highest memory usage first
+$ ps aux --sort=-%cpu | head    # highest CPU usage first</code></pre>
+  <h2>Show as a tree</h2>
+  <pre><code class="language-bash">$ ps -ef --forest</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of the options. Add <code>all</code> to see every option. <code>-h</code> does not show help, it hides the header line.</p>
+  <pre><code class="language-bash">$ ps --help
+$ ps --help all</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>ps</code> is installed.</p>
+  <pre><code class="language-bash">$ ps --version
+$ ps -V</code></pre>
+  <h2>More about ps</h2>
+  <ul>
+    <li><code>pstree</code> shows processes as a tree in a more readable way</li>
+    <li>For a live view use <a href="/linux/top/">top</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/ps.txt">man ps</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, ps, processes, pid</p>
+  {% include trail.html %}
+</div>

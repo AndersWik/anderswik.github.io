@@ -1,0 +1,154 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  box-sizing: border-box;
+  text-align: center;
+  width: min(100% - 40px, 450px);
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.game h1 {
+  color: #3498db;
+  text-shadow: 2px 2px #0a629d;
+}
+
+.game button {
+  padding: 15px 30px;
+  margin-top: 20px;
+  font-size: 18px;
+  background-color: #3498db;
+  color: #fff;
+  border: 5px solid #0a629d;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game button:hover {
+  box-shadow: 0px 0px 10px #0a629d;
+}
+
+.game .input-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.game #choreButton, .game #personButton {
+  flex: none;
+  margin-top: 0;
+  padding: 10px 15px;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.game #choreInput, .game #personInput {
+  flex: 1;
+  min-width: 0;
+  font-size: 18px;
+  border-radius: 5px;
+  border: 5px solid #0a629d;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.game button.remove {
+  flex: none;
+  margin-top: 0;
+  padding: 2px 8px;
+  font-size: 14px;
+  border-width: 3px;
+  background-color: #ff0000;
+  border: 5px solid #ff0000b5;
+  color: #fff;
+}
+
+.game button.remove:hover {
+  box-shadow: 0px 0px 10px #ff0000b5;
+}
+
+.game #wheel-container {
+  position: relative;
+  margin: 35px auto 20px;
+  width: min(300px, 100% - 60px);
+  aspect-ratio: 1;
+}
+
+.game #wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition: transform 4s ease-out;
+}
+
+.game #names-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.game #result {
+  font-size: 18px;
+  white-space: pre-line;
+}
+
+.game button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.game .name-label {
+  position: absolute;
+  white-space: nowrap;
+  font-weight: bold;
+  font-size: 14px;
+  transform: translate(-50%, -50%);
+}
+
+.game .list-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+}
+
+@media (max-width: 400px) {
+  .game .list-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.game .list-container h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.game #choreList, .game #peopleList {
+  list-style-type: none;
+  text-align: left;
+  padding: 0;
+  margin: 0;
+}
+
+.game #choreList li, .game #peopleList li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}

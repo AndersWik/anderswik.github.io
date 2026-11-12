@@ -1,0 +1,83 @@
+---
+layout: default
+title: Countdown
+permalink: /other/countdown/
+nonav: true
+css:
+  - /assets/countdown/countdown.css
+js:
+  - /assets/countdown/countdown.js
+---
+
+<div class="countdown container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2 id="countdown-title">Countdown</h2>
+    </div>
+  </div>
+  <div class="row align-items-start mt-3">
+    <div class="col-sm-3">
+      <p id="countdown-days">Days</p>
+      <p id="output-days" class="bw">00</p>
+    </div>
+    <div class="col-sm-3">
+      <p id="countdown-hours">Hours</p>
+      <p id="output-hours" class="bw">00</p>
+    </div>
+    <div class="col-sm-3">
+      <p id="countdown-minutes">Minutes</p>
+      <p id="output-minutes" class="bw">00</p>
+    </div>
+    <div class="col-sm-3">
+      <p id="countdown-seconds">Seconds</p>
+      <p id="output-seconds" class="bw">00</p>
+    </div>
+  </div>
+  <div class="row">
+    <div id="image-container" class="col">
+
+    </div>
+  </div>
+  <form class="row mt-5 text-start" method="get">
+    <div class="col-sm-12 col-md-4 mt-2">
+      <label class="form-label" for="to">Count down to</label>
+      <input class="form-control" type="datetime-local" id="to" name="to" required>
+    </div>
+    <div class="col-sm-12 col-md-4 mt-2">
+      <label class="form-label" for="title">Title</label>
+      <input class="form-control" type="text" id="title" name="title">
+    </div>
+    <div class="col-sm-12 col-md-4 mt-2">
+      <label class="form-label" for="url">Image when done</label>
+      <input class="form-control" type="url" id="url" name="url" placeholder="https://">
+    </div>
+    <div class="col-12 mt-3 text-center">
+      <button class="btn btn-secondary" type="submit">Start countdown</button>
+    </div>
+  </form>
+  <div class="container mt-3">
+    <div class="row">
+      <div class="col">
+        <div class="accordion" id="how-to-percent">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#how-to-percent-x" aria-expanded="false" aria-controls="how-to-percent-x">
+                How to use
+              </button>
+            </h2>
+            <div id="how-to-percent-x" class="accordion-collapse collapse" data-bs-parent="#how-to-percent">
+              <div class="accordion-body">
+                <p class="text-start">Fill in the form below, or add the settings to the address yourself, e.g. ?to=2026-12-24T15:00&amp;title=Christmas</p>
+                <p class="text-start"><strong>to</strong> is the date and time to count down to, written like 1999-12-31T23:59:00</p>
+                <p class="text-start"><strong>title</strong> is a title to show on the page</p>
+                <p class="text-start"><strong>url</strong> is the address of an image to show when the countdown is finished</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="mt-5 text-center"><a href="/tutorials/countdown/">How to build this app</a></p>
+</div>

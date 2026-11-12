@@ -1,0 +1,44 @@
+---
+layout: default
+title: Databases
+permalink: /mysql/databases/
+chapter: "02"
+chapter_title: "Databases"
+keywords: [mysql, sql, database, databases, schema, server, show, create, use]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Databases</h1>
+  <p>A database is a collection of <a href="/mysql/tables/">tables</a> that belong together, for example all the tables used by one website or one application. One MySQL server can hold many databases, and each database is kept separate from the others. In MySQL a database is also called a schema.</p>
+  <h2>Server, database, table and row</h2>
+  <p>The data in MySQL is organized in levels:</p>
+  <ul>
+    <li><strong>Server</strong> — the MySQL program that runs on a machine. You connect to it with the <code>mysql</code> client.</li>
+    <li><strong>Database</strong> — a named collection of tables on the server.</li>
+    <li><strong>Table</strong> — holds the data in columns and rows, like a spreadsheet.</li>
+    <li><strong>Row</strong> — one entry in a table, for example one user or one order.</li>
+  </ul>
+  <h2>Working with databases</h2>
+  <p>List the databases on the server, create a new one and select it. Every command after <code>use</code> works on the selected database.</p>
+  <pre><code class="language-sql">mysql&gt; show databases;
+mysql&gt; create database mydatabase;
+mysql&gt; use mydatabase;
+mysql&gt; show tables;</code></pre>
+  <h2>System databases</h2>
+  <p>A new server already has some databases that MySQL uses itself. Do not change or remove them.</p>
+  <ul>
+    <li><code>mysql</code> — users, privileges and settings</li>
+    <li><code>information_schema</code> — information about all databases, tables and columns</li>
+    <li><code>performance_schema</code> and <code>sys</code> — statistics about how the server performs</li>
+  </ul>
+  <h2>Names</h2>
+  <p>Use short names with lowercase letters, numbers and <code>_</code>, such as <code>my_shop</code>. If a name has other characters, put it inside backticks, for example <code>`my-shop`</code>.</p>
+  <h2>More about databases</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/creating-database.html">Creating and selecting a database</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

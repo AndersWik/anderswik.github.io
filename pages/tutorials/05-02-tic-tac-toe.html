@@ -1,0 +1,417 @@
+---
+layout: default
+title: Tic Tac Toe
+permalink: /tutorials/tic-tac-toe/
+chapter: "05"
+chapter_title: "Board Games"
+keywords: [javascript, game, board game, computer player, lines, find, every, querySelectorAll, buttons]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tic Tac Toe</h1>
+  <p>X and O take turns placing their mark on a 3 by 3 board. Three in a row, across, down or diagonally, wins. Play against a friend, or against the computer, which plays O. The easy computer picks a random square. The smart one follows a few rules that make it hard to beat.</p>
+  <p>This is the smallest board game in the tutorials, so it is a good place to see the whole pattern once more: a list holds the board, the page only shows it, and the computer uses the same <code>play</code> as a click.</p>
+  <p><a href="/assets/tutorials/tic-tac-toe.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>tic-tac-toe.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The nine squares are buttons, written right in the HTML this time:</p>
+  <pre><code class="language-html">&lt;h1&gt;Tic Tac Toe&lt;/h1&gt;
+&lt;div class="board"&gt;
+  &lt;button type="button" class="square"&gt;&lt;/button&gt;
+  &lt;button type="button" class="square"&gt;&lt;/button&gt;
+  &lt;button type="button" class="square"&gt;&lt;/button&gt;
+  &lt;button type="button" class="square"&gt;&lt;/button&gt;
+  &lt;button type="button" class="square"&gt;&lt;/button&gt;
+  &lt;button type="button" class="square"&gt;&lt;/button&gt;
+  &lt;button type="button" class="square"&gt;&lt;/button&gt;
+  &lt;button type="button" class="square"&gt;&lt;/button&gt;
+  &lt;button type="button" class="square"&gt;&lt;/button&gt;
+&lt;/div&gt;
+&lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+&lt;button type="button" id="reset"&gt;New game&lt;/button&gt;
+&lt;p&gt;
+  &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+  &lt;select id="mode"&gt;
+    &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+    &lt;option value="easy"&gt;The computer (easy)&lt;/option&gt;
+    &lt;option value="smart" selected&gt;The computer (smart)&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/p&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.square {
+    aspect-ratio: 1;
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.square.winning {
+    background-color: #99e883;
+}
+
+#status {
+    font-size: 20px;
+}</code></pre>
+  <h2>Step 2: The board and its lines</h2>
+  <pre><code class="language-javascript">const LINES = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
+];
+
+let board = [];        // "", "X" or "O" for each square</code></pre>
+  <p>The board is one list of nine squares, numbered 0 to 8 row by row. A board this small has only eight lines of three, so we just write them all down, like the mills in <a href="/tutorials/kvarn/">Kvarn</a>.</p>
+  <pre><code class="language-javascript">function winningLine(who) {
+    return LINES.find(function (line) {
+        return line.every(function (index) {
+            return board[index] === who;
+        });
+    });
+}</code></pre>
+  <p>Find a line where every square has <code>who</code>'s mark. <code>find</code> gives the line, or <code>undefined</code> if there is none. The line is useful: it tells us which squares to color green.</p>
+  <h2>Step 3: Playing</h2>
+  <pre><code class="language-javascript">function play(index) {
+    if (gameOver || board[index] !== "") {
+        return;
+    }
+    board[index] = player;
+    squares[index].textContent = player;
+
+    const line = winningLine(player);
+    if (line) {
+        line.forEach(function (i) {
+            squares[i].classList.add("winning");
+        });
+        gameOver = true;
+        ...
+    } else if (emptySquares().length === 0) {
+        gameOver = true;
+        statusText.textContent = "It's a draw!";
+    } else {
+        player = player === "X" ? "O" : "X";
+        ...
+        if (isComputersTurn()) {
+            computerTimer = setTimeout(computerMove, COMPUTER_DELAY);
+        }
+    }
+}</code></pre>
+  <p>Same order as in <a href="/tutorials/connect-four/">Connect Four</a>: change the board, check for a win, check for a full board, and only then switch player. And as in <a href="/tutorials/connect-four-ai/">Connect Four vs computer</a>, clicks are ignored on the computer's turn, and <code>newGame</code> cancels a computer move that is still waiting.</p>
+  <p>The squares get their click listeners in a loop. <code>forEach</code> gives each button its index, so each one knows its own square:</p>
+  <pre><code class="language-javascript">squares.forEach(function (square, index) {
+    square.addEventListener("click", function () {
+        if (!isComputersTurn()) {
+            play(index);
+        }
+    });
+});</code></pre>
+  <h2>Step 4: The smart computer</h2>
+  <p>First, a helper: is there a line where <code>who</code> has two marks and the third square is free?</p>
+  <pre><code class="language-javascript">function winningSquare(who) {
+    for (const line of LINES) {
+        const marks = line.map(function (index) {
+            return board[index];
+        });
+        const mine = marks.filter(function (mark) {
+            return mark === who;
+        }).length;
+        if (mine === 2 &amp;&amp; marks.includes("")) {
+            return line[marks.indexOf("")];
+        }
+    }
+    return undefined;
+}</code></pre>
+  <p><code>marks</code> is what is in the line's three squares, like <code>["O", "", "O"]</code>. If two of them are <code>who</code>'s and one is empty, the empty one wins. <code>marks.indexOf("")</code> is where in the line it is, and <code>line[...]</code> turns that into the square's number on the board.</p>
+  <pre><code class="language-javascript">function smartMove() {
+    const win = winningSquare("O");
+    if (win !== undefined) {
+        return win;
+    }
+    const block = winningSquare("X");
+    if (block !== undefined) {
+        return block;
+    }
+    if (board[4] === "") {
+        return 4;
+    }
+    const corners = [0, 2, 6, 8].filter(function (index) {
+        return board[index] === "";
+    });
+    if (corners.length &gt; 0) {
+        return randomItem(corners);
+    }
+    return randomItem(emptySquares());
+}</code></pre>
+  <p>Win if possible, block if needed, then take the middle, which is part of four lines, then a corner, part of three. These are the same rules as the easy computer in Connect Four vs computer. They are enough to make Tic Tac Toe hard to win, but not impossible: if you threaten two lines at once (a <strong>fork</strong>), it can only block one.</p>
+  <p>In the first version, the middle and corner rules used a variable called <code>board</code> that didn't exist. As soon as the computer had nothing to win or block, it crashed, and since "smart" was the default, the game stopped after a couple of moves.</p>
+  <h2>Step 5: Test it</h2>
+  <ul>
+    <li>Win across, down and diagonally. The three squares should turn green.</li>
+    <li>Fill the board without a winner. It should say it's a draw.</li>
+    <li>Against the smart computer, start in a corner and see that it takes the middle.</li>
+    <li>Make two threats at once and win.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>tic-tac-toe.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Tic Tac Toe&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    .board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .square {
+        aspect-ratio: 1;
+        font-size: 48px;
+        font-weight: bold;
+    }
+
+    .square.winning {
+        background-color: #99e883;
+    }
+
+    #status {
+        font-size: 20px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Tic Tac Toe&lt;/h1&gt;
+  &lt;div class="board"&gt;
+    &lt;button type="button" class="square"&gt;&lt;/button&gt;
+    &lt;button type="button" class="square"&gt;&lt;/button&gt;
+    &lt;button type="button" class="square"&gt;&lt;/button&gt;
+    &lt;button type="button" class="square"&gt;&lt;/button&gt;
+    &lt;button type="button" class="square"&gt;&lt;/button&gt;
+    &lt;button type="button" class="square"&gt;&lt;/button&gt;
+    &lt;button type="button" class="square"&gt;&lt;/button&gt;
+    &lt;button type="button" class="square"&gt;&lt;/button&gt;
+    &lt;button type="button" class="square"&gt;&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;button type="button" id="reset"&gt;New game&lt;/button&gt;
+  &lt;p&gt;
+    &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+    &lt;select id="mode"&gt;
+      &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+      &lt;option value="easy"&gt;The computer (easy)&lt;/option&gt;
+      &lt;option value="smart" selected&gt;The computer (smart)&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Tic Tac Toe: X and O take turns. Three in a row, across, down or
+     * diagonally, wins. Play against a friend or the computer, which plays O.
+     *
+     *   Easy:  picks a random free square.
+     *   Smart: wins if it can, blocks you if you are about to win, and
+     *          otherwise likes the middle, then the corners.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    // The squares are numbered like this:   0 1 2
+    //                                       3 4 5
+    //                                       6 7 8
+    const LINES = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],   // across
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],   // down
+        [0, 4, 8], [2, 4, 6]               // diagonal
+    ];
+    const COMPUTER_DELAY = 500;   // ms before the computer moves
+
+    // --- Elements on the page ------------------------------------------------
+
+    const squares = document.querySelectorAll(".square");
+    const statusText = document.getElementById("status");
+    const restartButton = document.getElementById("reset");
+    const modeSelect = document.getElementById("mode");
+
+    // --- State ---------------------------------------------------------------
+
+    let board = [];        // "", "X" or "O" for each square
+    let player = "X";
+    let gameOver = false;
+    let computerTimer = null;
+
+    // --- Rules ---------------------------------------------------------------
+
+    // The line that "who" has three in a row on, or undefined.
+    function winningLine(who) {
+        return LINES.find(function (line) {
+            return line.every(function (index) {
+                return board[index] === who;
+            });
+        });
+    }
+
+    function emptySquares() {
+        const empty = [];
+        board.forEach(function (mark, index) {
+            if (mark === "") {
+                empty.push(index);
+            }
+        });
+        return empty;
+    }
+
+    function randomItem(list) {
+        return list[Math.floor(Math.random() * list.length)];
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function isComputersTurn() {
+        return modeSelect.value !== "pvp" &amp;&amp; player === "O";
+    }
+
+    function play(index) {
+        if (gameOver || board[index] !== "") {
+            return;
+        }
+        board[index] = player;
+        squares[index].textContent = player;
+
+        const line = winningLine(player);
+        if (line) {
+            line.forEach(function (i) {
+                squares[i].classList.add("winning");
+            });
+            gameOver = true;
+            if (modeSelect.value === "pvp") {
+                statusText.textContent = player + " wins!";
+            } else {
+                statusText.textContent = player === "X" ? "You win!" : "The computer wins!";
+            }
+        } else if (emptySquares().length === 0) {
+            gameOver = true;
+            statusText.textContent = "It's a draw!";
+        } else {
+            player = player === "X" ? "O" : "X";
+            statusText.textContent = isComputersTurn() ? "The computer is thinking..." : player + "'s turn";
+            if (isComputersTurn()) {
+                computerTimer = setTimeout(computerMove, COMPUTER_DELAY);
+            }
+        }
+    }
+
+    // --- The computer --------------------------------------------------------
+
+    // A free square that would give "who" three in a row, or undefined.
+    function winningSquare(who) {
+        for (const line of LINES) {
+            const marks = line.map(function (index) {
+                return board[index];
+            });
+            const mine = marks.filter(function (mark) {
+                return mark === who;
+            }).length;
+            if (mine === 2 &amp;&amp; marks.includes("")) {
+                return line[marks.indexOf("")];
+            }
+        }
+        return undefined;
+    }
+
+    function smartMove() {
+        const win = winningSquare("O");
+        if (win !== undefined) {
+            return win;
+        }
+        const block = winningSquare("X");
+        if (block !== undefined) {
+            return block;
+        }
+        if (board[4] === "") {
+            return 4;
+        }
+        const corners = [0, 2, 6, 8].filter(function (index) {
+            return board[index] === "";
+        });
+        if (corners.length &gt; 0) {
+            return randomItem(corners);
+        }
+        return randomItem(emptySquares());
+    }
+
+    function computerMove() {
+        const index = modeSelect.value === "smart" ? smartMove() : randomItem(emptySquares());
+        play(index);
+    }
+
+    // --- Starting ------------------------------------------------------------
+
+    function newGame() {
+        clearTimeout(computerTimer);
+        board = ["", "", "", "", "", "", "", "", ""];
+        squares.forEach(function (square) {
+            square.textContent = "";
+            square.classList.remove("winning");
+        });
+        player = "X";
+        gameOver = false;
+        statusText.textContent = "X's turn";
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    squares.forEach(function (square, index) {
+        square.addEventListener("click", function () {
+            if (!isComputersTurn()) {
+                play(index);
+            }
+        });
+    });
+    restartButton.addEventListener("click", newGame);
+    modeSelect.addEventListener("change", newGame);
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Make an "impossible" level with minimax, as in Connect Four vs computer. A Tic Tac Toe board is small enough to look all the way to the end of the game.</li>
+    <li>Let the loser start the next game.</li>
+    <li>Make the board 4 by 4, where you need four in a row.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

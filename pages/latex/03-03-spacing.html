@@ -1,0 +1,60 @@
+---
+layout: default
+title: Spacing and breaks
+permalink: /latex/spacing/
+chapter: "03"
+chapter_title: "Text"
+keywords: [latex, spacing, line break, page break, newline, newpage, vspace, hspace, indent, linespread, paragraph]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Spacing and breaks</h1>
+  <p>LaTeX decides most of the spacing itself. An empty line starts a new paragraph, and several spaces count as one.</p>
+  <h2>Paragraphs</h2>
+  <pre><code class="language-latex">This is the first paragraph.
+This line is part of the same paragraph.
+
+This is the second paragraph.</code></pre>
+  <h2>Line break</h2>
+  <pre><code class="language-latex">First line\\
+Second line\newline
+Third line</code></pre>
+  <h2>Page break</h2>
+  <pre><code class="language-latex">\newpage
+\clearpage     % also prints all waiting figures and tables
+\cleardoublepage</code></pre>
+  <h2>Vertical space</h2>
+  <pre><code class="language-latex">\vspace{1cm}
+\vspace*{2cm}   % also at the top of a page
+\smallskip
+\medskip
+\bigskip
+\vfill          % fill the page</code></pre>
+  <h2>Horizontal space</h2>
+  <pre><code class="language-latex">A\hspace{1cm}B
+A\quad B
+A\qquad B
+A\hfill B       % push B to the right</code></pre>
+  <h2>Indent</h2>
+  <pre><code class="language-latex">\noindent This paragraph is not indented.
+
+\setlength{\parindent}{0pt}   % no indent anywhere
+\setlength{\parskip}{1em}     % space between paragraphs instead
+
+\usepackage{parskip}          % the same with a package</code></pre>
+  <h2>Line spacing</h2>
+  <pre><code class="language-latex">\usepackage{setspace}
+\onehalfspacing
+\doublespacing
+
+\linespread{1.3}</code></pre>
+  <h2>More about spacing</h2>
+  <ul>
+    <li>Units: <code>cm</code>, <code>mm</code>, <code>in</code>, <code>pt</code>, <code>em</code> (width of an M) and <code>ex</code> (height of an x)</li>
+    <li>Avoid <code>\\</code> to make space between paragraphs, use an empty line and <code>\parskip</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

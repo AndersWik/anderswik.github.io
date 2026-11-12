@@ -1,0 +1,41 @@
+---
+layout: default
+title: Paragraphs and line breaks
+permalink: /markdown/line-breaks/
+chapter: "02"
+chapter_title: "Text"
+keywords: [markdown, paragraph, paragraphs, line break, newline, br, empty line, whitespace]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Paragraphs and line breaks</h1>
+  <p>Text on lines next to each other becomes one paragraph. A single newline is treated like a space. To start a new paragraph, leave an empty line.</p>
+  <h2>Paragraphs</h2>
+  <pre><code class="language-markdown">This is the first paragraph.
+This line is part of the same paragraph.
+
+This is the second paragraph.</code></pre>
+  <h2>Line break with two spaces</h2>
+  <p>End a line with two or more spaces to break the line without starting a new paragraph. The spaces are hard to see, so many prefer the other ways below.</p>
+  <pre><code class="language-markdown">Roses are red,␣␣
+Violets are blue.</code></pre>
+  <p>The <code>␣</code> marks a space here.</p>
+  <h2>Line break with a backslash</h2>
+  <p>CommonMark and GitHub also accept a <code>\</code> at the end of the line.</p>
+  <pre><code class="language-markdown">Roses are red,\
+Violets are blue.</code></pre>
+  <h2>Line break with HTML</h2>
+  <p><code>&lt;br&gt;</code> works in every flavor that allows <a href="/markdown/inline-html/">inline HTML</a>.</p>
+  <pre><code class="language-markdown">Roses are red,&lt;br&gt;
+Violets are blue.</code></pre>
+  <h2>More about line breaks</h2>
+  <ul>
+    <li>Do not indent paragraphs. Four spaces at the start of a line turns it into a <a href="/markdown/code/">code block</a></li>
+    <li>Many editors remove spaces at the end of lines when saving, which removes two space line breaks</li>
+    <li>Some apps, like GitHub comments and many chat apps, keep every newline as a line break</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

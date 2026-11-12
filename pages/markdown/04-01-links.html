@@ -1,0 +1,53 @@
+---
+layout: default
+title: Links
+permalink: /markdown/links/
+chapter: "04"
+chapter_title: "Links and media"
+keywords: [markdown, links, link, url, href, anchor, reference, autolink, email, relative]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Links</h1>
+  <p>Put the link text in square brackets and the address in parentheses right after it.</p>
+  <h2>Inline link</h2>
+  <pre><code class="language-markdown">[Example](https://example.com)</code></pre>
+  <h2>Link with a title</h2>
+  <p>The title is shown when you hover over the link.</p>
+  <pre><code class="language-markdown">[Example](https://example.com "Go to example.com")</code></pre>
+  <h2>Automatic links</h2>
+  <p>Angle brackets turn an address or email into a link. GitHub also links plain addresses that start with <code>www.</code> or <code>https://</code>.</p>
+  <pre><code class="language-markdown">&lt;https://example.com&gt;
+&lt;someone@example.com&gt;
+https://example.com</code></pre>
+  <h2>Reference links</h2>
+  <p>Reference links keep long addresses out of the text. The definitions can be anywhere in the file and are not shown. The reference is not case sensitive.</p>
+  <pre><code class="language-markdown">Read the [manual][docs] or ask on the [forum][].
+Search with [DuckDuckGo][1].
+
+[docs]: https://example.com/docs
+[forum]: https://example.com/forum "The forum"
+[1]: https://duckduckgo.com</code></pre>
+  <h2>Link to a header</h2>
+  <p>Each header gets an id from its text in lower case, with spaces turned into <code>-</code>.</p>
+  <pre><code class="language-markdown">[Go to Install](#install)
+[See the setup guide](setup.md#first-steps)</code></pre>
+  <h2>Relative links</h2>
+  <p>Link to other files in the same project with a path instead of a full address.</p>
+  <pre><code class="language-markdown">[Contributing](CONTRIBUTING.md)
+[Docs](docs/index.md)
+[Up one folder](../README.md)</code></pre>
+  <h2>Email and phone</h2>
+  <pre><code class="language-markdown">[Send an email](mailto:someone@example.com)
+[Call us](tel:+46123456789)</code></pre>
+  <h2>More about links</h2>
+  <ul>
+    <li>Use <code>%20</code> instead of spaces in addresses, or put the address in angle brackets: <code>[File](&lt;my file.md&gt;)</code></li>
+    <li>Standard Markdown cannot open links in a new tab. Use <a href="/markdown/inline-html/">HTML</a>, or <code>{:target="_blank"}</code> after the link in kramdown</li>
+    <li>An image inside a link makes a clickable image, see <a href="/markdown/images/">images</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,44 @@
+---
+layout: default
+title: Lsblk
+permalink: /linux/lsblk/
+chapter: "07"
+chapter_title: "Disc"
+keywords: [linux, lsblk, disc, disk, partitions, block devices, mount]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lsblk</h1>
+  <p><code>lsblk</code> stands for list block devices. It shows the disks in the computer, the partitions on them, their size and where they are mounted. It is useful to find the name of a USB stick or a new disk, for example <code>/dev/sdb</code>.</p>
+  <h2>List disks and partitions</h2>
+  <pre><code class="language-bash">$ lsblk</code></pre>
+  <p>Partitions are shown indented under the disk they belong to. The <code>MOUNTPOINTS</code> column shows where each partition is mounted.</p>
+  <h2>Show file systems</h2>
+  <p><code>-f</code> shows the file system type, label and UUID of each partition.</p>
+  <pre><code class="language-bash">$ lsblk -f</code></pre>
+  <h2>Choose columns</h2>
+  <pre><code class="language-bash">$ lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
+$ lsblk -d                 # only disks, no partitions</code></pre>
+  <h2>One disk</h2>
+  <pre><code class="language-bash">$ lsblk /dev/sda</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>lsblk</code> and all its options.</p>
+  <pre><code class="language-bash">$ lsblk --help
+$ lsblk -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>lsblk</code> is installed.</p>
+  <pre><code class="language-bash">$ lsblk --version
+$ lsblk -V</code></pre>
+  <h2>More about lsblk</h2>
+  <ul>
+    <li><code>df</code> shows how much space is used on mounted file systems</li>
+    <li><code>du</code> shows how much space files and directories use</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/lsblk.txt">man lsblk</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, lsblk, disc, disk, partitions, block devices, mount</p>
+  {% include trail.html %}
+</div>

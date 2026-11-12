@@ -1,0 +1,97 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  text-align: center;
+  max-width: 420px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.game h1 {
+  color: #3498db;
+  text-shadow: 2px 2px #0a629d;
+}
+
+.game svg {
+  width: 200px;
+  height: 220px;
+}
+
+.game svg line,
+.game svg circle {
+  stroke: #333333;
+  stroke-width: 5;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.game #word {
+  font-size: 28px;
+  letter-spacing: 4px;
+  margin: 20px 0;
+}
+
+.game #wrong {
+  color: #d94343;
+  font-size: 18px;
+}
+
+.game #message {
+  font-size: 20px;
+  font-weight: bold;
+  min-height: 1.5em;
+}
+
+.game #keyboard button {
+  width: 40px;
+  padding: 8px 0;
+  margin: 3px;
+  font-size: 16px;
+  background-color: #3498db;
+  color: #ffffff;
+  border: 3px solid #0a629d;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game #keyboard button:hover:enabled {
+  box-shadow: 0 0 10px #0a629d;
+}
+
+.game #keyboard button.correct {
+  background-color: #99e883;
+  border-color: #82e965;
+  color: #666666;
+}
+
+.game #keyboard button.wrong {
+  background-color: #d47575;
+  border-color: #d94343;
+  color: #666666;
+}
+
+.game #keyboard button:disabled:not(.correct):not(.wrong) {
+  background-color: #cccccc;
+  border-color: #999999;
+  color: #666666;
+}
+
+.game #newWord {
+  padding: 10px 20px;
+  margin-top: 20px;
+  font-size: 18px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}

@@ -1,0 +1,174 @@
+MOKUTIL(1)                  General Commands Manual                 MOKUTIL(1)
+
+NAME
+       mokutil - utility to manipulate machine owner keys
+
+SYNOPSIS
+       mokutil [--list-enrolled | -l]
+               ([--mokx | -X])
+       mokutil [--list-new | -N]
+               ([--mokx | -X])
+       mokutil [--list-delete | -D]
+               ([--mokx | -X])
+       mokutil [--import keylist| -i keylist]
+               ([--hash-file hashfile | -f hashfile] | [--root-pw | -P] |
+                [--mokx | -X] | [--ca-check] | [--ignore-keyring])
+       mokutil [--delete keylist | -d keylist]
+               ([--hash-file hashfile | -f hashfile] | [--root-pw | -P] |
+                [--mokx |- X])
+       mokutil [--revoke-import]
+               ([--mokx | -X])
+       mokutil [--revoke-delete]
+               ([--mokx | -X])
+       mokutil [--export | -x]
+       mokutil [--password | -p]
+               ([--hash-file hashfile | -f hashfile] | [--root-pw | -P])
+       mokutil [--clear-password | -c]
+       mokutil [--disable-validation]
+       mokutil [--enable-validation]
+       mokutil [--sb-state]
+       mokutil [--test-key keyfile | -t keyfile]
+               ([--mokx | -X] | [--ca-check] | [--ignore-keyring])
+       mokutil [--reset]
+               ([--hash-file hashfile | -f hashfile] | [--root-pw | -P] |
+                [--mok | -X])
+       mokutil [--generate-hash=password | -gpassword]
+       mokutil [--ignore-db]
+       mokutil [--use-db]
+       mokutil [--import-hash hash]
+               ([--hash-file hashfile | -f hashfile] | [--root-pw | -P] |
+                [--mokx | -X])
+       mokutil [--delete-hash hash]
+               ([--hash-file hashfile | -f hashfile] | [--root-pw | -P] |
+                [--mokx | -X])
+       mokutil [--set-verbosity (true | false)]
+       mokutil [--set-fallback-verbosity (true | false)]
+       mokutil [--set-fallback-noreboot (true | false)]
+       mokutil [--pk]
+       mokutil [--kek]
+       mokutil [--db]
+       mokutil [--dbx]
+       mokutil [--list-sbat-revocations]
+       mokutil [--set-sbat-policy (latest | previous | delete)]
+       mokutil [--timeout -1,0..0x7fff]
+
+DESCRIPTION
+       mokutil  is  a  tool  to import or delete the machines owner keys (MOK)
+       stored in the database of shim.
+
+OPTIONS
+       -l, --list-enrolled
+              List the keys the already stored in the database
+
+       -N, --list-new
+              List the keys to be enrolled
+
+       -D, --list-delete
+              List the keys to be deleted
+
+       -i, --import
+              Collect the following files and form  an  enrolling  request  to
+              shim. The files must be in DER format.
+
+       -d, --delete
+              Collect the following files and form a deleting request to shim.
+              The files must be in DER format.
+
+       --revoke-import
+              Revoke the current import request (MokNew)
+
+       --revoke-delete
+              Revoke the current delete request (MokDel)
+
+       -x, --export
+              Export the keys stored in MokListRT
+
+       -p, --password
+              Setup the password for MokManager (MokPW)
+
+       -c, --clear-password
+              Clear the password for MokManager (MokPW)
+
+       --disable-validation
+              Disable the validation process in shim
+
+       --enable-validation
+              Enable the validation process in shim
+
+       --sb-state
+              Show SecureBoot State
+
+       -t, --test-key
+              Test if the key is enrolled or not
+
+       --reset
+              Reset MOK list
+
+       --generate-hash
+              Generate the password hash
+
+       --hash-file
+              Use the password hash from a specific file
+
+       -P, --root-pw
+              Use the root password hash from /etc/shadow
+
+       --ignore-db
+              Tell shim to not use the keys in db to verify EFI images
+
+       --use-db
+              Tell shim to use the keys in db to verify EFI images (default)
+
+       -X, --mokx
+              Manipulate the MOK blacklist (MOKX) instead of the MOK list
+
+       --import-hash
+              Create an enrolling request for the hash of a key in DER format.
+              Note that this is not the password hash.
+
+       --delete-hash
+              Create  a  deleting request for the hash of a key in DER format.
+              Note that this is not the password hash.
+
+       --set-verbosity
+              Set the SHIM_VERBOSE to make shim more or less verbose
+
+       --set-fallback-verbosity
+              Set the FALLBACK_VERBOSE to make fallback more or less verbose
+
+       --set-fallback-noreboot
+              Set the FB_NO_REBOOT to prevent fallback from automatically  re‐
+              booting the system
+
+       --pk   List the keys in the public Platform Key (PK)
+
+       --kek  List the keys in the Key Exchange Key Signature database (KEK)
+
+       --db   List the keys in the secure boot signature store (db)
+
+       --dbx  List the keys in the secure boot blacklist signature store (dbx)
+
+       --list-sbat-revocations
+              List  the  entries  in  the Secure Boot Advanced Targeting store
+              (SBAT)
+
+       --set-sbat-policy (latest | previous | delete)
+              Set the SbatPolicy UEFI Variable to have shim apply  either  the
+              latest or the previous SBAT revocations.  If UEFI Secure Boot is
+              disabled, then delete will reset  the  SBAT  revocations  to  an
+              empty revocation list.  While latest and previous are persistent
+              configuration, delete will be cleared by shim on the  next  boot
+              whether  or not it succeeds. The default behavior is for shim to
+              apply the previous revocations.
+
+       --timeout
+              Set the timeout for MOK prompt
+
+       --ca-check
+              Check if the CA of the given key is already enrolled or  blocked
+              in the key databases.
+
+       --ignore-keyring
+              Ignore  the  kernel  builtin trusted keys keyring check when en‐
+              rolling a key into MokList
+

@@ -1,0 +1,52 @@
+---
+layout: default
+title: Matrices
+permalink: /latex/matrices/
+chapter: "04"
+chapter_title: "Math"
+keywords: [latex, matrix, matrices, pmatrix, bmatrix, vmatrix, determinant, vector, array]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Matrices</h1>
+  <p><code>amsmath</code> has matrix environments with different brackets. Columns are split with <code>&amp;</code> and rows with <code>\\</code>.</p>
+  <h2>Matrix types</h2>
+  <pre><code class="language-latex">\begin{matrix}  a &amp; b \\ c &amp; d \end{matrix}    % no brackets
+\begin{pmatrix} a &amp; b \\ c &amp; d \end{pmatrix}   % ( )
+\begin{bmatrix} a &amp; b \\ c &amp; d \end{bmatrix}   % [ ]
+\begin{Bmatrix} a &amp; b \\ c &amp; d \end{Bmatrix}   % { }
+\begin{vmatrix} a &amp; b \\ c &amp; d \end{vmatrix}   % | |, determinant
+\begin{Vmatrix} a &amp; b \\ c &amp; d \end{Vmatrix}   % || ||</code></pre>
+  <h2>Large matrix</h2>
+  <pre><code class="language-latex">\[
+  A =
+  \begin{pmatrix}
+    a_{11} &amp; a_{12} &amp; \cdots &amp; a_{1n} \\
+    a_{21} &amp; a_{22} &amp; \cdots &amp; a_{2n} \\
+    \vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+    a_{m1} &amp; a_{m2} &amp; \cdots &amp; a_{mn}
+  \end{pmatrix}
+\]</code></pre>
+  <h2>Vector</h2>
+  <pre><code class="language-latex">\vec{v} = \begin{pmatrix} 1 \\ 2 \\ 3 \end{pmatrix}</code></pre>
+  <h2>Small matrix in text</h2>
+  <pre><code class="language-latex">$\left(\begin{smallmatrix} a &amp; b \\ c &amp; d \end{smallmatrix}\right)$</code></pre>
+  <h2>Array</h2>
+  <p><code>array</code> works like a <a href="/latex/tables/">table</a> in math mode, with alignment and lines.</p>
+  <pre><code class="language-latex">\[
+  \left[
+  \begin{array}{cc|c}
+    1 &amp; 2 &amp; 3 \\
+    4 &amp; 5 &amp; 6
+  \end{array}
+  \right]
+\]</code></pre>
+  <h2>More about matrices</h2>
+  <ul>
+    <li>Transpose: <code>A^T</code> or <code>A^\top</code>, inverse: <code>A^{-1}</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

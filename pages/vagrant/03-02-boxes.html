@@ -1,0 +1,48 @@
+---
+layout: default
+title: Boxes
+permalink: /vagrant/boxes/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, box, boxes, image, add, list, outdated, update, remove, prune, packer]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Boxes</h1>
+  <p>A box is a ready made image of an operating system that Vagrant builds new machines from. Boxes are downloaded once and stored on your computer, so every new machine from the same box starts quickly.</p>
+  <p>Boxes are named <code>owner/name</code>, for example <code>bento/ubuntu-24.04</code> or <code>debian/bookworm64</code>. You can search for boxes on <a href="https://portal.cloud.hashicorp.com/vagrant/discover">HashiCorp's box catalog</a>.</p>
+  <h2>List boxes</h2>
+  <pre><code class="language-bash">$ vagrant box list
+There are no installed boxes! Use `vagrant box add` to add some.</code></pre>
+  <h2>Add a box</h2>
+  <p>You do not have to add a box before using it, <code>vagrant up</code> downloads it when needed. To download it in advance, use <code>add</code>.</p>
+  <pre><code class="language-bash">$ vagrant box add bento/ubuntu-24.04</code></pre>
+  <p>If the box works with several <a href="/vagrant/providers/">providers</a>, Vagrant asks which one you use. You can also set it on the command line.</p>
+  <pre><code class="language-bash">$ vagrant box add bento/ubuntu-24.04 --provider virtualbox</code></pre>
+  <h2>Update boxes</h2>
+  <p>Box owners publish new versions. <code>outdated</code> checks if there is a newer version of the box. <code>update</code> downloads it.</p>
+  <pre><code class="language-bash">$ vagrant box outdated
+$ vagrant box outdated --global
+$ vagrant box update</code></pre>
+  <p>Existing machines keep using the old version. The new version is used the next time a machine is created.</p>
+  <h2>Remove boxes</h2>
+  <p>Boxes take up a lot of disk space. <code>remove</code> deletes a box, and <code>prune</code> removes all old versions that are no longer needed.</p>
+  <pre><code class="language-bash">$ vagrant box remove bento/ubuntu-24.04
+$ vagrant box prune</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> list all <code>box</code> subcommands. Add them after a subcommand to see its options.</p>
+  <pre><code class="language-bash">$ vagrant box --help
+$ vagrant box -h
+$ vagrant box add -h</code></pre>
+  <h2>More about boxes</h2>
+  <ul>
+    <li><code>repackage</code> turns an installed box back into a <code>.box</code> file</li>
+    <li>Build your own boxes with <a href="https://developer.hashicorp.com/packer">Packer</a>, or from a running machine with <code>vagrant package</code></li>
+    <li>Choose which box a machine uses in the <a href="/vagrant/vagrantfile/">Vagrantfile</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/cli/box">vagrant box</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

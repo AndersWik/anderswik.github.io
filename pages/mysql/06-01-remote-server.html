@@ -1,0 +1,31 @@
+---
+layout: default
+title: Remote server
+permalink: /mysql/remote-server/
+chapter: "06"
+chapter_title: "Remote server"
+keywords: [mysql, sql, remote, server, host, port, connect, import, export, mysqldump, single-transaction, lock tables]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Remote server</h1>
+  <p>The <code>mysql</code> client can connect to a server on another machine. <code>-h</code> gives the host or ip and <code>-P</code> gives the port. The default port is 3306.</p>
+  <h2>Connect</h2>
+  <pre><code class="language-bash">$ mysql -h {ip} -P 3306 -u {user} -p</code></pre>
+  <h2>Import database</h2>
+  <pre><code class="language-bash">$ mysql -h {ip} -P 3306 -u {user} -p {db name} &lt; {db dump name}.sql</code></pre>
+  <h2>Export database</h2>
+  <p>Exporting from a remote server can give this error when the user is not allowed to lock tables:</p>
+  <pre><code class="language-plaintext">Got error: 1044: Access denied for user '' to database '' when using LOCK TABLES</code></pre>
+  <p>Add <code>--single-transaction</code> to fix this.</p>
+  <pre><code class="language-bash">$ mysqldump --single-transaction -h {ip} -P 3306 -u {user} -p {db name} &gt; {db dump name}.sql</code></pre>
+  <h2>More about remote servers</h2>
+  <ul>
+    <li><a href="/mysql/export/">Export</a> and <a href="/mysql/import/">import</a> on a local server</li>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/connecting.html">Connecting to the MySQL server</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

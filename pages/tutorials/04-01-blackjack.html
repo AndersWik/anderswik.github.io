@@ -1,0 +1,842 @@
+---
+layout: default
+title: Blackjack
+permalink: /tutorials/blackjack/
+chapter: "04"
+chapter_title: "Casino games"
+keywords: [javascript, game, cards, deck, shuffle, fisher-yates, state, render, disabled buttons]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Blackjack</h1>
+  <p>Blackjack against the dealer: bet with chips, then hit or stand, double down, split pairs and take insurance. There is no canvas here. It is built from page elements, with the same pattern as the <a href="/tutorials/discgolf/">disc golf score card</a>: one state, and one <code>render()</code> that draws the page from it.</p>
+  <p><a href="/assets/tutorials/blackjack.html">Open the finished game</a></p>
+  <h2>The rules</h2>
+  <ul>
+    <li>Get closer to 21 than the dealer without going over. Going over is called <strong>bust</strong>, and you lose.</li>
+    <li>2-10 count their number, J, Q and K count 10, and an ace counts 11 or 1, whichever is better.</li>
+    <li>You get two cards. The dealer gets two, but one is face down.</li>
+    <li><strong>Hit</strong> gives you another card. <strong>Stand</strong> ends your turn. Then the dealer turns the hidden card and must draw until 17 or more.</li>
+    <li><strong>Blackjack</strong> is 21 with the first two cards. It pays 3 to 2: a $10 bet wins $15.</li>
+    <li><strong>Double down</strong>: double your bet, get exactly one more card.</li>
+    <li><strong>Split</strong>: two cards of the same value become two hands, each with its own bet.</li>
+    <li><strong>Insurance</strong>: when the dealer shows an ace, you can bet half your bet that the dealer has blackjack. It pays 2 to 1.</li>
+  </ul>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>blackjack.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Blackjack&lt;/h1&gt;
+
+&lt;div class="hand"&gt;
+  Dealer &lt;span id="dealer-score"&gt;&lt;/span&gt;
+  &lt;div id="dealer-cards" class="cards"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="hand"&gt;
+  You
+  &lt;div id="player-hands"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="result" aria-live="polite"&gt;&lt;/div&gt;
+&lt;p&gt;Balance: $&lt;span id="balance"&gt;1000&lt;/span&gt; | Bet: $&lt;span id="current-bet"&gt;0&lt;/span&gt;&lt;/p&gt;
+
+&lt;div&gt;
+  &lt;button type="button" id="placeBet10"&gt;$10&lt;/button&gt;
+  &lt;button type="button" id="placeBet50"&gt;$50&lt;/button&gt;
+  &lt;button type="button" id="placeBet100"&gt;$100&lt;/button&gt;
+  &lt;button type="button" id="clearBet"&gt;Clear&lt;/button&gt;
+&lt;/div&gt;
+&lt;div&gt;
+  &lt;button type="button" id="startGame"&gt;Deal&lt;/button&gt;
+  &lt;button type="button" id="hit"&gt;Hit&lt;/button&gt;
+  &lt;button type="button" id="stand"&gt;Stand&lt;/button&gt;
+&lt;/div&gt;
+&lt;div&gt;
+  &lt;button type="button" id="doubleDown"&gt;Double down&lt;/button&gt;
+  &lt;button type="button" id="split"&gt;Split&lt;/button&gt;
+  &lt;button type="button" id="takeInsurance"&gt;Insurance&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+  <p>The card areas start empty. JavaScript fills them.</p>
+  <h2>Step 2: The CSS</h2>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    color: white;
+    background-color: #35654d;
+    text-align: center;
+}
+
+.cards {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    min-height: 90px;
+    margin: 10px 0 20px;
+}
+
+.card {
+    width: 60px;
+    height: 90px;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    color: black;
+    background-color: white;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card.red {
+    color: red;
+}
+
+/* The back of a card: blue stripes made with a CSS gradient. */
+.card.hidden {
+    background: repeating-linear-gradient(45deg, #1d4e89, #1d4e89 6px, #ffffff 6px, #ffffff 9px);
+}
+
+/* New cards slide in from above. */
+.card.new {
+    animation: deal 0.3s;
+}
+
+@keyframes deal {
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+}
+
+.player-hand {
+    display: inline-block;
+    margin: 0 10px;
+    padding: 0 10px;
+    border-radius: 8px;
+}
+
+.player-hand.active {
+    outline: 3px solid #f7931a;
+}
+
+#result {
+    min-height: 3em;
+    font-size: 20px;
+    white-space: pre-line;
+}
+
+button {
+    margin: 4px;
+    padding: 10px 16px;
+    font-size: 16px;
+}</code></pre>
+  <p>Two tricks:</p>
+  <ul>
+    <li>The back of a card is a <code>repeating-linear-gradient</code>: blue and white stripes at 45 degrees, made with CSS, without a picture.</li>
+    <li>Cards with the class <code>new</code> slide in with an animation. <code>@keyframes deal</code> only gives a <code>from</code>, so the card goes from 30 pixels up and see-through to where it normally is.</li>
+  </ul>
+  <p><code>white-space: pre-line</code> on the result makes <code>\n</code> in the text start a new line, so we can show one line per hand.</p>
+  <h2>Step 3: The state</h2>
+  <pre><code class="language-javascript">let balance = START_BALANCE;
+let bet = 0;              // the bet being placed before Deal
+let playing = false;      // true while the player is playing a hand
+let deck = [];
+let dealer = [];          // the dealer's cards; dealer[0] is face down
+let hands = [];           // the player's hands: { cards, bet }
+let active = 0;           // which hand the player is playing
+let insurance = 0;
+let peeked = false;       // has the dealer looked for blackjack?
+let message = "Click the chips to place a bet.";</code></pre>
+  <p>The player's cards are a <strong>list of hands</strong>, even though there is usually only one. That way splitting is easy: one hand becomes two, and the rest of the code doesn't change. A card is an object like <code>{ suit: "♥", value: "Q" }</code>.</p>
+  <h2>Step 4: Making and shuffling a deck</h2>
+  <p>Two loops, one inside the other, make all 52 cards. Then we shuffle with the <strong>Fisher-Yates shuffle</strong>: go from the last card to the first, and swap each card with a random card at or before it.</p>
+  <pre><code class="language-javascript">function newDeck() {
+    const cards = [];
+    for (const suit of SUITS) {
+        for (const value of VALUES) {
+            cards.push({ suit: suit, value: value });
+        }
+    }
+    for (let i = cards.length - 1; i &gt; 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+    }
+    return cards;
+}</code></pre>
+  <p><code>[a, b] = [b, a]</code> swaps two values in one line. The shuffle is short, but it is easy to get wrong. A common mistake is to swap each card with any card in the whole deck. That looks random, but some orders come up more often than others. Fisher-Yates makes every order equally likely.</p>
+  <p>Cards are dealt with <code>deck.pop()</code>, which takes the last card off the list.</p>
+  <h2>Step 5: Counting a hand</h2>
+  <p>The ace is the tricky card. We count every ace as 11 first. Then, while the total is over 21 and there is still an ace counted as 11, we change it to 1 by subtracting 10:</p>
+  <pre><code class="language-javascript">function score(cards) {
+    let total = 0;
+    let aces = 0;
+    for (const card of cards) {
+        total += cardValue(card);
+        if (card.value === "A") {
+            aces++;
+        }
+    }
+    while (total &gt; 21 &amp;&amp; aces &gt; 0) {
+        total -= 10;
+        aces--;
+    }
+    return total;
+}</code></pre>
+  <p>A, A, 9 gives 31, then 21. A, K gives 21 straight away.</p>
+  <h2>Step 6: Betting</h2>
+  <p>Chips move money from the balance to the bet, and Clear moves it back. The money leaves the balance when you bet, so a win pays the bet back plus the win, and a push (a tie) pays back only the bet.</p>
+  <pre><code class="language-javascript">function addChip(chip) {
+    if (playing || balance &lt; chip) {
+        return;
+    }
+    balance -= chip;
+    bet += chip;
+    message = "";
+    render();
+}</code></pre>
+  <h2>Step 7: Dealing, and the dealer's peek</h2>
+  <pre><code class="language-javascript">deck = newDeck();
+hands = [{ cards: [deck.pop(), deck.pop()], bet: bet }];
+dealer = [deck.pop(), deck.pop()];
+
+const upCard = dealer[1];
+if (isBlackjack(hand().cards)) {
+    finishRound();
+} else if (cardValue(upCard) === 10) {
+    peek();
+} else if (upCard.value === "A") {
+    message = "The dealer shows an ace. Insurance?";
+}</code></pre>
+  <p>In a casino, the dealer <strong>peeks</strong> at the hidden card when the visible card is a 10 or an ace. If the dealer has blackjack, the round ends right away, before the player puts more money in with a double or split. With an ace showing, the dealer waits with the peek until the player has decided about insurance. So every action calls <code>peek()</code> first:</p>
+  <pre><code class="language-javascript">function peek() {
+    if (peeked) {
+        return false;
+    }
+    peeked = true;
+    if (dealerHasBlackjack()) {
+        finishRound();
+        return true;
+    }
+    return false;
+}
+
+function hit() {
+    if (peek()) {
+        render();
+        return;
+    }
+    hand().cards.push(deck.pop());
+    if (score(hand().cards) &gt;= 21) {
+        nextHand();
+    }
+    render();
+}</code></pre>
+  <p><code>peeked</code> makes sure it only happens once per round.</p>
+  <h2>Step 8: Double down and split</h2>
+  <p>Double down needs one more bet, not two. Then you get exactly one card, and the hand is done:</p>
+  <pre><code class="language-javascript">balance -= hand().bet;
+hand().bet *= 2;
+hand().cards.push(deck.pop());
+nextHand();</code></pre>
+  <p>Split turns one hand into two, each with one of the cards and a new card:</p>
+  <pre><code class="language-javascript">const [first, second] = hand().cards;
+balance -= hand().bet;
+hands = [
+    { cards: [first, deck.pop()], bet: hand().bet },
+    { cards: [second, deck.pop()], bet: hand().bet }
+];</code></pre>
+  <p>After each hand, <code>nextHand()</code> moves on to the next hand, or lets the dealer play after the last one. The dealer doesn't draw at all if every hand is bust, because there is nothing left to beat.</p>
+  <h2>Step 9: Paying out</h2>
+  <p><code>finishRound()</code> compares each hand with the dealer and pays. The order of the checks matters. Bust loses even if the dealer also goes bust, and blackjack against blackjack is a tie:</p>
+  <pre><code class="language-javascript">if (playerScore &gt; 21) {
+    result = "Bust";
+} else if (isBlackjack(h.cards) &amp;&amp; dealerHasBlackjack()) {
+    result = "Push";
+    payout = h.bet;
+} else if (isBlackjack(h.cards)) {
+    result = "Blackjack!";
+    payout = h.bet * 2.5;     // the bet back, plus 3 to 2
+} else if (dealerHasBlackjack()) {
+    result = "Dealer has blackjack";
+} else if (dealerScore &gt; 21 || playerScore &gt; dealerScore) {
+    result = "Win";
+    payout = h.bet * 2;
+} else if (playerScore &lt; dealerScore) {
+    result = "Lose";
+} else {
+    result = "Push";
+    payout = h.bet;
+}</code></pre>
+  <p>21 after a split isn't blackjack. <code>isBlackjack()</code> checks that there is only one hand.</p>
+  <h2>Step 10: Buttons that know when they can be used</h2>
+  <p>Instead of telling the user "you can't do that" afterwards, we turn off buttons that can't be used. <code>render()</code> works out each one from the state:</p>
+  <pre><code class="language-javascript">doubleButton.disabled = !twoCards || balance &lt; current.bet;
+splitButton.disabled = !twoCards || hands.length &gt; 1 ||
+    cardValue(current.cards[0]) !== cardValue(current.cards[1]) ||
+    balance &lt; current.bet;</code></pre>
+  <p>Because this runs after every change, the buttons can never be wrong for long. The same idea makes the hidden card simple: it is face down while <code>playing</code> is true, and shown as soon as the round is over.</p>
+  <p>Cards slide in only the first time they are drawn. Each card object gets <code>shown = true</code> the first time, and only cards without it get the class <code>new</code>. Otherwise every card on the table would slide in again each time you hit.</p>
+  <h2>Step 11: Test it</h2>
+  <p>Random cards make testing slow, so in the console you can replace <code>newDeck</code> with a deck you choose. <code>pop()</code> takes cards from the end, so the last card in the list is dealt first: your first card, your second, the dealer's hidden card, the dealer's visible card, then any extra cards.</p>
+  <pre><code class="language-javascript">function c(value) { return { value: value, suit: "♠" }; }
+
+// You: A, K (blackjack). Dealer: 7 hidden, 9 showing.
+newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
+  <p>Bet $10 and press Deal. You should win $15. Try other decks:</p>
+  <ul>
+    <li>Split: you 8, 8. Then play one hand to a win and bust the other.</li>
+    <li>Insurance: the dealer shows an ace with a K hidden. Take insurance. You get it back 2 to 1.</li>
+    <li>Out of money: lose everything. The Deal button should start you over with $1000.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>blackjack.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Blackjack&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        color: white;
+        background-color: #35654d;
+        text-align: center;
+    }
+
+    .cards {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        min-height: 90px;
+        margin: 10px 0 20px;
+    }
+
+    .card {
+        width: 60px;
+        height: 90px;
+        border: 1px solid #333333;
+        border-radius: 8px;
+        color: black;
+        background-color: white;
+        font-size: 18px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card.red {
+        color: red;
+    }
+
+    /* The back of a card: blue stripes made with a CSS gradient. */
+    .card.hidden {
+        background: repeating-linear-gradient(45deg, #1d4e89, #1d4e89 6px, #ffffff 6px, #ffffff 9px);
+    }
+
+    /* New cards slide in from above. */
+    .card.new {
+        animation: deal 0.3s;
+    }
+
+    @keyframes deal {
+        from {
+            transform: translateY(-30px);
+            opacity: 0;
+        }
+    }
+
+    .player-hand {
+        display: inline-block;
+        margin: 0 10px;
+        padding: 0 10px;
+        border-radius: 8px;
+    }
+
+    .player-hand.active {
+        outline: 3px solid #f7931a;
+    }
+
+    #result {
+        min-height: 3em;
+        font-size: 20px;
+        white-space: pre-line;
+    }
+
+    button {
+        margin: 4px;
+        padding: 10px 16px;
+        font-size: 16px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Blackjack&lt;/h1&gt;
+
+  &lt;div class="hand"&gt;
+    Dealer &lt;span id="dealer-score"&gt;&lt;/span&gt;
+    &lt;div id="dealer-cards" class="cards"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="hand"&gt;
+    You
+    &lt;div id="player-hands"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div id="result" aria-live="polite"&gt;&lt;/div&gt;
+  &lt;p&gt;Balance: $&lt;span id="balance"&gt;1000&lt;/span&gt; | Bet: $&lt;span id="current-bet"&gt;0&lt;/span&gt;&lt;/p&gt;
+
+  &lt;div&gt;
+    &lt;button type="button" id="placeBet10"&gt;$10&lt;/button&gt;
+    &lt;button type="button" id="placeBet50"&gt;$50&lt;/button&gt;
+    &lt;button type="button" id="placeBet100"&gt;$100&lt;/button&gt;
+    &lt;button type="button" id="clearBet"&gt;Clear&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;button type="button" id="startGame"&gt;Deal&lt;/button&gt;
+    &lt;button type="button" id="hit"&gt;Hit&lt;/button&gt;
+    &lt;button type="button" id="stand"&gt;Stand&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;button type="button" id="doubleDown"&gt;Double down&lt;/button&gt;
+    &lt;button type="button" id="split"&gt;Split&lt;/button&gt;
+    &lt;button type="button" id="takeInsurance"&gt;Insurance&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Blackjack against the dealer.
+     *
+     * Get closer to 21 than the dealer without going over. Number cards count
+     * their number, J Q K count 10, and an ace counts 11 or 1.
+     *
+     * Rules in this game:
+     *   - Click the chips to bet, then Deal.
+     *   - Blackjack (21 with the first two cards) pays 3 to 2.
+     *   - The dealer draws until 17 or more.
+     *   - Double down: double the bet on two cards, get exactly one more card.
+     *   - Split: two cards of the same value become two hands, once.
+     *   - Insurance: when the dealer shows an ace, bet half your bet that the
+     *     dealer has blackjack. It pays 2 to 1.
+     *
+     * Like the other apps, every action changes the state and then calls
+     * render(), which draws the page from the state.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const START_BALANCE = 1000;
+    const SUITS = ["♠", "♥", "♦", "♣"];
+    const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const CHIPS = [10, 50, 100];
+
+    // --- Elements on the page ------------------------------------------------
+
+    function byId(id) {
+        return document.getElementById(id);
+    }
+
+    const dealerCards = byId("dealer-cards");
+    const dealerScoreText = byId("dealer-score");
+    const playerHands = byId("player-hands");
+    const resultText = byId("result");
+    const balanceText = byId("balance");
+    const betText = byId("current-bet");
+    const clearButton = byId("clearBet");
+    const dealButton = byId("startGame");
+    const hitButton = byId("hit");
+    const standButton = byId("stand");
+    const doubleButton = byId("doubleDown");
+    const splitButton = byId("split");
+    const insuranceButton = byId("takeInsurance");
+    const chipButtons = CHIPS.map(function (chip) {
+        return byId("placeBet" + chip);
+    });
+
+    // --- State ---------------------------------------------------------------
+
+    let balance = START_BALANCE;
+    let bet = 0;              // the bet being placed before Deal
+    let playing = false;      // true while the player is playing a hand
+    let deck = [];
+    let dealer = [];          // the dealer's cards; dealer[0] is face down
+    let hands = [];           // the player's hands: { cards, bet }
+    let active = 0;           // which hand the player is playing
+    let insurance = 0;
+    let peeked = false;       // has the dealer looked for blackjack?
+    let message = "Click the chips to place a bet.";
+
+    // --- Cards ---------------------------------------------------------------
+
+    function newDeck() {
+        const cards = [];
+        for (const suit of SUITS) {
+            for (const value of VALUES) {
+                cards.push({ suit: suit, value: value });
+            }
+        }
+        // Fisher-Yates shuffle: swap every card with a random card at or
+        // before it. Every order is equally likely.
+        for (let i = cards.length - 1; i &gt; 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        return cards;
+    }
+
+    function cardValue(card) {
+        if (card.value === "A") {
+            return 11;
+        }
+        if (["J", "Q", "K"].includes(card.value)) {
+            return 10;
+        }
+        return Number(card.value);
+    }
+
+    // Count aces as 11, then as 1 while the total is over 21.
+    function score(cards) {
+        let total = 0;
+        let aces = 0;
+        for (const card of cards) {
+            total += cardValue(card);
+            if (card.value === "A") {
+                aces++;
+            }
+        }
+        while (total &gt; 21 &amp;&amp; aces &gt; 0) {
+            total -= 10;
+            aces--;
+        }
+        return total;
+    }
+
+    // Blackjack is 21 with the first two cards, and not after a split.
+    function isBlackjack(cards) {
+        return cards.length === 2 &amp;&amp; score(cards) === 21 &amp;&amp; hands.length === 1;
+    }
+
+    function dealerHasBlackjack() {
+        return dealer.length === 2 &amp;&amp; score(dealer) === 21;
+    }
+
+    function hand() {
+        return hands[active];
+    }
+
+    // --- Betting -------------------------------------------------------------
+
+    function addChip(chip) {
+        if (playing || balance &lt; chip) {
+            return;
+        }
+        balance -= chip;
+        bet += chip;
+        message = "";
+        render();
+    }
+
+    function clearBet() {
+        balance += bet;
+        bet = 0;
+        render();
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function deal() {
+        // Out of money: start again.
+        if (bet === 0 &amp;&amp; balance &lt; CHIPS[0]) {
+            balance = START_BALANCE;
+            message = "New game! Click the chips to place a bet.";
+            render();
+            return;
+        }
+        if (playing || bet === 0) {
+            return;
+        }
+
+        deck = newDeck();
+        hands = [{ cards: [deck.pop(), deck.pop()], bet: bet }];
+        dealer = [deck.pop(), deck.pop()];
+        bet = 0;
+        active = 0;
+        insurance = 0;
+        peeked = false;
+        playing = true;
+        message = "";
+
+        const upCard = dealer[1];
+        if (isBlackjack(hand().cards)) {
+            finishRound();      // nothing to decide; the dealer shows the cards
+        } else if (cardValue(upCard) === 10) {
+            // With a 10 showing, the dealer looks at the hidden card at once.
+            peek();
+        } else if (upCard.value === "A") {
+            message = "The dealer shows an ace. Insurance?";
+        }
+        render();
+    }
+
+    // The dealer looks for blackjack. If it is there, the round is over.
+    // Returns true if the round ended.
+    function peek() {
+        if (peeked) {
+            return false;
+        }
+        peeked = true;
+        if (dealerHasBlackjack()) {
+            finishRound();
+            return true;
+        }
+        return false;
+    }
+
+    function takeInsurance() {
+        insurance = hand().bet / 2;
+        balance -= insurance;
+        message = "";
+        if (!peek()) {
+            message = "No dealer blackjack. Insurance lost.";
+        }
+        render();
+    }
+
+    function hit() {
+        if (peek()) {
+            render();
+            return;
+        }
+        hand().cards.push(deck.pop());
+        if (score(hand().cards) &gt;= 21) {
+            nextHand();     // bust, or 21: nothing more to do
+        }
+        render();
+    }
+
+    function stand() {
+        if (!peek()) {
+            nextHand();
+        }
+        render();
+    }
+
+    function doubleDown() {
+        if (peek()) {
+            render();
+            return;
+        }
+        balance -= hand().bet;
+        hand().bet *= 2;
+        hand().cards.push(deck.pop());
+        nextHand();
+        render();
+    }
+
+    function split() {
+        if (peek()) {
+            render();
+            return;
+        }
+        const [first, second] = hand().cards;
+        balance -= hand().bet;
+        hands = [
+            { cards: [first, deck.pop()], bet: hand().bet },
+            { cards: [second, deck.pop()], bet: hand().bet }
+        ];
+        message = "Playing hand 1.";
+        render();
+    }
+
+    // Go on to the next hand, or let the dealer play after the last one.
+    function nextHand() {
+        active++;
+        if (active &lt; hands.length) {
+            message = "Playing hand " + (active + 1) + ".";
+        } else {
+            dealerPlays();
+        }
+    }
+
+    function dealerPlays() {
+        const allBust = hands.every(function (h) {
+            return score(h.cards) &gt; 21;
+        });
+        // The dealer only draws if there is a hand left to beat.
+        if (!allBust) {
+            while (score(dealer) &lt; 17) {
+                dealer.push(deck.pop());
+            }
+        }
+        finishRound();
+    }
+
+    function finishRound() {
+        playing = false;
+        const dealerScore = score(dealer);
+        const lines = [];
+
+        if (insurance &gt; 0 &amp;&amp; dealerHasBlackjack()) {
+            balance += insurance * 3;
+            lines.push("Insurance pays " + insurance * 2 + "!");
+        }
+
+        hands.forEach(function (h, index) {
+            const playerScore = score(h.cards);
+            let result;
+            let payout = 0;
+
+            if (playerScore &gt; 21) {
+                result = "Bust";
+            } else if (isBlackjack(h.cards) &amp;&amp; dealerHasBlackjack()) {
+                result = "Push";
+                payout = h.bet;
+            } else if (isBlackjack(h.cards)) {
+                result = "Blackjack!";
+                payout = h.bet * 2.5;     // the bet back, plus 3 to 2
+            } else if (dealerHasBlackjack()) {
+                result = "Dealer has blackjack";
+            } else if (dealerScore &gt; 21 || playerScore &gt; dealerScore) {
+                result = "Win";
+                payout = h.bet * 2;       // the bet back, plus the same again
+            } else if (playerScore &lt; dealerScore) {
+                result = "Lose";
+            } else {
+                result = "Push";
+                payout = h.bet;           // the bet back
+            }
+
+            balance += payout;
+            const name = hands.length &gt; 1 ? "Hand " + (index + 1) + ": " : "";
+            lines.push(name + result);
+        });
+
+        if (balance &lt; CHIPS[0]) {
+            lines.push("You are out of money. Press Deal to start again.");
+        }
+        message = lines.join("\n");
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function cardElement(card, faceDown) {
+        const element = document.createElement("div");
+        element.className = "card";
+
+        if (faceDown) {
+            element.classList.add("hidden");
+            element.setAttribute("aria-label", "face down card");
+        } else {
+            element.textContent = card.value + card.suit;
+            if (card.suit === "♥" || card.suit === "♦") {
+                element.classList.add("red");
+            }
+        }
+        // Only new cards slide in; cards that were already shown stay still.
+        if (!card.shown) {
+            element.classList.add("new");
+            card.shown = true;
+        }
+        return element;
+    }
+
+    function render() {
+        // The dealer's hidden card is shown when the round is over.
+        dealerCards.innerHTML = "";
+        dealer.forEach(function (card, index) {
+            dealerCards.appendChild(cardElement(card, index === 0 &amp;&amp; playing));
+        });
+        if (dealer.length === 0) {
+            dealerScoreText.textContent = "";
+        } else if (playing) {
+            dealerScoreText.textContent = "(" + cardValue(dealer[1]) + " + ?)";
+        } else {
+            dealerScoreText.textContent = "(" + score(dealer) + ")";
+        }
+
+        playerHands.innerHTML = "";
+        hands.forEach(function (h, index) {
+            const box = document.createElement("div");
+            box.className = "player-hand";
+            if (playing &amp;&amp; index === active &amp;&amp; hands.length &gt; 1) {
+                box.classList.add("active");
+            }
+
+            const label = document.createElement("p");
+            label.textContent = "Score " + score(h.cards) + ", bet $" + h.bet;
+            box.appendChild(label);
+
+            const cards = document.createElement("div");
+            cards.className = "cards";
+            h.cards.forEach(function (card) {
+                cards.appendChild(cardElement(card, false));
+            });
+            box.appendChild(cards);
+            playerHands.appendChild(box);
+        });
+
+        resultText.textContent = message;
+        balanceText.textContent = balance;
+        betText.textContent = bet;
+
+        // Buttons can only be pressed when they make sense.
+        const current = hands[active];
+        const twoCards = playing &amp;&amp; current.cards.length === 2;
+
+        chipButtons.forEach(function (button, index) {
+            button.disabled = playing || balance &lt; CHIPS[index];
+        });
+        clearButton.disabled = playing || bet === 0;
+        dealButton.disabled = playing || (bet === 0 &amp;&amp; balance &gt;= CHIPS[0]);
+        hitButton.disabled = !playing;
+        standButton.disabled = !playing;
+        doubleButton.disabled = !twoCards || balance &lt; current.bet;
+        splitButton.disabled = !twoCards || hands.length &gt; 1 ||
+            cardValue(current.cards[0]) !== cardValue(current.cards[1]) ||
+            balance &lt; current.bet;
+        insuranceButton.disabled = !playing || peeked || dealer[1].value !== "A" ||
+            current.cards.length !== 2 || hands.length &gt; 1 || balance &lt; current.bet / 2;
+    }
+
+    // --- Connect the buttons -------------------------------------------------
+
+    chipButtons.forEach(function (button, index) {
+        button.addEventListener("click", function () {
+            addChip(CHIPS[index]);
+        });
+    });
+    clearButton.addEventListener("click", clearBet);
+    dealButton.addEventListener("click", deal);
+    hitButton.addEventListener("click", hit);
+    standButton.addEventListener("click", stand);
+    doubleButton.addEventListener("click", doubleDown);
+    splitButton.addEventListener("click", split);
+    insuranceButton.addEventListener("click", takeInsurance);
+
+    // --- Start ---------------------------------------------------------------
+
+    render();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Use 6 decks shuffled together, like many casinos, and only make a new deck when it is getting low.</li>
+    <li>Show a short hint, like "Basic strategy says: hit", using a simple table.</li>
+    <li>Remember the balance in <code>localStorage</code>, like the disc golf score card.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

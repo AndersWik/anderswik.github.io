@@ -1,0 +1,38 @@
+---
+layout: default
+title: Up
+permalink: /vagrant/up/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, up, start, reload, restart, boot]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Up</h1>
+  <p><code>vagrant up</code> starts the machine described in the Vagrantfile. Run it in the same folder as the Vagrantfile. The first time, Vagrant downloads the <a href="/vagrant/boxes/">box</a>, creates the machine and runs the <a href="/vagrant/provisioning/">provisioning</a>. After that, it just starts the machine again.</p>
+  <h2>Start the machine</h2>
+  <pre><code class="language-bash">$ vagrant up</code></pre>
+  <h2>Choose a provider</h2>
+  <pre><code class="language-bash">$ vagrant up --provider=libvirt</code></pre>
+  <h2>Provisioning</h2>
+  <p>Run the provisioning again, or skip it.</p>
+  <pre><code class="language-bash">$ vagrant up --provision
+$ vagrant up --no-provision</code></pre>
+  <h2>Restart the machine</h2>
+  <p><code>reload</code> shuts the machine down and starts it again. Use it after changing the Vagrantfile.</p>
+  <pre><code class="language-bash">$ vagrant reload</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> show all options for <code>up</code>.</p>
+  <pre><code class="language-bash">$ vagrant up --help
+$ vagrant up -h</code></pre>
+  <h2>More about up</h2>
+  <ul>
+    <li>With <a href="/vagrant/multi-machine/">several machines</a>, give a name to start only one: <code>vagrant up web</code></li>
+    <li>Stop the machine again with <a href="/vagrant/stop/">halt</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/cli/up">vagrant up</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

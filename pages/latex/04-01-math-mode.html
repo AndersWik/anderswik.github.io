@@ -1,0 +1,50 @@
+---
+layout: default
+title: Math mode
+permalink: /latex/math-mode/
+chapter: "04"
+chapter_title: "Math"
+keywords: [latex, math, math mode, inline math, display math, dollar, subscript, superscript, fraction, root]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Math mode</h1>
+  <p>Math is written in math mode. Letters become italic variables and spaces are ignored, LaTeX sets the spacing itself.</p>
+  <h2>Inline math</h2>
+  <pre><code class="language-latex">The area is $\pi r^2$.
+The area is \(\pi r^2\).</code></pre>
+  <h2>Display math</h2>
+  <p>Display math is centered on its own line. <code>$$ ... $$</code> also works but should be avoided.</p>
+  <pre><code class="language-latex">\[
+  E = mc^2
+\]</code></pre>
+  <h2>Subscript and superscript</h2>
+  <p>Use braces when there is more than one character.</p>
+  <pre><code class="language-latex">x^2   x_i   x_i^2   x^{10}   x_{i,j}   e^{-x^2}</code></pre>
+  <h2>Fractions and roots</h2>
+  <pre><code class="language-latex">\frac{a}{b}
+\dfrac{a}{b}      % large fraction, amsmath
+\tfrac{a}{b}      % small fraction, amsmath
+\sqrt{x}
+\sqrt[3]{x}</code></pre>
+  <h2>Text in math</h2>
+  <pre><code class="language-latex">\[ f(x) = 0 \quad \text{for all } x \]</code></pre>
+  <h2>Brackets</h2>
+  <p><code>\left</code> and <code>\right</code> grow with the content.</p>
+  <pre><code class="language-latex">\left( \frac{a}{b} \right)
+\left[ x \right]
+\left\{ x \right\}
+\left| x \right|
+\langle x \rangle</code></pre>
+  <h2>Spacing</h2>
+  <pre><code class="language-latex">a\,b    a\:b    a\;b    a\quad b    a\qquad b    a\!b</code></pre>
+  <h2>More about math mode</h2>
+  <ul>
+    <li>Load <code>amsmath</code> and <code>amssymb</code> for almost all math</li>
+    <li>See <a href="/latex/equations/">equations</a>, <a href="/latex/math-symbols/">math symbols</a> and <a href="/latex/matrices/">matrices</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

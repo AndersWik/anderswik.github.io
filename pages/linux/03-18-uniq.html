@@ -1,0 +1,40 @@
+---
+layout: default
+title: Uniq
+permalink: /linux/uniq/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, uniq, duplicates, sort, text]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Uniq</h1>
+  <p><code>uniq</code> removes or reports repeated lines. It only compares lines that are next to each other, so the input is almost always sorted with <code>sort</code> first.</p>
+  <h2>Remove duplicate lines</h2>
+  <pre><code class="language-bash">$ sort names.txt | uniq</code></pre>
+  <h2>Count occurrences</h2>
+  <p><code>-c</code> puts the number of times each line appears in front of it. Sorting the result again gives a top list.</p>
+  <pre><code class="language-bash">$ sort names.txt | uniq -c
+$ sort names.txt | uniq -c | sort -rn | head</code></pre>
+  <h2>Only duplicates or only unique lines</h2>
+  <pre><code class="language-bash">$ sort names.txt | uniq -d   # lines that appear more than once
+$ sort names.txt | uniq -u   # lines that appear only once</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>uniq</code> and all its options.</p>
+  <pre><code class="language-bash">$ uniq --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>uniq</code> is installed.</p>
+  <pre><code class="language-bash">$ uniq --version</code></pre>
+  <h2>More about uniq</h2>
+  <ul>
+    <li><code>sort -u</code> sorts and removes duplicates in one step</li>
+    <li><code>-i</code> ignores case when comparing lines</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/uniq.txt">man uniq</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, uniq, duplicates, sort, text</p>
+  {% include trail.html %}
+</div>

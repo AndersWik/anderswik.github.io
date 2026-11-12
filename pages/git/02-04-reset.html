@@ -1,0 +1,41 @@
+---
+layout: default
+title: Reset
+permalink: /git/reset/
+chapter: "02"
+chapter_title: "Branches"
+keywords: [git, reset, undo, hard, soft, head, reflog, unpushed]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Reset</h1>
+  <p><code>git reset</code> moves the branch back to an earlier commit. It is used to undo commits that are not pushed yet.</p>
+  <h2>Undo the last commit, keep the changes</h2>
+  <p>The commit is removed but the changes are kept in your files, so you can fix them and commit again. <code>HEAD~</code> means the commit before the current one.</p>
+  <pre><code class="language-bash">$ git reset HEAD~</code></pre>
+  <p><code>--soft</code> does the same but keeps the changes staged.</p>
+  <pre><code class="language-bash">$ git reset --soft HEAD~</code></pre>
+  <h2>Throw away commits and changes</h2>
+  <p><code>--hard</code> also resets the files, so all changes after that commit are lost. Use it with care.</p>
+  <pre><code class="language-bash">$ git reset --hard a1b2c3d</code></pre>
+  <p>Throw away all local commits and make the branch match the remote.</p>
+  <pre><code class="language-bash">$ git fetch
+$ git reset --hard origin/main</code></pre>
+  <h2>Undo a reset</h2>
+  <p>Git remembers where the branch has been. <code>reflog</code> lists it, and you can reset back to the hash from before.</p>
+  <pre><code class="language-bash">$ git reflog
+$ git reset --hard a1b2c3d</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git reset</code>. <code>--help</code> opens the full manual page, the same as <code>git help reset</code>.</p>
+  <pre><code class="language-bash">$ git reset -h
+$ git reset --help</code></pre>
+  <h2>More about reset</h2>
+  <ul>
+    <li>Find the hash of a commit with <a href="/git/log/">git log --oneline</a></li>
+    <li>To undo a commit that is already pushed, use <code>git revert</code> instead. It creates a new commit that undoes the changes</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

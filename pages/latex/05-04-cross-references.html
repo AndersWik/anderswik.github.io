@@ -1,0 +1,49 @@
+---
+layout: default
+title: Cross references
+permalink: /latex/cross-references/
+chapter: "05"
+chapter_title: "Tables and figures"
+keywords: [latex, cross references, label, ref, pageref, eqref, hyperref, links, url, cleveref]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Cross references</h1>
+  <p>Give something a name with <code>\label</code> and refer to it with <code>\ref</code>. LaTeX fills in the number. Compile twice.</p>
+  <h2>Label and ref</h2>
+  <pre><code class="language-latex">\section{Results}
+\label{sec:results}
+
+As shown in Section~\ref{sec:results} on page~\pageref{sec:results}.
+See Figure~\ref{fig:tux} and Table~\ref{tab:prices}.
+See equation~\eqref{eq:energy}.</code></pre>
+  <h2>Prefixes</h2>
+  <p>Prefixes are not needed, but they make the labels easier to keep apart.</p>
+  <pre><code class="language-latex">sec:   section
+fig:   figure
+tab:   table
+eq:    equation</code></pre>
+  <h2>Clickable links</h2>
+  <p><code>hyperref</code> makes all references, the table of contents and footnotes clickable. Load it last.</p>
+  <pre><code class="language-latex">\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+\url{https://www.anderswik.se}
+\href{https://www.anderswik.se}{my site}
+\href{mailto:someone@example.com}{send an email}</code></pre>
+  <h2>cleveref</h2>
+  <p><code>\cref</code> adds the word, like <em>figure</em> or <em>section</em>, for you. Load it after <code>hyperref</code>.</p>
+  <pre><code class="language-latex">\usepackage{cleveref}
+
+See \cref{fig:tux}.     % See figure 1.
+\Cref{sec:results}      % Section 2</code></pre>
+  <h2>More about cross references</h2>
+  <ul>
+    <li><code>??</code> in the PDF means the label is missing or you need to compile again</li>
+    <li>Use <code>~</code> before <code>\ref</code> so the number stays on the same line</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

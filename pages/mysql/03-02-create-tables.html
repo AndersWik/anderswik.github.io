@@ -1,0 +1,40 @@
+---
+layout: default
+title: Create table
+permalink: /mysql/create-table/
+chapter: "03"
+chapter_title: "Tables"
+keywords: [mysql, sql, create, table, column, not null, primary key, auto_increment]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Create table</h1>
+  <p><code>create table</code> makes a new table in the selected database. Give each column a name and a <a href="/mysql/data/">data type</a>, such as <code>text</code>, <code>integer</code> or <code>boolean</code>.</p>
+  <h2>Create table</h2>
+  <p>A table needs at least one column.</p>
+  <pre><code class="language-sql">mysql&gt; create table mytable (column1 text);</code></pre>
+  <h2>Columns</h2>
+  <p>Some different ways to write the columns. Each line creates a new table, so drop <code>mytable</code> before you try the next one.</p>
+  <pre><code class="language-sql">mysql&gt; create table mytable (column2 boolean);
+
+mysql&gt; create table mytable (column1 text, column2 boolean);</code></pre>
+  <h2>Not null</h2>
+  <p><code>NOT NULL</code> means the column must always have a value.</p>
+  <pre><code class="language-sql">mysql&gt; create table mytable (column1 text NOT NULL);
+
+mysql&gt; create table mytable (column1 text NOT NULL, column2 boolean NOT NULL);</code></pre>
+  <h2>Primary key</h2>
+  <p><code>PRIMARY KEY</code> makes the column a unique id for each row. <code>AUTO_INCREMENT</code> gives every new row the next number automatically.</p>
+  <pre><code class="language-sql">mysql&gt; create table mytable (id integer PRIMARY KEY AUTO_INCREMENT);
+
+mysql&gt; create table mytable (id integer PRIMARY KEY AUTO_INCREMENT, column1 text NOT NULL, column2 text NOT NULL);</code></pre>
+  <h2>More about create table</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/create-table.html">CREATE TABLE</a> in the MySQL documentation</li>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/data-types.html">Data types</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

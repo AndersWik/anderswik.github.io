@@ -1,0 +1,41 @@
+---
+layout: default
+title: Mkdir
+permalink: /linux/mkdir/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, mkdir, make directory, directories, folders]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Mkdir</h1>
+  <p><code>mkdir</code> stands for make directory. It creates one or more new directories.</p>
+  <h2>Create a directory</h2>
+  <pre><code class="language-bash">$ mkdir projects
+$ mkdir one two three</code></pre>
+  <h2>Create parent directories</h2>
+  <p><code>-p</code> creates every missing directory in the path, and does not complain if the directory already exists. This makes it safe to use in scripts.</p>
+  <pre><code class="language-bash">$ mkdir -p projects/website/css</code></pre>
+  <h2>Set permissions</h2>
+  <p><code>-m</code> sets the permissions of the new directory directly. See <a href="/linux/chmod/">chmod</a>.</p>
+  <pre><code class="language-bash">$ mkdir -m 700 private</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>mkdir</code> and all its options.</p>
+  <pre><code class="language-bash">$ mkdir --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>mkdir</code> is installed. <code>-v</code> does not show the version, it makes <code>mkdir</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ mkdir --version</code></pre>
+  <h2>More about mkdir</h2>
+  <ul>
+    <li><code>-v</code> prints a message for every directory created</li>
+    <li>Brace expansion creates many directories at once: <code>mkdir -p src/{css,js,img}</code></li>
+    <li>Remove empty directories with <a href="/linux/rmdir/">rmdir</a>, or use <a href="/linux/rm/">rm</a> with <code>-r</code></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/mkdir.txt">man mkdir</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, mkdir, make directory, directories, folders</p>
+  {% include trail.html %}
+</div>

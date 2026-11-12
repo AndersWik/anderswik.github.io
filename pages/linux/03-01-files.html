@@ -1,0 +1,36 @@
+---
+layout: default
+title: Files
+permalink: /linux/files/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, files, directories, text, editors]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Files</h1>
+  <p>In Linux almost everything is a file: documents and programs, but also directories, devices like disks in <code>/dev</code> and even information about running processes in <code>/proc</code>. Most configuration is stored in plain text files, so knowing how to create, read, search and edit files is the most important skill on the command line.</p>
+  <pre><code class="language-bash">$ file</code></pre>
+  <h2>File names</h2>
+  <p>File names are case sensitive, so <code>notes.txt</code> and <code>Notes.txt</code> are two different files. File extensions are only a convention; Linux looks at the content of a file to decide what it is. Names that start with a dot are hidden.</p>
+  <p>The <code>file</code> command tells you what kind of content a file has.</p>
+  <pre><code class="language-bash">$ file notes.txt
+notes.txt: ASCII text</code></pre>
+  <h2>Commands in this chapter</h2>
+  <p>The commands below are grouped roughly by what they do:</p>
+  <ul>
+    <li>Create and organize: <code>touch</code>, <code>echo</code>, <code>mkdir</code>, <code>mv</code>, <code>cp</code>, <code>rm</code></li>
+    <li>Read: <code>cat</code>, <code>less</code>, <code>head</code>, <code>tail</code></li>
+    <li>Edit: <code>nano</code>, <code>vim</code>, <code>emacs</code></li>
+    <li>Search and process text: <code>find</code>, <code>grep</code>, <code>wc</code>, <code>uniq</code>, <code>cut</code>, <code>awk</code>, <code>sed</code></li>
+  </ul>
+  <h2>Pipes and redirection</h2>
+  <p>Commands can be combined. <code>|</code> sends the output of one command into the next, <code>&gt;</code> writes output to a file and <code>&gt;&gt;</code> appends to it.</p>
+  <pre><code class="language-bash">$ cat access.log | grep 404 | wc -l
+$ ls &gt; files.txt
+$ echo "one more line" &gt;&gt; files.txt</code></pre>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, files, directories, text, editors</p>
+  {% include trail.html %}
+</div>

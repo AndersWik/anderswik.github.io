@@ -1,0 +1,304 @@
+---
+layout: default
+title: Dice roller
+permalink: /tutorials/dice/
+chapter: "08"
+chapter_title: "Novelty Games"
+keywords: [javascript, game, random, dice, select, css classes, background-image, animation]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Dice roller</h1>
+  <p>Choose a die with 4, 6, 8, 10, 12 or 20 sides, the kinds used in board games and role-playing games, and roll it. The die spins, then shows the number.</p>
+  <p>The interesting part is a bug that is easy to make: the original version of this game could never roll the highest number. We'll see why.</p>
+  <p><a href="/assets/choose-dice/standalone.html">Open the finished game</a></p>
+  <h2>The pictures</h2>
+  <p>The dice are SVG pictures. Make a folder for the game with the page and a folder called <code>images</code>, and download these into it:</p>
+  <p><a href="/assets/choose-dice/images/d4.svg">d4.svg</a>, <a href="/assets/choose-dice/images/d6.svg">d6.svg</a>, <a href="/assets/choose-dice/images/d8.svg">d8.svg</a>, <a href="/assets/choose-dice/images/d10.svg">d10.svg</a>, <a href="/assets/choose-dice/images/d12.svg">d12.svg</a>, <a href="/assets/choose-dice/images/d20.svg">d20.svg</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>dice.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Dice roller&lt;/h1&gt;
+
+&lt;div id="dice-preview" class="d4"&gt;
+  &lt;span id="preview-text"&gt;4&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;select id="dice-type" aria-label="Die"&gt;
+  &lt;option value="4" selected&gt;D4 (4 sides)&lt;/option&gt;
+  &lt;option value="6"&gt;D6 (6 sides)&lt;/option&gt;
+  &lt;option value="8"&gt;D8 (8 sides)&lt;/option&gt;
+  &lt;option value="10"&gt;D10 (10 sides)&lt;/option&gt;
+  &lt;option value="12"&gt;D12 (12 sides)&lt;/option&gt;
+  &lt;option value="20"&gt;D20 (20 sides)&lt;/option&gt;
+&lt;/select&gt;
+&lt;button type="button" id="roll-dice-btn"&gt;Roll dice&lt;/button&gt;
+
+&lt;p id="dice-selected"&gt;&lt;/p&gt;
+&lt;p id="dice-result" aria-live="polite"&gt;&lt;/p&gt;</code></pre>
+  <p>Each <code>&lt;option&gt;</code> has the number of sides as its <code>value</code> and a longer text for people.</p>
+  <h2>Step 2: Pictures from CSS classes</h2>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+#dice-preview {
+    width: 250px;
+    height: 250px;
+    margin: 0 auto 10px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+}
+
+/* The picture for each die. The script sets the class, e.g. "d6". */
+#dice-preview.d4 { background-image: url("images/d4.svg"); }
+#dice-preview.d6 { background-image: url("images/d6.svg"); }
+#dice-preview.d8 { background-image: url("images/d8.svg"); }
+#dice-preview.d10 { background-image: url("images/d10.svg"); }
+#dice-preview.d12 { background-image: url("images/d12.svg"); }
+#dice-preview.d20 { background-image: url("images/d20.svg"); }
+
+.spin {
+    animation: spin 1s;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+select,
+button {
+    padding: 10px;
+    font-size: 18px;
+}
+
+p {
+    font-size: 22px;
+    font-weight: bold;
+}</code></pre>
+  <p>The picture of the die is a <strong>background image</strong> of the preview box, and there is one CSS rule per die: the class <code>d6</code> shows <code>d6.svg</code>, and so on. To change the picture, the script only changes the class. It never needs to know where the picture files are.</p>
+  <p><code>background-size: contain</code> fits the whole picture in the box. The number is a <code>&lt;span&gt;</code> on top, centered with flexbox.</p>
+  <h2>Step 3: Rolling a die</h2>
+  <pre><code class="language-javascript">function roll(sides) {
+    return Math.floor(Math.random() * sides) + 1;
+}</code></pre>
+  <p>Step by step for a six-sided die:</p>
+  <ol>
+    <li><code>Math.random()</code> is from 0 to 0.999...</li>
+    <li><code>* 6</code> makes it 0 to 5.999...</li>
+    <li><code>Math.floor</code> rounds down to 0, 1, 2, 3, 4 or 5, each equally likely.</li>
+    <li><code>+ 1</code> gives 1 to 6.</li>
+  </ol>
+  <p>The original version wrote <code>Math.floor(Math.random() * (sides - 1) + 1)</code>. That gives 1 to 5 on a six-sided die. 6 could never come up. It is an easy mistake, and it is hard to notice by playing, because the missing number just seems unlucky. The way to catch it is to roll many times and look at what comes out:</p>
+  <pre><code class="language-javascript">const seen = new Set();
+for (let i = 0; i &lt; 6000; i++) {
+    seen.add(roll(6));
+}
+console.log([...seen].sort());   // [1, 2, 3, 4, 5, 6]</code></pre>
+  <p>A <code>Set</code> keeps each value only once, so it shows which numbers came up at all.</p>
+  <h2>Step 4: Choosing a die</h2>
+  <pre><code class="language-javascript">function chooseDie() {
+    const sides = Number(diceSelect.value);
+    preview.className = "d" + sides;
+    previewText.textContent = sides;
+    selectedText.textContent = diceSelect.selectedOptions[0].text + " selected";
+    resultText.textContent = "";
+}
+
+diceSelect.addEventListener("change", chooseDie);</code></pre>
+  <p><code>selectedOptions[0].text</code> is the text of the chosen option, like "D6 (6 sides)". So we don't need a list of names in the script, and the HTML is the only place they are written.</p>
+  <h2>Step 5: Spin, then show</h2>
+  <p>The number is decided right away, but shown when the spin is over, so the answer doesn't appear while the die is still turning:</p>
+  <pre><code class="language-javascript">function rollDie() {
+    if (preview.classList.contains("spin")) {
+        return; // still rolling
+    }
+    const result = roll(Number(diceSelect.value));
+
+    resultText.textContent = "";
+    preview.classList.add("spin");
+    setTimeout(function () {
+        preview.classList.remove("spin");
+        previewText.textContent = result;
+        resultText.textContent = "You rolled " + result;
+    }, SPIN_TIME);
+}</code></pre>
+  <p>Here the <code>spin</code> class itself works as the "busy" flag: while it is there, a new roll is ignored.</p>
+  <h2>Step 6: Test it</h2>
+  <ul>
+    <li>Choose each die and check the picture changes.</li>
+    <li>Roll the D6 until you have seen a 6. Run the <code>Set</code> test above in the console for each kind of die.</li>
+    <li>Click Roll many times quickly. You should get one result per spin.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>standalone.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Dice roller&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #dice-preview {
+        width: 250px;
+        height: 250px;
+        margin: 0 auto 10px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 80px;
+    }
+
+    /* The picture for each die. The script sets the class, e.g. "d6". */
+    #dice-preview.d4 { background-image: url("images/d4.svg"); }
+    #dice-preview.d6 { background-image: url("images/d6.svg"); }
+    #dice-preview.d8 { background-image: url("images/d8.svg"); }
+    #dice-preview.d10 { background-image: url("images/d10.svg"); }
+    #dice-preview.d12 { background-image: url("images/d12.svg"); }
+    #dice-preview.d20 { background-image: url("images/d20.svg"); }
+
+    .spin {
+        animation: spin 1s;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    select,
+    button {
+        padding: 10px;
+        font-size: 18px;
+    }
+
+    p {
+        font-size: 22px;
+        font-weight: bold;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Dice roller&lt;/h1&gt;
+
+  &lt;div id="dice-preview" class="d4"&gt;
+    &lt;span id="preview-text"&gt;4&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;select id="dice-type" aria-label="Die"&gt;
+    &lt;option value="4" selected&gt;D4 (4 sides)&lt;/option&gt;
+    &lt;option value="6"&gt;D6 (6 sides)&lt;/option&gt;
+    &lt;option value="8"&gt;D8 (8 sides)&lt;/option&gt;
+    &lt;option value="10"&gt;D10 (10 sides)&lt;/option&gt;
+    &lt;option value="12"&gt;D12 (12 sides)&lt;/option&gt;
+    &lt;option value="20"&gt;D20 (20 sides)&lt;/option&gt;
+  &lt;/select&gt;
+  &lt;button type="button" id="roll-dice-btn"&gt;Roll dice&lt;/button&gt;
+
+  &lt;p id="dice-selected"&gt;&lt;/p&gt;
+  &lt;p id="dice-result" aria-live="polite"&gt;&lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Dice roller: pick a die with 4, 6, 8, 10, 12 or 20 sides and roll it.
+     *
+     * The picture of the die is set in the CSS: the preview gets a class like
+     * "d6", and the CSS has a background picture for each class.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const diceSelect = document.getElementById("dice-type");
+    const preview = document.getElementById("dice-preview");
+    const previewText = document.getElementById("preview-text");
+    const rollButton = document.getElementById("roll-dice-btn");
+    const selectedText = document.getElementById("dice-selected");
+    const resultText = document.getElementById("dice-result");
+
+    const SPIN_TIME = 1000; // ms, the same as the spin animation in the CSS
+
+    // --- Helpers -------------------------------------------------------------
+
+    // A whole number from 1 to sides, all equally likely.
+    //   Math.random() * 6 is 0 to 5.999..., Math.floor makes it 0-5, + 1 gives 1-6.
+    function roll(sides) {
+        return Math.floor(Math.random() * sides) + 1;
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function chooseDie() {
+        const sides = Number(diceSelect.value);
+        preview.className = "d" + sides;
+        previewText.textContent = sides;
+        // The text of the chosen option, e.g. "D6 (6 sides)".
+        selectedText.textContent = diceSelect.selectedOptions[0].text + " selected";
+        resultText.textContent = "";
+    }
+
+    function rollDie() {
+        if (preview.classList.contains("spin")) {
+            return; // still rolling
+        }
+        const result = roll(Number(diceSelect.value));
+
+        resultText.textContent = "";
+        preview.classList.add("spin");
+        setTimeout(function () {
+            preview.classList.remove("spin");
+            previewText.textContent = result;
+            resultText.textContent = "You rolled " + result;
+        }, SPIN_TIME);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    diceSelect.addEventListener("change", chooseDie);
+    rollButton.addEventListener("click", rollDie);
+
+    // --- Start ---------------------------------------------------------------
+
+    chooseDie();
+    selectedText.textContent = "Select a die and click Roll!";
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Roll several dice at once and show the total.</li>
+    <li>Keep a history of the last 10 rolls.</li>
+    <li>Add a "D100", the percentile die: two D10s, one for tens and one for ones.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

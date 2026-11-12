@@ -1,0 +1,396 @@
+---
+layout: default
+title: Quiz
+permalink: /tutorials/quiz/
+chapter: "07"
+chapter_title: "Trivia and Puzzle games"
+keywords: [javascript, game, quiz, objects, list of objects, shuffle, fisher-yates, slice, setTimeout, buttons, hidden]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Quiz</h1>
+  <p>Five questions about animals, picked at random from a longer list. Click an answer and the page shows at once if it was right: the right answer turns green, and a wrong click turns red. After a moment the next question comes by itself.</p>
+  <p>The new parts are keeping the questions as a list of objects, shuffling a list properly, and stopping a second click from counting.</p>
+  <p><a href="/assets/tutorials/quiz.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>quiz.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
+  <pre><code class="language-html">&lt;h1&gt;Quiz!&lt;/h1&gt;
+&lt;p&gt;Score: &lt;span id="score"&gt;0&lt;/span&gt;&lt;/p&gt;
+&lt;p id="progress"&gt;&lt;/p&gt;
+&lt;p id="question"&gt;&lt;/p&gt;
+&lt;div id="answers"&gt;&lt;/div&gt;
+&lt;p id="result" aria-live="polite"&gt;&lt;/p&gt;
+&lt;button type="button" id="restart" hidden&gt;Play again&lt;/button&gt;</code></pre>
+  <p>The answer buttons are made by the code for each question. The Play again button is <code>hidden</code> until the quiz is over.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+#question {
+    font-size: 22px;
+}
+
+#answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#answers button {
+    padding: 15px;
+    font-size: 18px;
+}
+
+#answers button.correct {
+    background-color: #99e883;
+}
+
+#answers button.wrong {
+    background-color: #d47575;
+}
+
+#result {
+    font-size: 20px;
+    font-weight: bold;
+}</code></pre>
+  <p><code>grid-template-columns: 1fr 1fr</code> puts the four answers in two columns of the same width, two by two.</p>
+  <h2>Step 2: The questions</h2>
+  <pre><code class="language-javascript">const QUESTIONS = [
+    {
+        question: "How many years can a snail sleep for?",
+        answers: ["Four", "Five", "Three", "One"],
+        correct: 2
+    },
+    {
+        question: "What is the largest bird in the world?",
+        answers: ["Swan", "Emperor penguin", "Ostrich", "Albatross"],
+        correct: 2
+    },
+    ...
+];</code></pre>
+  <p>Each question is an object with three parts: the question, a list of answers, and <code>correct</code>, the index of the right answer. 2 is the third answer, because lists count from 0. Keeping everything about one question together makes it easy to add more: copy one object and change the text.</p>
+  <h2>Step 3: Shuffling</h2>
+  <p>To pick five different questions at random, we shuffle the whole list and take the first five:</p>
+  <pre><code class="language-javascript">function shuffle(list) {
+    const copy = list.slice();
+    for (let i = copy.length - 1; i &gt; 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = temp;
+    }
+    return copy;
+}
+
+questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);</code></pre>
+  <p>This is the <strong>Fisher-Yates shuffle</strong>. Start at the last item and swap it with a random item at or before it, maybe itself. Then do the same with the second to last, and so on to the front. Every order is just as likely, which is not true for most home-made ways of shuffling.</p>
+  <p>The three lines with <code>temp</code> swap two items: save one in <code>temp</code>, copy the other over it, then put <code>temp</code> back in the other's place.</p>
+  <p><code>list.slice()</code> with nothing between the brackets makes a copy, so the shuffle doesn't mix up <code>QUESTIONS</code> itself. <code>slice(0, 5)</code> gives the items from index 0 up to, but not including, 5.</p>
+  <h2>Step 4: Showing a question</h2>
+  <pre><code class="language-javascript">function showQuestion() {
+    const q = questions[current];
+    answered = false;
+    progressText.textContent = "Question " + (current + 1) + " of " + questions.length;
+    questionText.textContent = q.question;
+
+    answersBox.innerHTML = "";
+    q.answers.forEach(function (text, index) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = text;
+        button.addEventListener("click", function () {
+            answer(index);
+        });
+        answersBox.appendChild(button);
+    });
+}</code></pre>
+  <p><code>current</code> counts from 0, but people count from 1, so the page shows <code>current + 1</code>. The old buttons are thrown away with <code>innerHTML = ""</code>, and four new ones are made, like the letter buttons in <a href="/tutorials/hangman/">Hangman</a>. Each one calls <code>answer</code> with its own index.</p>
+  <h2>Step 5: Answering</h2>
+  <pre><code class="language-javascript">function answer(index) {
+    if (answered) {
+        return;
+    }
+    answered = true;
+
+    const q = questions[current];
+    const buttons = answersBox.querySelectorAll("button");
+    buttons.forEach(function (button) {
+        button.disabled = true;
+    });
+
+    buttons[q.correct].classList.add("correct");
+    if (index === q.correct) {
+        score++;
+        scoreText.textContent = score;
+    } else {
+        buttons[index].classList.add("wrong");
+    }
+
+    setTimeout(nextQuestion, NEXT_TIME);
+}</code></pre>
+  <p>The page waits <code>NEXT_TIME</code> (1.2 seconds) before the next question, so there is time to see the colors. During that time the buttons are still there, and a fast double click could give two points for one question. So the first click sets <code>answered</code>, and every click after that returns at once. The buttons are also disabled, so they look finished.</p>
+  <p>The right answer always turns green, also when you clicked a wrong one. That way you learn something even when you miss.</p>
+  <h2>Step 6: The next question, or the end</h2>
+  <pre><code class="language-javascript">function nextQuestion() {
+    current++;
+    if (current &lt; questions.length) {
+        showQuestion();
+    } else {
+        endGame();
+    }
+}</code></pre>
+  <p><code>endGame</code> clears the question and the buttons, shows the result, and shows Play again by setting <code>restartButton.hidden = false</code>. Play again calls <code>newGame</code>, which shuffles new questions, sets <code>current</code> and <code>score</code> back to 0 and hides the button again.</p>
+  <h2>Step 7: Test it</h2>
+  <ul>
+    <li>Answer right and wrong. Green and red should show, and only right answers should count.</li>
+    <li>Double click an answer fast. The score should only go up by one.</li>
+    <li>Play two games. The questions should come in a new order.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>quiz.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Quiz&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #question {
+        font-size: 22px;
+    }
+
+    #answers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    #answers button {
+        padding: 15px;
+        font-size: 18px;
+    }
+
+    #answers button.correct {
+        background-color: #99e883;
+    }
+
+    #answers button.wrong {
+        background-color: #d47575;
+    }
+
+    #result {
+        font-size: 20px;
+        font-weight: bold;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Quiz!&lt;/h1&gt;
+  &lt;p&gt;Score: &lt;span id="score"&gt;0&lt;/span&gt;&lt;/p&gt;
+  &lt;p id="progress"&gt;&lt;/p&gt;
+  &lt;p id="question"&gt;&lt;/p&gt;
+  &lt;div id="answers"&gt;&lt;/div&gt;
+  &lt;p id="result" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;button type="button" id="restart" hidden&gt;Play again&lt;/button&gt;
+
+  &lt;script&gt;
+    /*
+     * Quiz: five questions about animals, picked at random. Click an answer to
+     * see if it was right, and the next question comes by itself.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const QUESTIONS = [
+        {
+            question: "How many years can a snail sleep for?",
+            answers: ["Four", "Five", "Three", "One"],
+            correct: 2
+        },
+        {
+            question: "What is the largest bird in the world?",
+            answers: ["Swan", "Emperor penguin", "Ostrich", "Albatross"],
+            correct: 2
+        },
+        {
+            question: "What do you call a group of kangaroos?",
+            answers: ["A band", "A troop", "A gang", "A crowd"],
+            correct: 1
+        },
+        {
+            question: "What is the largest mammal in the world?",
+            answers: ["African elephant", "Blue whale", "Giraffe", "Hippopotamus"],
+            correct: 1
+        },
+        {
+            question: "What is the tallest species of penguin?",
+            answers: ["King penguin", "Humboldt penguin", "Royal penguin", "Emperor penguin"],
+            correct: 3
+        },
+        {
+            question: "How long does it take for a sloth to digest its food?",
+            answers: ["30 days", "20 days", "10 days", "40 days"],
+            correct: 0
+        },
+        {
+            question: "How many compartments does a cow's stomach have?",
+            answers: ["Four", "Three", "Two", "One"],
+            correct: 0
+        },
+        {
+            question: "Which mammal has the lowest heart rate?",
+            answers: ["Hippopotamus", "Brown bear", "African elephant", "Blue whale"],
+            correct: 3
+        }
+    ];
+    const QUESTIONS_PER_GAME = 5;
+    const NEXT_TIME = 1200;    // ms to show the right answer before going on
+
+    // --- Elements on the page ------------------------------------------------
+
+    const scoreText = document.getElementById("score");
+    const progressText = document.getElementById("progress");
+    const questionText = document.getElementById("question");
+    const answersBox = document.getElementById("answers");
+    const resultText = document.getElementById("result");
+    const restartButton = document.getElementById("restart");
+
+    // --- State ---------------------------------------------------------------
+
+    let questions = [];    // the questions for this game
+    let current = 0;       // index of the question showing
+    let score = 0;
+    let answered = false;  // true once the question showing has been answered
+
+    // --- Helpers -------------------------------------------------------------
+
+    // A shuffled copy of a list (the Fisher-Yates shuffle). Go from the end,
+    // and swap each item with a random one at or before it.
+    function shuffle(list) {
+        const copy = list.slice();
+        for (let i = copy.length - 1; i &gt; 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const temp = copy[i];
+            copy[i] = copy[j];
+            copy[j] = temp;
+        }
+        return copy;
+    }
+
+    // --- The game ------------------------------------------------------------
+
+    function newGame() {
+        questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);
+        current = 0;
+        score = 0;
+        scoreText.textContent = score;
+        resultText.textContent = "";
+        restartButton.hidden = true;
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = questions[current];
+        answered = false;
+        progressText.textContent = "Question " + (current + 1) + " of " + questions.length;
+        questionText.textContent = q.question;
+
+        answersBox.innerHTML = "";
+        q.answers.forEach(function (text, index) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = text;
+            button.addEventListener("click", function () {
+                answer(index);
+            });
+            answersBox.appendChild(button);
+        });
+    }
+
+    function answer(index) {
+        // Only the first click counts.
+        if (answered) {
+            return;
+        }
+        answered = true;
+
+        const q = questions[current];
+        const buttons = answersBox.querySelectorAll("button");
+        buttons.forEach(function (button) {
+            button.disabled = true;
+        });
+
+        // Always show the right answer in green. A wrong click goes red.
+        buttons[q.correct].classList.add("correct");
+        if (index === q.correct) {
+            score++;
+            scoreText.textContent = score;
+        } else {
+            buttons[index].classList.add("wrong");
+        }
+
+        setTimeout(nextQuestion, NEXT_TIME);
+    }
+
+    function nextQuestion() {
+        current++;
+        if (current &lt; questions.length) {
+            showQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        progressText.textContent = "";
+        questionText.textContent = "";
+        answersBox.innerHTML = "";
+        if (score === questions.length) {
+            resultText.textContent = "Amazing! You got all " + score + " right!";
+        } else {
+            resultText.textContent = "You got " + score + " of " + questions.length + " right.";
+        }
+        restartButton.hidden = false;
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    restartButton.addEventListener("click", newGame);
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Shuffle the answers too, so the right answer isn't always in the same place. (Remember that <code>correct</code> has to follow it.)</li>
+    <li>Add a timer: 10 seconds per question, and a question without an answer counts as wrong.</li>
+    <li>Save the best score in <code>localStorage</code>, so it is still there next time.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

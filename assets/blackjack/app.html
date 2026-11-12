@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blackjack</title>
+
+  <!-- Makes this page an installable app, see _scripts/make-pwa.py. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
+  <!-- iPhone and iPad read these instead of the manifest. -->
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Blackjack">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/assets/blackjack/blackjack.css">
+  <style>
+    /* Without the site header the games would touch the top of the screen. */
+    .game { padding-block: 16px; }
+  </style>
+</head>
+<body>
+<div class="game">
+<h1>Blackjack</h1>
+<div class="hand">
+  Dealer <span id="dealer-score"></span>
+  <div id="dealer-cards" class="cards"></div>
+</div>
+<div class="hand">
+  You
+  <div id="player-hands"></div>
+</div>
+<div id="result" aria-live="polite"></div>
+<div id="bank">
+  Balance: $<span id="balance">1000</span> | Bet: $<span id="current-bet">0</span>
+</div>
+
+<div id="chip-buttons">
+  <button type="button" id="placeBet10">$10</button>
+  <button type="button" id="placeBet50">$50</button>
+  <button type="button" id="placeBet100">$100</button>
+  <button type="button" id="clearBet" class="clear">Clear</button>
+</div>
+<div id="controls">
+  <button type="button" id="startGame">Deal</button>
+  <button type="button" id="hit">Hit</button>
+  <button type="button" id="stand">Stand</button>
+</div>
+<div id="extra-controls">
+  <button type="button" id="doubleDown">Double Down</button>
+  <button type="button" id="split">Split</button>
+  <button type="button" id="takeInsurance">Insurance</button>
+</div>
+
+<div class="rules">
+  <p>Blackjack pays 3 to 2. The dealer draws to 17.</p>
+  <p>You can split once if your two cards have the same value.</p>
+  <p>You can double down on any two cards if you can afford it.</p>
+</div>
+</div>
+
+<script src="/assets/blackjack/blackjack.js"></script>
+<script>
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+</body>
+</html>

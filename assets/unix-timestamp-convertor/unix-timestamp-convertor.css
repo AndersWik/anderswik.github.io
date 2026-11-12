@@ -1,0 +1,13 @@
+.unix-timestamp-convertor p {
+  font-family: ubuntu;
+}
+
+.unix-timestamp-convertor .now span {
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.unix-timestamp-convertor .details {
+  min-height: 2.5em;
+  overflow-wrap: anywhere;
+}

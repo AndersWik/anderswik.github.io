@@ -1,0 +1,43 @@
+---
+layout: default
+title: Quotes
+permalink: /latex/quotes/
+chapter: "03"
+chapter_title: "Text"
+keywords: [latex, quotes, quotation marks, quote, quotation, csquotes, enquote, verse]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Quotes</h1>
+  <p>LaTeX does not turn <code>"</code> into curly quotation marks. Use two backticks and two apostrophes, or the <code>csquotes</code> package.</p>
+  <h2>Quotation marks</h2>
+  <pre><code class="language-latex">``double quotes''
+`single quotes'</code></pre>
+  <h2>csquotes</h2>
+  <p><code>\enquote</code> uses the right marks for the language set with <code>babel</code>.</p>
+  <pre><code class="language-latex">\usepackage{csquotes}
+
+\enquote{Talk is cheap. Show me the code.}
+\enquote{He said \enquote{hello}.}</code></pre>
+  <h2>Block quotes</h2>
+  <pre><code class="language-latex">\begin{quote}
+  A short quote.
+\end{quote}
+
+\begin{quotation}
+  A longer quote with several paragraphs.
+\end{quotation}
+
+\begin{verse}
+  Roses are red,\\
+  Violets are blue.
+\end{verse}</code></pre>
+  <h2>More about quotes</h2>
+  <ul>
+    <li>With <code>csquotes</code> and <code>biblatex</code>, <code>\textcquote{key}{text}</code> adds a citation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

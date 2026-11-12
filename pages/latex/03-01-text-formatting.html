@@ -1,0 +1,56 @@
+---
+layout: default
+title: Text formatting
+permalink: /latex/text-formatting/
+chapter: "03"
+chapter_title: "Text"
+keywords: [latex, bold, italic, emphasis, underline, textbf, textit, emph, monospace, small caps, fonts]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Text formatting</h1>
+  <p>Commands like <code>\textbf{}</code> format the text inside the braces. Switches like <code>\bfseries</code> change everything after them until the end of the group.</p>
+  <h2>Bold, italic and more</h2>
+  <pre><code class="language-latex">\textbf{bold}
+\textit{italic}
+\emph{emphasis}
+\underline{underlined}
+\texttt{monospace}
+\textsc{Small Caps}
+\textsl{slanted}
+\textsf{sans serif}
+\textrm{roman}
+\textup{upright}</code></pre>
+  <h2>Emphasis</h2>
+  <p><code>\emph</code> is italic in normal text and upright inside italic text. Use it for emphasis, and <code>\textit</code> only when you really want italic.</p>
+  <pre><code class="language-latex">\emph{important}
+\textit{This is \emph{really} important.}</code></pre>
+  <h2>Combine</h2>
+  <pre><code class="language-latex">\textbf{\textit{bold and italic}}</code></pre>
+  <h2>Switches</h2>
+  <p>Curly braces make a group so the switch only affects the text inside.</p>
+  <pre><code class="language-latex">{\bfseries bold text}
+{\itshape italic text}
+{\ttfamily monospace text}
+{\scshape small caps}
+{\sffamily sans serif}</code></pre>
+  <h2>Fonts</h2>
+  <p>Packages change the font of the whole document. With <code>xelatex</code> or <code>lualatex</code>, <code>fontspec</code> can use any installed font.</p>
+  <pre><code class="language-latex">\usepackage{lmodern}        % Latin Modern
+\usepackage{mathpazo}       % Palatino
+\usepackage{helvet}         % Helvetica
+\renewcommand{\familydefault}{\sfdefault}   % sans serif everywhere
+
+\usepackage{fontspec}       % xelatex and lualatex
+\setmainfont{Liberation Serif}</code></pre>
+  <h2>More about text formatting</h2>
+  <ul>
+    <li><code>\underline</code> does not break across lines, the <code>ulem</code> or <code>soul</code> packages do</li>
+    <li><code>\sout{text}</code> from <code>ulem</code> strikes text through</li>
+    <li>See also <a href="/latex/font-size/">font size</a> and <a href="/latex/colors/">colors</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

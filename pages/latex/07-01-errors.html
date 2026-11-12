@@ -1,0 +1,53 @@
+---
+layout: default
+title: Errors
+permalink: /latex/errors/
+chapter: "07"
+chapter_title: "Troubleshooting"
+keywords: [latex, errors, error, warning, troubleshooting, undefined control sequence, missing, overfull hbox, log]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Errors</h1>
+  <p>LaTeX stops and shows an error with a line number, marked with <code>l.</code>. The full messages are in the <code>.log</code> file. Fix the first error first, the others often follow from it.</p>
+  <h2>Stop at an error</h2>
+  <p>In the terminal, type <code>x</code> and Enter to stop, or Enter to continue.</p>
+  <pre><code class="language-bash">$ pdflatex -halt-on-error document.tex
+$ grep -n "^!" document.log</code></pre>
+  <h2>Undefined control sequence</h2>
+  <p>A command is misspelled, or its package is not loaded.</p>
+  <pre><code class="language-latex">! Undefined control sequence.
+l.12 \includegraphic</code></pre>
+  <h2>Missing $ inserted</h2>
+  <p>A math symbol like <code>_</code> or <code>^</code> is used outside math mode. Escape it as <code>\_</code> or put it in <code>$...$</code>.</p>
+  <pre><code class="language-latex">! Missing $ inserted.</code></pre>
+  <h2>File not found</h2>
+  <p>A package is not installed, see <a href="/latex/install/">install</a>, or the path to a file is wrong.</p>
+  <pre><code class="language-latex">! LaTeX Error: File `tikz.sty' not found.</code></pre>
+  <h2>Environment ended by</h2>
+  <p>A <code>\begin</code> does not match the <code>\end</code>.</p>
+  <pre><code class="language-latex">! LaTeX Error: \begin{itemize} on input line 10 ended by \end{enumerate}.</code></pre>
+  <h2>Runaway argument</h2>
+  <p>A curly brace is missing.</p>
+  <pre><code class="language-latex">Runaway argument?
+! File ended while scanning use of \textbf.</code></pre>
+  <h2>Warnings</h2>
+  <pre><code class="language-latex">LaTeX Warning: Reference `fig:tux' on page 1 undefined.
+LaTeX Warning: There were undefined references.
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+Overfull \hbox (12.3pt too wide) in paragraph at lines 20--25</code></pre>
+  <p>Compile again for references. <em>Overfull hbox</em> means a line sticks out into the margin, often because a long word or URL could not be hyphenated.</p>
+  <h2>Start over</h2>
+  <p>Old helper files can cause strange errors. Delete them and compile again.</p>
+  <pre><code class="language-bash">$ latexmk -C
+$ latexmk -pdf document.tex</code></pre>
+  <h2>More about errors</h2>
+  <ul>
+    <li>Comment out half the document to find where the error is</li>
+    <li><a href="https://tex.stackexchange.com/">TeX Stack Exchange</a> has an answer for almost every error message</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,147 @@
+---
+layout: default
+title: Calculator
+permalink: /utils/calculator/
+nonav: true
+css:
+  - /assets/calculator/calculator.css
+js:
+  - /assets/calculator/calculator.js
+---
+
+<div class="calculator container-sm mt-3 mb-3 pt-5 pb-5 text-center" style="max-width: 720px !important;">
+    <div class="row align-items-start">
+        <div class="col">
+            <h2>Calculator</h2>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row p-4 rounded components">
+            <div class="col">
+                <div class="row">
+                    <div class="col">
+                        <input class="form-control form-control-lg" id="output" readonly aria-label="Display">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="ac">AC</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="&lt;">&lt;</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="%">%</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="/">/</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="7">7</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="8">8</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="9">9</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="X">X</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="4">4</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="5">5</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="6">6</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="-">-</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="1">1</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="2">2</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="3">3</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="+">+</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 calc-button-container">
+                        <button type="button" class="calc-button" data-val="0">0</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val=".">.</button>
+                    </div>
+                    <div class="col-3 calc-button-container">
+                        <button type="button" class="calc-button" data-val="=">=</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col">
+                <div class="accordion" id="how-to-percent">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#how-to-percent-x" aria-expanded="false" aria-controls="how-to-percent-x">
+                                How to use the % button with X
+                            </button>
+                        </h2>
+                        <div id="how-to-percent-x" class="accordion-collapse collapse" data-bs-parent="#how-to-percent">
+                            <div class="accordion-body">
+                                <p class="text-start">Should calculate percentage. First total then percentage.</p>
+                                <p class="text-start"><strong>200x20% should give 40</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#how-to-percent-plus" aria-expanded="false" aria-controls="how-to-percent-plus">
+                                How to use the % button with +
+                            </button>
+                        </h2>
+                        <div id="how-to-percent-plus" class="accordion-collapse collapse" data-bs-parent="#how-to-percent">
+                            <div class="accordion-body">
+                                <p class="text-start">Should calculate percentage and add it to the number. First total then percentage.</p>
+                                <p class="text-start"><strong>200+20% should give 240</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#how-to-percent-minus" aria-expanded="false" aria-controls="how-to-percent-minus">
+                                How to use the % button with -
+                            </button>
+                        </h2>
+                        <div id="how-to-percent-minus" class="accordion-collapse collapse" data-bs-parent="#how-to-percent">
+                            <div class="accordion-body">
+                                <p class="text-start">Should calculate percentage and subtract it from the number. First total then percentage.</p>
+                                <p class="text-start"><strong>200-20% should give 160</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  <p class="mt-5 text-center"><a href="/tutorials/calculator/">How to build this tool</a></p>
+</div>

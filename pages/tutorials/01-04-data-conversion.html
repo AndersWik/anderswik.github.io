@@ -1,0 +1,340 @@
+---
+layout: default
+title: Data size converter
+permalink: /tutorials/data-conversion/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, convert, units, bit, byte, kb, mb, kib, select, input event, toPrecision, floating point]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Data size converter</h1>
+  <p>We build a data size converter. It converts between bit, byte, KB, MB, GB and TB, with either 1000 or 1024 as the step. You can type in either box, and the other one updates while you type.</p>
+  <p><a href="/assets/tutorials/data-conversion.html">Open the finished data size converter</a></p>
+  <h2>The idea: convert through one base unit</h2>
+  <p>With six units there are 30 pairs, like KB to MB or bit to GB. Writing a rule for every pair would be long and easy to get wrong. Instead we turn every value into <strong>bits</strong> first, and then turn the bits into the unit we want. That needs one rule per unit:</p>
+  <pre><code class="language-plaintext">1 bit  = 1 bit
+1 byte = 8 bits
+1 KB   = 8 x 1000 bits        (or 8 x 1024)
+1 MB   = 8 x 1000 x 1000 bits (or 8 x 1024 x 1024)
+...</code></pre>
+  <p>The pattern is <code>8 x base</code> to the power of the number of steps from byte: KB is 1 step, MB is 2, GB is 3 and TB is 4. The same idea works for any unit converter: lengths go through metres, and times through seconds.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>data-conversion.html</code> from the skeleton in <a href="/tutorials/utility-page/">Building a utility page</a>. There are two selects for the units, two inputs for the values and one select for the base. The <code>value</code> of each option is what the script reads, and the text between the tags is only what the user sees.</p>
+  <pre><code class="language-html">&lt;h1&gt;Data size converter&lt;/h1&gt;
+&lt;p&gt;bit, byte, KB, MB, GB and TB&lt;/p&gt;
+
+&lt;div class="columns"&gt;
+  &lt;div&gt;
+    &lt;label for="input-select"&gt;From&lt;/label&gt;
+    &lt;select id="input-select"&gt;
+        &lt;option value="bit"&gt;bit&lt;/option&gt;
+        &lt;option value="byte"&gt;byte&lt;/option&gt;
+        &lt;option value="KB"&gt;KB&lt;/option&gt;
+        &lt;option value="MB"&gt;MB&lt;/option&gt;
+        &lt;option value="GB"&gt;GB&lt;/option&gt;
+        &lt;option value="TB"&gt;TB&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;input type="text" id="input-field" aria-label="From value"&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;label for="output-select"&gt;To&lt;/label&gt;
+    &lt;select id="output-select"&gt;
+        &lt;option value="bit"&gt;bit&lt;/option&gt;
+        &lt;option value="byte"&gt;byte&lt;/option&gt;
+        &lt;option value="KB"&gt;KB&lt;/option&gt;
+        &lt;option value="MB"&gt;MB&lt;/option&gt;
+        &lt;option value="GB"&gt;GB&lt;/option&gt;
+        &lt;option value="TB"&gt;TB&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;input type="text" id="output-field" aria-label="To value"&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;label for="base-select"&gt;Base&lt;/label&gt;
+&lt;select id="base-select"&gt;
+  &lt;option value="decimal"&gt;Decimal: 1000&lt;/option&gt;
+  &lt;option value="binary"&gt;Binary: 1024&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+  <p>The <code>div class="columns"</code> puts the From and To boxes next to each other. On a narrow phone screen they go below each other instead. That is what <code>flex-wrap</code> and <code>min-width</code> do in the CSS:</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+.columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.columns &gt; div {
+    flex: 1;
+    min-width: 250px;
+}
+
+label {
+    display: block;
+    margin-top: 16px;
+}
+
+select,
+input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    margin-top: 4px;
+    font-size: 18px;
+}</code></pre>
+  <p>The script starts by finding the elements:</p>
+  <pre><code class="language-javascript">const leftUnit = document.getElementById("input-select");
+const leftValue = document.getElementById("input-field");
+const rightUnit = document.getElementById("output-select");
+const rightValue = document.getElementById("output-field");
+const baseSelect = document.getElementById("base-select");</code></pre>
+  <h2>Step 2: How many bits in a unit</h2>
+  <p>An object works as a lookup table. <code>steps["MB"]</code> gives <code>2</code>:</p>
+  <pre><code class="language-javascript">const steps = {
+    byte: 0,
+    KB: 1,
+    MB: 2,
+    GB: 3,
+    TB: 4
+};
+
+function bitsIn(unit) {
+    if (unit === "bit") {
+        return 1;
+    }
+    const base = baseSelect.value === "binary" ? 1024 : 1000;
+    return 8 * base ** steps[unit];
+}</code></pre>
+  <p><code>a ? b : c</code> is a short if/else: if <code>a</code> is true the answer is <code>b</code>, otherwise <code>c</code>. <code>**</code> means "to the power of", so <code>1000 ** 2</code> is a million. Try <code>bitsIn("KB")</code> in the console. It should give <code>8000</code>.</p>
+  <h2>Step 3: Convert</h2>
+  <pre><code class="language-javascript">function convert(value, fromUnit, toUnit) {
+    const bits = value * bitsIn(fromUnit);
+    return bits / bitsIn(toUnit);
+}</code></pre>
+  <h2>Step 4: Hide floating point noise</h2>
+  <p>Computers store decimal numbers in binary, and most decimals can't be stored exactly. That is why <code>0.1 + 0.2</code> gives <code>0.30000000000000004</code> in JavaScript, and in almost every other language too. <code>toPrecision(12)</code> rounds to 12 significant digits, and <code>Number()</code> turns the result back into a number, which drops trailing zeros:</p>
+  <pre><code class="language-javascript">function tidy(number) {
+    return Number(number.toPrecision(12));
+}</code></pre>
+  <p>We round to significant digits instead of decimals, so very small numbers like <code>0.000000125</code> don't round to 0.</p>
+  <h2>Step 5: Update the other box</h2>
+  <p>Both boxes work the same way, so we write one function that takes which value and unit to read from, and which to write to. Then each direction is one short line:</p>
+  <pre><code class="language-javascript">function update(fromValue, fromUnit, toValue, toUnit) {
+    const value = Number(fromValue.value);
+
+    if (fromValue.value === "" || isNaN(value)) {
+        toValue.value = "";
+        return;
+    }
+
+    toValue.value = tidy(convert(value, fromUnit.value, toUnit.value));
+}
+
+function updateRight() {
+    update(leftValue, leftUnit, rightValue, rightUnit);
+}
+
+function updateLeft() {
+    update(rightValue, rightUnit, leftValue, leftUnit);
+}</code></pre>
+  <p><code>Number("abc")</code> gives <code>NaN</code>, "not a number", and <code>isNaN()</code> checks for it. We also check for the empty string, because <code>Number("")</code> is 0, and an empty box should give an empty answer, not 0.</p>
+  <h2>Step 6: Connect the page</h2>
+  <p>A text box fires <code>"input"</code> on every change. A select fires <code>"change"</code> when you pick something new.</p>
+  <pre><code class="language-javascript">leftValue.addEventListener("input", updateRight);
+rightValue.addEventListener("input", updateLeft);
+
+leftUnit.addEventListener("change", updateRight);
+rightUnit.addEventListener("change", updateRight);
+baseSelect.addEventListener("change", updateRight);</code></pre>
+  <p>When a unit or the base changes, we keep the left value and recalculate the right one.</p>
+  <h2>Step 7: Test it</h2>
+  <ul>
+    <li>1 KB to bit: <code>8000</code> with decimal, <code>8192</code> with binary.</li>
+    <li>Type <code>16384</code> in the right box with bit to KB and binary: the left box shows <code>2</code>.</li>
+    <li>1 bit to TB: <code>1.25e-13</code>. JavaScript writes very small and very big numbers like this. It means 1.25 times 10 to the power of -13.</li>
+    <li>Type <code>abc</code>: the other box is cleared.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>data-conversion.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Data size converter&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .columns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .columns &gt; div {
+        flex: 1;
+        min-width: 250px;
+    }
+
+    label {
+        display: block;
+        margin-top: 16px;
+    }
+
+    select,
+    input {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        margin-top: 4px;
+        font-size: 18px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Data size converter&lt;/h1&gt;
+  &lt;p&gt;bit, byte, KB, MB, GB and TB&lt;/p&gt;
+
+  &lt;div class="columns"&gt;
+    &lt;div&gt;
+      &lt;label for="input-select"&gt;From&lt;/label&gt;
+      &lt;select id="input-select"&gt;
+          &lt;option value="bit"&gt;bit&lt;/option&gt;
+          &lt;option value="byte"&gt;byte&lt;/option&gt;
+          &lt;option value="KB"&gt;KB&lt;/option&gt;
+          &lt;option value="MB"&gt;MB&lt;/option&gt;
+          &lt;option value="GB"&gt;GB&lt;/option&gt;
+          &lt;option value="TB"&gt;TB&lt;/option&gt;
+      &lt;/select&gt;
+      &lt;input type="text" id="input-field" aria-label="From value"&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;label for="output-select"&gt;To&lt;/label&gt;
+      &lt;select id="output-select"&gt;
+          &lt;option value="bit"&gt;bit&lt;/option&gt;
+          &lt;option value="byte"&gt;byte&lt;/option&gt;
+          &lt;option value="KB"&gt;KB&lt;/option&gt;
+          &lt;option value="MB"&gt;MB&lt;/option&gt;
+          &lt;option value="GB"&gt;GB&lt;/option&gt;
+          &lt;option value="TB"&gt;TB&lt;/option&gt;
+      &lt;/select&gt;
+      &lt;input type="text" id="output-field" aria-label="To value"&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;label for="base-select"&gt;Base&lt;/label&gt;
+  &lt;select id="base-select"&gt;
+    &lt;option value="decimal"&gt;Decimal: 1000&lt;/option&gt;
+    &lt;option value="binary"&gt;Binary: 1024&lt;/option&gt;
+  &lt;/select&gt;
+
+  &lt;script&gt;
+    /*
+     * Data size converter: bit, byte, KB, MB, GB and TB.
+     *
+     * The trick: turn every value into bits first, then from bits into the
+     * unit we want. That way we need one rule per unit instead of one rule
+     * for every pair of units.
+     *
+     *   1 byte = 8 bits
+     *   1 KB   = 1000 bytes (decimal) or 1024 bytes (binary)
+     *   1 MB   = 1000 KB or 1024 KB, and so on.
+     *
+     * You can type in either field; the other one is updated.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const leftUnit = document.getElementById("input-select");
+    const leftValue = document.getElementById("input-field");
+    const rightUnit = document.getElementById("output-select");
+    const rightValue = document.getElementById("output-field");
+    const baseSelect = document.getElementById("base-select");
+
+    // --- Helpers -------------------------------------------------------------
+
+    // How many times we multiply by 1000 (or 1024) to get from bytes to the unit.
+    const steps = {
+        byte: 0,
+        KB: 1,
+        MB: 2,
+        GB: 3,
+        TB: 4
+    };
+
+    // How many bits there are in one of the unit, e.g. "KB" -&gt; 8000.
+    function bitsIn(unit) {
+        if (unit === "bit") {
+            return 1;
+        }
+        const base = baseSelect.value === "binary" ? 1024 : 1000;
+        return 8 * base ** steps[unit];  // "**" means "to the power of"
+    }
+
+    function convert(value, fromUnit, toUnit) {
+        const bits = value * bitsIn(fromUnit);
+        return bits / bitsIn(toUnit);
+    }
+
+    // Hide floating point noise like 0.30000000000000004,
+    // but keep very small and very large numbers.
+    function tidy(number) {
+        return Number(number.toPrecision(12));
+    }
+
+    // Read the value in one field, convert it, and write it into the other.
+    function update(fromValue, fromUnit, toValue, toUnit) {
+        const value = Number(fromValue.value);
+
+        if (fromValue.value === "" || isNaN(value)) {
+            toValue.value = "";
+            return;
+        }
+
+        toValue.value = tidy(convert(value, fromUnit.value, toUnit.value));
+    }
+
+    function updateRight() {
+        update(leftValue, leftUnit, rightValue, rightUnit);
+    }
+
+    function updateLeft() {
+        update(rightValue, rightUnit, leftValue, leftUnit);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // "input" fires on every change: typing, pasting, deleting...
+    leftValue.addEventListener("input", updateRight);
+    rightValue.addEventListener("input", updateLeft);
+
+    // Changing a unit or the base keeps the left value and recalculates the right.
+    leftUnit.addEventListener("change", updateRight);
+    rightUnit.addEventListener("change", updateRight);
+    baseSelect.addEventListener("change", updateRight);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Add PB (petabyte): one option in each select and <code>PB: 5</code> in <code>steps</code>.</li>
+    <li>Real binary units are written KiB, MiB and GiB. Change the option texts when the base select changes.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

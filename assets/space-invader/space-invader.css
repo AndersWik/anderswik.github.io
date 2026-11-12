@@ -1,0 +1,14 @@
+.game {
+  background: black;
+  color: white;
+  text-align: center;
+  font-family: sans-serif;
+}
+
+.game canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 20px auto;
+  border: 2px solid #00ff00;
+}

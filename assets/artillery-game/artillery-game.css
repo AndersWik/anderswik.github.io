@@ -1,0 +1,19 @@
+.game canvas {
+  max-width: 100%;
+  height: auto;
+  background: #aee;
+  display: block;
+  margin: auto;
+}
+.game .controls {
+  max-width: 800px;
+  margin: 10px auto;
+  flex-wrap: wrap;
+  gap: 10px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.game label {
+  font-family: sans-serif;
+}

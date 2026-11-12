@@ -1,0 +1,64 @@
+---
+layout: default
+title: Games
+permalink: /games/
+nonav: true
+# Same chapters as the game tutorials. Thumbnails live in /assets/images/games/<slug>.webp
+categories:
+  - title: Casino games
+    games:
+      - { slug: blackjack, name: Blackjack }
+      - { slug: slot-machine, name: Slot Machine }
+      - { slug: roulette, name: Roulette }
+  - title: Board games
+    games:
+      - { slug: rock-paper-scissors, name: Rock Paper Scissors }
+      - { slug: tic-tac-toe, name: Tic Tac Toe }
+      - { slug: reversi, name: Reversi }
+      - { slug: reversi-ai, name: Reversi (vs Computer) }
+      - { slug: memory, name: Memory }
+      - { slug: kvarn, name: "Kvarn (Nine Men's Morris)" }
+      - { slug: four-in-a-row, name: Connect Four }
+      - { slug: four-in-a-row-ai, name: Connect Four (vs Computer) }
+  - title: Classic arcade
+    games:
+      - { slug: pong, name: Pong }
+      - { slug: asteroids, name: Asteroids }
+      - { slug: missile-command, name: Missile Command }
+      - { slug: space-fighter, name: Space Fighter }
+      - { slug: space-invader, name: Space Invaders }
+      - { slug: breakout, name: Breakout }
+      - { slug: volleyball, name: Volleyball }
+      - { slug: artillery-game, name: Artillery }
+      - { slug: pool, name: Pool }
+      - { slug: whack-a-mole, name: Whack A Mole }
+      - { slug: arcade-shooter, name: Arcade Shooter }
+      - { slug: hock-a-loogie, name: Hock-A-Loogie }
+  - title: Trivia and puzzle games
+    games:
+      - { slug: quiz, name: Quiz }
+      - { slug: hangman, name: Hangman }
+      - { slug: sudoku, name: Sudoku }
+  - title: Novelty games
+    games:
+      - { slug: 8-ball, name: Magic 8-Ball }
+      - { slug: coin-flip, name: Coin Flip }
+      - { slug: choose-dice, name: Dice Roller }
+      - { slug: chore-wheel, name: Chore Wheel }
+---
+
+<section class="games">
+  {% for category in page.categories %}
+  <h2 class="category-title">{{ category.title }}</h2>
+  <ul class="badges">
+    {% for game in category.games %}
+    <li>
+      <a class="badge-card" href="{{ '/games/' | append: game.slug | append: '/' | relative_url }}">
+        <img src="{{ '/assets/images/games/' | append: game.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
+        <span class="badge-name">{{ game.name }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+</section>

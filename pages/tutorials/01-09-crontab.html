@@ -1,0 +1,505 @@
+---
+layout: default
+title: Crontab checker
+permalink: /tutorials/crontab/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, cron, crontab, validation, parser, split, regex, classList, hidden, config object]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Crontab checker</h1>
+  <p>We build a crontab checker. There are five boxes, one per time field of a crontab line. Each box gets a red border when what you typed isn't valid, and the help for the field you are editing is shown below.</p>
+  <p>This is the biggest tutorial in the series. The main lesson is how to keep it small: the five fields follow the same rules with different limits, so we write the rules <strong>once</strong> and describe each field with a little data.</p>
+  <p><a href="/assets/tutorials/crontab.html">Open the finished crontab checker</a></p>
+  <h2>The crontab format</h2>
+  <pre><code class="language-plaintext">minute  hour  day(month)  month  day(week)  command
+30      6     *           *      1-5        /home/me/backup.sh    at 06:30 Monday-Friday
+*/15    *     *           *      *          /home/me/check.sh     every 15 minutes</code></pre>
+  <p>Every field is a list separated by commas, and each part of the list is one of:</p>
+  <pre><code class="language-plaintext">*          every value
+*/step     every step:th value       */15     -&gt; 0, 15, 30, 45
+n          one value                 5
+a-b        a range, a &lt;= b           1-5
+a-b/step   a range with a step       0-30/10  -&gt; 0, 10, 20, 30
+a~b        a random value in a-b     0~30</code></pre>
+  <p>The limits are:</p>
+  <ul>
+    <li>minute: 0-59</li>
+    <li>hour: 0-23</li>
+    <li>day of month: 1-31</li>
+    <li>month: 1-12, or <code>JAN-DEC</code></li>
+    <li>day of week: 0-7, or <code>SUN-SAT</code>. Both 0 and 7 are Sunday.</li>
+  </ul>
+  <p>Some cron programs also have special symbols for the day fields, like <code>L</code> (last), <code>W</code> (weekday) and <code>#</code> (the n-th weekday). We accept those, but only on their own.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>crontab.html</code> from the skeleton in <a href="/tutorials/utility-page/">Building a utility page</a>. There are five inputs, and a header and a help list for each field. The ids follow a pattern: for the field <code>minute</code> there is <code>minute-header</code> and <code>minute-txt</code>. Because of that pattern, the script can find them all from the field name.</p>
+  <pre><code class="language-html">&lt;h1&gt;Crontab checker&lt;/h1&gt;
+
+&lt;div class="fields"&gt;
+  &lt;input type="text" id="minute" value="*" aria-label="minute"&gt;
+  &lt;input type="text" id="hour" value="*" aria-label="hour"&gt;
+  &lt;input type="text" id="day-month" value="*" aria-label="day (month)"&gt;
+  &lt;input type="text" id="month" value="*" aria-label="month"&gt;
+  &lt;input type="text" id="day-week" value="*" aria-label="day (week)"&gt;
+&lt;/div&gt;
+
+&lt;h2 id="minute-header"&gt;minute&lt;/h2&gt;
+&lt;div id="minute-txt"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;0-59&lt;/code&gt; 0 is the first minute of the hour&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="hour-header" hidden&gt;hour&lt;/h2&gt;
+&lt;div id="hour-txt" hidden&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;0-23&lt;/code&gt; 0 is midnight&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="day-month-header" hidden&gt;day (month)&lt;/h2&gt;
+&lt;div id="day-month-txt" hidden&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;1-31&lt;/code&gt; 1 is the first day of the month&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;?&lt;/code&gt; any day, when day (week) is set&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;L&lt;/code&gt; the last day of the month, &lt;code&gt;L-1&lt;/code&gt; the day before&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;15W&lt;/code&gt; the weekday closest to the 15th, &lt;code&gt;LW&lt;/code&gt; the last weekday&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="month-header" hidden&gt;month&lt;/h2&gt;
+&lt;div id="month-txt" hidden&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;1-12&lt;/code&gt; or &lt;code&gt;JAN-DEC&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+&lt;h2 id="day-week-header" hidden&gt;day (week)&lt;/h2&gt;
+&lt;div id="day-week-txt" hidden&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;code&gt;0-7&lt;/code&gt; or &lt;code&gt;SUN-SAT&lt;/code&gt;, both 0 and 7 are Sunday&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;?&lt;/code&gt; any day, when day (month) is set&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;5L&lt;/code&gt; the last Friday of the month&lt;/li&gt;
+    &lt;li&gt;&lt;code&gt;1#3&lt;/code&gt; the third Monday of the month&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;</code></pre>
+  <p>The <code>hidden</code> attribute hides an element. In JavaScript, <code>element.hidden = true</code> and <code>element.hidden = false</code> toggle it, which is simpler than changing <code>style.display</code>. At the start only the minute help is shown.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+.fields {
+    display: flex;
+    gap: 8px;
+}
+
+.fields input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px;
+    font-size: 28px;
+    text-align: center;
+}
+
+.not-valid {
+    border: 3px dashed #ff0000;
+}</code></pre>
+  <p>The <code>.not-valid</code> class is the red border. The five boxes share the width with <code>flex: 1</code>. <code>min-width: 0</code> lets them shrink below their normal size on a narrow screen.</p>
+  <h2>Step 2: Describe the fields with data</h2>
+  <pre><code class="language-javascript">const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+const fields = [
+    { id: "minute", min: 0, max: 59 },
+    { id: "hour", min: 0, max: 23 },
+    {
+        id: "day-month", min: 1, max: 31,
+        special: /^(\?|L|LW|L-([1-9]|[12][0-9]|30)|([1-9]|[12][0-9]|3[01])W)$/
+    },
+    { id: "month", min: 1, max: 12, names: MONTHS },
+    {
+        id: "day-week", min: 0, max: 7, names: DAYS,
+        special: /^(\?|L|[0-7]L|[0-7]#[1-5])$/
+    }
+];</code></pre>
+  <p>To add a sixth field, for example seconds, you would add one line here. No new code is needed.</p>
+  <p>The <code>special</code> regular expressions list the extra forms. In a regular expression <code>|</code> means "or", <code>[12][0-9]</code> is 10-29, and <code>\?</code> is a real question mark. Plain <code>?</code> means "optional".</p>
+  <h2>Step 3: One value</h2>
+  <p><code>toNumber()</code> turns one value into a number, or <code>NaN</code> if it isn't allowed in this field. Names are looked up in the field's list. <code>MONTHS</code> starts at 1 (JAN) and <code>DAYS</code> at 0 (SUN), the same as the field's <code>min</code>, so the position in the list plus <code>min</code> is the right number.</p>
+  <pre><code class="language-javascript">function toNumber(text, field) {
+    if (field.names &amp;&amp; field.names.includes(text)) {
+        return field.names.indexOf(text) + field.min;
+    }
+    if (!/^[0-9]+$/.test(text)) {
+        return NaN;
+    }
+    const number = Number(text);
+    if (number &lt; field.min || number &gt; field.max) {
+        return NaN;
+    }
+    return number;
+}</code></pre>
+  <p>We check for digits with a regular expression first, because <code>Number()</code> also accepts things like <code>" 5"</code>, <code>"1e1"</code> and <code>"0x10"</code>, which cron doesn't.</p>
+  <h2>Step 4: One part of the list</h2>
+  <p><code>split("/")</code> cuts <code>"0-30/10"</code> into <code>["0-30", "10"]</code>. With destructuring, <code>const [range, step, extra] = ...</code> gives the pieces names. A piece that isn't there is <code>undefined</code>.</p>
+  <pre><code class="language-javascript">function isValidPart(part, field) {
+    const [range, step, extra] = part.split("/");
+
+    if (extra !== undefined) {
+        return false;                           // more than one "/"
+    }
+    if (step !== undefined &amp;&amp; !/^[1-9][0-9]*$/.test(step)) {
+        return false;                           // a step must be 1 or more
+    }
+    if (range === "*") {
+        return true;                            // "*" or "*/step"
+    }
+
+    const isRandom = range.includes("~");
+    const ends = range.split(isRandom ? "~" : "-");
+
+    if (ends.length === 1) {
+        // A single value can't have a step: "5/2" is not allowed.
+        return step === undefined &amp;&amp; !isNaN(toNumber(ends[0], field));
+    }
+    if (ends.length !== 2 || (isRandom &amp;&amp; step !== undefined)) {
+        return false;
+    }
+
+    const first = toNumber(ends[0], field);
+    const last = toNumber(ends[1], field);
+
+    return first &lt;= last;
+}</code></pre>
+  <p>The last line does two jobs. It checks that the range goes up, so <code>10-5</code> is not allowed. And any comparison with <code>NaN</code> is false, so it also fails when either end isn't allowed in this field. Note that <code>NaN === NaN</code> is false too, which is why we need <code>isNaN()</code> to check for it.</p>
+  <h2>Step 5: The whole field</h2>
+  <pre><code class="language-javascript">function isValidField(text, field) {
+    const value = text.trim().toUpperCase();
+
+    if (field.special &amp;&amp; field.special.test(value)) {
+        return true;
+    }
+    return value.split(",").every(function (part) {
+        return isValidPart(part, field);
+    });
+}</code></pre>
+  <p><code>toUpperCase()</code> lets you type <code>mon</code> as well as <code>MON</code>. <code>every()</code> is true only if the function is true for every part of the list. Because each part is checked on its own, mixed lists like <code>1,5-10,*/20</code> just work. <code>"1,,2"</code> fails, because the empty part between the commas isn't a valid value.</p>
+  <p>Try it in the console:</p>
+  <pre><code class="language-javascript">isValidField("1,5-10", fields[0])     // true
+isValidField("60", fields[0])         // false
+isValidField("mon-fri", fields[4])    // true</code></pre>
+  <h2>Step 6: Connect the page</h2>
+  <p>One loop sets up all five boxes:</p>
+  <pre><code class="language-javascript">function showHelp(id) {
+    fields.forEach(function (field) {
+        document.getElementById(field.id + "-header").hidden = field.id !== id;
+        document.getElementById(field.id + "-txt").hidden = field.id !== id;
+    });
+}
+
+fields.forEach(function (field) {
+    const input = document.getElementById(field.id);
+
+    input.addEventListener("focus", function () {
+        showHelp(field.id);
+    });
+
+    input.addEventListener("input", function () {
+        input.classList.toggle("not-valid", !isValidField(input.value, field));
+    });
+});</code></pre>
+  <p><code>field.id !== id</code> is <code>true</code> for every field except the one we want, so all the others are hidden. <code>classList.toggle(name, true)</code> adds the class and <code>toggle(name, false)</code> removes it, so one line replaces an if/else.</p>
+  <h2>Step 7: Test it</h2>
+  <p>These should be valid (no red border):</p>
+  <ul>
+    <li>minute: <code>*</code>, <code>*/15</code>, <code>0</code>, <code>59</code>, <code>1,5-10</code>, <code>0-30/10</code>, <code>0~30</code>, <code>5-9,10-20/2</code></li>
+    <li>day of month: <code>24</code>, <code>31</code>, <code>L</code>, <code>LW</code>, <code>L-3</code>, <code>15W</code>, <code>?</code></li>
+    <li>month: <code>jan</code>, <code>JAN-MAR</code>, <code>1-12/3</code></li>
+    <li>day of week: <code>MON-FRI</code>, <code>0</code>, <code>7</code>, <code>5L</code>, <code>1#3</code>, <code>mon,wed,fri</code></li>
+  </ul>
+  <p>These should be red:</p>
+  <ul>
+    <li>minute: <code>60</code>, <code>*/0</code>, <code>5/2</code>, <code>10-5</code>, <code>1,,2</code>, <code>-1</code>, <code>1-2-3</code></li>
+    <li>day of month: <code>0</code>, <code>32</code>, <code>L,5</code></li>
+    <li>month: <code>13</code>, <code>MON</code>, <code>DEC-JAN</code></li>
+    <li>day of week: <code>8</code>, <code>1#6</code>, <code>JAN</code></li>
+  </ul>
+  <p>Click in each box and check that the right help table is shown.</p>
+  <h2>The complete page</h2>
+  <p><strong>crontab.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Crontab checker&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .fields {
+        display: flex;
+        gap: 8px;
+    }
+
+    .fields input {
+        flex: 1;
+        min-width: 0;
+        padding: 8px;
+        font-size: 28px;
+        text-align: center;
+    }
+
+    .not-valid {
+        border: 3px dashed #ff0000;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Crontab checker&lt;/h1&gt;
+
+  &lt;div class="fields"&gt;
+    &lt;input type="text" id="minute" value="*" aria-label="minute"&gt;
+    &lt;input type="text" id="hour" value="*" aria-label="hour"&gt;
+    &lt;input type="text" id="day-month" value="*" aria-label="day (month)"&gt;
+    &lt;input type="text" id="month" value="*" aria-label="month"&gt;
+    &lt;input type="text" id="day-week" value="*" aria-label="day (week)"&gt;
+  &lt;/div&gt;
+
+  &lt;h2 id="minute-header"&gt;minute&lt;/h2&gt;
+  &lt;div id="minute-txt"&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code&gt;0-59&lt;/code&gt; 0 is the first minute of the hour&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+  &lt;h2 id="hour-header" hidden&gt;hour&lt;/h2&gt;
+  &lt;div id="hour-txt" hidden&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code&gt;0-23&lt;/code&gt; 0 is midnight&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+  &lt;h2 id="day-month-header" hidden&gt;day (month)&lt;/h2&gt;
+  &lt;div id="day-month-txt" hidden&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code&gt;1-31&lt;/code&gt; 1 is the first day of the month&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;?&lt;/code&gt; any day, when day (week) is set&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;L&lt;/code&gt; the last day of the month, &lt;code&gt;L-1&lt;/code&gt; the day before&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;15W&lt;/code&gt; the weekday closest to the 15th, &lt;code&gt;LW&lt;/code&gt; the last weekday&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+  &lt;h2 id="month-header" hidden&gt;month&lt;/h2&gt;
+  &lt;div id="month-txt" hidden&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code&gt;1-12&lt;/code&gt; or &lt;code&gt;JAN-DEC&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+  &lt;h2 id="day-week-header" hidden&gt;day (week)&lt;/h2&gt;
+  &lt;div id="day-week-txt" hidden&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code&gt;0-7&lt;/code&gt; or &lt;code&gt;SUN-SAT&lt;/code&gt;, both 0 and 7 are Sunday&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;*&lt;/code&gt; every value&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a-b&lt;/code&gt; a range, like &lt;code&gt;4-6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a~b&lt;/code&gt; a random value in a range, like &lt;code&gt;4~6&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;a,b,c&lt;/code&gt; a list, like &lt;code&gt;3,5,7&lt;/code&gt; or &lt;code&gt;3-5,7-9&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;/step&lt;/code&gt; a step after &lt;code&gt;*&lt;/code&gt; or a range, like &lt;code&gt;*/15&lt;/code&gt; or &lt;code&gt;1-10/2&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;?&lt;/code&gt; any day, when day (month) is set&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;5L&lt;/code&gt; the last Friday of the month&lt;/li&gt;
+      &lt;li&gt;&lt;code&gt;1#3&lt;/code&gt; the third Monday of the month&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    // Crontab checker.
+    //
+    // A crontab line starts with five time fields, then the command:
+    //
+    //   minute  hour  day(month)  month  day(week)  command
+    //   30      6     *           *      1-5        /home/me/backup.sh
+    //
+    // Every field is a comma separated list. Each part of the list is one of:
+    //
+    //   *          every value
+    //   */step     every step:th value       */15     -&gt; 0, 15, 30, 45
+    //   n          one value                 5
+    //   a-b        a range (a &lt;= b)          1-5
+    //   a-b/step   a range with a step       0-30/10  -&gt; 0, 10, 20, 30
+    //   a~b        a random value in a-b     0~30
+    //
+    // Month and day(week) can also use names like JAN or MON. Some cron
+    // programs add extra symbols (? L W #) to the day fields; we accept them
+    // too, but only on their own, not inside a list.
+    //
+    // When a field is not valid it gets the class "not-valid" (a red border).
+
+    // --- The five fields -----------------------------------------------------
+
+    const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+    const fields = [
+        { id: "minute", min: 0, max: 59 },
+        { id: "hour", min: 0, max: 23 },
+        {
+            id: "day-month", min: 1, max: 31,
+            // ?  any,  L  last day,  LW  last weekday,  L-3  three days before the last,
+            // 15W  the weekday closest to the 15th
+            special: /^(\?|L|LW|L-([1-9]|[12][0-9]|30)|([1-9]|[12][0-9]|3[01])W)$/
+        },
+        { id: "month", min: 1, max: 12, names: MONTHS },
+        {
+            id: "day-week", min: 0, max: 7, names: DAYS,
+            // ?  any,  L  last day of the week,  5L  last Friday of the month,
+            // 1#3  third Monday of the month
+            special: /^(\?|L|[0-7]L|[0-7]#[1-5])$/
+        }
+    ];
+
+    // --- Checking a field ----------------------------------------------------
+
+    // "5" -&gt; 5, "MON" -&gt; 1, "JAN" -&gt; 1. Returns NaN if it is not allowed here.
+    function toNumber(text, field) {
+        if (field.names &amp;&amp; field.names.includes(text)) {
+            // MONTHS starts at 1 (JAN), DAYS starts at 0 (SUN), the same as min.
+            return field.names.indexOf(text) + field.min;
+        }
+        if (!/^[0-9]+$/.test(text)) {
+            return NaN;
+        }
+        const number = Number(text);
+        if (number &lt; field.min || number &gt; field.max) {
+            return NaN;
+        }
+        return number;
+    }
+
+    // Check one part of a list, e.g. "*/15", "5", "1-5", "0-30/10" or "0~30".
+    function isValidPart(part, field) {
+        const [range, step, extra] = part.split("/");
+
+        if (extra !== undefined) {
+            return false;                           // more than one "/"
+        }
+        if (step !== undefined &amp;&amp; !/^[1-9][0-9]*$/.test(step)) {
+            return false;                           // a step must be 1 or more
+        }
+        if (range === "*") {
+            return true;                            // "*" or "*/step"
+        }
+
+        const isRandom = range.includes("~");
+        const ends = range.split(isRandom ? "~" : "-");
+
+        if (ends.length === 1) {
+            // A single value can't have a step: "5/2" is not allowed.
+            return step === undefined &amp;&amp; !isNaN(toNumber(ends[0], field));
+        }
+        if (ends.length !== 2 || (isRandom &amp;&amp; step !== undefined)) {
+            return false;
+        }
+
+        const first = toNumber(ends[0], field);
+        const last = toNumber(ends[1], field);
+
+        // NaN &lt;= 5 is false, so this also fails when a value is not allowed.
+        return first &lt;= last;
+    }
+
+    function isValidField(text, field) {
+        // Names may be typed in lower case: "mon" is the same as "MON".
+        const value = text.trim().toUpperCase();
+
+        if (field.special &amp;&amp; field.special.test(value)) {
+            return true;
+        }
+        return value.split(",").every(function (part) {
+            return isValidPart(part, field);
+        });
+    }
+
+    // --- The page ------------------------------------------------------------
+
+    // Show the header and help table for one field, hide the others.
+    // The page has e.g. id="minute-header" and id="minute-txt" for "minute".
+    function showHelp(id) {
+        fields.forEach(function (field) {
+            document.getElementById(field.id + "-header").hidden = field.id !== id;
+            document.getElementById(field.id + "-txt").hidden = field.id !== id;
+        });
+    }
+
+    fields.forEach(function (field) {
+        const input = document.getElementById(field.id);
+
+        input.addEventListener("focus", function () {
+            showHelp(field.id);
+        });
+
+        // "input" fires on every change: typing, pasting, deleting...
+        input.addEventListener("input", function () {
+            // toggle(name, true) adds the class, toggle(name, false) removes it.
+            input.classList.toggle("not-valid", !isValidField(input.value, field));
+        });
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Show the whole line below the boxes, like <code>30 6 * * 1-5</code>, ready to copy.</li>
+    <li>Write the line in plain English, for example "At 06:30, Monday to Friday". Start with the simple cases: <code>*</code> and single values.</li>
+    <li>Show the next five times the line will run. Count forward minute by minute from now and check each minute against the five fields.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

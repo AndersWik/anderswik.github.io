@@ -1,0 +1,48 @@
+---
+layout: default
+title: Systemctl
+permalink: /linux/systemctl/
+chapter: "11"
+chapter_title: "Services"
+keywords: [linux, systemctl, systemd, services, daemons]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Systemctl</h1>
+  <p><code>systemctl</code> controls systemd and the services it manages. Use it to start, stop and restart services, and to choose which ones start at boot.</p>
+  <h2>Show status</h2>
+  <pre><code class="language-bash">$ systemctl</code></pre>
+  <pre><code class="language-bash">$ systemctl status nginx</code></pre>
+  <h2>Start, stop and restart</h2>
+  <pre><code class="language-bash">$ sudo systemctl start nginx
+$ sudo systemctl stop nginx
+$ sudo systemctl restart nginx
+$ sudo systemctl reload nginx    # reload the config without stopping</code></pre>
+  <h2>Start at boot</h2>
+  <p><code>--now</code> also starts or stops the service right away.</p>
+  <pre><code class="language-bash">$ sudo systemctl enable --now nginx
+$ sudo systemctl disable nginx</code></pre>
+  <h2>List services</h2>
+  <pre><code class="language-bash">$ systemctl list-units --type=service --state=running
+$ systemctl --failed</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>systemctl</code> and all its options.</p>
+  <pre><code class="language-bash">$ systemctl --help
+$ systemctl -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>systemctl</code> is installed.</p>
+  <pre><code class="language-bash">$ systemctl --version</code></pre>
+  <h2>More about systemctl</h2>
+  <ul>
+    <li>After editing a unit file, run <code>sudo systemctl daemon-reload</code></li>
+    <li><code>systemctl reboot</code> and <code>systemctl poweroff</code> restart and shut down the computer</li>
+    <li>Read the logs of a service with <a href="/linux/journalctl/">journalctl</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/systemctl.txt">man systemctl</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, systemctl, systemd, services, daemons</p>
+  {% include trail.html %}
+</div>

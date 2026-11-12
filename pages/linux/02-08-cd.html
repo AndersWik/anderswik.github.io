@@ -1,0 +1,40 @@
+---
+layout: default
+title: Cd
+permalink: /linux/cd/
+chapter: "02"
+chapter_title: "Navigating"
+keywords: [linux, cd, change directory, navigating, path]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Cd</h1>
+  <p><code>cd</code> stands for change directory. It moves you to another directory in the file system. Without arguments it takes you to your home directory.</p>
+  <h2>Change directory</h2>
+  <p>Move into a directory with a relative or an absolute path.</p>
+  <pre><code class="language-bash">$ cd Documents
+$ cd /var/log</code></pre>
+  <h2>Move up</h2>
+  <p><code>..</code> is the parent directory. They can be chained to move up several levels.</p>
+  <pre><code class="language-bash">$ cd ..
+$ cd ../..</code></pre>
+  <h2>Go home or back</h2>
+  <p><code>~</code> is your home directory and <code>-</code> takes you back to the directory you were in before.</p>
+  <pre><code class="language-bash">$ cd ~
+$ cd -</code></pre>
+  <h2>Paths with spaces</h2>
+  <p>Put quotes around a path that contains spaces, or escape each space with a backslash. Press Tab to let the shell complete the name for you.</p>
+  <pre><code class="language-bash">$ cd "My Documents"
+$ cd My\ Documents</code></pre>
+  <h2>Help</h2>
+  <p><code>cd</code> is built into the shell, so it has no <code>-h</code> option and no version. <code>--help</code> prints a short summary, the same as <code>help cd</code>.</p>
+  <pre><code class="language-bash">$ cd --help</code></pre>
+  <h2>More about cd</h2>
+  <ul>
+    <li><code>cd</code> is built into the shell, so <code>help cd</code> also shows its documentation</li>
+    <li><code>pushd</code> and <code>popd</code> remember a stack of directories you can jump back to</li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, cd, change directory, navigating, path</p>
+  {% include trail.html %}
+</div>

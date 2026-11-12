@@ -1,0 +1,27 @@
+---
+layout: default
+title: Export
+permalink: /mysql/export/
+chapter: "05"
+chapter_title: "Export and import"
+keywords: [mysql, sql, export, database, mysqldump, backup, dump]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Export</h1>
+  <p>A database can be exported to a file with SQL, called a dump. The dump can be used as a backup or to move the database to another server, where it is <a href="/mysql/import/">imported</a> again.</p>
+  <h2>Export database</h2>
+  <p><code>mysqldump</code> is run in the terminal, not inside the <code>mysql</code> client.</p>
+  <pre><code class="language-bash">$ mysqldump -u {user} -p {db name} &gt; {db dump name}.sql</code></pre>
+  <p>Example:</p>
+  <pre><code class="language-bash">$ mysqldump -u root -p mydatabase &gt; mydatabase.sql</code></pre>
+  <h2>More about export</h2>
+  <ul>
+    <li><a href="/mysql/remote-server/">Remote server</a> shows how to export from another server</li>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/mysqldump.html">mysqldump</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,35 @@
+---
+layout: game
+title: Tic Tac Toe
+permalink: /games/tic-tac-toe/
+nonav: true
+css:
+  - /assets/tic-tac-toe/tic-tac-toe.css
+js:
+  - /assets/tic-tac-toe/tic-tac-toe.js
+---
+<div class="container">
+  <h1>Tic Tac Toe</h1>
+  <div class="board" id="board">
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+    <button type="button" class="square"></button>
+  </div>
+  <p class="status" id="status" aria-live="polite"></p>
+  <button type="button" id="reset">New game</button>
+  <div class="controls">
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy">The computer (easy)</option>
+      <option value="smart" selected>The computer (smart)</option>
+    </select>
+  </div>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/tic-tac-toe/">How to build this game</a></p>

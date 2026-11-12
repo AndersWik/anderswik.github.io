@@ -1,0 +1,27 @@
+---
+layout: default
+title: Databases
+permalink: /linux/databases/
+chapter: "13"
+chapter_title: "Databases"
+keywords: [linux, databases, mysql, mariadb, postgresql, sqlite]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Databases</h1>
+  <p>A database stores data in an organized way so programs can search and update it quickly. Most websites use one. On Linux the most common databases are MySQL and its fork MariaDB, PostgreSQL, and SQLite, which keeps a whole database in a single file.</p>
+  <h2>Install a database server</h2>
+  <pre><code class="language-bash">$ sudo apt install mariadb-server
+$ sudo apt install postgresql</code></pre>
+  <h2>Backups</h2>
+  <p>Database files should not be copied while the server runs. Use the dump tools instead, which write the database as SQL.</p>
+  <pre><code class="language-bash">$ mysqldump -u root -p mydb &gt; mydb.sql</code></pre>
+  <h2>Commands in this chapter</h2>
+  <ul>
+    <li><code>mysql</code> — start, stop and use MySQL</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, databases, mysql, mariadb, postgresql, sqlite</p>
+  {% include trail.html %}
+</div>

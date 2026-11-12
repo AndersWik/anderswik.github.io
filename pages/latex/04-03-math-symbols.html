@@ -1,0 +1,56 @@
+---
+layout: default
+title: Math symbols
+permalink: /latex/math-symbols/
+chapter: "04"
+chapter_title: "Math"
+keywords: [latex, math symbols, greek, operators, sum, integral, limit, arrows, relations, sets, amssymb]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Math symbols</h1>
+  <p>Most symbols are commands in math mode. Many need <code>amssymb</code>.</p>
+  <h2>Greek letters</h2>
+  <pre><code class="language-latex">\alpha \beta \gamma \delta \epsilon \varepsilon \zeta \eta \theta
+\iota \kappa \lambda \mu \nu \xi \pi \rho \sigma \tau \upsilon
+\phi \varphi \chi \psi \omega
+
+\Gamma \Delta \Theta \Lambda \Xi \Pi \Sigma \Phi \Psi \Omega</code></pre>
+  <h2>Operators</h2>
+  <pre><code class="language-latex">+  -  \times  \div  \cdot  \pm  \mp  \ast  \circ</code></pre>
+  <h2>Relations</h2>
+  <pre><code class="language-latex">=  \neq  &lt;  &gt;  \le  \ge  \ll  \gg  \approx  \equiv  \sim  \propto</code></pre>
+  <h2>Sums, products, integrals and limits</h2>
+  <pre><code class="language-latex">\sum_{i=1}^{n} i
+\prod_{i=1}^{n} i
+\int_{0}^{\infty} f(x)\,dx
+\iint  \iiint  \oint
+\lim_{x \to 0} f(x)</code></pre>
+  <h2>Functions</h2>
+  <p>Function names are written upright. Define your own with <code>\DeclareMathOperator</code>.</p>
+  <pre><code class="language-latex">\sin \cos \tan \log \ln \exp \max \min \det
+
+\DeclareMathOperator{\sgn}{sgn}</code></pre>
+  <h2>Sets and logic</h2>
+  <pre><code class="language-latex">\in  \notin  \subset  \subseteq  \cup  \cap  \emptyset  \setminus
+\forall  \exists  \neg  \land  \lor  \implies  \iff
+\mathbb{N} \mathbb{Z} \mathbb{Q} \mathbb{R} \mathbb{C}</code></pre>
+  <h2>Arrows</h2>
+  <pre><code class="language-latex">\to  \leftarrow  \rightarrow  \leftrightarrow
+\Rightarrow  \Leftarrow  \Leftrightarrow  \mapsto</code></pre>
+  <h2>Accents and dots</h2>
+  <pre><code class="language-latex">\hat{x}  \bar{x}  \vec{x}  \dot{x}  \ddot{x}  \tilde{x}  \overline{AB}
+\ldots  \cdots  \vdots  \ddots
+\infty  \partial  \nabla  \degree</code></pre>
+  <h2>Fonts in math</h2>
+  <pre><code class="language-latex">\mathbf{v}  \mathit{x}  \mathrm{d}  \mathcal{L}  \mathbb{R}  \mathfrak{g}</code></pre>
+  <h2>More about math symbols</h2>
+  <ul>
+    <li><a href="https://detexify.kirelabs.org/classify.html">Detexify</a> — draw a symbol to find the command</li>
+    <li><code>texdoc symbols-a4</code> — the comprehensive symbol list</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

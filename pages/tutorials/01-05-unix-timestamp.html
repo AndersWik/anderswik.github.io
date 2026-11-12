@@ -1,0 +1,546 @@
+---
+layout: default
+title: Unix timestamp converter
+permalink: /tutorials/unix-timestamp/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, date, unix timestamp, epoch, iso 8601, utc, time zone, regex, Intl, RelativeTimeFormat, setInterval]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Unix timestamp converter</h1>
+  <p>We build a Unix timestamp converter. It converts between seconds, milliseconds, a date and time, and ISO 8601, in local time or UTC. It also shows a friendly description like "in 3 hours" and a clock with the current timestamp.</p>
+  <p>It uses the same two-box idea as the <a href="/tutorials/data-conversion/">Data size converter</a>, so read that one first.</p>
+  <p><a href="/assets/tutorials/unix-timestamp.html">Open the finished timestamp converter</a></p>
+  <h2>What a Unix timestamp is</h2>
+  <p>A Unix timestamp is the number of seconds since 1970-01-01 00:00:00 UTC, which is called "the epoch". It is the same number everywhere in the world, so it is a good way to store a moment in time. Time zones only matter when you show it to a person.</p>
+  <pre><code class="language-plaintext">0            1970-01-01 00:00:00 UTC
+1700000000   2023-11-14 22:13:20 UTC</code></pre>
+  <p>JavaScript's <code>Date</code> uses <strong>milliseconds</strong> since the epoch. <code>Date.now()</code> gives the current time in milliseconds.</p>
+  <h2>The idea: go through milliseconds</h2>
+  <p>Just like the data converter goes through bits, this one turns every input into milliseconds, and then turns the milliseconds into the format we want:</p>
+  <pre><code class="language-plaintext">seconds        ms = seconds x 1000
+milliseconds   ms = milliseconds
+date/time      ms = read "2026-11-01 12:00:00" in the chosen time zone
+ISO 8601       ms = Date.parse("2026-11-01T11:00:00.000Z")</code></pre>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>unix-timestamp.html</code> from the skeleton in <a href="/tutorials/utility-page/">Building a utility page</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Unix timestamp converter&lt;/h1&gt;
+
+&lt;p&gt;
+  Current Unix timestamp: &lt;span id="now-seconds"&gt;&lt;/span&gt;
+  &lt;button type="button" id="now-button"&gt;Use now&lt;/button&gt;
+&lt;/p&gt;
+
+&lt;div class="columns"&gt;
+  &lt;div&gt;
+    &lt;label for="input-select"&gt;From&lt;/label&gt;
+    &lt;select id="input-select"&gt;
+        &lt;option value="seconds" selected&gt;Unix timestamp (seconds)&lt;/option&gt;
+        &lt;option value="milliseconds"&gt;Unix timestamp (milliseconds)&lt;/option&gt;
+        &lt;option value="datetime"&gt;Date/Time (YYYY-MM-DD HH:MM:SS)&lt;/option&gt;
+        &lt;option value="iso"&gt;ISO 8601 (UTC)&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;input type="text" id="input-field" placeholder="1700000000" aria-label="From value"&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;label for="output-select"&gt;To&lt;/label&gt;
+    &lt;select id="output-select"&gt;
+        &lt;option value="seconds"&gt;Unix timestamp (seconds)&lt;/option&gt;
+        &lt;option value="milliseconds"&gt;Unix timestamp (milliseconds)&lt;/option&gt;
+        &lt;option value="datetime" selected&gt;Date/Time (YYYY-MM-DD HH:MM:SS)&lt;/option&gt;
+        &lt;option value="iso"&gt;ISO 8601 (UTC)&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;input type="text" id="output-field" aria-label="To value"&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;label for="zone-select"&gt;Time zone&lt;/label&gt;
+&lt;select id="zone-select"&gt;
+  &lt;option value="local" id="local-option"&gt;Local&lt;/option&gt;
+  &lt;option value="utc"&gt;UTC&lt;/option&gt;
+&lt;/select&gt;
+
+&lt;p id="details"&gt;&amp;ndash;&lt;/p&gt;
+
+&lt;details&gt;
+  &lt;summary&gt;Durations in seconds&lt;/summary&gt;
+  &lt;table&gt;
+    &lt;tr&gt;&lt;td&gt;1 minute&lt;/td&gt;&lt;td&gt;60&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;1 hour&lt;/td&gt;&lt;td&gt;3600&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;1 day&lt;/td&gt;&lt;td&gt;86400&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;1 week&lt;/td&gt;&lt;td&gt;604800&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;1 month (30.44 days)&lt;/td&gt;&lt;td&gt;2629743&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;1 year (365.24 days)&lt;/td&gt;&lt;td&gt;31556926&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/details&gt;</code></pre>
+  <p>The table at the bottom is inside <code>&lt;details&gt;</code>. The browser shows only the <code>&lt;summary&gt;</code> until you click it, so you get a box that opens and closes without any JavaScript.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+.columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.columns &gt; div {
+    flex: 1;
+    min-width: 250px;
+}
+
+label {
+    display: block;
+    margin-top: 16px;
+}
+
+select,
+input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    margin-top: 4px;
+    font-size: 18px;
+}
+
+#now-seconds {
+    font-family: monospace;
+    font-weight: bold;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+}</code></pre>
+  <h2>Step 2: Elements and a few small helpers</h2>
+  <pre><code class="language-javascript">const leftFormat = document.getElementById("input-select");
+const leftValue = document.getElementById("input-field");
+const rightFormat = document.getElementById("output-select");
+const rightValue = document.getElementById("output-field");
+const zoneSelect = document.getElementById("zone-select");
+const localOption = document.getElementById("local-option");
+const details = document.getElementById("details");
+const nowSeconds = document.getElementById("now-seconds");
+const nowButton = document.getElementById("now-button");
+
+function useUtc() {
+    return zoneSelect.value === "utc";
+}
+
+// 7 -&gt; "07"
+function pad(number) {
+    return String(number).padStart(2, "0");
+}</code></pre>
+  <h2>Step 3: Read a date and time</h2>
+  <p>We read the text with a regular expression. Each pair of brackets <code>( )</code> captures a part, <code>\d{4}</code> is four digits, and <code>(?: )?</code> makes a group optional. This one accepts <code>2026-11-01</code>, <code>2026-11-01 12:00</code> and <code>2026-11-01 12:00:30</code>:</p>
+  <pre><code class="language-javascript">const match = text.match(
+    /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+);</code></pre>
+  <p><code>match</code> is <code>null</code> if the text doesn't fit. Otherwise <code>match[1]</code> to <code>match[6]</code> are the parts, and <code>undefined</code> for parts that are missing. We turn them into numbers, and missing ones become 0:</p>
+  <pre><code class="language-javascript">const [year, month, day, hour, minute, second] = match
+    .slice(1)
+    .map((part) =&gt; Number(part || 0));</code></pre>
+  <p>Now we build the date. <strong>Months in JavaScript start at 0</strong>, so January is 0. That is why we write <code>month - 1</code>. <code>Date.UTC()</code> reads the numbers as UTC, and <code>new Date(...)</code> reads them as local time:</p>
+  <pre><code class="language-javascript">const date = useUtc()
+    ? new Date(Date.UTC(year, month - 1, day, hour, minute, second))
+    : new Date(year, month - 1, day, hour, minute, second);</code></pre>
+  <h3>Catching impossible dates</h3>
+  <p><code>Date</code> doesn't complain about impossible dates. It quietly moves them forward: <code>2026-02-31</code> becomes March 3, and <code>24:00</code> becomes the next day. To catch that, we read the parts back from the date and check that they match what was typed:</p>
+  <pre><code class="language-javascript">const parts = useUtc()
+    ? [date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()]
+    : [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+
+if (parts.join() !== [year, month, day, hour, minute, second].join()) {
+    return NaN;
+}
+return date.getTime();</code></pre>
+  <p><code>join()</code> turns an array into a string like <code>"2026,2,31,0,0,0"</code>, which is an easy way to compare two arrays. The check also catches local times that don't exist because the clocks jump forward an hour for summer time.</p>
+  <h2>Step 4: Any format to milliseconds, and back</h2>
+  <p>A <code>switch</code> picks the code for a format. <code>return</code> leaves the function, so no <code>break</code> is needed:</p>
+  <pre><code class="language-javascript">function toMilliseconds(text, format) {
+    switch (format) {
+        case "seconds":
+            return Number(text) * 1000;
+        case "milliseconds":
+            return Number(text);
+        case "datetime":
+            return parseDateTime(text);
+        case "iso":
+            return Date.parse(text);
+    }
+}</code></pre>
+  <p>Going back, <code>fromMilliseconds()</code> builds the date text from <code>getFullYear()</code>, <code>getMonth() + 1</code> and so on, or the <code>getUTC...</code> versions for UTC. It uses <code>pad()</code> so 7 becomes <code>07</code>. <code>toISOString()</code> gives ISO 8601, which is always in UTC and ends with <code>Z</code>. The whole function is in the complete script below.</p>
+  <h2>Step 5: "in 3 hours"</h2>
+  <p><code>Intl.RelativeTimeFormat</code> writes text like "3 hours ago" or "tomorrow" in any language. We only have to pick the biggest unit that fits:</p>
+  <pre><code class="language-javascript">function relativeTime(ms) {
+    const units = [
+        ["year", 31556926],
+        ["month", 2629743],
+        ["week", 604800],
+        ["day", 86400],
+        ["hour", 3600],
+        ["minute", 60],
+        ["second", 1],
+    ];
+    const seconds = Math.round((ms - Date.now()) / 1000);
+    const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+    for (const [unit, size] of units) {
+        if (Math.abs(seconds) &gt;= size || unit === "second") {
+            return formatter.format(Math.round(seconds / size), unit);
+        }
+    }
+}</code></pre>
+  <p><code>toLocaleString()</code> with <code>dateStyle: "full"</code> writes the full date. With <code>timeZone: "UTC"</code> it shows UTC, and with <code>undefined</code> it uses the browser's own time zone.</p>
+  <h2>Step 6: Update, and the clock</h2>
+  <p><code>update()</code> works like in the data converter. It also checks the date, because <code>new Date()</code> can only handle about 275 000 years around 1970:</p>
+  <pre><code class="language-javascript">function update(fromValue, fromFormat, toValue, toFormat) {
+    const text = fromValue.value.trim();
+    const ms = toMilliseconds(text, fromFormat.value);
+
+    if (text === "" || isNaN(ms) || isNaN(new Date(ms).getTime())) {
+        toValue.value = "";
+        details.textContent = text === "" ? "–" : "Can't read that value";
+        return;
+    }
+
+    toValue.value = fromMilliseconds(ms, toFormat.value);
+    details.textContent = describe(ms);
+}</code></pre>
+  <p>The clock uses <code>setInterval</code>, which runs a function again and again with a pause between, here 1000 milliseconds:</p>
+  <pre><code class="language-javascript">function tick() {
+    nowSeconds.textContent = Math.floor(Date.now() / 1000);
+}
+
+tick();
+setInterval(tick, 1000);</code></pre>
+  <p>We call <code>tick()</code> once ourselves too, so the clock shows right away instead of after the first second.</p>
+  <h2>Step 7: Test it</h2>
+  <p>Choose UTC, so the answers are the same for everyone:</p>
+  <ul>
+    <li>Seconds <code>0</code> to ISO 8601: <code>1970-01-01T00:00:00.000Z</code>.</li>
+    <li>Date/time <code>2024-02-29</code> to seconds: <code>1709164800</code> (2024 is a leap year).</li>
+    <li><code>2026-02-31</code> and <code>2026-01-01 24:00</code>: "Can't read that value".</li>
+    <li>Seconds <code>2147483647</code> to date/time: <code>2038-01-19 03:14:07</code>, the last second a signed 32-bit number can hold.</li>
+    <li>Press <strong>Use now</strong>, then switch between Local and UTC.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>unix-timestamp.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Unix timestamp converter&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .columns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .columns &gt; div {
+        flex: 1;
+        min-width: 250px;
+    }
+
+    label {
+        display: block;
+        margin-top: 16px;
+    }
+
+    select,
+    input {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        margin-top: 4px;
+        font-size: 18px;
+    }
+
+    #now-seconds {
+        font-family: monospace;
+        font-weight: bold;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+    td {
+        border: 1px solid #ccc;
+        padding: 4px 8px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Unix timestamp converter&lt;/h1&gt;
+
+  &lt;p&gt;
+    Current Unix timestamp: &lt;span id="now-seconds"&gt;&lt;/span&gt;
+    &lt;button type="button" id="now-button"&gt;Use now&lt;/button&gt;
+  &lt;/p&gt;
+
+  &lt;div class="columns"&gt;
+    &lt;div&gt;
+      &lt;label for="input-select"&gt;From&lt;/label&gt;
+      &lt;select id="input-select"&gt;
+          &lt;option value="seconds" selected&gt;Unix timestamp (seconds)&lt;/option&gt;
+          &lt;option value="milliseconds"&gt;Unix timestamp (milliseconds)&lt;/option&gt;
+          &lt;option value="datetime"&gt;Date/Time (YYYY-MM-DD HH:MM:SS)&lt;/option&gt;
+          &lt;option value="iso"&gt;ISO 8601 (UTC)&lt;/option&gt;
+      &lt;/select&gt;
+      &lt;input type="text" id="input-field" placeholder="1700000000" aria-label="From value"&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;label for="output-select"&gt;To&lt;/label&gt;
+      &lt;select id="output-select"&gt;
+          &lt;option value="seconds"&gt;Unix timestamp (seconds)&lt;/option&gt;
+          &lt;option value="milliseconds"&gt;Unix timestamp (milliseconds)&lt;/option&gt;
+          &lt;option value="datetime" selected&gt;Date/Time (YYYY-MM-DD HH:MM:SS)&lt;/option&gt;
+          &lt;option value="iso"&gt;ISO 8601 (UTC)&lt;/option&gt;
+      &lt;/select&gt;
+      &lt;input type="text" id="output-field" aria-label="To value"&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;label for="zone-select"&gt;Time zone&lt;/label&gt;
+  &lt;select id="zone-select"&gt;
+    &lt;option value="local" id="local-option"&gt;Local&lt;/option&gt;
+    &lt;option value="utc"&gt;UTC&lt;/option&gt;
+  &lt;/select&gt;
+
+  &lt;p id="details"&gt;&amp;ndash;&lt;/p&gt;
+
+  &lt;details&gt;
+    &lt;summary&gt;Durations in seconds&lt;/summary&gt;
+    &lt;table&gt;
+      &lt;tr&gt;&lt;td&gt;1 minute&lt;/td&gt;&lt;td&gt;60&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;1 hour&lt;/td&gt;&lt;td&gt;3600&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;1 day&lt;/td&gt;&lt;td&gt;86400&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;1 week&lt;/td&gt;&lt;td&gt;604800&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;1 month (30.44 days)&lt;/td&gt;&lt;td&gt;2629743&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;1 year (365.24 days)&lt;/td&gt;&lt;td&gt;31556926&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &lt;/details&gt;
+
+  &lt;script&gt;
+    /*
+     * Unix timestamp converter: seconds, milliseconds, date/time and ISO 8601.
+     *
+     * The trick: turn every value into milliseconds since 1970-01-01 00:00:00 UTC
+     * first (that is what JavaScript's Date uses), then from milliseconds into
+     * the format we want. That way we need one rule per format instead of one
+     * rule for every pair of formats.
+     *
+     *   Unix timestamp (seconds)      = milliseconds / 1000
+     *   Unix timestamp (milliseconds) = milliseconds
+     *   Date/Time                     = "2026-11-01 12:00:00" in the chosen time zone
+     *   ISO 8601                      = "2026-11-01T11:00:00.000Z", always UTC
+     *
+     * You can type in either field; the other one is updated.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const leftFormat = document.getElementById("input-select");
+    const leftValue = document.getElementById("input-field");
+    const rightFormat = document.getElementById("output-select");
+    const rightValue = document.getElementById("output-field");
+    const zoneSelect = document.getElementById("zone-select");
+    const localOption = document.getElementById("local-option");
+    const details = document.getElementById("details");
+    const nowSeconds = document.getElementById("now-seconds");
+    const nowButton = document.getElementById("now-button");
+
+    // --- Helpers -------------------------------------------------------------
+
+    function useUtc() {
+        return zoneSelect.value === "utc";
+    }
+
+    // 7 -&gt; "07"
+    function pad(number) {
+        return String(number).padStart(2, "0");
+    }
+
+    // Read "YYYY-MM-DD", "YYYY-MM-DD HH:MM" or "YYYY-MM-DD HH:MM:SS"
+    // in the chosen time zone. Returns milliseconds, or NaN if it can't be read.
+    function parseDateTime(text) {
+        const match = text.match(
+            /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+        );
+
+        if (!match) {
+            // Let the browser have a go at other formats, e.g. "Nov 1 2026 12:00"
+            return Date.parse(text);
+        }
+
+        // Missing time parts become 0; months in JavaScript start at 0
+        const [year, month, day, hour, minute, second] = match
+            .slice(1)
+            .map((part) =&gt; Number(part || 0));
+
+        const date = useUtc()
+            ? new Date(Date.UTC(year, month - 1, day, hour, minute, second))
+            : new Date(year, month - 1, day, hour, minute, second);
+
+        // Date quietly moves impossible values forward: 2026-02-31 becomes
+        // 2026-03-03 and 24:00 becomes the next day. Check that we got back
+        // what was typed, or say we can't read it.
+        const parts = useUtc()
+            ? [date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()]
+            : [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+
+        if (parts.join() !== [year, month, day, hour, minute, second].join()) {
+            return NaN;
+        }
+        return date.getTime();
+    }
+
+    function toMilliseconds(text, format) {
+        switch (format) {
+            case "seconds":
+                return Number(text) * 1000;
+            case "milliseconds":
+                return Number(text);
+            case "datetime":
+                return parseDateTime(text);
+            case "iso":
+                return Date.parse(text);
+        }
+    }
+
+    function fromMilliseconds(ms, format) {
+        const date = new Date(ms);
+
+        switch (format) {
+            case "seconds":
+                return String(Math.floor(ms / 1000));
+            case "milliseconds":
+                return String(ms);
+            case "datetime":
+                if (useUtc()) {
+                    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ` +
+                        `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+                }
+                return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+                    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+            case "iso":
+                return date.toISOString();
+        }
+    }
+
+    // "3 hours ago", "in 2 days"...
+    function relativeTime(ms) {
+        const units = [
+            ["year", 31556926],
+            ["month", 2629743],
+            ["week", 604800],
+            ["day", 86400],
+            ["hour", 3600],
+            ["minute", 60],
+            ["second", 1],
+        ];
+        const seconds = Math.round((ms - Date.now()) / 1000);
+        const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+        for (const [unit, size] of units) {
+            if (Math.abs(seconds) &gt;= size || unit === "second") {
+                return formatter.format(Math.round(seconds / size), unit);
+            }
+        }
+    }
+
+    // A friendly description under the time zone, e.g.
+    // "Sunday, 1 November 2026 at 12:00:00 CET (in 3 hours)"
+    function describe(ms) {
+        const text = new Date(ms).toLocaleString("en-GB", {
+            dateStyle: "full",
+            timeStyle: "long",
+            timeZone: useUtc() ? "UTC" : undefined,
+        });
+        return `${text} (${relativeTime(ms)})`;
+    }
+
+    // Read the value in one field, convert it, and write it into the other.
+    function update(fromValue, fromFormat, toValue, toFormat) {
+        const text = fromValue.value.trim();
+        const ms = toMilliseconds(text, fromFormat.value);
+
+        // new Date() only handles about ±275 000 years around 1970
+        if (text === "" || isNaN(ms) || isNaN(new Date(ms).getTime())) {
+            toValue.value = "";
+            details.textContent = text === "" ? "–" : "Can't read that value";
+            return;
+        }
+
+        toValue.value = fromMilliseconds(ms, toFormat.value);
+        details.textContent = describe(ms);
+    }
+
+    function updateRight() {
+        update(leftValue, leftFormat, rightValue, rightFormat);
+    }
+
+    function updateLeft() {
+        update(rightValue, rightFormat, leftValue, leftFormat);
+    }
+
+    // Show the current timestamp, updated every second.
+    function tick() {
+        nowSeconds.textContent = Math.floor(Date.now() / 1000);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // Show which time zone "Local" is, e.g. "Local (Europe/Stockholm)"
+    localOption.textContent = `Local (${Intl.DateTimeFormat().resolvedOptions().timeZone})`;
+
+    // "input" fires on every change: typing, pasting, deleting...
+    leftValue.addEventListener("input", updateRight);
+    rightValue.addEventListener("input", updateLeft);
+
+    // Changing a format or the time zone keeps the left value and recalculates the right.
+    leftFormat.addEventListener("change", updateRight);
+    rightFormat.addEventListener("change", updateRight);
+    zoneSelect.addEventListener("change", updateRight);
+
+    // Fill the left field with the current time in its format.
+    nowButton.addEventListener("click", () =&gt; {
+        leftValue.value = fromMilliseconds(Date.now(), leftFormat.value);
+        updateRight();
+    });
+
+    tick();
+    setInterval(tick, 1000);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a "Copy" button next to the right box.</li>
+    <li>Add a time zone select with names like <code>Europe/Stockholm</code>, and pass it as <code>timeZone</code> to <code>toLocaleString</code>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

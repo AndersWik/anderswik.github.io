@@ -1,0 +1,24 @@
+---
+layout: default
+title: Show tables
+permalink: /mysql/show-tables/
+chapter: "02"
+chapter_title: "Databases"
+keywords: [mysql, sql, show, tables, list]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Show tables</h1>
+  <p><code>show tables</code> lists the tables in the selected database. Select a database first with <a href="/mysql/use/">use</a>.</p>
+  <h2>Show tables</h2>
+  <pre><code class="language-sql">mysql&gt; use mydatabase;
+mysql&gt; show tables;</code></pre>
+  <h2>More about show tables</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/show-tables.html">SHOW TABLES</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

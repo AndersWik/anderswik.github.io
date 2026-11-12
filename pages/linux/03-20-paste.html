@@ -1,0 +1,64 @@
+---
+layout: default
+title: Paste
+permalink: /linux/paste/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, paste, columns, merge, csv, text]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Paste</h1>
+  <p><code>paste</code> merges files line by line, putting the lines next to each other as columns separated by a tab. It does the opposite of <a href="/linux/cut/">cut</a>: where <code>cut</code> takes columns out of a file, <code>paste</code> joins columns together.</p>
+  <h2>Merge files side by side</h2>
+  <pre><code class="language-bash">paste</code></pre>
+  <p>Line 1 of the first file is joined with line 1 of the second file, line 2 with line 2, and so on.</p>
+  <pre><code class="language-bash">$ cat names.txt
+Anna
+Bertil
+$ cat ages.txt
+34
+51
+$ paste names.txt ages.txt
+Anna	34
+Bertil	51</code></pre>
+  <h2>Choose the delimiter</h2>
+  <p><code>-d</code> sets the character placed between the columns, for example a comma to create a CSV file.</p>
+  <pre><code class="language-bash">$ paste -d ',' names.txt ages.txt > people.csv</code></pre>
+  <h2>Join all lines into one</h2>
+  <p><code>-s</code> (serial) pastes all lines of a file after each other on a single line instead of side by side.</p>
+  <pre><code class="language-bash">$ paste -s -d ',' names.txt
+Anna,Bertil</code></pre>
+  <p>This is handy for turning the output of a command into a comma separated list.</p>
+  <pre><code class="language-bash">$ ls *.txt | paste -s -d ','</code></pre>
+  <h2>Split a list into columns</h2>
+  <p>A <code>-</code> reads from standard input. Giving it several times takes one line for each column, so a long list is split into rows.</p>
+  <pre><code class="language-bash">$ seq 1 6 | paste - - -
+1	2	3
+4	5	6</code></pre>
+  <h2>Use with cut</h2>
+  <p>Take columns out of a file with <code>cut</code> and put them back together in another order with <code>paste</code>.</p>
+  <pre><code class="language-bash">$ cut -d ',' -f 1 data.csv > first.txt
+$ cut -d ',' -f 3 data.csv > third.txt
+$ paste -d ',' third.txt first.txt</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>paste</code> and all its options.</p>
+  <pre><code class="language-bash">$ paste --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>paste</code> is installed.</p>
+  <pre><code class="language-bash">$ paste --version</code></pre>
+  <h2>More about paste</h2>
+  <ul>
+    <li>If one file is shorter than the other, its column is left empty for the remaining lines</li>
+    <li><code>join</code> merges two sorted files on a common field, like a database join</li>
+    <li><code>column -t</code> lines up the output in neat columns for reading</li>
+    <li>See also <a href="/linux/cut/">cut</a> and <a href="/linux/awk/">awk</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/paste.txt">man paste</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, paste, columns, merge, csv, text</p>
+  {% include trail.html %}
+</div>

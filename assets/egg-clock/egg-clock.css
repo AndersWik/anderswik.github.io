@@ -1,0 +1,18 @@
+.egg-clock #clock-minutes,
+.egg-clock #clock-seconds {
+  color: #fdbc40;
+  font-family: ubuntu;
+  font-size: 30px;
+}
+
+.egg-clock #output-minutes,
+.egg-clock #output-seconds {
+  font-family: ubuntu;
+  font-size: 56px;
+}
+
+.egg-clock button {
+  font-family: ubuntu;
+  width: 100%;
+  height: 70px;
+}

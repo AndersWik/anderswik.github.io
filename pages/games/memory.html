@@ -1,0 +1,27 @@
+---
+layout: game
+title: Memory Game
+permalink: /games/memory/
+nonav: true
+css:
+  - /assets/memory/memory.css
+js:
+  - /assets/memory/memory.js
+---
+<div class="container">
+  <h1>Memory Game</h1>
+  <div id="board"></div>
+  <p id="status" aria-live="polite"></p>
+  <div class="controls">
+    <label for="size">Size:</label>
+    <select id="size">
+      <option value="4">XS (8 cards)</option>
+      <option value="6">S (12 cards)</option>
+      <option value="8" selected>M (16 cards)</option>
+      <option value="10">L (20 cards)</option>
+      <option value="12">XL (24 cards)</option>
+    </select>
+    <button type="button" id="restart">New game</button>
+  </div>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/memory/">How to build this game</a></p>

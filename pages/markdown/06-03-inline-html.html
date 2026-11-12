@@ -1,0 +1,55 @@
+---
+layout: default
+title: Inline HTML
+permalink: /markdown/inline-html/
+chapter: "06"
+chapter_title: "Extended syntax"
+keywords: [markdown, html, inline html, details, summary, collapse, kbd, center, color]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Inline HTML</h1>
+  <p>Most Markdown converters let you write HTML directly in the file. Use it for things Markdown cannot do, like collapsed sections, keyboard keys or image sizes.</p>
+  <h2>Inline tags</h2>
+  <p>Inline tags like <code>&lt;kbd&gt;</code>, <code>&lt;sub&gt;</code> and <code>&lt;mark&gt;</code> can be mixed with Markdown in a line.</p>
+  <pre><code class="language-markdown">Press &lt;kbd&gt;Ctrl&lt;/kbd&gt; + &lt;kbd&gt;C&lt;/kbd&gt; to copy.
+Water is H&lt;sub&gt;2&lt;/sub&gt;O and this is &lt;mark&gt;important&lt;/mark&gt;.</code></pre>
+  <h2>Block tags</h2>
+  <p>Leave an empty line before and after block tags like <code>&lt;div&gt;</code> and <code>&lt;table&gt;</code>. Markdown is usually not converted inside them.</p>
+  <pre><code class="language-markdown">Some text.
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td&gt;One&lt;/td&gt;
+    &lt;td&gt;Two&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+More text.</code></pre>
+  <h2>Collapsed section</h2>
+  <p><code>&lt;details&gt;</code> hides content until it is clicked. Leave an empty line after <code>&lt;/summary&gt;</code> so the Markdown inside is converted.</p>
+  <pre><code class="language-markdown">&lt;details&gt;
+&lt;summary&gt;Show the output&lt;/summary&gt;
+
+```
+total 8
+drwxr-xr-x 2 pengu pengu 4096 Nov  8 12:00 .
+```
+
+&lt;/details&gt;</code></pre>
+  <h2>Markdown inside HTML in kramdown</h2>
+  <p>In kramdown, add <code>markdown="1"</code> to convert Markdown inside a block tag.</p>
+  <pre><code class="language-markdown">&lt;div class="note" markdown="1"&gt;
+This is **bold**.
+&lt;/div&gt;</code></pre>
+  <h2>More about inline HTML</h2>
+  <ul>
+    <li>GitHub removes <code>&lt;script&gt;</code>, <code>&lt;style&gt;</code>, <code>&lt;iframe&gt;</code> and <code>style</code> attributes, so colors do not work there</li>
+    <li><code>align="center"</code> still works on GitHub, see <a href="/markdown/images/">images</a></li>
+    <li>Some apps turn HTML off completely for safety</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

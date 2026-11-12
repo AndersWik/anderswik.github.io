@@ -1,0 +1,25 @@
+---
+layout: game
+title: Kvarn (Nine Men's Morris)
+permalink: /games/kvarn/
+nonav: true
+css:
+  - /assets/kvarn/kvarn.css
+js:
+  - /assets/kvarn/kvarn.js
+---
+<div class="container">
+  <h1>Kvarn (Nine Men's Morris)</h1>
+  <canvas id="gameCanvas" width="600" height="600"></canvas>
+  <p id="status" aria-live="polite"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy" selected>The computer (easy)</option>
+      <option value="hard">The computer (hard)</option>
+    </select>
+  </p>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/kvarn/">How to build this game</a></p>

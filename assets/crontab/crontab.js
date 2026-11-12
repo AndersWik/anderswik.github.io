@@ -1,0 +1,131 @@
+// Crontab checker.
+//
+// A crontab line starts with five time fields, then the command:
+//
+//   minute  hour  day(month)  month  day(week)  command
+//   30      6     *           *      1-5        /home/me/backup.sh
+//
+// Every field is a comma separated list. Each part of the list is one of:
+//
+//   *          every value
+//   */step     every step:th value       */15     -> 0, 15, 30, 45
+//   n          one value                 5
+//   a-b        a range (a <= b)          1-5
+//   a-b/step   a range with a step       0-30/10  -> 0, 10, 20, 30
+//   a~b        a random value in a-b     0~30
+//
+// Month and day(week) can also use names like JAN or MON. Some cron
+// programs add extra symbols (? L W #) to the day fields; we accept them
+// too, but only on their own, not inside a list.
+//
+// When a field is not valid it gets the class "not-valid" (a red border).
+
+// --- The five fields -----------------------------------------------------
+
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+const fields = [
+    { id: "minute", min: 0, max: 59 },
+    { id: "hour", min: 0, max: 23 },
+    {
+        id: "day-month", min: 1, max: 31,
+        // ?  any,  L  last day,  LW  last weekday,  L-3  three days before the last,
+        // 15W  the weekday closest to the 15th
+        special: /^(\?|L|LW|L-([1-9]|[12][0-9]|30)|([1-9]|[12][0-9]|3[01])W)$/
+    },
+    { id: "month", min: 1, max: 12, names: MONTHS },
+    {
+        id: "day-week", min: 0, max: 7, names: DAYS,
+        // ?  any,  L  last day of the week,  5L  last Friday of the month,
+        // 1#3  third Monday of the month
+        special: /^(\?|L|[0-7]L|[0-7]#[1-5])$/
+    }
+];
+
+// --- Checking a field ----------------------------------------------------
+
+// "5" -> 5, "MON" -> 1, "JAN" -> 1. Returns NaN if it is not allowed here.
+function toNumber(text, field) {
+    if (field.names && field.names.includes(text)) {
+        // MONTHS starts at 1 (JAN), DAYS starts at 0 (SUN), the same as min.
+        return field.names.indexOf(text) + field.min;
+    }
+    if (!/^[0-9]+$/.test(text)) {
+        return NaN;
+    }
+    const number = Number(text);
+    if (number < field.min || number > field.max) {
+        return NaN;
+    }
+    return number;
+}
+
+// Check one part of a list, e.g. "*/15", "5", "1-5", "0-30/10" or "0~30".
+function isValidPart(part, field) {
+    const [range, step, extra] = part.split("/");
+
+    if (extra !== undefined) {
+        return false;                           // more than one "/"
+    }
+    if (step !== undefined && !/^[1-9][0-9]*$/.test(step)) {
+        return false;                           // a step must be 1 or more
+    }
+    if (range === "*") {
+        return true;                            // "*" or "*/step"
+    }
+
+    const isRandom = range.includes("~");
+    const ends = range.split(isRandom ? "~" : "-");
+
+    if (ends.length === 1) {
+        // A single value can't have a step: "5/2" is not allowed.
+        return step === undefined && !isNaN(toNumber(ends[0], field));
+    }
+    if (ends.length !== 2 || (isRandom && step !== undefined)) {
+        return false;
+    }
+
+    const first = toNumber(ends[0], field);
+    const last = toNumber(ends[1], field);
+
+    // NaN <= 5 is false, so this also fails when a value is not allowed.
+    return first <= last;
+}
+
+function isValidField(text, field) {
+    // Names may be typed in lower case: "mon" is the same as "MON".
+    const value = text.trim().toUpperCase();
+
+    if (field.special && field.special.test(value)) {
+        return true;
+    }
+    return value.split(",").every(function (part) {
+        return isValidPart(part, field);
+    });
+}
+
+// --- The page ------------------------------------------------------------
+
+// Show the header and help table for one field, hide the others.
+// The page has e.g. id="minute-header" and id="minute-txt" for "minute".
+function showHelp(id) {
+    fields.forEach(function (field) {
+        document.getElementById(field.id + "-header").hidden = field.id !== id;
+        document.getElementById(field.id + "-txt").hidden = field.id !== id;
+    });
+}
+
+fields.forEach(function (field) {
+    const input = document.getElementById(field.id);
+
+    input.addEventListener("focus", function () {
+        showHelp(field.id);
+    });
+
+    // "input" fires on every change: typing, pasting, deleting...
+    input.addEventListener("input", function () {
+        // toggle(name, true) adds the class, toggle(name, false) removes it.
+        input.classList.toggle("not-valid", !isValidField(input.value, field));
+    });
+});

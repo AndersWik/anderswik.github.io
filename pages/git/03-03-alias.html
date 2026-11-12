@@ -1,0 +1,35 @@
+---
+layout: default
+title: Alias
+permalink: /git/alias/
+chapter: "03"
+chapter_title: "Tools"
+keywords: [git, alias, shortcut, config, commands]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Alias</h1>
+  <p>An alias is a short name for a Git command. Aliases are saved with <a href="/git/config/">git config</a>.</p>
+  <h2>Create an alias</h2>
+  <p>After this, <code>git ac "message"</code> runs <code>git commit -am "message"</code>.</p>
+  <pre><code class="language-bash">$ git config --global alias.ac "commit -am"</code></pre>
+  <h2>Useful aliases</h2>
+  <pre><code class="language-bash">$ git config --global alias.st status
+$ git config --global alias.co checkout
+$ git config --global alias.br branch
+$ git config --global alias.last "log -1"
+$ git config --global alias.tree "log --oneline --graph --all"</code></pre>
+  <h2>List your aliases</h2>
+  <pre><code class="language-bash">$ git config --get-regexp alias</code></pre>
+  <h2>Remove an alias</h2>
+  <pre><code class="language-bash">$ git config --global --unset alias.ac</code></pre>
+  <h2>More about aliases</h2>
+  <ul>
+    <li>Aliases are stored in <code>~/.gitconfig</code> under <code>[alias]</code>, so you can also edit them there</li>
+    <li>Start an alias with <code>!</code> to run a shell command, for example <code>"!git fetch &amp;&amp; git status"</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

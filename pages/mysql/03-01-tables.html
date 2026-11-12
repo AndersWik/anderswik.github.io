@@ -1,0 +1,45 @@
+---
+layout: default
+title: Tables
+permalink: /mysql/tables/
+chapter: "03"
+chapter_title: "Tables"
+keywords: [mysql, sql, table, tables, column, row, primary key, data type]
+---
+
+<div class="mysql container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tables</h1>
+  <p>The data in a <a href="/mysql/databases/">database</a> is stored in tables. A table looks like a spreadsheet. The columns decide what can be stored, and every row is one entry.</p>
+  <h2>Columns and rows</h2>
+  <p>Here is a table called <code>users</code> with three columns and three rows.</p>
+  <div class="table-responsive">
+    <table class="table table-bordered table-sm">
+      <thead>
+        <tr><th>id</th><th>name</th><th>active</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Anna</td><td>1</td></tr>
+        <tr><td>2</td><td>Erik</td><td>0</td></tr>
+        <tr><td>3</td><td>Maria</td><td>1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul>
+    <li><strong>Column</strong> — has a name and a <a href="/mysql/data/">data type</a>. Every value in the column must be of that type.</li>
+    <li><strong>Row</strong> — one entry in the table, with a value for each column.</li>
+  </ul>
+  <h2>Primary key</h2>
+  <p>Most tables have a column with a unique id for each row, called the primary key. It is often a number that MySQL counts up automatically with <code>AUTO_INCREMENT</code>. The id makes it easy to find, <a href="/mysql/update/">update</a> or <a href="/mysql/delete/">delete</a> exactly one row.</p>
+  <h2>Example</h2>
+  <p>This creates the <code>users</code> table above and shows its columns.</p>
+  <pre><code class="language-sql">mysql&gt; create table users (id integer PRIMARY KEY AUTO_INCREMENT, name varchar(100) NOT NULL, active boolean);
+mysql&gt; describe users;</code></pre>
+  <h2>More about tables</h2>
+  <ul>
+    <li><a href="https://dev.mysql.com/doc/refman/8.0/en/creating-tables.html">Creating a table</a> in the MySQL documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

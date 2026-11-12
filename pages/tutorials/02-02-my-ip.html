@@ -1,0 +1,158 @@
+---
+layout: default
+title: My IP
+permalink: /tutorials/my-ip/
+chapter: "02"
+chapter_title: "JavaScript apps"
+keywords: [javascript, fetch, api, json, async, await, response.ok, ip address]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>My IP</h1>
+  <p>This page asks a web service which public IP address you have and shows it. It is the shortest way to learn how a page gets data from another server: <code>fetch</code>, <code>async</code> and <code>await</code>, and JSON.</p>
+  <p><a href="/assets/tutorials/my-ip.html">Open the finished page</a></p>
+  <h2>What we use</h2>
+  <p>Your computer gets a local address from your router, like <code>192.168.1.20</code>, but the rest of the internet sees your router's public address. The page can't find that out by itself, so we ask a free service, <a href="https://www.ipify.org/">ipify</a>. When you open this address:</p>
+  <pre><code class="language-plaintext">https://api.ipify.org?format=json</code></pre>
+  <p>it answers with JSON, a text format for data:</p>
+  <pre><code class="language-json">{"ip":"81.230.12.34"}</code></pre>
+  <p>Note that using the page sends a request to ipify, so they see your address. That is the point of the page, but it is worth knowing whenever a page uses someone else's service.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>my-ip.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;My IP&lt;/h1&gt;
+&lt;p id="ip"&gt;000.000.000.000&lt;/p&gt;
+&lt;p&gt;Using the &lt;a href="https://www.ipify.org/"&gt;ipify&lt;/a&gt; service&lt;/p&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+#ip {
+    font-size: 48px;
+    overflow-wrap: anywhere;
+}</code></pre>
+  <p><code>overflow-wrap: anywhere</code> lets a long IPv6 address break onto the next line on a narrow phone screen.</p>
+  <h2>Step 2: fetch, async and await</h2>
+  <p>Getting data from the network takes time, from milliseconds to seconds. JavaScript doesn't stop and wait, because that would freeze the whole page. Instead, <code>fetch()</code> returns a <strong>promise</strong>, a value that arrives later.</p>
+  <p>Inside a function marked <code>async</code>, the word <code>await</code> waits for a promise. The rest of the page keeps working in the meantime.</p>
+  <pre><code class="language-javascript">async function showMyIp() {
+    ipText.textContent = "Loading...";
+
+    try {
+        const response = await fetch("https://api.ipify.org?format=json");
+
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+        const data = await response.json();
+        ipText.textContent = data.ip;
+    } catch (error) {
+        ipText.textContent = "Could not get your IP";
+    }
+}
+
+showMyIp();</code></pre>
+  <p>Step by step:</p>
+  <ol>
+    <li>We show "Loading..." so the user can see something is happening.</li>
+    <li><code>await fetch(...)</code> waits for the server to answer.</li>
+    <li><code>response.ok</code> is true for status codes 200-299. <code>fetch</code> only throws an error when there is no network at all. If the service answers "503 Service Unavailable", it doesn't throw, so we check the status ourselves and <code>throw</code> to jump to <code>catch</code>.</li>
+    <li><code>await response.json()</code> reads the body and turns the JSON text into a JavaScript object. That is also a promise, because the body can arrive in parts.</li>
+    <li><code>data.ip</code> is the address.</li>
+    <li>Anything that goes wrong lands in <code>catch</code>, and we show a message instead of leaving "Loading..." forever.</li>
+  </ol>
+  <h2>Step 3: Test it</h2>
+  <ul>
+    <li>Open the page. You should see your address. Compare it with what <a href="https://www.ipify.org/">ipify.org</a> shows.</li>
+    <li>In the developer tools, the <strong>Network</strong> tab shows the request to <code>api.ipify.org</code> and its answer.</li>
+    <li>Turn on "Offline" in the Network tab and reload. You should see "Could not get your IP".</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>my-ip.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;My IP&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    #ip {
+        font-size: 48px;
+        overflow-wrap: anywhere;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;My IP&lt;/h1&gt;
+  &lt;p id="ip"&gt;000.000.000.000&lt;/p&gt;
+  &lt;p&gt;Using the &lt;a href="https://www.ipify.org/"&gt;ipify&lt;/a&gt; service&lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * My IP: ask the ipify service which public IP address we have.
+     *
+     * fetch() sends a request over the network. It takes a while, so
+     * "async" and "await" let us wait for the answer without freezing the page.
+     *
+     * The answer is JSON text like {"ip":"81.230.12.34"}.
+     * response.json() turns it into a JavaScript object.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const ipText = document.getElementById("ip");
+
+    // --- Actions -------------------------------------------------------------
+
+    async function showMyIp() {
+        ipText.textContent = "Loading...";
+
+        try {
+            const response = await fetch("https://api.ipify.org?format=json");
+
+            // fetch() only throws when there is no network. If the service
+            // answers with an error, like 503, we have to check that ourselves.
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+            const data = await response.json();
+            ipText.textContent = data.ip;
+        } catch (error) {
+            // No network, or the service is down.
+            ipText.textContent = "Could not get your IP";
+        }
+    }
+
+    // --- Start ---------------------------------------------------------------
+
+    showMyIp();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a "Copy" button that copies the address with <code>navigator.clipboard.writeText(ipText.textContent)</code>.</li>
+    <li><code>https://api64.ipify.org?format=json</code> gives your IPv6 address if you have one. Show both.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,42 @@
+---
+layout: default
+title: Wc
+permalink: /linux/wc/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, wc, word count, count lines, text]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Wc</h1>
+  <p><code>wc</code> stands for word count. It counts the lines, words and bytes in files or in the output of another command.</p>
+  <h2>Count lines, words and bytes</h2>
+  <pre><code class="language-bash">$ wc notes.txt
+  12  96  540 notes.txt</code></pre>
+  <h2>Count only one thing</h2>
+  <pre><code class="language-bash">$ wc -l notes.txt   # lines
+$ wc -w notes.txt   # words
+$ wc -c notes.txt   # bytes
+$ wc -m notes.txt   # characters</code></pre>
+  <h2>Count the output of a command</h2>
+  <pre><code class="language-bash">$ ls | wc -l                   # number of files in the directory
+$ grep "404" access.log | wc -l</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>wc</code> and all its options.</p>
+  <pre><code class="language-bash">$ wc --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>wc</code> is installed.</p>
+  <pre><code class="language-bash">$ wc --version</code></pre>
+  <h2>More about wc</h2>
+  <ul>
+    <li>Give several files to get a count for each and a total</li>
+    <li><code>wc -L</code> prints the length of the longest line</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/wc.txt">man wc</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, wc, word count, count lines, text</p>
+  {% include trail.html %}
+</div>

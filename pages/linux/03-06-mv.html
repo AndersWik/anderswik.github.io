@@ -1,0 +1,42 @@
+---
+layout: default
+title: Mv
+permalink: /linux/mv/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, mv, move, rename, files]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Mv</h1>
+  <p><code>mv</code> moves files and directories to another place. Since moving a file to a new name in the same directory is the same as renaming it, <code>mv</code> is also the command used to rename files.</p>
+  <h2>Move or rename</h2>
+  <p>Rename a file.</p>
+  <pre><code class="language-bash">$ mv old-name.txt new-name.txt</code></pre>
+  <p>Move files into a directory.</p>
+  <pre><code class="language-bash">$ mv report.pdf Documents/
+$ mv *.jpg Pictures/</code></pre>
+  <h2>Don't overwrite by mistake</h2>
+  <p>By default <code>mv</code> silently overwrites a file with the same name. <code>-i</code> asks before overwriting and <code>-n</code> never overwrites.</p>
+  <pre><code class="language-bash">$ mv -i notes.txt backup/
+$ mv -n notes.txt backup/</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>mv</code> and all its options.</p>
+  <pre><code class="language-bash">$ mv --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>mv</code> is installed. <code>-v</code> does not show the version, it makes <code>mv</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ mv --version</code></pre>
+  <h2>More about mv</h2>
+  <ul>
+    <li><code>-v</code> prints each file as it is moved</li>
+    <li>Directories are moved with all their content; no <code>-r</code> flag is needed</li>
+    <li>To rename many files by a pattern, use the <code>rename</code> command</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/mv.txt">man mv</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, mv, move, rename, files</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,47 @@
+---
+layout: default
+title: Synced folders
+permalink: /vagrant/synced-folders/
+chapter: "03"
+chapter_title: "Get started"
+keywords: [vagrant, synced folder, shared folder, sync, rsync, nfs, smb, files]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Synced folders</h1>
+  <p>A synced folder is a folder that both the host and the virtual machine can see. You can edit code on your computer with your normal editor and run it inside the machine.</p>
+  <h2>The default folder</h2>
+  <p>The default folder is the folder where the Vagrantfile is. It is shared as <code>/vagrant</code> inside the machine.</p>
+  <pre><code class="language-bash">$ vagrant ssh
+$ ls /vagrant
+Vagrantfile</code></pre>
+  <h2>Add a folder</h2>
+  <p>The first path is on the host, relative to the Vagrantfile. The second is inside the machine.</p>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+  config.vm.synced_folder "./src", "/home/vagrant/app"
+end</code></pre>
+  <p>Run <code>vagrant reload</code> to use the new folder on a running machine.</p>
+  <h2>Turn off the default folder</h2>
+  <pre><code class="language-ruby">config.vm.synced_folder ".", "/vagrant", disabled: true</code></pre>
+  <h2>Choose how folders are synced</h2>
+  <p>How the files are shared depends on the <a href="/vagrant/providers/">provider</a>. VirtualBox uses its own shared folders. You can also choose a type yourself.</p>
+  <ul>
+    <li><code>rsync</code> — copies the files into the machine. Works everywhere but only goes one way, from the host to the guest</li>
+    <li><code>nfs</code> — fast network sharing on Linux and macOS hosts</li>
+    <li><code>smb</code> — Windows file sharing, used with Hyper-V</li>
+  </ul>
+  <pre><code class="language-ruby">config.vm.synced_folder "./src", "/home/vagrant/app", type: "rsync"</code></pre>
+  <p>With <code>rsync</code> the files are copied on <code>vagrant up</code> and <code>vagrant reload</code>. To keep copying while you work, run <code>rsync-auto</code> in a separate terminal.</p>
+  <pre><code class="language-bash">$ vagrant rsync-auto</code></pre>
+  <h2>More about synced folders</h2>
+  <ul>
+    <li>Set the owner of the files with <code>owner: "www-data", group: "www-data"</code></li>
+    <li>Files in synced folders are kept when you run <a href="/vagrant/stop/">vagrant destroy</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/synced-folders">Synced folders</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

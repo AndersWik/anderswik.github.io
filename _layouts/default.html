@@ -5,9 +5,18 @@
 <body>
   {% include header.html %}
   {{ content }}
+  {% comment %}Apps in _data/pwa.yml can be installed, see _scripts/make-pwa.py.{% endcomment %}
+  {% assign pwa_app = site.data.pwa | where: "page", page.path | first %}
+  {% if pwa_app %}<p class="text-center mb-5"><a href="{{ '/assets/' | append: pwa_app.slug | append: '/app.html' | relative_url }}">Install as an app</a></p>{% endif %}
+  {% for script in page.js %}
+  <script src="{{ script | relative_url }}"></script>
+  {% endfor %}
+  {% assign highlight_sections = "tutorials,linux,markdown,git,vagrant,mysql,php,latex" | split: "," %}
+  {% assign path_parts = page.path | split: "/" %}
+  {% if path_parts[0] == "pages" and highlight_sections contains path_parts[1] %}{% include code-highlight.html %}{% endif %}
   {% include footer.html %}
 </body>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
   integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 

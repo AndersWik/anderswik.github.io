@@ -1,0 +1,266 @@
+---
+layout: default
+title: Rock Paper Scissors
+permalink: /tutorials/rock-paper-scissors/
+chapter: "05"
+chapter_title: "Board Games"
+keywords: [javascript, game, random, objects, lookup table, data attributes, images, querySelectorAll]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Rock Paper Scissors</h1>
+  <p>Choose rock, paper or scissors. The computer chooses at random. Rock beats scissors, scissors beat paper, and paper beats rock. The page keeps score.</p>
+  <p>A short game to start the chapter. The new part is writing the rules of a game as data, in an object, instead of as a long <code>if</code>.</p>
+  <p><a href="/assets/rock-paper-scissors/standalone.html">Open the finished game</a></p>
+  <h2>The pictures</h2>
+  <p>Make a folder for the game, with the page and a folder called <code>images</code>. Download these into <code>images</code> (right-click a link and save it):</p>
+  <p><a href="/assets/rock-paper-scissors/images/Rock.svg">Rock.svg</a>, <a href="/assets/rock-paper-scissors/images/Paper.svg">Paper.svg</a>, <a href="/assets/rock-paper-scissors/images/Scissors.svg">Scissors.svg</a></p>
+  <p>The names start with a capital letter, the same as the choices in the code, so the code can make the file name from the choice.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>rock-paper-scissors.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
+  <pre><code class="language-html">&lt;h1&gt;Rock Paper Scissors&lt;/h1&gt;
+&lt;div class="score"&gt;
+  &lt;div id="player"&gt;
+    &lt;p&gt;You&lt;/p&gt;
+    &lt;p id="playerScore"&gt;0&lt;/p&gt;
+    &lt;img id="playerImage" src="images/Rock.svg" alt="Rock"&gt;
+    &lt;p id="playerChoice"&gt;Rock&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div id="cpu"&gt;
+    &lt;p&gt;Computer&lt;/p&gt;
+    &lt;p id="computerScore"&gt;0&lt;/p&gt;
+    &lt;img id="computerImage" src="images/Scissors.svg" alt="Scissors"&gt;
+    &lt;p id="computerChoice"&gt;Scissors&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;p id="result" aria-live="polite"&gt;Make your choice!&lt;/p&gt;
+&lt;div class="choices"&gt;
+  &lt;button type="button" data-choice="Rock"&gt;Rock&lt;/button&gt;
+  &lt;button type="button" data-choice="Paper"&gt;Paper&lt;/button&gt;
+  &lt;button type="button" data-choice="Scissors"&gt;Scissors&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+  <p>Each button has a <code>data-choice</code> attribute. Attributes that start with <code>data-</code> are for your own use: the browser ignores them, and the code reads them with <code>button.dataset.choice</code>.</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+.score {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 450px;
+    margin: 0 auto;
+    font-size: 22px;
+}
+
+.score img {
+    width: 100%;
+}
+
+#cpu img {
+    transform: scaleX(-1);
+}
+
+#result {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.choices button {
+    padding: 12px 20px;
+    font-size: 18px;
+}</code></pre>
+  <p>The pictures are hands pointing right. <code>transform: scaleX(-1)</code> flips the computer's hand, so the two hands face each other.</p>
+  <h2>Step 2: The rules as data</h2>
+  <pre><code class="language-javascript">const CHOICES = ["Rock", "Paper", "Scissors"];
+
+const BEATS = { Rock: "Scissors", Paper: "Rock", Scissors: "Paper" };</code></pre>
+  <p><code>BEATS</code> says what each choice beats: <code>BEATS["Rock"]</code> is <code>"Scissors"</code>. Now "does the player win?" is one question: is the computer's choice the one the player's choice beats?</p>
+  <pre><code class="language-javascript">if (playerChoice === computerChoice) {
+    resultText.textContent = "It's a draw!";
+} else if (BEATS[playerChoice] === computerChoice) {
+    playerScore++;
+    resultText.textContent = playerChoice + " beats " + computerChoice + ". You win!";
+} else {
+    computerScore++;
+    resultText.textContent = computerChoice + " beats " + playerChoice + ". The computer wins!";
+}</code></pre>
+  <p>If it isn't a draw and the player didn't win, the computer did. The first version wrote out all three winning pairs in one long <code>if</code> with <code>||</code>. Both work, but the object is easier to read and to change. To play Rock Paper Scissors Lizard Spock, each choice would beat two others, and <code>BEATS</code> could hold a list for each.</p>
+  <h2>Step 3: Showing a choice</h2>
+  <pre><code class="language-javascript">const IMAGE_FOLDER = "images/";
+
+function showChoice(choice, image, text) {
+    image.src = IMAGE_FOLDER + choice + ".svg";
+    image.alt = choice;
+    text.textContent = choice;
+}</code></pre>
+  <p>The same function shows the player's and the computer's choice. We just pass it different elements. <code>"images/" + "Paper" + ".svg"</code> is <code>"images/Paper.svg"</code>. That is why the file names match the choices exactly.</p>
+  <h2>Step 4: Connecting the buttons</h2>
+  <pre><code class="language-javascript">document.querySelectorAll("[data-choice]").forEach(function (button) {
+    button.addEventListener("click", function () {
+        play(button.dataset.choice);
+    });
+});</code></pre>
+  <p><code>[data-choice]</code> finds every element that has that attribute. One loop connects all three buttons, and each button tells <code>play</code> its own choice. The first version had a variable and a listener for each button. To add a choice now, you only add a button.</p>
+  <h2>Step 5: Test it</h2>
+  <ul>
+    <li>Play until you have seen a win, a loss and a draw with each choice.</li>
+    <li>Check that the right score goes up, and that a draw changes nothing.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>rock-paper-scissors.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Rock Paper Scissors&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    .score {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        max-width: 450px;
+        margin: 0 auto;
+        font-size: 22px;
+    }
+
+    .score img {
+        width: 100%;
+    }
+
+    #cpu img {
+        transform: scaleX(-1);
+    }
+
+    #result {
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    .choices button {
+        padding: 12px 20px;
+        font-size: 18px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Rock Paper Scissors&lt;/h1&gt;
+  &lt;div class="score"&gt;
+    &lt;div id="player"&gt;
+      &lt;p&gt;You&lt;/p&gt;
+      &lt;p id="playerScore"&gt;0&lt;/p&gt;
+      &lt;img id="playerImage" src="images/Rock.svg" alt="Rock"&gt;
+      &lt;p id="playerChoice"&gt;Rock&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div id="cpu"&gt;
+      &lt;p&gt;Computer&lt;/p&gt;
+      &lt;p id="computerScore"&gt;0&lt;/p&gt;
+      &lt;img id="computerImage" src="images/Scissors.svg" alt="Scissors"&gt;
+      &lt;p id="computerChoice"&gt;Scissors&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;p id="result" aria-live="polite"&gt;Make your choice!&lt;/p&gt;
+  &lt;div class="choices"&gt;
+    &lt;button type="button" data-choice="Rock"&gt;Rock&lt;/button&gt;
+    &lt;button type="button" data-choice="Paper"&gt;Paper&lt;/button&gt;
+    &lt;button type="button" data-choice="Scissors"&gt;Scissors&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Rock Paper Scissors against the computer. Rock beats scissors, scissors
+     * beat paper, and paper beats rock. The computer picks at random.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    // Where the pictures are: a folder called "images" next to this page.
+    const IMAGE_FOLDER = "images/";
+
+    const CHOICES = ["Rock", "Paper", "Scissors"];
+
+    // What each choice beats.
+    const BEATS = { Rock: "Scissors", Paper: "Rock", Scissors: "Paper" };
+
+    // --- Elements on the page ------------------------------------------------
+
+    const playerImage = document.getElementById("playerImage");
+    const playerChoiceText = document.getElementById("playerChoice");
+    const playerScoreText = document.getElementById("playerScore");
+    const computerImage = document.getElementById("computerImage");
+    const computerChoiceText = document.getElementById("computerChoice");
+    const computerScoreText = document.getElementById("computerScore");
+    const resultText = document.getElementById("result");
+
+    // --- State ---------------------------------------------------------------
+
+    let playerScore = 0;
+    let computerScore = 0;
+
+    // --- The game ------------------------------------------------------------
+
+    function showChoice(choice, image, text) {
+        image.src = IMAGE_FOLDER + choice + ".svg";
+        image.alt = choice;
+        text.textContent = choice;
+    }
+
+    function play(playerChoice) {
+        const computerChoice = CHOICES[Math.floor(Math.random() * CHOICES.length)];
+        showChoice(playerChoice, playerImage, playerChoiceText);
+        showChoice(computerChoice, computerImage, computerChoiceText);
+
+        if (playerChoice === computerChoice) {
+            resultText.textContent = "It's a draw!";
+        } else if (BEATS[playerChoice] === computerChoice) {
+            playerScore++;
+            resultText.textContent = playerChoice + " beats " + computerChoice + ". You win!";
+        } else {
+            computerScore++;
+            resultText.textContent = computerChoice + " beats " + playerChoice + ". The computer wins!";
+        }
+        playerScoreText.textContent = playerScore;
+        computerScoreText.textContent = computerScore;
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // One button for each choice: &lt;button data-choice="Rock"&gt;.
+    document.querySelectorAll("[data-choice]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            play(button.dataset.choice);
+        });
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Play best of five: stop when someone has three wins, and show a New game button.</li>
+    <li>Make the computer a little smarter: remember what the player picks most often, and pick what beats it.</li>
+    <li>Add Lizard and Spock. (Rock crushes lizard, lizard poisons Spock, Spock smashes scissors, scissors decapitate lizard, lizard eats paper, paper disproves Spock, Spock vaporizes rock.)</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,48 @@
+---
+layout: default
+title: Curl
+permalink: /linux/curl/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, curl, http, api, download, network]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Curl</h1>
+  <p><code>curl</code> transfers data to and from servers. It supports many protocols, but is mostly used to send HTTP requests: download pages, test APIs and look at headers. By default it prints the response to the terminal.</p>
+  <h2>Get ip on server with cUrl</h2>
+  <p><code>ipinfo.io/ip</code> answers with the public IP address of the computer making the request.</p>
+  <pre><code class="language-bash">$ curl ipinfo.io/ip</code></pre>
+  <h2>Download a file</h2>
+  <p><code>-O</code> saves with the remote name and <code>-o</code> with a name you choose. <code>-L</code> follows redirects.</p>
+  <pre><code class="language-bash">$ curl -LO https://example.com/file.zip
+$ curl -L -o page.html https://example.com</code></pre>
+  <h2>Show headers</h2>
+  <pre><code class="language-bash">$ curl -I https://example.com     # only headers
+$ curl -v https://example.com     # all details of the request</code></pre>
+  <h2>Send data to an API</h2>
+  <pre><code class="language-bash">$ curl -X POST -H "Content-Type: application/json" \
+       -d '{"name": "Anders"}' https://api.example.com/users</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of the most used options. Add <code>all</code> to see every option.</p>
+  <pre><code class="language-bash">$ curl --help
+$ curl -h
+$ curl --help all</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>curl</code> is installed. <code>-v</code> does not show the version, it shows the request and response headers (verbose).</p>
+  <pre><code class="language-bash">$ curl --version
+$ curl -V</code></pre>
+  <h2>More about curl</h2>
+  <ul>
+    <li><code>-s</code> hides the progress bar, useful in scripts</li>
+    <li><code>-u user:password</code> uses basic authentication</li>
+    <li><a href="https://curl.se/">The curl website</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/curl.txt">man curl</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, curl, http, api, download, network</p>
+  {% include trail.html %}
+</div>

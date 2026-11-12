@@ -1,0 +1,42 @@
+---
+layout: default
+title: Ping
+permalink: /linux/ping/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, ping, network, icmp, troubleshooting]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Ping</h1>
+  <p><code>ping</code> sends small ICMP packets to another computer and measures how long it takes to get an answer. It is the simplest way to test if a host can be reached.</p>
+  <h2>Ping a host</h2>
+  <p>On Linux <code>ping</code> keeps going until you press <code>Ctrl + c</code>.</p>
+  <pre><code class="language-bash">$ ping example.com</code></pre>
+  <h2>Send a set number of packets</h2>
+  <pre><code class="language-bash">$ ping -c 4 example.com</code></pre>
+  <h2>Troubleshoot step by step</h2>
+  <p>Ping the router, then an IP on the internet, then a name. If the IP works but the name doesn't, the problem is DNS.</p>
+  <pre><code class="language-bash">$ ping -c 4 192.168.1.1
+$ ping -c 4 8.8.8.8
+$ ping -c 4 google.com</code></pre>
+  <h2>Help</h2>
+  <p><code>ping</code> has no <code>--help</code>. <code>-h</code> prints a short summary of all options.</p>
+  <pre><code class="language-bash">$ ping -h</code></pre>
+  <h2>Version</h2>
+  <p><code>-V</code> shows which version of <code>ping</code> is installed. <code>-v</code> does not show the version, it makes <code>ping</code> print more details.</p>
+  <pre><code class="language-bash">$ ping -V</code></pre>
+  <h2>More about ping</h2>
+  <ul>
+    <li><code>-i 0.5</code> changes the interval between packets</li>
+    <li>Some servers block ping, so no answer doesn't always mean the server is down</li>
+    <li><code>mtr</code> combines ping and traceroute to show where packets are lost</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/ping.txt">man ping</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, ping, network, icmp, troubleshooting</p>
+  {% include trail.html %}
+</div>

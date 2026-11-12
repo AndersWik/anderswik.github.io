@@ -1,0 +1,1064 @@
+---
+layout: default
+title: Data Conversion
+permalink: /utils/data-conversion/
+nonav: true
+css:
+  - /assets/data-conversion/data-conversion.css
+js:
+  - /assets/data-conversion/data-conversion.js
+---
+
+<div class="data-conversion container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Data conversion</h2>
+      <p>bit, byte, KB, MB, GB and TB</p>
+    </div>
+  </div>
+  <div class="row align-items-start">
+    <div class="col-sm-12 col-md-6 mt-3">
+      <p>From:</p>
+      <select class="form-select mt-3" aria-label="From what unit" id="input-select">
+        <option value="bit">bit</option>
+        <option value="byte">byte</option>
+        <option value="KB">KB</option>
+        <option value="MB">MB</option>
+        <option value="GB">GB</option>
+        <option value="TB">TB</option>
+      </select>
+      <input class="form-control form-control-lg mt-3" type="text" name="input" id="input-field">
+    </div>
+    <div class="col-sm-12 col-md-6 mt-3">
+      <p>To:</p>
+      <select class="form-select mt-3" aria-label="To what unit" id="output-select">
+        <option value="bit">bit</option>
+        <option value="byte">byte</option>
+        <option value="KB">KB</option>
+        <option value="MB">MB</option>
+        <option value="GB">GB</option>
+        <option value="TB">TB</option>
+      </select>
+      <input class="form-control form-control-lg mt-3" type="text" name="input" id="output-field">
+    </div>
+    <div class="col-sm-12 col-md-6 mt-3">
+      <p>Base:</p>
+      <select class="form-select mt-3" aria-label="Select base" id="base-select">
+        <option value="decimal">Decimal: 1000</option>
+        <option value="binary">Binary: 1024</option>
+      </select>
+    </div>
+  </div>
+  <div class="accordion mt-3" id="convertion-table">
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bit-to-byte"
+          aria-expanded="false" aria-controls="bit-to-byte">
+          Bit to Byte
+        </button>
+      </h2>
+      <div id="bit-to-byte" class="accordion-collapse collapse" data-bs-parent="#convertion-table">
+        <div class="accordion-body">
+          <table class="table table-striped">
+            <tbody>
+              <tr>
+                <td>1 Bits</td>
+                <td>0.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>2 Bits</td>
+                <td>0.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>3 Bits</td>
+                <td>0.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>4 Bits</td>
+                <td>0.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>5 Bits</td>
+                <td>0.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>6 Bits</td>
+                <td>0.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>7 Bits</td>
+                <td>0.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>8 Bits</td>
+                <td>1 Bytes</td>
+              </tr>
+              <tr>
+                <td>9 Bits</td>
+                <td>1.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>10 Bits</td>
+                <td>1.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>11 Bits</td>
+                <td>1.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>12 Bits</td>
+                <td>1.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>13 Bits</td>
+                <td>1.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>14 Bits</td>
+                <td>1.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>15 Bits</td>
+                <td>1.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>16 Bits</td>
+                <td>2 Bytes</td>
+              </tr>
+              <tr>
+                <td>17 Bits</td>
+                <td>2.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>18 Bits</td>
+                <td>2.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>19 Bits</td>
+                <td>2.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>20 Bits</td>
+                <td>2.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>21 Bits</td>
+                <td>2.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>22 Bits</td>
+                <td>2.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>23 Bits</td>
+                <td>2.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>24 Bits</td>
+                <td>3 Bytes</td>
+              </tr>
+              <tr>
+                <td>25 Bits</td>
+                <td>3.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>26 Bits</td>
+                <td>3.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>27 Bits</td>
+                <td>3.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>28 Bits</td>
+                <td>3.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>29 Bits</td>
+                <td>3.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>30 Bits</td>
+                <td>3.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>31 Bits</td>
+                <td>3.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>32 Bits</td>
+                <td>4 Bytes</td>
+              </tr>
+              <tr>
+                <td>33 Bits</td>
+                <td>4.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>34 Bits</td>
+                <td>4.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>35 Bits</td>
+                <td>4.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>36 Bits</td>
+                <td>4.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>37 Bits</td>
+                <td>4.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>38 Bits</td>
+                <td>4.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>39 Bits</td>
+                <td>4.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>40 Bits</td>
+                <td>5 Bytes</td>
+              </tr>
+              <tr>
+                <td>41 Bits</td>
+                <td>5.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>42 Bits</td>
+                <td>5.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>43 Bits</td>
+                <td>5.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>44 Bits</td>
+                <td>5.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>45 Bits</td>
+                <td>5.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>46 Bits</td>
+                <td>5.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>47 Bits</td>
+                <td>5.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>48 Bits</td>
+                <td>6 Bytes</td>
+              </tr>
+              <tr>
+                <td>49 Bits</td>
+                <td>6.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>50 Bits</td>
+                <td>6.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>51 Bits</td>
+                <td>6.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>52 Bits</td>
+                <td>6.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>53 Bits</td>
+                <td>6.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>54 Bits</td>
+                <td>6.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>55 Bits</td>
+                <td>6.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>56 Bits</td>
+                <td>7 Bytes</td>
+              </tr>
+              <tr>
+                <td>57 Bits</td>
+                <td>7.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>58 Bits</td>
+                <td>7.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>59 Bits</td>
+                <td>7.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>60 Bits</td>
+                <td>7.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>61 Bits</td>
+                <td>7.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>62 Bits</td>
+                <td>7.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>63 Bits</td>
+                <td>7.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>64 Bits</td>
+                <td>8 Bytes</td>
+              </tr>
+              <tr>
+                <td>65 Bits</td>
+                <td>8.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>66 Bits</td>
+                <td>8.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>67 Bits</td>
+                <td>8.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>68 Bits</td>
+                <td>8.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>69 Bits</td>
+                <td>8.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>70 Bits</td>
+                <td>8.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>71 Bits</td>
+                <td>8.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>72 Bits</td>
+                <td>9 Bytes</td>
+              </tr>
+              <tr>
+                <td>73 Bits</td>
+                <td>9.125 Bytes</td>
+              </tr>
+              <tr>
+                <td>74 Bits</td>
+                <td>9.25 Bytes</td>
+              </tr>
+              <tr>
+                <td>75 Bits</td>
+                <td>9.375 Bytes</td>
+              </tr>
+              <tr>
+                <td>76 Bits</td>
+                <td>9.5 Bytes</td>
+              </tr>
+              <tr>
+                <td>77 Bits</td>
+                <td>9.625 Bytes</td>
+              </tr>
+              <tr>
+                <td>78 Bits</td>
+                <td>9.75 Bytes</td>
+              </tr>
+              <tr>
+                <td>79 Bits</td>
+                <td>9.875 Bytes</td>
+              </tr>
+              <tr>
+                <td>80 Bits</td>
+                <td>10 Bytes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bit-to-kb"
+          aria-expanded="false" aria-controls="bit-to-kb">
+          Bit to KB
+        </button>
+      </h2>
+      <div id="bit-to-kb" class="accordion-collapse collapse" data-bs-parent="#convertion-table">
+        <div class="accordion-body">
+          <table class="table table-striped">
+            <tbody>
+              <tr>
+                <td>1 Bits</td>
+                <td>0.000125 KB</td>
+              </tr>
+              <tr>
+                <td>2 Bits</td>
+                <td>0.00025 KB</td>
+              </tr>
+              <tr>
+                <td>3 Bits</td>
+                <td>0.000375 KB</td>
+              </tr>
+              <tr>
+                <td>4 Bits</td>
+                <td>0.0005 KB</td>
+              </tr>
+              <tr>
+                <td>5 Bits</td>
+                <td>0.000625 KB</td>
+              </tr>
+              <tr>
+                <td>6 Bits</td>
+                <td>0.00075 KB</td>
+              </tr>
+              <tr>
+                <td>7 Bits</td>
+                <td>0.000875 KB</td>
+              </tr>
+              <tr>
+                <td>8 Bits</td>
+                <td>0.001 KB</td>
+              </tr>
+              <tr>
+                <td>9 Bits</td>
+                <td>0.001125 KB</td>
+              </tr>
+              <tr>
+                <td>10 Bits</td>
+                <td>0.00125 KB</td>
+              </tr>
+              <tr>
+                <td>11 Bits</td>
+                <td>0.001375 KB</td>
+              </tr>
+              <tr>
+                <td>12 Bits</td>
+                <td>0.0015 KB</td>
+              </tr>
+              <tr>
+                <td>13 Bits</td>
+                <td>0.001625 KB</td>
+              </tr>
+              <tr>
+                <td>14 Bits</td>
+                <td>0.00175 KB</td>
+              </tr>
+              <tr>
+                <td>15 Bits</td>
+                <td>0.001875 KB</td>
+              </tr>
+              <tr>
+                <td>16 Bits</td>
+                <td>0.002 KB</td>
+              </tr>
+              <tr>
+                <td>17 Bits</td>
+                <td>0.002125 KB</td>
+              </tr>
+              <tr>
+                <td>18 Bits</td>
+                <td>0.00225 KB</td>
+              </tr>
+              <tr>
+                <td>19 Bits</td>
+                <td>0.002375 KB</td>
+              </tr>
+              <tr>
+                <td>20 Bits</td>
+                <td>0.0025 KB</td>
+              </tr>
+              <tr>
+                <td>21 Bits</td>
+                <td>0.002625 KB</td>
+              </tr>
+              <tr>
+                <td>22 Bits</td>
+                <td>0.00275 KB</td>
+              </tr>
+              <tr>
+                <td>23 Bits</td>
+                <td>0.002875 KB</td>
+              </tr>
+              <tr>
+                <td>24 Bits</td>
+                <td>0.003 KB</td>
+              </tr>
+              <tr>
+                <td>25 Bits</td>
+                <td>0.003125 KB</td>
+              </tr>
+              <tr>
+                <td>26 Bits</td>
+                <td>0.00325 KB</td>
+              </tr>
+              <tr>
+                <td>27 Bits</td>
+                <td>0.003375 KB</td>
+              </tr>
+              <tr>
+                <td>28 Bits</td>
+                <td>0.0035 KB</td>
+              </tr>
+              <tr>
+                <td>29 Bits</td>
+                <td>0.003625 KB</td>
+              </tr>
+              <tr>
+                <td>30 Bits</td>
+                <td>0.00375 KB</td>
+              </tr>
+              <tr>
+                <td>31 Bits</td>
+                <td>0.003875 KB</td>
+              </tr>
+              <tr>
+                <td>32 Bits</td>
+                <td>0.004 KB</td>
+              </tr>
+              <tr>
+                <td>33 Bits</td>
+                <td>0.004125 KB</td>
+              </tr>
+              <tr>
+                <td>34 Bits</td>
+                <td>0.00425 KB</td>
+              </tr>
+              <tr>
+                <td>35 Bits</td>
+                <td>0.004375 KB</td>
+              </tr>
+              <tr>
+                <td>36 Bits</td>
+                <td>0.0045 KB</td>
+              </tr>
+              <tr>
+                <td>37 Bits</td>
+                <td>0.004625 KB</td>
+              </tr>
+              <tr>
+                <td>38 Bits</td>
+                <td>0.00475 KB</td>
+              </tr>
+              <tr>
+                <td>39 Bits</td>
+                <td>0.004875 KB</td>
+              </tr>
+              <tr>
+                <td>40 Bits</td>
+                <td>0.005 KB</td>
+              </tr>
+
+              <tr>
+                <td>100 Bits</td>
+                <td>0.0125 KB</td>
+              </tr>
+              <tr>
+                <td>200 Bits</td>
+                <td>0.025 KB</td>
+              </tr>
+              <tr>
+                <td>300 Bits</td>
+                <td>0.0375 KB</td>
+              </tr>
+              <tr>
+                <td>400 Bits</td>
+                <td>0.05 KB</td>
+              </tr>
+              <tr>
+                <td>500 Bits</td>
+                <td>0.0625 KB</td>
+              </tr>
+              <tr>
+                <td>600 Bits</td>
+                <td>0.075 KB</td>
+              </tr>
+              <tr>
+                <td>700 Bits</td>
+                <td>0.0875 KB</td>
+              </tr>
+              <tr>
+                <td>800 Bits</td>
+                <td>0.1 KB</td>
+              </tr>
+              <tr>
+                <td>900 Bits</td>
+                <td>0.1125 KB</td>
+              </tr>
+              <tr>
+                <td>1000 Bits</td>
+                <td>0.125 KB</td>
+              </tr>
+              <tr>
+                <td>1100 Bits</td>
+                <td>0.1375 KB</td>
+              </tr>
+              <tr>
+                <td>1200 Bits</td>
+                <td>0.15 KB</td>
+              </tr>
+              <tr>
+                <td>1300 Bits</td>
+                <td>0.1625 KB</td>
+              </tr>
+              <tr>
+                <td>1400 Bits</td>
+                <td>0.175 KB</td>
+              </tr>
+              <tr>
+                <td>1500 Bits</td>
+                <td>0.1875 KB</td>
+              </tr>
+              <tr>
+                <td>1600 Bits</td>
+                <td>0.2 KB</td>
+              </tr>
+              <tr>
+                <td>1700 Bits</td>
+                <td>0.2125 KB</td>
+              </tr>
+              <tr>
+                <td>1800 Bits</td>
+                <td>0.225 KB</td>
+              </tr>
+              <tr>
+                <td>1900 Bits</td>
+                <td>0.2375 KB</td>
+              </tr>
+              <tr>
+                <td>2000 Bits</td>
+                <td>0.25 KB</td>
+              </tr>
+              <tr>
+                <td>2100 Bits</td>
+                <td>0.2625 KB</td>
+              </tr>
+              <tr>
+                <td>2200 Bits</td>
+                <td>0.275 KB</td>
+              </tr>
+              <tr>
+                <td>2300 Bits</td>
+                <td>0.2875 KB</td>
+              </tr>
+              <tr>
+                <td>2400 Bits</td>
+                <td>0.3 KB</td>
+              </tr>
+              <tr>
+                <td>2500 Bits</td>
+                <td>0.3125 KB</td>
+              </tr>
+              <tr>
+                <td>2600 Bits</td>
+                <td>0.325 KB</td>
+              </tr>
+              <tr>
+                <td>2700 Bits</td>
+                <td>0.3375 KB</td>
+              </tr>
+              <tr>
+                <td>2800 Bits</td>
+                <td>0.35 KB</td>
+              </tr>
+              <tr>
+                <td>2900 Bits</td>
+                <td>0.3625 KB</td>
+              </tr>
+              <tr>
+                <td>3000 Bits</td>
+                <td>0.375 KB</td>
+              </tr>
+              <tr>
+                <td>3100 Bits</td>
+                <td>0.3875 KB</td>
+              </tr>
+              <tr>
+                <td>3200 Bits</td>
+                <td>0.4 KB</td>
+              </tr>
+              <tr>
+                <td>3300 Bits</td>
+                <td>0.4125 KB</td>
+              </tr>
+              <tr>
+                <td>3400 Bits</td>
+                <td>0.425 KB</td>
+              </tr>
+              <tr>
+                <td>3500 Bits</td>
+                <td>0.4375 KB</td>
+              </tr>
+              <tr>
+                <td>3600 Bits</td>
+                <td>0.45 KB</td>
+              </tr>
+              <tr>
+                <td>3700 Bits</td>
+                <td>0.4625 KB</td>
+              </tr>
+              <tr>
+                <td>3800 Bits</td>
+                <td>0.475 KB</td>
+              </tr>
+              <tr>
+                <td>3900 Bits</td>
+                <td>0.4875 KB</td>
+              </tr>
+              <tr>
+                <td>4000 Bits</td>
+                <td>0.5 KB</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bit-to-mb"
+          aria-expanded="false" aria-controls="bit-to-mb">
+          Bit to MB
+        </button>
+      </h2>
+      <div id="bit-to-mb" class="accordion-collapse collapse" data-bs-parent="#convertion-table">
+        <div class="accordion-body">
+          <table class="table table-striped">
+            <tbody>
+              <tr>
+                <td>1000 Bits</td>
+                <td>0.000125 MB</td>
+              </tr>
+              <tr>
+                <td>2000 Bits</td>
+                <td>0.00025 MB</td>
+              </tr>
+              <tr>
+                <td>3000 Bits</td>
+                <td>0.000375 MB</td>
+              </tr>
+              <tr>
+                <td>4000 Bits</td>
+                <td>0.0005 MB</td>
+              </tr>
+              <tr>
+                <td>5000 Bits</td>
+                <td>0.000625 MB</td>
+              </tr>
+              <tr>
+                <td>6000 Bits</td>
+                <td>0.00075 MB</td>
+              </tr>
+              <tr>
+                <td>7000 Bits</td>
+                <td>0.000875 MB</td>
+              </tr>
+              <tr>
+                <td>8000 Bits</td>
+                <td>0.001 MB</td>
+              </tr>
+              <tr>
+                <td>9000 Bits</td>
+                <td>0.001125 MB</td>
+              </tr>
+              <tr>
+                <td>10000 Bits</td>
+                <td>0.00125 MB</td>
+              </tr>
+              <tr>
+                <td>11000 Bits</td>
+                <td>0.001375 MB</td>
+              </tr>
+              <tr>
+                <td>12000 Bits</td>
+                <td>0.0015 MB</td>
+              </tr>
+              <tr>
+                <td>13000 Bits</td>
+                <td>0.001625 MB</td>
+              </tr>
+              <tr>
+                <td>14000 Bits</td>
+                <td>0.00175 MB</td>
+              </tr>
+              <tr>
+                <td>15000 Bits</td>
+                <td>0.001875 MB</td>
+              </tr>
+              <tr>
+                <td>16000 Bits</td>
+                <td>0.002 MB</td>
+              </tr>
+              <tr>
+                <td>17000 Bits</td>
+                <td>0.002125 MB</td>
+              </tr>
+              <tr>
+                <td>18000 Bits</td>
+                <td>0.00225 MB</td>
+              </tr>
+              <tr>
+                <td>19000 Bits</td>
+                <td>0.002375 MB</td>
+              </tr>
+              <tr>
+                <td>20000 Bits</td>
+                <td>0.0025 MB</td>
+              </tr>
+              <tr>
+                <td>21000 Bits</td>
+                <td>0.002625 MB</td>
+              </tr>
+              <tr>
+                <td>22000 Bits</td>
+                <td>0.00275 MB</td>
+              </tr>
+              <tr>
+                <td>23000 Bits</td>
+                <td>0.002875 MB</td>
+              </tr>
+              <tr>
+                <td>24000 Bits</td>
+                <td>0.003 MB</td>
+              </tr>
+              <tr>
+                <td>25000 Bits</td>
+                <td>0.003125 MB</td>
+              </tr>
+              <tr>
+                <td>26000 Bits</td>
+                <td>0.00325 MB</td>
+              </tr>
+              <tr>
+                <td>27000 Bits</td>
+                <td>0.003375 MB</td>
+              </tr>
+              <tr>
+                <td>28000 Bits</td>
+                <td>0.0035 MB</td>
+              </tr>
+              <tr>
+                <td>29000 Bits</td>
+                <td>0.003625 MB</td>
+              </tr>
+              <tr>
+                <td>30000 Bits</td>
+                <td>0.00375 MB</td>
+              </tr>
+              <tr>
+                <td>31000 Bits</td>
+                <td>0.003875 MB</td>
+              </tr>
+              <tr>
+                <td>32000 Bits</td>
+                <td>0.004 MB</td>
+              </tr>
+              <tr>
+                <td>33000 Bits</td>
+                <td>0.004125 MB</td>
+              </tr>
+              <tr>
+                <td>34000 Bits</td>
+                <td>0.00425 MB</td>
+              </tr>
+              <tr>
+                <td>35000 Bits</td>
+                <td>0.004375 MB</td>
+              </tr>
+              <tr>
+                <td>36000 Bits</td>
+                <td>0.0045 MB</td>
+              </tr>
+              <tr>
+                <td>37000 Bits</td>
+                <td>0.004625 MB</td>
+              </tr>
+              <tr>
+                <td>38000 Bits</td>
+                <td>0.00475 MB</td>
+              </tr>
+              <tr>
+                <td>39000 Bits</td>
+                <td>0.004875 MB</td>
+              </tr>
+              <tr>
+                <td>40000 Bits</td>
+                <td>0.005 MB</td>
+              </tr>
+              <tr>
+                <td>41000 Bits</td>
+                <td>0.005125 MB</td>
+              </tr>
+              <tr>
+                <td>42000 Bits</td>
+                <td>0.00525 MB</td>
+              </tr>
+              <tr>
+                <td>43000 Bits</td>
+                <td>0.005375 MB</td>
+              </tr>
+              <tr>
+                <td>44000 Bits</td>
+                <td>0.0055 MB</td>
+              </tr>
+              <tr>
+                <td>45000 Bits</td>
+                <td>0.005625 MB</td>
+              </tr>
+              <tr>
+                <td>46000 Bits</td>
+                <td>0.00575 MB</td>
+              </tr>
+              <tr>
+                <td>47000 Bits</td>
+                <td>0.005875 MB</td>
+              </tr>
+              <tr>
+                <td>48000 Bits</td>
+                <td>0.006 MB</td>
+              </tr>
+              <tr>
+                <td>49000 Bits</td>
+                <td>0.006125 MB</td>
+              </tr>
+              <tr>
+                <td>50000 Bits</td>
+                <td>0.00625 MB</td>
+              </tr>
+              <tr>
+                <td>51000 Bits</td>
+                <td>0.006375 MB</td>
+              </tr>
+              <tr>
+                <td>52000 Bits</td>
+                <td>0.0065 MB</td>
+              </tr>
+              <tr>
+                <td>53000 Bits</td>
+                <td>0.006625 MB</td>
+              </tr>
+              <tr>
+                <td>54000 Bits</td>
+                <td>0.00675 MB</td>
+              </tr>
+              <tr>
+                <td>55000 Bits</td>
+                <td>0.006875 MB</td>
+              </tr>
+              <tr>
+                <td>56000 Bits</td>
+                <td>0.007 MB</td>
+              </tr>
+              <tr>
+                <td>57000 Bits</td>
+                <td>0.007125 MB</td>
+              </tr>
+              <tr>
+                <td>58000 Bits</td>
+                <td>0.00725 MB</td>
+              </tr>
+              <tr>
+                <td>59000 Bits</td>
+                <td>0.007375 MB</td>
+              </tr>
+              <tr>
+                <td>60000 Bits</td>
+                <td>0.0075 MB</td>
+              </tr>
+              <tr>
+                <td>61000 Bits</td>
+                <td>0.007625 MB</td>
+              </tr>
+              <tr>
+                <td>62000 Bits</td>
+                <td>0.00775 MB</td>
+              </tr>
+              <tr>
+                <td>63000 Bits</td>
+                <td>0.007875 MB</td>
+              </tr>
+              <tr>
+                <td>64000 Bits</td>
+                <td>0.008 MB</td>
+              </tr>
+              <tr>
+                <td>65000 Bits</td>
+                <td>0.008125 MB</td>
+              </tr>
+              <tr>
+                <td>66000 Bits</td>
+                <td>0.00825 MB</td>
+              </tr>
+              <tr>
+                <td>67000 Bits</td>
+                <td>0.008375 MB</td>
+              </tr>
+              <tr>
+                <td>68000 Bits</td>
+                <td>0.0085 MB</td>
+              </tr>
+              <tr>
+                <td>69000 Bits</td>
+                <td>0.008625 MB</td>
+              </tr>
+              <tr>
+                <td>70000 Bits</td>
+                <td>0.00875 MB</td>
+              </tr>
+              <tr>
+                <td>71000 Bits</td>
+                <td>0.008875 MB</td>
+              </tr>
+              <tr>
+                <td>72000 Bits</td>
+                <td>0.009 MB</td>
+              </tr>
+              <tr>
+                <td>73000 Bits</td>
+                <td>0.009125 MB</td>
+              </tr>
+              <tr>
+                <td>74000 Bits</td>
+                <td>0.00925 MB</td>
+              </tr>
+              <tr>
+                <td>75000 Bits</td>
+                <td>0.009375 MB</td>
+              </tr>
+              <tr>
+                <td>76000 Bits</td>
+                <td>0.0095 MB</td>
+              </tr>
+              <tr>
+                <td>77000 Bits</td>
+                <td>0.009625 MB</td>
+              </tr>
+              <tr>
+                <td>78000 Bits</td>
+                <td>0.00975 MB</td>
+              </tr>
+              <tr>
+                <td>79000 Bits</td>
+                <td>0.009875 MB</td>
+              </tr>
+              <tr>
+                <td>80000 Bits</td>
+                <td>0.01 MB</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="mt-5 text-center"><a href="/tutorials/data-conversion/">How to build this tool</a></p>
+</div>

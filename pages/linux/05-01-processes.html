@@ -1,0 +1,31 @@
+---
+layout: default
+title: Processes
+permalink: /linux/processes/
+chapter: "05"
+chapter_title: "Processes"
+keywords: [linux, processes, pid, signals, jobs]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Processes</h1>
+  <p>A process is a running program. Every process has a process id (PID), an owner and a parent process that started it. The first process, <code>systemd</code> on most systems, has PID 1 and starts everything else.</p>
+  <h2>Foreground and background</h2>
+  <p>A command normally runs in the foreground and keeps the terminal busy. Add <code>&amp;</code> to run it in the background. <code>Ctrl + z</code> pauses a foreground process, <code>bg</code> continues it in the background and <code>fg</code> brings it back.</p>
+  <pre><code class="language-bash">$ sleep 300 &amp;
+$ jobs
+$ fg %1</code></pre>
+  <h2>Signals</h2>
+  <p>Processes are controlled with signals. <code>Ctrl + c</code> sends SIGINT to ask the program to stop, and the <code>kill</code> command can send any signal to a process by its PID.</p>
+  <h2>Commands in this chapter</h2>
+  <ul>
+    <li><code>ps</code> — list processes</li>
+    <li><code>top</code> — watch processes live</li>
+    <li><code>kill</code> — send a signal to a process by PID</li>
+    <li><code>killall</code> — send a signal to processes by name</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, processes, pid, signals, jobs</p>
+  {% include trail.html %}
+</div>

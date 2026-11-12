@@ -1,0 +1,41 @@
+---
+layout: default
+title: Footnotes
+permalink: /markdown/footnotes/
+chapter: "06"
+chapter_title: "Extended syntax"
+keywords: [markdown, footnotes, footnote, notes, references, citation, kramdown, gfm]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Footnotes</h1>
+  <p>A footnote adds a small number in the text that links to a note at the bottom of the page. Footnotes are supported by GitHub, kramdown, Pandoc and most editors, but not by the original Markdown.</p>
+  <h2>Footnote</h2>
+  <p>Write <code>[^name]</code> in the text and the note on its own line with <code>[^name]:</code>. The notes are numbered in the order they are used, whatever the name is.</p>
+  <pre><code class="language-markdown">Linux was first released in 1991.[^1]
+Vagrant is made by HashiCorp.[^vagrant]
+
+[^1]: Version 0.01, in September.
+[^vagrant]: See vagrantup.com.</code></pre>
+  <h2>Longer footnotes</h2>
+  <p>Indent the following lines to add more paragraphs or code to the note.</p>
+  <pre><code class="language-markdown">Here is a long note.[^long]
+
+[^long]: The first paragraph.
+
+    The second paragraph.
+
+    `some code`</code></pre>
+  <h2>Inline footnotes</h2>
+  <p>Pandoc can write the note directly in the text.</p>
+  <pre><code class="language-markdown">Linux was first released in 1991.^[Version 0.01, in September.]</code></pre>
+  <h2>More about footnotes</h2>
+  <ul>
+    <li>The names cannot contain spaces</li>
+    <li>The notes are always placed at the end, wherever you write them in the file</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

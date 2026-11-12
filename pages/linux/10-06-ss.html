@@ -1,0 +1,42 @@
+---
+layout: default
+title: Ss
+permalink: /linux/ss/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, ss, sockets, ports, network, netstat]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Ss</h1>
+  <p><code>ss</code> shows socket statistics: open network connections and which ports programs are listening on. It replaces the older <code>netstat</code>.</p>
+  <h2>Show connections</h2>
+  <pre><code class="language-bash">ss</code></pre>
+  <h2>Listening ports</h2>
+  <p>The most used combination. <code>-t</code> TCP, <code>-u</code> UDP, <code>-l</code> listening, <code>-n</code> numeric ports and <code>-p</code> the program using the port (needs sudo for other users' programs).</p>
+  <pre><code class="language-bash">$ sudo ss -tulpn</code></pre>
+  <h2>Find what uses a port</h2>
+  <pre><code class="language-bash">$ sudo ss -tlpn | grep :80</code></pre>
+  <h2>Established connections</h2>
+  <pre><code class="language-bash">$ ss -tn state established</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>ss</code> and all its options.</p>
+  <pre><code class="language-bash">$ ss --help
+$ ss -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>ss</code> is installed.</p>
+  <pre><code class="language-bash">$ ss --version
+$ ss -V</code></pre>
+  <h2>More about ss</h2>
+  <ul>
+    <li><code>ss -s</code> prints a summary of all sockets</li>
+    <li><code>lsof -i :80</code> is another way to see what uses a port</li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/ss.txt">man ss</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, ss, sockets, ports, network, netstat</p>
+  {% include trail.html %}
+</div>

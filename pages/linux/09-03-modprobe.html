@@ -1,0 +1,43 @@
+---
+layout: default
+title: Modprobe
+permalink: /linux/modprobe/
+chapter: "09"
+chapter_title: "Kernel"
+keywords: [linux, modprobe, kernel, modules, drivers]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Modprobe</h1>
+  <p><code>modprobe</code> loads and removes kernel modules. It also loads any other modules the module depends on.</p>
+  <h2>Load a module</h2>
+  <pre><code class="language-bash">$ sudo modprobe vboxdrv</code></pre>
+  <h2>Remove a module</h2>
+  <pre><code class="language-bash">$ sudo modprobe -r vboxdrv</code></pre>
+  <h2>Check modules</h2>
+  <pre><code class="language-bash">$ lsmod | grep vbox
+$ modinfo vboxdrv</code></pre>
+  <h2>Block a module</h2>
+  <p>To stop a module from loading at boot, blacklist it in a file in <code>/etc/modprobe.d/</code>.</p>
+  <pre><code class="language-bash">$ echo "blacklist nouveau" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>modprobe</code> and all its options.</p>
+  <pre><code class="language-bash">$ modprobe --help
+$ modprobe -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>modprobe</code> is installed. <code>-v</code> does not show the version, it makes <code>modprobe</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ modprobe --version
+$ modprobe -V</code></pre>
+  <h2>More about modprobe</h2>
+  <ul>
+    <li>Modules to load at boot can be listed in <code>/etc/modules-load.d/</code></li>
+    <li>With Secure Boot enabled, modules must be signed, see <a href="/linux/mokutil/">mokutil</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/modprobe.txt">man modprobe</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, modprobe, kernel, modules, drivers</p>
+  {% include trail.html %}
+</div>

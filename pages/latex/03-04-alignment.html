@@ -1,0 +1,39 @@
+---
+layout: default
+title: Alignment
+permalink: /latex/alignment/
+chapter: "03"
+chapter_title: "Text"
+keywords: [latex, alignment, center, centering, flushleft, flushright, raggedright, justify]
+---
+
+<div class="latex container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Alignment</h1>
+  <p>Text is justified by default, so both edges are straight.</p>
+  <h2>Environments</h2>
+  <pre><code class="language-latex">\begin{center}
+  Centered text.
+\end{center}
+
+\begin{flushleft}
+  Left aligned text.
+\end{flushleft}
+
+\begin{flushright}
+  Right aligned text.
+\end{flushright}</code></pre>
+  <h2>Switches</h2>
+  <p>Switches do not add extra space around the text. Use <code>\centering</code> inside figures and tables.</p>
+  <pre><code class="language-latex">{\centering Centered text.\par}
+\raggedright
+\raggedleft</code></pre>
+  <h2>More about alignment</h2>
+  <ul>
+    <li><code>ragged2e</code> gives better hyphenation with <code>\RaggedRight</code></li>
+    <li>Align numbers in tables with column types, see <a href="/latex/tables/">tables</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

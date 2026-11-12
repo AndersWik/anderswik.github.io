@@ -1,0 +1,43 @@
+---
+layout: default
+title: Cp
+permalink: /linux/cp/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, cp, copy, files, backup]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Cp</h1>
+  <p><code>cp</code> copies files and directories. The original stays where it is and a copy is created at the destination.</p>
+  <h2>Copy a file</h2>
+  <pre><code class="language-bash">$ cp notes.txt notes-backup.txt
+$ cp notes.txt Documents/</code></pre>
+  <h2>Copy a directory</h2>
+  <p><code>-r</code> copies a directory recursively, with everything in it.</p>
+  <pre><code class="language-bash">$ cp -r website website-backup</code></pre>
+  <h2>Keep file attributes</h2>
+  <p><code>-a</code> (archive) copies recursively and keeps permissions, owners and timestamps. It is a good choice for backups.</p>
+  <pre><code class="language-bash">$ cp -a /etc/nginx nginx-backup</code></pre>
+  <h2>Don't overwrite by mistake</h2>
+  <pre><code class="language-bash">$ cp -i notes.txt Documents/   # ask before overwriting
+$ cp -u *.txt Documents/       # only copy if the source is newer</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> prints a short summary of how to use <code>cp</code> and all its options.</p>
+  <pre><code class="language-bash">$ cp --help</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> shows which version of <code>cp</code> is installed. <code>-v</code> does not show the version, it makes <code>cp</code> print what it does (verbose).</p>
+  <pre><code class="language-bash">$ cp --version</code></pre>
+  <h2>More about cp</h2>
+  <ul>
+    <li><code>-v</code> prints each file as it is copied</li>
+    <li>For copying to other computers use <a href="/linux/scp/">scp</a> or <a href="/linux/rsync/">rsync</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/cp.txt">man cp</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, cp, copy, files, backup</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,467 @@
+/*
+ * Breakout: bounce the ball with the paddle and break all the bricks.
+ * Some bricks drop a power-up; catch it with the paddle. Five levels,
+ * with one more row of bricks on each. Lose every ball and it's game over.
+ *
+ *   Arrow left/right   move the paddle
+ *   Space              launch the ball (and fire, with cannons)
+ *   P / Esc            pause / menu
+ */
+
+// --- Settings ------------------------------------------------------------
+
+const STEP = 1000 / 60;      // one update step, in milliseconds
+const LAST_LEVEL = 5;
+const COLUMNS = 8;
+const BRICK_WIDTH = 75;
+const BRICK_HEIGHT = 20;
+const BRICK_GAP = 10;
+const BALL_RADIUS = 10;
+const PADDLE_SPEED = 7;
+const POWER_UP_CHANCE = 0.2; // 20% of bricks drop a power-up
+
+const POWER_UPS = [
+    { type: "ball", color: "#ffffff", text: "An extra ball" },
+    { type: "grow", color: "#0000ff", text: "A wider paddle" },
+    { type: "slow", color: "#ffff00", text: "Slower balls" },
+    { type: "cannons", color: "#ff0000", text: "Cannons: Space shoots" },
+    { type: "up", color: "#00ff00", text: "All balls go up" }
+];
+
+// --- Elements on the page ------------------------------------------------
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+const scoreText = document.getElementById("score");
+const levelText = document.getElementById("level");
+
+// --- State ---------------------------------------------------------------
+
+let screen = "menu";   // menu, controls, powerUps, playing, paused, levelDone, won, gameOver
+let menuIndex = 0;
+let gameStarted = false;
+
+let paddle;
+let balls = [];
+let bricks = [];
+let powerUps = [];     // falling power-ups
+let bullets = [];
+let score = 0;
+let level = 1;
+
+const keys = {};       // keys held down right now
+
+const MENU_ITEMS = ["Start", "Controls", "Power-ups"];
+
+// --- Starting ------------------------------------------------------------
+
+function newBall() {
+    // A ball that sits on the paddle until Space launches it.
+    return { x: paddle.x + paddle.width / 2, y: paddle.y - BALL_RADIUS, dx: 0, dy: 0, launched: false };
+}
+
+function newGame() {
+    score = 0;
+    level = 1;
+    gameStarted = true;
+    startLevel();
+}
+
+function startLevel() {
+    paddle = { x: WIDTH / 2 - 50, y: HEIGHT - 20, width: 100, height: 10, cannons: false };
+    balls = [newBall()];
+    powerUps = [];
+    bullets = [];
+
+    // One more row of bricks on each level, centered on the screen.
+    bricks = [];
+    const rows = 4 + level;
+    const left = (WIDTH - COLUMNS * (BRICK_WIDTH + BRICK_GAP) + BRICK_GAP) / 2;
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < COLUMNS; col++) {
+            bricks.push({
+                x: left + col * (BRICK_WIDTH + BRICK_GAP),
+                y: 50 + row * (BRICK_HEIGHT + BRICK_GAP)
+            });
+        }
+    }
+    screen = "playing";
+}
+
+// --- Helpers -------------------------------------------------------------
+
+function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+}
+
+// Does a circle touch a rectangle? Find the point of the rectangle that is
+// closest to the center of the circle, and see if it is inside the circle.
+function circleTouchesRect(ball, rect, width, height) {
+    const nearestX = clamp(ball.x, rect.x, rect.x + width);
+    const nearestY = clamp(ball.y, rect.y, rect.y + height);
+    return Math.hypot(ball.x - nearestX, ball.y - nearestY) < BALL_RADIUS;
+}
+
+function pointInBrick(x, y, brick) {
+    return x >= brick.x && x <= brick.x + BRICK_WIDTH && y >= brick.y && y <= brick.y + BRICK_HEIGHT;
+}
+
+function breakBrick(brick) {
+    bricks.splice(bricks.indexOf(brick), 1);
+    score += 10;
+    if (Math.random() < POWER_UP_CHANCE) {
+        const kind = POWER_UPS[Math.floor(Math.random() * POWER_UPS.length)];
+        powerUps.push({ x: brick.x + BRICK_WIDTH / 2, y: brick.y, type: kind.type, color: kind.color });
+    }
+}
+
+function pickUp(type) {
+    if (type === "ball") {
+        balls.push(newBall());
+    } else if (type === "grow") {
+        paddle.width = Math.min(200, paddle.width + 20);
+    } else if (type === "slow") {
+        balls.forEach(function (ball) {
+            // Slower, but never slower than 3 pixels per step.
+            const speed = Math.hypot(ball.dx, ball.dy);
+            const factor = Math.max(0.8, 3 / (speed || 3));
+            ball.dx *= factor;
+            ball.dy *= factor;
+        });
+    } else if (type === "cannons") {
+        paddle.cannons = true;
+    } else if (type === "up") {
+        balls.forEach(function (ball) {
+            ball.dy = -Math.abs(ball.dy);
+        });
+    }
+}
+
+// --- Update --------------------------------------------------------------
+
+function moveBall(ball) {
+    if (!ball.launched) {
+        // Ride on the paddle.
+        ball.x = paddle.x + paddle.width / 2;
+        ball.y = paddle.y - BALL_RADIUS;
+        return;
+    }
+
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    // Walls: set the direction away from the wall, instead of just
+    // turning it around. Then a ball that is a little inside the wall
+    // can't get stuck turning back and forth.
+    if (ball.x < BALL_RADIUS) {
+        ball.dx = Math.abs(ball.dx);
+    } else if (ball.x > WIDTH - BALL_RADIUS) {
+        ball.dx = -Math.abs(ball.dx);
+    }
+    if (ball.y < BALL_RADIUS) {
+        ball.dy = Math.abs(ball.dy);
+    }
+
+    // Paddle: only when the ball is on its way down, its center is still
+    // above the paddle, and it touches it. A ball that has already gone
+    // past the paddle is lost. Where it hits decides the new direction:
+    // the middle sends it straight up, the ends out at 45 degrees.
+    if (ball.dy > 0 && ball.y < paddle.y && circleTouchesRect(ball, paddle, paddle.width, paddle.height)) {
+        const hit = clamp((ball.x - paddle.x) / paddle.width, 0, 1); // 0 = left end, 1 = right end
+        const angle = (hit - 0.5) * Math.PI / 2;
+        const speed = Math.hypot(ball.dx, ball.dy);
+        ball.dx = speed * Math.sin(angle);
+        ball.dy = -speed * Math.cos(angle);
+    }
+
+    // Bricks: at most one per step. If the ball's center is beside the
+    // brick it hit the side, so it turns sideways; otherwise up or down.
+    const brick = bricks.find(function (b) {
+        return circleTouchesRect(ball, b, BRICK_WIDTH, BRICK_HEIGHT);
+    });
+    if (brick) {
+        if (ball.x < brick.x || ball.x > brick.x + BRICK_WIDTH) {
+            ball.dx = -ball.dx;
+        } else {
+            ball.dy = -ball.dy;
+        }
+        breakBrick(brick);
+    }
+}
+
+function update() {
+    if (keys.ArrowLeft) {
+        paddle.x -= PADDLE_SPEED;
+    }
+    if (keys.ArrowRight) {
+        paddle.x += PADDLE_SPEED;
+    }
+    paddle.x = clamp(paddle.x, 0, WIDTH - paddle.width);
+
+    balls.forEach(moveBall);
+    balls = balls.filter(function (ball) {
+        return ball.y - BALL_RADIUS < HEIGHT; // gone below the bottom
+    });
+
+    bullets = bullets.filter(function (bullet) {
+        bullet.y -= 6;
+        const brick = bricks.find(function (b) {
+            return pointInBrick(bullet.x, bullet.y, b);
+        });
+        if (brick) {
+            breakBrick(brick);
+            return false;
+        }
+        return bullet.y > 0;
+    });
+
+    powerUps = powerUps.filter(function (powerUp) {
+        powerUp.y += 2;
+        const caught = powerUp.y + 20 >= paddle.y && powerUp.y <= paddle.y + paddle.height &&
+            powerUp.x >= paddle.x && powerUp.x <= paddle.x + paddle.width;
+        if (caught) {
+            pickUp(powerUp.type);
+            return false;
+        }
+        return powerUp.y < HEIGHT;
+    });
+
+    if (bricks.length === 0) {
+        screen = level === LAST_LEVEL ? "won" : "levelDone";
+    } else if (balls.length === 0) {
+        screen = "gameOver";
+    }
+}
+
+// Space: launch the balls on the paddle, and fire the cannons.
+function pressSpace() {
+    balls.forEach(function (ball) {
+        if (!ball.launched) {
+            ball.launched = true;
+            ball.dx = 4;
+            ball.dy = -4;
+        }
+    });
+    if (paddle.cannons) {
+        bullets.push({ x: paddle.x + 12, y: paddle.y - 10 });
+        bullets.push({ x: paddle.x + paddle.width - 12, y: paddle.y - 10 });
+    }
+}
+
+// --- Drawing -------------------------------------------------------------
+
+function drawText(text, x, y, size, color, align) {
+    ctx.fillStyle = color || "white";
+    ctx.font = size + "px Arial";
+    ctx.textAlign = align || "center";
+    ctx.fillText(text, x, y);
+}
+
+function drawWorld() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    if (!gameStarted) {
+        return; // nothing to show behind the first menu
+    }
+
+    ctx.fillStyle = "#00ff00";
+    bricks.forEach(function (brick) {
+        ctx.fillRect(brick.x, brick.y, BRICK_WIDTH, BRICK_HEIGHT);
+    });
+
+    ctx.fillStyle = "#0000ff";
+    ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+    if (paddle.cannons) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(paddle.x + 7, paddle.y - 10, 10, 10);
+        ctx.fillRect(paddle.x + paddle.width - 17, paddle.y - 10, 10, 10);
+    }
+
+    ctx.fillStyle = "red";
+    balls.forEach(function (ball) {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    powerUps.forEach(function (powerUp) {
+        ctx.fillStyle = powerUp.color;
+        ctx.fillRect(powerUp.x - 10, powerUp.y, 20, 20);
+    });
+
+    ctx.fillStyle = "yellow";
+    bullets.forEach(function (bullet) {
+        ctx.fillRect(bullet.x - 2, bullet.y, 5, 10);
+    });
+
+    if (screen === "playing" && balls.some(function (ball) { return !ball.launched; })) {
+        drawText("Press Space to launch", WIDTH / 2, HEIGHT - 60, 20);
+    }
+}
+
+function drawMessage(title, lines) {
+    drawText(title, WIDTH / 2, HEIGHT / 2 - 40, 40);
+    lines.forEach(function (line, index) {
+        drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+    });
+}
+
+function drawMenu() {
+    drawText("Breakout", WIDTH / 2, HEIGHT / 2 - 50, 60);
+    MENU_ITEMS.forEach(function (item, index) {
+        const color = index === menuIndex ? "yellow" : "white";
+        drawText(item, WIDTH / 2, HEIGHT / 2 + 20 + index * 45, 24, color);
+    });
+    drawText("Arrow keys and Enter to choose", WIDTH / 2, HEIGHT - 50, 16);
+    if (gameStarted) {
+        drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 25, 16);
+    }
+}
+
+function drawControls() {
+    drawText("Controls", WIDTH / 2, 120, 40);
+    const lines = [
+        ["Move", "Arrow left / right"],
+        ["Launch, and fire cannons", "Space"],
+        ["Pause", "P"],
+        ["Menu", "Esc"]
+    ];
+    lines.forEach(function (line, index) {
+        drawText(line[0], WIDTH / 2 - 140, 200 + index * 35, 20);
+        drawText(line[1], WIDTH / 2 + 140, 200 + index * 35, 20);
+    });
+    drawText("Esc: back", WIDTH / 2, HEIGHT - 25, 16);
+}
+
+function drawPowerUpHelp() {
+    drawText("Power-ups", WIDTH / 2, 120, 40);
+    POWER_UPS.forEach(function (kind, index) {
+        const y = 190 + index * 40;
+        ctx.fillStyle = kind.color;
+        ctx.fillRect(WIDTH / 2 - 150, y - 16, 20, 20);
+        drawText(kind.text, WIDTH / 2 - 110, y, 20, "white", "left");
+    });
+    drawText("Catch them with the paddle.", WIDTH / 2, 410, 18);
+    drawText("Esc: back", WIDTH / 2, HEIGHT - 25, 16);
+}
+
+function draw() {
+    drawWorld();
+
+    if (screen === "menu") {
+        drawMenu();
+    } else if (screen === "controls") {
+        drawControls();
+    } else if (screen === "powerUps") {
+        drawPowerUpHelp();
+    } else if (screen === "paused") {
+        drawMessage("Pause", ["Press P to go on"]);
+    } else if (screen === "levelDone") {
+        drawMessage("Level " + level + " done!", ["Press Enter for the next level"]);
+    } else if (screen === "won") {
+        drawMessage("You win!", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+    } else if (screen === "gameOver") {
+        drawMessage("Game over", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+    }
+
+    scoreText.textContent = score;
+    levelText.textContent = level;
+}
+
+// --- The loop ------------------------------------------------------------
+
+// Run one update per 1/60 second, so the game has the same speed on
+// every screen, then draw.
+let lastTime = performance.now();
+let leftover = 0;
+
+function gameLoop(now) {
+    leftover += Math.min(now - lastTime, 250);
+    lastTime = now;
+
+    while (leftover >= STEP) {
+        if (screen === "playing") {
+            update();
+        }
+        leftover -= STEP;
+    }
+
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+// --- Keyboard ------------------------------------------------------------
+
+document.addEventListener("keydown", function (event) {
+    const key = event.key;
+    keys[key] = true;
+
+    if (screen === "menu") {
+        if (key === "ArrowUp") {
+            menuIndex = (menuIndex + MENU_ITEMS.length - 1) % MENU_ITEMS.length;
+        } else if (key === "ArrowDown") {
+            menuIndex = (menuIndex + 1) % MENU_ITEMS.length;
+        } else if (key === "Enter") {
+            const item = MENU_ITEMS[menuIndex];
+            if (item === "Start") {
+                newGame();
+            } else if (item === "Controls") {
+                screen = "controls";
+            } else {
+                screen = "powerUps";
+            }
+        } else if (key === "Escape" && gameStarted) {
+            screen = "paused";
+        }
+    } else if (screen === "controls" || screen === "powerUps") {
+        if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "playing") {
+        // event.repeat is true for the automatic repeats while a key is
+        // held, so holding Space fires once, not 30 times a second.
+        if (key === " " && !event.repeat) {
+            pressSpace();
+        } else if (key === "p" || key === "P") {
+            screen = "paused";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "paused") {
+        if (key === "p" || key === "P") {
+            screen = "playing";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "levelDone") {
+        if (key === "Enter") {
+            level++;
+            startLevel();
+        }
+    } else if (screen === "won" || screen === "gameOver") {
+        if (key === "Enter") {
+            newGame();
+        } else if (key === "Escape") {
+            gameStarted = false;
+            screen = "menu";
+        }
+    }
+});
+
+document.addEventListener("keyup", function (event) {
+    keys[event.key] = false;
+});
+
+// If the window loses focus while a key is held, we never get its keyup.
+window.addEventListener("blur", function () {
+    for (const key in keys) {
+        keys[key] = false;
+    }
+});
+
+// --- Start ---------------------------------------------------------------
+
+requestAnimationFrame(gameLoop);

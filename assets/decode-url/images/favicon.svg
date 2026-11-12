@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="200"
+   height="200"
+   viewBox="0 0 200 200"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="decode-base-url.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs12">
+    <rect
+       x="111.55438"
+       y="-88.477127"
+       width="140.02407"
+       height="66.373279"
+       id="rect10633" />
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 100 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="200 : 100 : 1"
+       inkscape:persp3d-origin="100 : 66.666667 : 1"
+       id="perspective3357" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview10"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="2"
+     inkscape:cx="76.5"
+     inkscape:cy="116.25"
+     inkscape:window-width="1705"
+     inkscape:window-height="903"
+     inkscape:window-x="71"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g12644"
+     showguides="true"
+     inkscape:guide-bbox="true" />
+  <!-- Outer Black Circle -->
+  <circle
+     cx="100"
+     cy="100"
+     r="95"
+     fill="black"
+     stroke="gray"
+     stroke-width="5"
+     id="circle2" />
+  <!-- Inner White Circle -->
+  <circle
+     cx="100"
+     cy="100"
+     fill="#ffffff"
+     id="circle4"
+     style="stroke-width:1.64964"
+     r="82.482109" />
+  <!-- Magic 8 Text -->
+  <g
+     id="g12644"
+     transform="translate(-42.828835,169.07074)">
+    <rect
+       style="fill:#000000;stroke-width:0.774105"
+       id="rect3423-7-5"
+       width="79.897949"
+       height="79.897949"
+       x="102.87986"
+       y="-133.74812"
+       rx="17.473429"
+       ry="18.066858" />
+    <rect
+       style="fill:#ffff00;stroke-width:0.66251"
+       id="rect3423-6-5-6"
+       width="68.379776"
+       height="68.379776"
+       x="108.63895"
+       y="-127.98904"
+       rx="14.954441"
+       ry="15.462322" />
+    <rect
+       style="fill:#000000;stroke-width:0.501695"
+       id="rect3423-6-5-6-9"
+       width="51.781509"
+       height="51.781509"
+       x="116.93808"
+       y="-119.6899"
+       rx="11.324452"
+       ry="11.709052" />
+    <rect
+       style="fill:#000000"
+       id="rect3423-7"
+       width="103.21329"
+       height="103.21329"
+       x="91.222191"
+       y="-107.60664"
+       rx="22.572418"
+       ry="23.33902" />
+    <rect
+       style="fill:#ffff00;stroke-width:0.855839"
+       id="rect3423-6-5"
+       width="88.333954"
+       height="88.333954"
+       x="98.661858"
+       y="-100.16698"
+       rx="19.318356"
+       ry="19.974443" />
+    <text
+       xml:space="preserve"
+       id="text10631"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect10633);fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.84137269,0,0,2.3490696,10.541056,103.21618)"><tspan
+         x="111.55469"
+         y="-53.085938"
+         id="tspan21939"><tspan
+           style="font-weight:bold;-inkscape-font-specification:'sans-serif Bold'"
+           id="tspan21937">URL</tspan></tspan></text>
+  </g>
+</svg>

@@ -1,0 +1,49 @@
+---
+layout: default
+title: Awk
+permalink: /linux/awk/
+chapter: "03"
+chapter_title: "Files"
+keywords: [linux, awk, text processing, columns, scripting]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Awk</h1>
+  <p><code>awk</code> is a small programming language for processing text, line by line. Each line is split into fields, <code>$1</code>, <code>$2</code> and so on, and you can print, filter and calculate with them. It is great for working with columns of data.</p>
+  <h2>Print columns</h2>
+  <pre><code class="language-bash">$ awk</code></pre>
+  <p>By default fields are separated by spaces. This prints the first and third column.</p>
+  <pre><code class="language-bash">$ awk '{print $1, $3}' data.txt
+$ ls -l | awk '{print $9, $5}'      # file name and size</code></pre>
+  <h2>Set the field separator</h2>
+  <pre><code class="language-bash">$ awk -F ':' '{print $1}' /etc/passwd
+$ awk -F ',' '{print $2}' data.csv</code></pre>
+  <h2>Filter lines</h2>
+  <p>A pattern before the braces decides which lines are processed.</p>
+  <pre><code class="language-bash">$ awk '$3 &gt; 100' data.txt
+$ awk '/error/ {print $0}' app.log</code></pre>
+  <h2>Calculate</h2>
+  <p><code>END</code> runs after all lines are read. This sums the second column.</p>
+  <pre><code class="language-bash">$ awk '{sum += $2} END {print sum}' data.txt</code></pre>
+  <h2>Help</h2>
+  <p><code>--help</code> and <code>-h</code> print a short summary of how to use <code>awk</code> and all its options.</p>
+  <pre><code class="language-bash">$ awk --help
+$ awk -h</code></pre>
+  <h2>Version</h2>
+  <p><code>--version</code> and <code>-V</code> show which version of <code>awk</code> is installed. <code>-v</code> does not show the version, it sets a variable. This is for GNU awk. Some systems use mawk instead, where the version is shown with <code>awk -W version</code>.</p>
+  <pre><code class="language-bash">$ awk --version
+$ awk -V</code></pre>
+  <h2>More about awk</h2>
+  <ul>
+    <li><code>NR</code> is the current line number and <code>NF</code> the number of fields on the line</li>
+    <li>On most systems <code>awk</code> is <code>gawk</code> (GNU awk) or <code>mawk</code></li>
+    <li><a href="https://www.gnu.org/software/gawk/manual/">The GNU awk manual</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/awk.txt">man awk</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, awk, text processing, columns, scripting</p>
+  {% include trail.html %}
+</div>

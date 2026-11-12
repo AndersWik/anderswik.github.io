@@ -1,0 +1,140 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  box-sizing: border-box;
+  text-align: center;
+  width: min(100% - 40px, 500px);
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.game h1 {
+  color: #333;
+  text-shadow: 2px 2px #bbb;
+}
+
+.game .difficulty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 18px;
+}
+
+.game select {
+  font-size: 18px;
+  padding: 5px;
+}
+
+/* ---------- Board ---------- */
+
+.game #board {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  width: min(100%, 450px);
+  aspect-ratio: 1;
+  margin: 20px auto;
+  border: 3px solid #000;
+}
+
+.game .cell {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  text-align: center;
+  font-size: clamp(16px, 5vw, 24px);
+  border: 1px solid #ccc;
+  border-radius: 0;
+  outline: none;
+  caret-color: transparent;
+  cursor: pointer;
+}
+
+.game .cell[data-col="2"],
+.game .cell[data-col="5"] {
+  border-right: 2px solid #000;
+}
+
+.game .cell[data-row="2"],
+.game .cell[data-row="5"] {
+  border-bottom: 2px solid #000;
+}
+
+.game .cell.related {
+  background-color: #eef3fb;
+}
+
+.game .cell.given {
+  background-color: #e0e0e0;
+  font-weight: bold;
+}
+
+.game .cell.hinted {
+  background-color: #d0f0d0;
+}
+
+.game .cell.wrong {
+  background-color: #fdd;
+  color: #b00;
+}
+
+.game .cell.selected {
+  background-color: #cfe0fa;
+}
+
+/* ---------- Buttons ---------- */
+
+.game button {
+  padding: 12px 20px;
+  font-size: 18px;
+  background-color: #000;
+  color: #fff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game button:hover {
+  box-shadow: 0 0 10px #3d3b3b;
+}
+
+.game .number-pad {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  width: min(100%, 450px);
+  margin: 0 auto;
+}
+
+.game .number-pad button {
+  padding: 10px 0;
+  border-width: 3px;
+}
+
+.game .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.game .actions button {
+  flex: 1 1 auto;
+}
+
+.game .status {
+  min-height: 1.5em;
+  margin: 15px 0 0;
+}

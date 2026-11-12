@@ -1,0 +1,342 @@
+/*
+ * Missile Command: enemy missiles fall towards your cities. Click to fire
+ * a rocket from the launcher. It explodes where you clicked, and the
+ * explosion destroys every enemy missile that flies into it. Save as many
+ * cities as you can. Five levels, each with more and faster missiles.
+ *
+ *   click     fire
+ *   P / Esc   pause / menu
+ */
+
+// --- Settings ------------------------------------------------------------
+
+const STEP = 1000 / 60;        // one update step, in milliseconds
+const LAST_LEVEL = 5;
+const GROUND = 450;            // y of the ground
+const CITY_X = [100, 200, 300, 500, 600, 700];
+const LAUNCHER_X = 400;
+const ROCKET_SPEED = 6;
+const EXPLOSION_SIZE = 40;     // biggest radius of an explosion
+const SPAWN_TIME = 60;         // steps between enemy missiles
+
+// --- Elements on the page ------------------------------------------------
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+const scoreText = document.getElementById("score");
+const levelText = document.getElementById("level");
+
+// --- State ---------------------------------------------------------------
+
+let screen = "menu";   // menu, playing, paused, levelDone, won, gameOver
+let gameStarted = false;
+
+let level = 1;
+let score = 0;
+let bonus = 0;         // points for the cities saved this level
+let cities = [];       // { x, alive }
+let rockets = [];      // yours, on the way up
+let enemies = [];      // enemy missiles, on the way down
+let explosions = [];
+let enemiesLeft = 0;   // enemy missiles still to come this level
+let spawnTimer = 0;
+
+// --- Starting ------------------------------------------------------------
+
+function newGame() {
+    score = 0;
+    level = 1;
+    gameStarted = true;
+    startLevel();
+}
+
+// Every level starts with all cities rebuilt.
+function startLevel() {
+    cities = CITY_X.map(function (x) {
+        return { x: x, alive: true };
+    });
+    rockets = [];
+    enemies = [];
+    explosions = [];
+    enemiesLeft = 15 + level * 5;
+    spawnTimer = SPAWN_TIME;
+    screen = "playing";
+}
+
+// --- Missiles ------------------------------------------------------------
+
+// Something that flies in a straight line from (x, y) to (targetX,
+// targetY) at "speed" pixels a step. dx and dy are worked out once.
+function newMissile(x, y, targetX, targetY, speed) {
+    const distance = Math.hypot(targetX - x, targetY - y);
+    return {
+        startX: x,
+        startY: y,
+        x: x,
+        y: y,
+        targetX: targetX,
+        targetY: targetY,
+        dx: (targetX - x) / distance * speed,
+        dy: (targetY - y) / distance * speed
+    };
+}
+
+// Move one step. Returns true when it has got to its target.
+function fly(missile) {
+    missile.x += missile.dx;
+    missile.y += missile.dy;
+    return Math.hypot(missile.targetX - missile.x, missile.targetY - missile.y) <= Math.hypot(missile.dx, missile.dy);
+}
+
+function spawnEnemy() {
+    const alive = cities.filter(function (city) {
+        return city.alive;
+    });
+    const target = alive[Math.floor(Math.random() * alive.length)];
+    const speed = 0.4 + level * 0.15;
+    enemies.push(newMissile(Math.random() * WIDTH, 0, target.x, GROUND, speed));
+    enemiesLeft--;
+}
+
+function fire(x, y) {
+    // Not below the top of the cities: you would hit your own.
+    y = Math.min(y, GROUND - 30);
+    rockets.push(newMissile(LAUNCHER_X, GROUND - 20, x, y, ROCKET_SPEED));
+}
+
+// --- Update --------------------------------------------------------------
+
+// One step of the game: about 1/60 of a second.
+function update() {
+    spawnTimer--;
+    if (spawnTimer <= 0 && enemiesLeft > 0) {
+        spawnEnemy();
+        spawnTimer = SPAWN_TIME;
+    }
+
+    // A rocket that gets to where you clicked explodes there.
+    rockets = rockets.filter(function (rocket) {
+        if (fly(rocket)) {
+            explosions.push({ x: rocket.targetX, y: rocket.targetY, radius: 1, growing: true });
+            return false;
+        }
+        return true;
+    });
+
+    // Explosions grow to full size, then shrink away.
+    explosions = explosions.filter(function (explosion) {
+        explosion.radius += explosion.growing ? 1.5 : -1;
+        if (explosion.radius >= EXPLOSION_SIZE) {
+            explosion.growing = false;
+        }
+        return explosion.radius > 0;
+    });
+
+    enemies = enemies.filter(function (enemy) {
+        // Inside an explosion: destroyed.
+        const hit = explosions.some(function (explosion) {
+            return Math.hypot(enemy.x - explosion.x, enemy.y - explosion.y) < explosion.radius;
+        });
+        if (hit) {
+            score += 25;
+            return false;
+        }
+        // At the ground: the city there is destroyed.
+        if (fly(enemy)) {
+            cities.forEach(function (city) {
+                if (city.x === enemy.targetX) {
+                    city.alive = false;
+                }
+            });
+            return false;
+        }
+        return true;
+    });
+
+    const citiesLeft = cities.filter(function (city) {
+        return city.alive;
+    }).length;
+
+    if (citiesLeft === 0) {
+        screen = "gameOver";
+    } else if (enemiesLeft === 0 && enemies.length === 0) {
+        bonus = citiesLeft * 100;
+        score += bonus;
+        screen = level === LAST_LEVEL ? "won" : "levelDone";
+    }
+}
+
+// --- Drawing -------------------------------------------------------------
+
+function drawText(text, x, y, size, color) {
+    ctx.fillStyle = color || "white";
+    ctx.font = size + "px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(text, x, y);
+}
+
+function drawLine(missile, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(missile.startX, missile.startY);
+    ctx.lineTo(missile.x, missile.y);
+    ctx.stroke();
+}
+
+function drawWorld() {
+    ctx.fillStyle = "#111111";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    // The ground and the launcher.
+    ctx.fillStyle = "#0000aa";
+    ctx.fillRect(0, GROUND, WIDTH, HEIGHT - GROUND);
+    ctx.fillStyle = "#888888";
+    ctx.beginPath();
+    ctx.moveTo(LAUNCHER_X - 25, GROUND);
+    ctx.lineTo(LAUNCHER_X, GROUND - 25);
+    ctx.lineTo(LAUNCHER_X + 25, GROUND);
+    ctx.fill();
+
+    // A city is three houses; a destroyed one is a pile of rubble.
+    cities.forEach(function (city) {
+        if (city.alive) {
+            ctx.fillStyle = "#cccccc";
+            ctx.fillRect(city.x - 20, GROUND - 15, 12, 15);
+            ctx.fillRect(city.x - 6, GROUND - 25, 12, 25);
+            ctx.fillRect(city.x + 8, GROUND - 18, 12, 18);
+        } else {
+            ctx.fillStyle = "#553322";
+            ctx.fillRect(city.x - 20, GROUND - 5, 40, 5);
+        }
+    });
+
+    rockets.forEach(function (rocket) {
+        drawLine(rocket, "white");
+    });
+    enemies.forEach(function (enemy) {
+        drawLine(enemy, "red");
+    });
+
+    ctx.fillStyle = "orange";
+    explosions.forEach(function (explosion) {
+        ctx.beginPath();
+        ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+
+function drawMessage(title, lines) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    drawText(title, WIDTH / 2, HEIGHT / 2 - 60, 40, "yellow");
+    lines.forEach(function (line, index) {
+        drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+    });
+}
+
+function draw() {
+    drawWorld();
+
+    if (screen === "menu") {
+        const lines = ["Click to fire. Save your cities!", "P: pause    Esc: menu", "Press Enter to start"];
+        if (gameStarted) {
+            lines.push("Esc: back to the game");
+        }
+        drawMessage("Missile Command", lines);
+    } else if (screen === "paused") {
+        drawMessage("Pause", ["Press P to go on"]);
+    } else if (screen === "levelDone") {
+        drawMessage("Level " + level + " done!", ["Cities saved: " + bonus + " points", "Press Enter for the next level"]);
+    } else if (screen === "won") {
+        drawMessage("You win!", ["Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+    } else if (screen === "gameOver") {
+        drawMessage("The end", ["All your cities are gone", "Score: " + score, "Press Enter to play again", "Press Esc for the menu"]);
+    }
+
+    scoreText.textContent = score;
+    levelText.textContent = level;
+}
+
+// --- The loop ------------------------------------------------------------
+
+// Run one update per 1/60 second, so the game has the same speed on
+// every screen, then draw.
+let lastTime = performance.now();
+let leftover = 0;
+
+function gameLoop(now) {
+    leftover += Math.min(now - lastTime, 250);
+    lastTime = now;
+
+    while (leftover >= STEP) {
+        if (screen === "playing") {
+            update();
+        }
+        leftover -= STEP;
+    }
+
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+// --- Mouse and keyboard --------------------------------------------------
+
+// The canvas can be shown smaller than 800x500 on a small screen. Convert
+// from position on the screen to position in the canvas.
+function canvasPosition(event) {
+    const box = canvas.getBoundingClientRect();
+    return {
+        x: (event.clientX - box.left) * (WIDTH / box.width),
+        y: (event.clientY - box.top) * (HEIGHT / box.height)
+    };
+}
+
+canvas.addEventListener("click", function (event) {
+    if (screen === "playing") {
+        const position = canvasPosition(event);
+        fire(position.x, position.y);
+    }
+});
+
+document.addEventListener("keydown", function (event) {
+    const key = event.key;
+
+    if (screen === "menu") {
+        if (key === "Enter") {
+            newGame();
+        } else if (key === "Escape" && gameStarted) {
+            screen = "paused";
+        }
+    } else if (screen === "playing") {
+        if (key === "p" || key === "P") {
+            screen = "paused";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "paused") {
+        if (key === "p" || key === "P") {
+            screen = "playing";
+        } else if (key === "Escape") {
+            screen = "menu";
+        }
+    } else if (screen === "levelDone") {
+        if (key === "Enter") {
+            level++;
+            startLevel();
+        }
+    } else if (screen === "won" || screen === "gameOver") {
+        if (key === "Enter") {
+            newGame();
+        } else if (key === "Escape") {
+            gameStarted = false;
+            screen = "menu";
+        }
+    }
+});
+
+// --- Start ---------------------------------------------------------------
+
+requestAnimationFrame(gameLoop);

@@ -1,0 +1,15 @@
+.game {
+  background: black;
+  text-align: center;
+  color: white;
+  font-family: Arial, sans-serif;
+  padding-top: 10px;
+}
+
+.game canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 10px auto;
+  cursor: crosshair;
+}

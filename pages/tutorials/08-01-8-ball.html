@@ -1,0 +1,302 @@
+---
+layout: default
+title: Magic 8 ball
+permalink: /tutorials/8-ball/
+chapter: "08"
+chapter_title: "Novelty Games"
+keywords: [javascript, game, random, Math.random, css animation, keyframes, form, setTimeout]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Magic 8 ball</h1>
+  <p>This chapter builds games. We start with the smallest: a magic 8 ball. You ask a question, the ball shakes, and you get an answer. The answer is random, but random numbers are the heart of many games, and the ball is a good place to learn them.</p>
+  <p><a href="/assets/tutorials/8-ball.html">Open the finished game</a></p>
+  <p>If you haven't built a page from scratch before, read <a href="/tutorials/utility-page/">Building a utility page</a> first.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>8-ball.html</code> from the skeleton.</p>
+  <pre><code class="language-html">&lt;h1&gt;Magic 8 ball&lt;/h1&gt;
+
+&lt;div class="ball" id="eightball"&gt;&lt;span&gt;8&lt;/span&gt;&lt;/div&gt;
+
+&lt;form id="ask-form" autocomplete="off"&gt;
+  &lt;input type="text" id="question" placeholder="Ask your question..." aria-label="Your question"&gt;
+  &lt;button type="submit"&gt;Shake the ball&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;p id="result" aria-live="polite"&gt;&lt;/p&gt;</code></pre>
+  <p>The question box and the button are in a <code>&lt;form&gt;</code>, so pressing Enter works as well as clicking. <code>aria-live="polite"</code> makes screen readers read out the answer when it changes.</p>
+  <h2>Step 2: A ball made with CSS</h2>
+  <p>We don't need a picture of the ball. CSS can draw it:</p>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    text-align: center;
+}
+
+.ball {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #555555, #000000 60%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ball span {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: white;
+    font-size: 48px;
+    font-weight: bold;
+    line-height: 80px;
+}
+
+.shake-ball {
+    animation: shake 0.5s infinite;
+}
+
+@keyframes shake {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(-4px, 2px) rotate(-3deg); }
+    50% { transform: translate(4px, -2px) rotate(3deg); }
+    75% { transform: translate(-2px, -2px) rotate(-2deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+input,
+button {
+    padding: 10px;
+    font-size: 18px;
+}
+
+#result {
+    min-height: 1.5em;
+    font-size: 24px;
+}</code></pre>
+  <ul>
+    <li><code>border-radius: 50%</code> makes a square into a circle.</li>
+    <li><code>radial-gradient(circle at 35% 30%, ...)</code> paints a light spot up and to the left that fades to black. It makes the ball look round and shiny.</li>
+    <li>The white circle with the 8 is a <code>&lt;span&gt;</code> inside the ball, centered with flexbox.</li>
+    <li><code>@keyframes shake</code> describes a small wobble: move a few pixels and turn a few degrees, then back. The class <code>shake-ball</code> plays it over and over (<code>infinite</code>), every half second. JavaScript only has to add and remove the class.</li>
+  </ul>
+  <h2>Step 3: The answers</h2>
+  <pre><code class="language-javascript">const ANSWERS = [
+    "Yes, definitely.",
+    "It is certain.",
+    "Most likely.",
+    "Ask again later.",
+    "Cannot predict right now.",
+    "Don’t count on it.",
+    "Very doubtful.",
+    "No way.",
+    "Probably not.",
+    "Maybe."
+];</code></pre>
+  <h2>Step 4: Picking at random</h2>
+  <p><code>Math.random()</code> gives a random number from 0 up to, but not including, 1, like <code>0.7341</code>. To pick an item from a list:</p>
+  <pre><code class="language-javascript">function randomItem(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}</code></pre>
+  <p>With 10 answers, <code>Math.random() * 10</code> is between 0 and 9.999..., and <code>Math.floor</code> rounds down to a whole number from 0 to 9. That is exactly the range of index numbers in the list, and every answer is equally likely. You will use this little function in almost every game.</p>
+  <h2>Step 5: Shake, wait, answer</h2>
+  <pre><code class="language-javascript">function shake(event) {
+    event.preventDefault();
+
+    if (questionInput.value.trim() === "") {
+        resultText.textContent = "Please ask a question first!";
+        return;
+    }
+
+    if (ball.classList.contains("shake-ball")) {
+        return;
+    }
+
+    resultText.textContent = "";
+    ball.classList.add("shake-ball");
+
+    setTimeout(function () {
+        ball.classList.remove("shake-ball");
+        resultText.textContent = randomItem(ANSWERS);
+    }, SHAKE_TIME);
+}
+
+form.addEventListener("submit", shake);</code></pre>
+  <ul>
+    <li><code>event.preventDefault()</code> stops the form from reloading the page.</li>
+    <li><code>trim()</code> removes spaces, so a question of only spaces counts as empty.</li>
+    <li>If the ball is already shaking, we ignore the click. Otherwise, clicking three times would give three answers, one after the other.</li>
+    <li><code>setTimeout(function, 500)</code> runs the function once, after 500 milliseconds. Until then the ball shakes, which builds a little suspense.</li>
+  </ul>
+  <h2>Step 6: Test it</h2>
+  <ul>
+    <li>Press the button with an empty box, and with only spaces.</li>
+    <li>Ask a question and press Enter instead of clicking.</li>
+    <li>Click many times quickly. You should still get only one answer per shake.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>8-ball.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Magic 8 ball&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    .ball {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #555555, #000000 60%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ball span {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: white;
+        font-size: 48px;
+        font-weight: bold;
+        line-height: 80px;
+    }
+
+    .shake-ball {
+        animation: shake 0.5s infinite;
+    }
+
+    @keyframes shake {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        25% { transform: translate(-4px, 2px) rotate(-3deg); }
+        50% { transform: translate(4px, -2px) rotate(3deg); }
+        75% { transform: translate(-2px, -2px) rotate(-2deg); }
+        100% { transform: translate(0, 0) rotate(0deg); }
+    }
+
+    input,
+    button {
+        padding: 10px;
+        font-size: 18px;
+    }
+
+    #result {
+        min-height: 1.5em;
+        font-size: 24px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Magic 8 ball&lt;/h1&gt;
+
+  &lt;div class="ball" id="eightball"&gt;&lt;span&gt;8&lt;/span&gt;&lt;/div&gt;
+
+  &lt;form id="ask-form" autocomplete="off"&gt;
+    &lt;input type="text" id="question" placeholder="Ask your question..." aria-label="Your question"&gt;
+    &lt;button type="submit"&gt;Shake the ball&lt;/button&gt;
+  &lt;/form&gt;
+
+  &lt;p id="result" aria-live="polite"&gt;&lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Magic 8 ball: ask a question, shake the ball, get a random answer.
+     *
+     * The question is not used for anything; the answer is picked at random.
+     * The shaking is a CSS animation that we turn on by adding a class.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const ball = document.getElementById("eightball");
+    const form = document.getElementById("ask-form");
+    const questionInput = document.getElementById("question");
+    const resultText = document.getElementById("result");
+
+    // --- Data ----------------------------------------------------------------
+
+    const ANSWERS = [
+        "Yes, definitely.",
+        "It is certain.",
+        "Most likely.",
+        "Ask again later.",
+        "Cannot predict right now.",
+        "Don’t count on it.",
+        "Very doubtful.",
+        "No way.",
+        "Probably not.",
+        "Maybe."
+    ];
+
+    const SHAKE_TIME = 500; // milliseconds, the same as the animation in the CSS
+
+    // --- Helpers -------------------------------------------------------------
+
+    // Math.random() gives a number from 0 up to (not including) 1.
+    // Times the length, rounded down, gives an index from 0 to length - 1.
+    function randomItem(list) {
+        return list[Math.floor(Math.random() * list.length)];
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function shake(event) {
+        // The form would reload the page; we handle it here instead.
+        event.preventDefault();
+
+        if (questionInput.value.trim() === "") {
+            resultText.textContent = "Please ask a question first!";
+            return;
+        }
+
+        // Already shaking? Then wait for that answer.
+        if (ball.classList.contains("shake-ball")) {
+            return;
+        }
+
+        resultText.textContent = "";
+        ball.classList.add("shake-ball");
+
+        setTimeout(function () {
+            ball.classList.remove("shake-ball");
+            resultText.textContent = randomItem(ANSWERS);
+        }, SHAKE_TIME);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    // A form lets the user press Enter as well as click the button.
+    form.addEventListener("submit", shake);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Make some answers more likely than others by putting them in the list twice.</li>
+    <li>Show the answer inside the ball instead of the 8, in a blue triangle like a real magic 8 ball.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

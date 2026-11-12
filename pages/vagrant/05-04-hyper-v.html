@@ -1,0 +1,39 @@
+---
+layout: default
+title: Hyper-V
+permalink: /vagrant/hyper-v/
+chapter: "05"
+chapter_title: "Providers"
+keywords: [vagrant, hyper-v, hyperv, provider, windows, powershell, smb, virtual switch]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Hyper-V</h1>
+  <p>Hyper-V is the hypervisor built into Windows 10 and 11 Pro, Enterprise and Education. Support for it is built into Vagrant, so no plugin is needed.</p>
+  <h2>Turn on Hyper-V</h2>
+  <p>Run PowerShell as administrator and restart the computer afterwards.</p>
+  <pre><code class="language-powershell">&gt; Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All</code></pre>
+  <h2>Start a machine</h2>
+  <p>Vagrant needs administrator rights to use Hyper-V, so run the terminal as administrator.</p>
+  <pre><code class="language-powershell">&gt; vagrant up --provider=hyperv</code></pre>
+  <h2>Network</h2>
+  <p>Vagrant cannot set up networks in Hyper-V, so the <a href="/vagrant/networking/">networking</a> settings in the Vagrantfile are ignored. When the machine starts, Vagrant asks which virtual switch to use. <code>Default Switch</code> works for most uses.</p>
+  <h2>Synced folders</h2>
+  <p><a href="/vagrant/synced-folders/">Synced folders</a> use Windows file sharing (SMB). Vagrant asks for your Windows user name and password to set it up.</p>
+  <h2>Settings</h2>
+  <pre><code class="language-ruby">config.vm.provider "hyperv" do |h|
+  h.vmname = "dev"
+  h.memory = 2048
+  h.cpus = 2
+end</code></pre>
+  <h2>More about Hyper-V</h2>
+  <ul>
+    <li>Hyper-V can make VirtualBox slower when both are installed</li>
+    <li>The <a href="/vagrant/boxes/">box</a> must support <code>hyperv</code></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/providers/hyperv">Hyper-V provider</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

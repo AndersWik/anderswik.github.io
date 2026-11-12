@@ -1,0 +1,36 @@
+---
+layout: default
+title: Network
+permalink: /linux/network/
+chapter: "10"
+chapter_title: "Network"
+keywords: [linux, network, ip address, dns, ports]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Network</h1>
+  <p>Linux has excellent networking tools. This chapter covers how to see your network settings, test connections, download files, connect to other computers and copy files between them.</p>
+  <h2>Basic concepts</h2>
+  <ul>
+    <li>IP address — the address of a computer on the network, see it with <code>ip addr</code></li>
+    <li>Gateway — the router that connects the network to the internet</li>
+    <li>DNS — translates names like example.com to IP addresses, set in <code>/etc/resolv.conf</code></li>
+    <li>Port — a number that identifies a service, for example 22 for SSH and 443 for HTTPS</li>
+  </ul>
+  <h2>Quick checks</h2>
+  <pre><code class="language-bash">$ ip addr               # my IP addresses
+$ ping -c 4 8.8.8.8     # can I reach the internet?
+$ curl ipinfo.io/ip     # my public IP address</code></pre>
+  <h2>Commands in this chapter</h2>
+  <ul>
+    <li><code>ip</code>, <code>ping</code>, <code>ss</code>, <code>iwconfig</code> — network settings and testing</li>
+    <li><code>wget</code>, <code>curl</code> — download and talk to web servers</li>
+    <li><code>ssh</code>, <code>scp</code>, <code>rsync</code> — remote login and file copy</li>
+    <li><code>openssl</code> — encryption</li>
+    <li>WireGuard — VPN</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>linux, network, ip address, dns, ports</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,40 @@
+---
+layout: default
+title: Horizontal rule
+permalink: /markdown/horizontal-rule/
+chapter: "02"
+chapter_title: "Text"
+keywords: [markdown, horizontal rule, hr, line, divider, separator, thematic break]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Horizontal rule</h1>
+  <p>Three or more <code>-</code>, <code>*</code> or <code>_</code> alone on a line draws a horizontal line, <code>&lt;hr&gt;</code>. Use it to split a page into parts.</p>
+  <h2>Horizontal rule</h2>
+  <pre><code class="language-markdown">---
+
+***
+
+___</code></pre>
+  <h2>With spaces</h2>
+  <p>Spaces between the characters are allowed.</p>
+  <pre><code class="language-markdown">- - -
+* * *</code></pre>
+  <h2>Empty line before</h2>
+  <p>Leave an empty line above <code>---</code>. Right under a line of text it turns that text into a <a href="/markdown/headers/">header</a> instead.</p>
+  <pre><code class="language-markdown">This becomes a header
+---
+
+This is a paragraph
+
+---</code></pre>
+  <h2>More about horizontal rules</h2>
+  <ul>
+    <li><code>---</code> at the very top of a file starts front matter in Jekyll and many other tools</li>
+    <li>Pick one style. <code>---</code> is the most common</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

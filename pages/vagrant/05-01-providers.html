@@ -1,0 +1,53 @@
+---
+layout: default
+title: Providers
+permalink: /vagrant/providers/
+chapter: "05"
+chapter_title: "Providers"
+keywords: [vagrant, provider, providers, virtualbox, vmware, hyper-v, libvirt, kvm, docker, parallels, memory, cpu]
+---
+
+<div class="vagrant container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Providers</h1>
+  <p>A provider is the virtualization software that actually runs the machines. Vagrant gives the same commands for all of them, so you can switch provider without learning a new tool.</p>
+  <h2>Common providers</h2>
+  <ul>
+    <li><strong><a href="/vagrant/virtualbox/">VirtualBox</a></strong> — free, works on Linux, Windows and macOS. Built into Vagrant and used by default</li>
+    <li><strong><a href="/vagrant/hyper-v/">Hyper-V</a></strong> — included in Windows. Built into Vagrant</li>
+    <li><strong><a href="/vagrant/docker/">Docker</a></strong> — runs containers instead of virtual machines. Built into Vagrant</li>
+    <li><strong><a href="/vagrant/vmware/">VMware</a></strong> — Workstation and Fusion. Needs a plugin</li>
+    <li><strong><a href="/vagrant/libvirt/">libvirt</a></strong> — KVM on Linux. Needs a plugin</li>
+    <li><strong><a href="/vagrant/parallels/">Parallels</a></strong> — on macOS. Needs a plugin</li>
+  </ul>
+  <h2>Choose a provider</h2>
+  <pre><code class="language-bash">$ vagrant up --provider=hyperv</code></pre>
+  <p>Or set the default in an environment variable, for example in <code>~/.bashrc</code>.</p>
+  <pre><code class="language-bash">export VAGRANT_DEFAULT_PROVIDER=libvirt</code></pre>
+  <p>The <a href="/vagrant/boxes/">box</a> must be built for the provider. The box catalog shows which providers each box supports.</p>
+  <h2>Provider settings</h2>
+  <p>Each provider has its own settings, such as memory and number of CPUs. Settings for providers you do not use are ignored, so one Vagrantfile can have settings for several.</p>
+  <pre><code class="language-ruby">Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "dev"
+    vb.memory = 2048
+    vb.cpus = 2
+    vb.gui = false
+  end
+
+  config.vm.provider "libvirt" do |lv|
+    lv.memory = 2048
+    lv.cpus = 2
+  end
+end</code></pre>
+  <h2>More about providers</h2>
+  <ul>
+    <li>Install provider plugins with <a href="/vagrant/plugins/">vagrant plugin install</a></li>
+    <li><a href="https://developer.hashicorp.com/vagrant/docs/providers">Providers</a> in the documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

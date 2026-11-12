@@ -1,0 +1,43 @@
+---
+layout: default
+title: Automation
+permalink: /linux/automation/
+chapter: "16"
+chapter_title: "Automation"
+keywords: [linux, automation, shell script, crontab, rsync, backup]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Automation</h1>
+  <p>Automation means letting the computer do repeated tasks for you. On Linux the classic recipe is three parts: a shell script that does the work, cron that runs it on a schedule, and tools like rsync that do the heavy lifting.</p>
+  <ul>
+    <li>shell script .sh — see <a href="/linux/shell/">Shell</a></li>
+    <li>crontab — see <a href="/linux/crontab/">Crontab</a></li>
+    <li>rsync — see <a href="/linux/rsync/">Rsync</a></li>
+  </ul>
+  <h2>Example: nightly backup</h2>
+  <p>The script, saved as <code>~/backup.sh</code>.</p>
+  <pre><code class="language-bash">#!/bin/bash
+set -e
+rsync -a --delete ~/Documents/ /media/backup/Documents/
+echo "$(date) backup done" &gt;&gt; ~/backup.log</code></pre>
+  <p>Make it executable and test it.</p>
+  <pre><code class="language-bash">$ chmod +x ~/backup.sh
+$ ~/backup.sh</code></pre>
+  <p>Then schedule it with <code>crontab -e</code> to run every night at 02:00.</p>
+  <pre><code class="language-bash">0 2 * * * /home/anders/backup.sh</code></pre>
+  <h2>Other tools</h2>
+  <ul>
+    <li>systemd timers — an alternative to cron, managed with <a href="/linux/systemctl/">systemctl</a></li>
+    <li>Ansible — automates setup of many servers at once</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/crontab.txt">man crontab</a></li>
+    <li><a href="{{ site.baseurl }}/pages/man/rsync.txt">man rsync</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, automation, shell script, crontab, rsync, backup</p>
+  {% include trail.html %}
+</div>

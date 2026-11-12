@@ -1,0 +1,31 @@
+---
+layout: default
+title: Task lists
+permalink: /markdown/task-lists/
+chapter: "03"
+chapter_title: "Lists and tables"
+keywords: [markdown, task list, checklist, checkbox, todo, gfm, github]
+---
+
+<div class="markdown container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Task lists</h1>
+  <p>A task list is a list with checkboxes. Add <code>[ ]</code> or <code>[x]</code> after the list symbol. Task lists are part of GitHub Flavored Markdown and are supported by most editors and kramdown.</p>
+  <h2>Task list</h2>
+  <pre><code class="language-markdown">- [x] Write the notes
+- [ ] Check the spelling
+- [ ] Publish</code></pre>
+  <h2>Nested tasks</h2>
+  <pre><code class="language-markdown">- [ ] Release 1.0
+  - [x] Fix bugs
+  - [ ] Update the README</code></pre>
+  <h2>More about task lists</h2>
+  <ul>
+    <li>There must be a space inside the empty box, <code>[ ]</code></li>
+    <li>On GitHub you can tick the boxes in issues and pull requests, and the Markdown is updated</li>
+    <li>A task list in an issue shows the progress, like <em>1 of 3 tasks</em></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

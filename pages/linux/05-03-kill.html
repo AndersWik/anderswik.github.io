@@ -1,0 +1,43 @@
+---
+layout: default
+title: Kill
+permalink: /linux/kill/
+chapter: "05"
+chapter_title: "Processes"
+keywords: [linux, kill, processes, signals, pid]
+---
+
+<div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Kill</h1>
+  <p><code>kill</code> sends a signal to a process, identified by its PID. Despite the name the default signal, SIGTERM, politely asks the process to stop, and the program can clean up before it exits.</p>
+  <h2>Stop a process</h2>
+  <p>Find the PID with <a href="/linux/ps/">ps</a> or <code>pgrep</code>, then send the signal.</p>
+  <pre><code class="language-bash">$ pgrep firefox
+4321
+$ kill 4321</code></pre>
+  <h2>Force a process to stop</h2>
+  <p>If the process doesn't react, SIGKILL (9) stops it immediately. The program gets no chance to clean up, so use it as a last resort.</p>
+  <pre><code class="language-bash">$ kill -9 4321</code></pre>
+  <h2>Other signals</h2>
+  <pre><code class="language-bash">$ kill -l              # list all signals
+$ kill -HUP 4321       # many services reload their configuration on HUP</code></pre>
+  <h2>Help</h2>
+  <p><code>kill</code> is built into the shell, so <code>-h</code> is not help. <code>--help</code> prints a short summary, the same as <code>help kill</code>.</p>
+  <pre><code class="language-bash">$ kill --help</code></pre>
+  <h2>Version</h2>
+  <p>The <code>kill</code> built into the shell has no version, but the program <code>/bin/kill</code> does.</p>
+  <pre><code class="language-bash">$ /bin/kill --version</code></pre>
+  <h2>More about kill</h2>
+  <ul>
+    <li>You can only send signals to your own processes unless you use <a href="/linux/sudo/">sudo</a></li>
+    <li><code>pkill firefox</code> sends a signal to processes by name</li>
+    <li>See also <a href="/linux/killall/">killall</a></li>
+  </ul>
+  <h2>Manual</h2>
+  <ul>
+    <li><a href="{{ site.baseurl }}/pages/man/kill.txt">man kill</a></li>
+  </ul>
+  <h2>Keywords</h2>
+  <p>linux, kill, processes, signals, pid</p>
+  {% include trail.html %}
+</div>

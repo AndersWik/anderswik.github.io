@@ -1,0 +1,43 @@
+---
+layout: default
+title: Branch
+permalink: /git/branch/
+chapter: "02"
+chapter_title: "Branches"
+keywords: [git, branch, branches, create, delete, rename, list, main]
+---
+
+<div class="git container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Branch</h1>
+  <p>A branch is a separate line of work. Create a branch for each new feature or fix, so the main branch always has working code. The main branch is usually called <code>main</code>, or <code>master</code>.</p>
+  <h2>List branches</h2>
+  <p>The current branch is marked with <code>*</code>. <code>-a</code> also shows the branches on the remote.</p>
+  <pre><code class="language-bash">$ git branch
+$ git branch -a</code></pre>
+  <h2>Create a branch</h2>
+  <pre><code class="language-bash">$ git branch new-feature</code></pre>
+  <p>This only creates the branch. To create it and move to it at once, see <a href="/git/checkout/">Checkout</a>.</p>
+  <h2>Rename a branch</h2>
+  <pre><code class="language-bash">$ git branch -m old-name new-name</code></pre>
+  <h2>Delete a branch</h2>
+  <p><code>-d</code> only deletes branches that are merged. <code>-D</code> deletes it anyway.</p>
+  <pre><code class="language-bash">$ git branch -d new-feature
+$ git branch -D new-feature</code></pre>
+  <p>Delete the branch on the remote.</p>
+  <pre><code class="language-bash">$ git push origin --delete new-feature</code></pre>
+  <h2>Help</h2>
+  <p><code>-h</code> prints a short summary of the options for <code>git branch</code>. <code>--help</code> opens the full manual page, the same as <code>git help branch</code>.</p>
+  <pre><code class="language-bash">$ git branch -h
+$ git branch --help</code></pre>
+  <h2>More about branches</h2>
+  <ul>
+    <li>Bring a branch into another with <a href="/git/merging/">merge</a></li>
+    <li><a href="https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell">Branches in a nutshell</a> in Pro Git</li>
+    <li><a href="https://nvie.com/posts/a-successful-git-branching-model/">A successful Git branching model</a></li>
+    <li><a href="https://jeffkreeftmeijer.com/git-flow/">Using git-flow to automate your Git branching workflow</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
