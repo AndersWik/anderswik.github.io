@@ -1,0 +1,87 @@
+---
+layout: default
+title: Git Playground
+permalink: /utils/git-playground/
+nonav: true
+css:
+  - /assets/linux-playground/linux-playground.css
+# The same terminal and git as the Linux Playground. There is no cd: you
+# stay in the repository ~/project, made by data/git-playground.js.
+js:
+  - /assets/linux-playground/core.js
+  - /assets/linux-playground/data/filesystem.js
+  - /assets/linux-playground/data/system.js
+  - /assets/linux-playground/lib/git.js
+  - /assets/linux-playground/data/git-remotes.js
+  - /assets/linux-playground/data/git-playground.js
+  - /assets/linux-playground/commands/help.js
+  - /assets/linux-playground/commands/git.js
+  - /assets/linux-playground/commands/ls.js
+  - /assets/linux-playground/commands/cat.js
+  - /assets/linux-playground/commands/echo.js
+  - /assets/linux-playground/commands/touch.js
+  - /assets/linux-playground/commands/mkdir.js
+  - /assets/linux-playground/commands/rm.js
+  - /assets/linux-playground/commands/man.js
+  - /assets/linux-playground/commands/pwd.js
+  - /assets/linux-playground/commands/whoami.js
+  - /assets/linux-playground/commands/history.js
+  - /assets/linux-playground/commands/clear.js
+  - /assets/linux-playground/commands/reset.js
+---
+
+<div class="linux-playground git-playground container-md mt-3 mb-3 pt-5 pb-5">
+  <h2 class="text-center">Git Playground</h2>
+  <p class="text-center text-muted">Try Git in a pretend repository with history, branches and a GitHub to push to. Change files with <code>echo "text" &gt; file</code>, there is no editor. <code>reset</code> puts everything back.</p>
+
+  <div class="terminal" id="terminal" data-storage-key="git-playground">
+    <div id="output" role="log"></div>
+    <form class="input-line" id="command-form" autocomplete="off">
+      <label class="prompt" id="prompt" for="command"></label>
+      <input type="text" id="command" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="Command">
+    </form>
+  </div>
+  <p class="hint">Tab completes names, ↑ and ↓ go through earlier commands, Ctrl+L clears the screen.</p>
+
+  <h3 class="h5 mt-4">Look around</h3>
+  <div class="examples">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git status">git status</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git log --oneline --graph --all">git log --oneline --graph --all</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git log">git log</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git diff">git diff</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git branch -a">git branch -a</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git show v1.0">git show v1.0</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git remote -v">git remote -v</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="cat ~/.gitconfig">cat ~/.gitconfig</button>
+  </div>
+
+  <h3 class="h5 mt-4">Commit</h3>
+  <div class="examples">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git add todo.txt">git add todo.txt</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git restore --staged todo.txt">git restore --staged todo.txt</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git add -A">git add -A</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git commit -m &quot;Add a todo list&quot;">git commit -m "Add a todo list"</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="echo &quot;4. git push sends commits to GitHub&quot; &gt;&gt; notes.txt">echo "4. git push ..." &gt;&gt; notes.txt</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git commit -am &quot;Add git push to the notes&quot;">git commit -am "..."</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git commit --amend -m &quot;A better message&quot;">git commit --amend -m "..."</button>
+  </div>
+
+  <h3 class="h5 mt-4">Branches and GitHub</h3>
+  <div class="examples">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git fetch">git fetch</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git stash">git stash</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git pull">git pull</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git stash pop">git stash pop</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git push">git push</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git switch new-feature">git switch new-feature</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git switch main">git switch main</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git merge typo-fix">git merge typo-fix</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git merge --abort">git merge --abort</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git switch -c my-branch">git switch -c my-branch</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git reset --hard HEAD~1">git reset --hard HEAD~1</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git reflog">git reflog</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git help">git help</button>
+  </div>
+
+  <p class="mt-4 text-center"><a href="/git/">Git notes</a>: read more about each command. · <a href="/utils/linux-playground/">Linux Playground</a> · <a href="/utils/mysql-playground/">MySQL Playground</a></p>
+</div>

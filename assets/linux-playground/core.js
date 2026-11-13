@@ -95,6 +95,30 @@ const Playground = (function () {
         systemData = facts;
     }
 
+    // Data files can add work to do when the machine is made fresh (first
+    // visit and reset), like making an example Git repository:
+    //   Playground.setup(function (env) { ... });
+    // env is the logged in user's, and nothing is printed.
+    const setupSteps = [];
+
+    function setup(step) {
+        setupSteps.push(step);
+    }
+
+    function freshStart() {
+        system = freshSystem();
+        fs = buildFileSystem();
+        cwd = system.users[system.login].home;
+        const quiet = { out: function () {}, err: function (text) { console.error("setup:", text); }, toTerminal: false, stdin: null };
+        setupSteps.forEach(function (step) {
+            try {
+                step(makeEnv(system.login, quiet));
+            } catch (error) {
+                console.error("A setup step failed", error);
+            }
+        });
+    }
+
     // A fresh copy, so killing a process never changes the data it started from.
     function freshSystem() {
         return JSON.parse(JSON.stringify(systemData));
@@ -352,9 +376,7 @@ const Playground = (function () {
             clearScreen: function () { elements.output.replaceChildren(); },
             // Put every file and the whole server back as they started.
             reset: function () {
-                system = freshSystem();
-                fs = buildFileSystem();
-                cwd = system.users[system.login].home;
+                freshStart();
             }
         };
     }
@@ -1020,8 +1042,7 @@ const Playground = (function () {
         } catch (error) {
             // Fall through and start fresh.
         }
-        fs = buildFileSystem();
-        cwd = home;
+        freshStart();
     }
 
     function start() {
@@ -1072,6 +1093,7 @@ const Playground = (function () {
         register: register,
         defineFileSystem: defineFileSystem,
         addFiles: addFiles,
+        setup: setup,
         defineSystem: defineSystem,
         // For trying things from the console or a test page: type a line as
         // if Enter was pressed. The Promise is done when the terminal waits
