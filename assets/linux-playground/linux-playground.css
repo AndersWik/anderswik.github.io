@@ -1,0 +1,75 @@
+.linux-playground .terminal {
+  background-color: #1b1d21;
+  color: #e6e6e6;
+  border-radius: 10px;
+  padding: 12px 16px;
+  height: 480px;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+  line-height: 1.45;
+  cursor: text;
+  text-align: left;
+}
+
+.linux-playground .line {
+  white-space: pre-wrap;
+  word-break: break-all;
+  min-height: 1.45em;
+}
+
+.linux-playground .input-line {
+  display: flex;
+  align-items: baseline;
+  margin: 0;
+}
+
+.linux-playground .prompt {
+  white-space: pre;
+  margin: 0;
+}
+
+.linux-playground #command {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  caret-color: #e8b455;
+  font: inherit;
+}
+
+/* Phones zoom in on inputs with text smaller than 16px. */
+@media (max-width: 600px) {
+  .linux-playground .terminal,
+  .linux-playground #command {
+    font-size: 16px;
+  }
+}
+
+/* Colors like a typical Ubuntu terminal. */
+.linux-playground .user { color: #8ae234; font-weight: bold; }
+.linux-playground .path { color: #729fcf; font-weight: bold; }
+.linux-playground .dir { color: #729fcf; font-weight: bold; }
+.linux-playground .exe { color: #8ae234; font-weight: bold; }
+.linux-playground .err { color: #ff8b8b; }
+.linux-playground .info { color: #e8b455; }
+
+.linux-playground .hint {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 6px;
+  text-align: center;
+}
+
+.linux-playground .examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.linux-playground .examples .btn {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
