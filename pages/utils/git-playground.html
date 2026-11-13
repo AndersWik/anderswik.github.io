@@ -83,5 +83,19 @@ js:
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git help">git help</button>
   </div>
 
+  <h3 class="h5 mt-4">Find a bug with bisect</h3>
+  <p class="small text-muted mb-2">Somewhere on the branch <code>calculator</code>, <code>add()</code> started to subtract. Mark the newest commit bad and v1.0 good, then look at <code>src/calc.js</code> in each commit Git picks and answer good (<code>a + b</code>) or bad (<code>a - b</code>).</p>
+  <div class="examples">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git switch calculator">git switch calculator</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git bisect start">git bisect start</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git bisect bad">git bisect bad</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git bisect good v1.0">git bisect good v1.0</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="cat src/calc.js">cat src/calc.js</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git bisect good">git bisect good</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git bisect bad">git bisect bad</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git bisect log">git bisect log</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="git bisect reset">git bisect reset</button>
+  </div>
+
   <p class="mt-4 text-center"><a href="/git/">Git notes</a>: read more about each command. · <a href="/utils/linux-playground/">Linux Playground</a> · <a href="/utils/mysql-playground/">MySQL Playground</a></p>
 </div>

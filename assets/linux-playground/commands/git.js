@@ -35,13 +35,14 @@
         pull: "git pull [<remote> [<branch>]]",
         push: "git push [-u] [--force-with-lease] [--tags] [<remote> [<branch>...]]\n   or: git push <remote> --delete <branch>",
         "cherry-pick": "git cherry-pick [-x] <commit>...\n   or: git cherry-pick (--continue | --abort)",
-        rebase: "git rebase <upstream>\n   or: git rebase (--continue | --abort)"
+        rebase: "git rebase <upstream>\n   or: git rebase (--continue | --abort)",
+        bisect: "git bisect start [<bad> [<good>...]]\n   or: git bisect (bad | good | skip) [<rev>]\n   or: git bisect (reset | log | visualize)"
     };
 
     const SUMMARY = [
         ["start a working area", [["clone", "Clone a repository into a new directory"], ["init", "Create an empty Git repository"]]],
         ["work on the current change", [["add", "Add file contents to the index"], ["rm", "Remove files from the working tree and from the index"], ["restore", "Restore working tree files"]]],
-        ["examine the history and state", [["diff", "Show changes between commits, commit and working tree, etc"], ["log", "Show commit logs"], ["show", "Show various types of objects"], ["status", "Show the working tree status"]]],
+        ["examine the history and state", [["bisect", "Use binary search to find the commit that introduced a bug"], ["diff", "Show changes between commits, commit and working tree, etc"], ["log", "Show commit logs"], ["show", "Show various types of objects"], ["status", "Show the working tree status"]]],
         ["grow, mark and tweak your common history", [["branch", "List, create, or delete branches"], ["commit", "Record changes to the repository"], ["merge", "Join two or more development histories together"], ["rebase", "Reapply commits on top of another base tip"], ["reset", "Reset current HEAD to the specified state"], ["switch", "Switch branches"], ["tag", "Create, list, delete tags"]]],
         ["collaborate", [["fetch", "Download objects and refs from another repository"], ["pull", "Fetch from and integrate with another repository or a local branch"], ["push", "Update remote refs along with associated objects"]]]
     ];
@@ -451,6 +452,9 @@
         if (state.merge) {
             env.out(s.unmerged.length ? "\nYou have unmerged paths.\n  (fix conflicts and run \"git commit\")\n  (use \"git merge --abort\" to abort the merge)\n"
                 : "\nAll conflicts fixed but you are still merging.\n  (use \"git commit\" to conclude merge)\n");
+        }
+        if (state.bisect) {
+            env.out("\nYou are currently bisecting, started from branch '" + state.bisect.startName + "'.\n  (use \"git bisect reset\" to get back to the original branch)\n");
         }
         if (state.cherryPick) {
             env.out("\nYou are currently cherry-picking commit " + G.shortId(state.cherryPick.commit) + ".\n" +
@@ -1841,6 +1845,189 @@
         repo.state.merge = null;
     }
 
+    // =========================================================================
+    // bisect: find the commit that brought in a bug, by halving the history
+    // =========================================================================
+    //
+    // Mark a commit with the bug as bad and one without it as good. Git checks
+    // out a commit in the middle; you test it and say good or bad, and the
+    // part of the history that is left is halved each time.
+    //
+    //   repo.state.bisect = { start: "ref: refs/heads/main", startName, bad, good: [], skip: [], log: [] }
+
+    // The commits that may still be the first bad one: in the bad commit's
+    // history, but not in any good commit's.
+    function bisectCandidates(env, bisect) {
+        const goodHistory = new Set();
+        bisect.good.forEach(function (id) {
+            G.ancestors(env.system, id).forEach(function (a) { goodHistory.add(a); });
+        });
+        return Array.from(G.ancestors(env.system, bisect.bad)).filter(function (id) { return !goodHistory.has(id); });
+    }
+
+    // After each answer: done, waiting for more marks, or check out the next commit.
+    function bisectNext(env, repo) {
+        const bisect = repo.state.bisect;
+        if (!bisect.bad || !bisect.good.length) {
+            if (!bisect.bad && !bisect.good.length) {
+                env.out("status: waiting for both good and bad commits\n");
+            } else if (!bisect.bad) {
+                env.out("status: waiting for bad commit, " + plural(bisect.good.length, "good commit") + " known\n");
+            } else {
+                env.out("status: waiting for good commit(s), bad commit known\n");
+            }
+            return;
+        }
+        if (bisect.good.some(function (id) { return !G.isAncestor(env.system, id, bisect.bad); })) {
+            throw G.fail("Some good revs are not ancestors of the bad rev.\ngit bisect cannot work properly in this case.\nMaybe you mistook good and bad revs?");
+        }
+        const candidates = bisectCandidates(env, bisect);
+        const testable = candidates.filter(function (id) { return id !== bisect.bad && !bisect.skip.includes(id); });
+        if (!testable.length) {
+            const left = candidates.filter(function (id) { return id === bisect.bad || bisect.skip.includes(id); });
+            if (left.length > 1) {
+                env.out("There are only 'skip'ped commits left to test.\nThe first bad commit could be any of:\n" + left.join("\n") + "\nWe cannot bisect more!\n");
+                return;
+            }
+            // Found it: show it like git show --stat.
+            const commit = G.commitOf(env.system, bisect.bad);
+            env.out(bisect.bad + " is the first bad commit\n");
+            commitLines(env, repo, bisect.bad, commit, {}, { stat: true }).forEach(function (line) {
+                print(env, line);
+                env.out("\n");
+            });
+            bisect.log.push("# first bad commit: [" + bisect.bad + "] " + G.subject(commit));
+            return;
+        }
+        // The middle: the commit that splits the candidates most evenly.
+        let best = null;
+        let bestScore = -1;
+        const all = new Set(candidates);
+        testable.forEach(function (id) {
+            let below = 0;
+            G.ancestors(env.system, id).forEach(function (a) {
+                if (all.has(a)) {
+                    below++;
+                }
+            });
+            const score = Math.min(below, candidates.length - below);
+            if (score > bestScore || (score === bestScore && G.commitOf(env.system, id).date > G.commitOf(env.system, best).date)) {
+                best = id;
+                bestScore = score;
+            }
+        });
+        const left = Math.floor(candidates.length / 2);
+        // About how many more answers are needed, like Git's estimate.
+        const steps = left === 0 ? 0 : Math.max(1, Math.floor(Math.log2(left)));
+        if (G.headId(repo) !== best) {
+            switchTo(env, repo, best, best, best);
+        }
+        env.out("Bisecting: " + plural(left, "revision") + " left to test after this (roughly " + plural(steps, "step") + ")\n");
+        env.out("[" + best + "] " + G.subject(G.commitOf(env.system, best)) + "\n");
+    }
+
+    function cmdBisect(args, env) {
+        const repo = G.needRepo(env);
+        const state = repo.state;
+        const sub = args[0];
+        const rest = args.slice(1);
+        const needBisect = function () {
+            if (!state.bisect) {
+                throw G.fail("You need to start by \"git bisect start\"\n\n(Then mark a bad commit with git bisect bad, and a good one with git bisect good.)");
+            }
+        };
+        const mark = function (kind, revision) {
+            const id = G.needCommit(env, repo, revision || "HEAD");
+            const commit = G.commitOf(env.system, id);
+            if (kind === "bad") {
+                state.bisect.bad = id;
+            } else if (kind === "good") {
+                state.bisect.good.push(id);
+            } else {
+                state.bisect.skip.push(id);
+            }
+            state.bisect.log.push("# " + kind + ": [" + id + "] " + G.subject(commit), "git bisect " + kind + " " + id);
+        };
+
+        if (!sub || sub === "help") {
+            env.out("usage: " + USAGE.bisect + "\n");
+            return;
+        }
+        if (sub === "start") {
+            if (state.bisect) {
+                cmdBisect(["reset"], env);
+            }
+            const s = G.status(env, repo);
+            if (s.unmerged.length) {
+                throw G.fail("error: you need to resolve your current index first");
+            }
+            state.bisect = {
+                start: state.head,
+                startName: G.currentBranch(repo) || G.shortId(G.headId(repo)),
+                bad: null, good: [], skip: [], log: ["git bisect start"]
+            };
+            const revisions = rest.filter(function (arg) { return arg !== "--"; });
+            if (revisions[0]) {
+                mark("bad", revisions[0]);
+            }
+            revisions.slice(1).forEach(function (revision) { mark("good", revision); });
+            bisectNext(env, repo);
+            return;
+        }
+        if (["bad", "new", "good", "old", "skip"].includes(sub)) {
+            needBisect();
+            const kind = sub === "new" ? "bad" : sub === "old" ? "good" : sub;
+            if (kind === "bad" && rest.length > 1) {
+                throw G.fail("error: 'git bisect bad' can take only one argument.");
+            }
+            (rest.length ? rest : [null]).forEach(function (revision) { mark(kind, revision); });
+            bisectNext(env, repo);
+            return;
+        }
+        if (sub === "reset") {
+            if (!state.bisect) {
+                env.out("We are not bisecting.\n");
+                return;
+            }
+            const start = state.bisect.start;
+            state.bisect = null;
+            const target = rest[0] ? G.needCommit(env, repo, rest[0]) : start.startsWith("ref: ") ? state.refs[start.slice(5)] : start;
+            const before = G.headId(repo);
+            if (before !== target) {
+                env.out("Previous HEAD position was " + G.shortId(before) + " " + G.subject(G.commitOf(env.system, before)) + "\n");
+            }
+            const headValue = rest[0] ? target : start;
+            const name = headValue.startsWith("ref: refs/heads/") ? headValue.slice(16) : G.shortId(target);
+            switchTo(env, repo, target, headValue, name);
+            if (headValue.startsWith("ref: refs/heads/")) {
+                env.out("Switched to branch '" + name + "'\n");
+                env.out(trackingText(env, repo, name));
+            }
+            return;
+        }
+        if (sub === "log") {
+            needBisect();
+            env.out(state.bisect.log.join("\n") + "\n");
+            return;
+        }
+        if (sub === "visualize" || sub === "view") {
+            needBisect();
+            const candidates = new Set(bisectCandidates(env, state.bisect));
+            const list = Array.from(candidates).sort(function (a, b) { return G.commitOf(env.system, b).date - G.commitOf(env.system, a).date; });
+            const decor = decorations(env, repo);
+            list.forEach(function (id) {
+                print(env, commitLines(env, repo, id, G.commitOf(env.system, id), decor, { oneline: true })[0]);
+                env.out("\n");
+            });
+            return;
+        }
+        if (sub === "run") {
+            needBisect();
+            throw G.fail("error: the playground can't run scripts, so git bisect run is not supported.\nhint: Test each commit yourself (for example with cat), then type git bisect good or git bisect bad.");
+        }
+        throw G.fail("error: unknown command: 'git bisect " + sub + "'\nusage: " + USAGE.bisect);
+    }
+
     function cmdReset(args, env) {
         const repo = G.needRepo(env);
         let mode = "mixed";
@@ -2482,7 +2669,7 @@
         restore: cmdRestore, diff: cmdDiff, commit: cmdCommit, log: cmdLog, show: cmdShow, reflog: cmdReflog,
         branch: cmdBranch, switch: cmdSwitch, checkout: cmdCheckout, merge: cmdMerge, "cherry-pick": cmdCherryPick,
         rebase: cmdRebase, reset: cmdReset, stash: cmdStash, tag: cmdTag, remote: cmdRemote, fetch: cmdFetch,
-        pull: cmdPull, push: cmdPush
+        pull: cmdPull, push: cmdPush, bisect: cmdBisect
     };
 
     function runGit(args, env, depth) {

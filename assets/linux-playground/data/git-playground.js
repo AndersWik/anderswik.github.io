@@ -9,6 +9,8 @@
  *   - a branch typo-fix that changes the same line: git merge typo-fix
  *     gives a conflict to fix
  *   - a change to README.md that isn't committed, and a new file todo.txt
+ *   - a branch calculator with 9 commits where one quietly breaks add():
+ *     find it with git bisect (cat src/calc.js tells if a commit is good)
  */
 
 Playground.addFiles([
@@ -36,6 +38,29 @@ Playground.setup(function (env) {
     git.run(["switch", "-c", "typo-fix"], inProject);
     write("/home/user/project/notes.txt", "Git notes\n\n1. git status shows what has changed\n2. git add puts changes in the staging area\n3. git commit stores them\n");
     git.run(["commit", "-am", "Shorter text for git commit"], inProject);
+    git.run(["switch", "main"], inProject);
+
+    // A branch for git bisect. Each step adds to src/calc.js; one of them, with
+    // an innocent message, turns a + b into a - b.
+    git.setClock("2026-11-02T10:00:00");
+    git.run(["switch", "-c", "calculator", "v1.0"], inProject);
+    const calc = "/home/user/project/src/calc.js";
+    let code = "// A small calculator. add(2, 3) should give 5.\n\nfunction add(a, b) {\n    return a + b;\n}\n";
+    const step = function (message, change) {
+        code = change(code);
+        write(calc, code);
+        git.run(["add", "src/calc.js"], inProject);
+        git.run(["commit", "-m", message], inProject);
+    };
+    step("Add a calculator", function (text) { return text; });
+    step("Add subtract", function (text) { return text + "\nfunction subtract(a, b) {\n    return a - b;\n}\n"; });
+    step("Add multiply", function (text) { return text + "\nfunction multiply(a, b) {\n    return a * b;\n}\n"; });
+    step("Add divide", function (text) { return text + "\nfunction divide(a, b) {\n    return b === 0 ? null : a / b;\n}\n"; });
+    step("Tidy up the calculator", function (text) { return text.replace("    return a + b;", "    return a - b;"); });
+    step("Add power", function (text) { return text + "\nfunction power(a, b) {\n    return a ** b;\n}\n"; });
+    step("Add square root", function (text) { return text + "\nfunction root(a) {\n    return Math.sqrt(a);\n}\n"; });
+    step("Add comments to divide", function (text) { return text.replace("function divide(a, b) {", "// Dividing by 0 gives null instead of Infinity.\nfunction divide(a, b) {"); });
+    step("Add percent", function (text) { return text + "\nfunction percent(part, whole) {\n    return part / whole * 100;\n}\n"; });
     git.run(["switch", "main"], inProject);
 
     // A commit of your own, not pushed yet.
