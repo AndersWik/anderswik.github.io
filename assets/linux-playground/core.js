@@ -35,7 +35,8 @@ const Playground = (function () {
 
     // --- Settings ------------------------------------------------------------
 
-    const STORAGE_KEY = "linux-playground";
+    // Each page keeps its own saved files: <div id="terminal" data-storage-key="...">
+    let storageKey = "linux-playground";
     const MAX_LINES = 1000;          // lines kept on the screen
     const MAX_HISTORY = 100;
 
@@ -82,6 +83,12 @@ const Playground = (function () {
 
     function defineFileSystem(entries) {
         fileSystemData = entries;
+    }
+
+    // More files, from a data file loaded after filesystem.js. An entry with
+    // the same path as an earlier one replaces it (a file, not a folder).
+    function addFiles(entries) {
+        fileSystemData = fileSystemData.concat(entries);
     }
 
     function defineSystem(facts) {
@@ -317,12 +324,23 @@ const Playground = (function () {
             out: io.out,
             // Errors always go to the screen, like stderr.
             err: io.err,
+            // A message for the screen that isn't an error, like a warning.
+            // Also on the screen when the output goes to a file.
+            note: function (text) { print([{ text: text + "\n", cls: "info" }]); },
             // false when the output goes to a file with > or >>. Programs like
             // man then print plain text instead of opening a pager.
             toTerminal: io.toTerminal !== false,
+            // The text of a file given with < file, or null.
+            stdin: io.stdin === undefined ? null : io.stdin,
             // Show a long text to scroll through, like less. Returns a Promise
             // that is done when the reader presses q. title is shown at the bottom.
             pager: function (text, title) { return openPager(text, title); },
+            // Ask for a line of input, for programs with their own prompt,
+            // like mysql. Returns a Promise with the line, or null after Ctrl+C.
+            //   prompt     text, like "mysql> ", or parts: [{ text, cls }]
+            //   password   true: the line is not shown or saved in history
+            //   complete   function (word) returning names for Tab
+            readLine: function (options) { return readLine(options || {}); },
 
             cd: function (parts) { cwd = joinPath(parts); },
             // Run another command. Return what it returns, so a command that
@@ -424,6 +442,12 @@ const Playground = (function () {
                 i += append ? 2 : 1;
                 continue;
             }
+            if (c === "<") {
+                endWord();
+                tokens.push({ op: "<" });
+                i++;
+                continue;
+            }
             if (word === null) {
                 word = "";
                 if (c === "~" && (i + 1 === line.length || line[i + 1] === "/" || line[i + 1] === " ")) {
@@ -522,9 +546,12 @@ const Playground = (function () {
             return;
         }
 
-        // Take out the redirection, the rest are the words of the command.
+        // Take out the redirections, the rest are the words of the command.
+        //   > file   output to a file      >> file   added to the end of a file
+        //   < file   the file as input (stdin), like mysql db < dump.sql
         const words = [];
         let redirect = null;
+        let inputPath = null;
         for (let i = 0; i < result.tokens.length; i++) {
             const token = result.tokens[i];
             if (token.op) {
@@ -533,19 +560,44 @@ const Playground = (function () {
                     print([{ text: "bash: syntax error near unexpected token `" + (next ? next.op : "newline") + "'\n", cls: "err" }]);
                     return;
                 }
-                redirect = { append: token.op === ">>", target: next.word };
+                if (token.op === "<") {
+                    inputPath = next.word;
+                } else {
+                    redirect = { append: token.op === ">>", target: next.word };
+                }
                 i++;
             } else {
                 words.push(token.word);
             }
         }
 
+        // Output goes straight to the screen, or is collected for the file.
         const stdout = [];
         const io = {
-            out: function (text, cls) { stdout.push({ text: text, cls: cls }); },
+            out: redirect
+                ? function (text, cls) { stdout.push({ text: text, cls: cls }); }
+                : function (text, cls) { print([{ text: text, cls: cls }]); },
             err: function (text) { print([{ text: text + "\n", cls: "err" }]); },
-            toTerminal: !redirect
+            toTerminal: !redirect,
+            stdin: null
         };
+
+        // The shell opens the input file before the command starts, as the
+        // logged in user.
+        if (inputPath !== null) {
+            const found = lookup(system.login, inputPath);
+            let error = found.error;
+            if (!error && found.node.type === "dir") {
+                error = "EISDIR";
+            } else if (!error && !can(system.login, found.node, "r")) {
+                error = "EACCES";
+            }
+            if (error) {
+                io.err("bash: " + inputPath + ": " + ERRORS[error]);
+                return;
+            }
+            io.stdin = found.node.content;
+        }
 
         let file = null;
         if (redirect) {
@@ -565,14 +617,10 @@ const Playground = (function () {
             }
         }
 
-        if (file) {
-            // /dev/null throws away everything written to it.
-            if (file.type !== "null") {
-                file.content += stdout.map(function (part) { return part.text; }).join("");
-                file.mtime = Date.now();
-            }
-        } else {
-            print(stdout);
+        // /dev/null throws away everything written to it.
+        if (file && file.type !== "null") {
+            file.content += stdout.map(function (part) { return part.text; }).join("");
+            file.mtime = Date.now();
         }
         save();
     }
@@ -582,6 +630,9 @@ const Playground = (function () {
     // =========================================================================
 
     function promptParts() {
+        if (reader) {
+            return typeof reader.prompt === "string" ? [{ text: reader.prompt }] : reader.prompt;
+        }
         return [
             { text: system.login + "@" + system.hostname, cls: "user" },
             { text: ":" },
@@ -602,21 +653,30 @@ const Playground = (function () {
         });
     }
 
-    // Print text parts, each with an optional color class. "\n" starts a new line.
+    // Print text parts, each with an optional color class. "\n" starts a new
+    // line. Like a real terminal, text without "\n" at the end leaves the line
+    // open, and the next text goes on the same line (ls prints a name at a time).
     // textContent, never innerHTML: a file named "<img onerror=...>" stays text.
+    let openLine = null;
+
     function print(parts) {
         const output = elements.output;
-        let line = document.createElement("div");
-        line.className = "line";
-        let used = false;
+        const newLine = function () {
+            const div = document.createElement("div");
+            div.className = "line";
+            return div;
+        };
+        let line = openLine && openLine.parentNode === output ? openLine : newLine();
+        let shown = line.parentNode === output;
 
         parts.forEach(function (part) {
             part.text.split("\n").forEach(function (piece, index) {
                 if (index > 0) {
-                    output.appendChild(line);
-                    line = document.createElement("div");
-                    line.className = "line";
-                    used = false;
+                    if (!shown) {
+                        output.appendChild(line);   // an empty line, from "\n\n"
+                    }
+                    line = newLine();
+                    shown = false;
                 }
                 if (piece) {
                     const span = document.createElement("span");
@@ -625,13 +685,14 @@ const Playground = (function () {
                         span.className = part.cls;
                     }
                     line.appendChild(span);
-                    used = true;
+                    if (!shown) {
+                        output.appendChild(line);
+                        shown = true;
+                    }
                 }
             });
         });
-        if (used) {
-            output.appendChild(line);
-        }
+        openLine = shown ? line : null;
         while (output.children.length > MAX_LINES) {
             output.firstElementChild.remove();
         }
@@ -756,14 +817,20 @@ const Playground = (function () {
 
     function complete() {
         const input = elements.input;
+        if (reader && (reader.password || !reader.complete)) {
+            return;
+        }
         const before = input.value.slice(0, input.selectionStart);
         const after = input.value.slice(input.selectionStart);
-        const wordStart = before.lastIndexOf(" ") + 1;
+        const wordStart = reader ? before.length - /[^\s(,=]*$/.exec(before)[0].length : before.lastIndexOf(" ") + 1;
         const word = before.slice(wordStart);
         let candidates = [];
         let folderPart = "";
 
-        if (wordStart === 0) {
+        if (reader) {
+            // A program like mysql gives its own names: tables, SQL words ...
+            candidates = reader.complete(word).map(function (name) { return { name: name, suffix: " " }; });
+        } else if (wordStart === 0) {
             candidates = commandOrder.filter(function (name) { return name.startsWith(word); })
                 .map(function (name) { return { name: name, suffix: " " }; });
         } else {
@@ -810,6 +877,8 @@ const Playground = (function () {
         if (event.key === "Tab") {
             event.preventDefault();
             complete();
+        } else if ((event.key === "ArrowUp" || event.key === "ArrowDown") && reader && reader.password) {
+            event.preventDefault();         // no history while typing a password
         } else if (event.key === "ArrowUp") {
             event.preventDefault();
             if (historyIndex > 0) {
@@ -827,17 +896,51 @@ const Playground = (function () {
             elements.output.replaceChildren();
         } else if (event.ctrlKey && event.key.toLowerCase() === "c" && input.selectionStart === input.selectionEnd) {
             // Ctrl+C without a selection drops the line, like in a terminal.
+            // A program waiting for a line gets null, and decides what to do.
             event.preventDefault();
-            print(promptParts().concat([{ text: input.value + "^C\n" }]));
+            print(promptParts().concat([{ text: (reader && reader.password ? "" : input.value) + "^C\n" }]));
             input.value = "";
             historyIndex = history.length;
             scrollDown();
+            if (reader) {
+                finishRead(null);
+            }
         }
     }
 
     // While a command runs (man downloading a page, or the pager open),
-    // the prompt is hidden and nothing new can be typed.
+    // the prompt is hidden and nothing new can be typed, unless the command
+    // asks for a line with env.readLine().
     let busy = false;
+    let reader = null;               // { prompt, password, complete, resolve } while a program reads a line
+    let idleWaiters = [];            // for tests: called when the terminal waits for typing again
+
+    function notifyIdle() {
+        if (!busy || reader) {
+            idleWaiters.splice(0).forEach(function (resolve) { resolve(); });
+        }
+    }
+
+    function readLine(options) {
+        return new Promise(function (resolve) {
+            reader = { prompt: options.prompt || "> ", password: Boolean(options.password), complete: options.complete, resolve: resolve };
+            elements.input.type = reader.password ? "password" : "text";
+            elements.form.hidden = false;
+            showPrompt();
+            scrollDown();
+            elements.input.focus();
+            notifyIdle();
+        });
+    }
+
+    // Give the typed line (or null for Ctrl+C) to the program that asked.
+    function finishRead(line) {
+        const current = reader;
+        reader = null;
+        elements.input.type = "text";
+        elements.form.hidden = true;
+        current.resolve(line);
+    }
 
     async function runAndPrompt(line) {
         busy = true;
@@ -846,21 +949,39 @@ const Playground = (function () {
             await run(line);
         } finally {
             busy = false;
+            reader = null;
+            elements.input.type = "text";
             elements.form.hidden = false;
             showPrompt();
             scrollDown();
             elements.input.focus();
+            notifyIdle();
+        }
+    }
+
+    // A line typed at the prompt: for the program reading one, or for the shell.
+    function type(line) {
+        if (reader) {
+            print(promptParts().concat([{ text: (reader.password ? "" : line) + "\n" }]));
+            if (!reader.password && line.trim()) {
+                history.push(line);
+                history = history.slice(-MAX_HISTORY);
+            }
+            historyIndex = history.length;
+            finishRead(line);
+        } else if (!busy) {
+            runAndPrompt(line);
         }
     }
 
     function submit(event) {
         event.preventDefault();
-        if (busy) {
+        if (busy && !reader) {
             return;
         }
         const line = elements.input.value;
         elements.input.value = "";
-        runAndPrompt(line);
+        type(line);
     }
 
     // =========================================================================
@@ -871,7 +992,7 @@ const Playground = (function () {
     // turned off (private windows), so every use is inside try/catch.
     function save() {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ fs: fs, cwd: cwd, history: history, system: system }));
+            localStorage.setItem(storageKey, JSON.stringify({ fs: fs, cwd: cwd, history: history, system: system }));
         } catch (error) {
             // Not saved, but the playground still works until the page is closed.
         }
@@ -881,7 +1002,7 @@ const Playground = (function () {
         system = freshSystem();
         const home = system.users[system.login].home;
         try {
-            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            const saved = JSON.parse(localStorage.getItem(storageKey));
             if (saved && saved.fs && saved.fs.type === "dir" && typeof saved.cwd === "string") {
                 // A saved server from an older data/system.js is left behind,
                 // so new processes or disks in the data show up.
@@ -914,6 +1035,7 @@ const Playground = (function () {
         if (!elements.terminal || !systemData) {
             return;
         }
+        storageKey = elements.terminal.dataset.storageKey || storageKey;
 
         elements.form.addEventListener("submit", submit);
         elements.input.addEventListener("keydown", handleKeys);
@@ -949,10 +1071,18 @@ const Playground = (function () {
     return {
         register: register,
         defineFileSystem: defineFileSystem,
+        addFiles: addFiles,
         defineSystem: defineSystem,
-        // For trying things from the console or a test page. Returns a
-        // Promise that is done when the command is.
-        run: function (line) { return runAndPrompt(line); },
+        // For trying things from the console or a test page: type a line as
+        // if Enter was pressed. The Promise is done when the terminal waits
+        // for typing again (a new prompt, or a program like mysql asking).
+        run: function (line) {
+            type(line);
+            return new Promise(function (resolve) {
+                idleWaiters.push(resolve);
+                notifyIdle();
+            });
+        },
         complete: complete
     };
 })();

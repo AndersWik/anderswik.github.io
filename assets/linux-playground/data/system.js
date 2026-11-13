@@ -8,7 +8,7 @@
  */
 
 Playground.defineSystem({
-    version: 2,
+    version: 3,
 
     hostname: "playground",
     login: "user",
@@ -68,6 +68,7 @@ Playground.defineSystem({
     //   kernel   a kernel thread: signals do nothing
     //   session  part of your login: killing it would close the terminal
     //   reload   HUP makes it read its settings again instead of stopping
+    //   service  which service it belongs to, see services below
     //   stopsChildren  when it is stopped politely (not with kill -9) it
     //            stops the processes it started. Other children live on,
     //            and pid 1 becomes their parent.
@@ -79,12 +80,12 @@ Playground.defineSystem({
         { pid: 236, ppid: 1, user: "root", cpu: 0.0, vsz: 48128, rss: 16384, tty: "?", stat: "S<s", start: "08:00", time: "0:01", command: "/lib/systemd/systemd-journald" },
         { pid: 268, ppid: 1, user: "root", cpu: 0.0, vsz: 25812, rss: 6912, tty: "?", stat: "Ss", start: "08:00", time: "0:00", command: "/lib/systemd/systemd-udevd" },
         { pid: 512, ppid: 1, user: "syslog", cpu: 0.0, vsz: 222400, rss: 5888, tty: "?", stat: "Ssl", start: "08:00", time: "0:00", command: "/usr/sbin/rsyslogd -n -iNONE", reload: true },
-        { pid: 530, ppid: 1, user: "root", cpu: 0.0, vsz: 7272, rss: 2816, tty: "?", stat: "Ss", start: "08:00", time: "0:00", command: "/usr/sbin/cron -f" },
+        { pid: 530, ppid: 1, user: "root", cpu: 0.0, vsz: 7272, rss: 2816, tty: "?", stat: "Ss", start: "08:00", time: "0:00", command: "/usr/sbin/cron -f", service: "cron" },
         { pid: 611, ppid: 1, user: "root", cpu: 0.0, vsz: 15432, rss: 8960, tty: "?", stat: "Ss", start: "08:00", time: "0:00", command: "sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups", reload: true },
-        { pid: 702, ppid: 1, user: "mysql", cpu: 0.8, vsz: 2443560, rss: 409600, tty: "?", stat: "Ssl", start: "08:00", time: "1:12", command: "/usr/sbin/mysqld" },
-        { pid: 745, ppid: 1, user: "root", cpu: 0.0, vsz: 55228, rss: 2432, tty: "?", stat: "Ss", start: "08:00", time: "0:00", command: "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;", reload: true, stopsChildren: true },
-        { pid: 746, ppid: 745, user: "www-data", cpu: 0.0, vsz: 55860, rss: 5632, tty: "?", stat: "S", start: "08:00", time: "0:00", command: "nginx: worker process" },
-        { pid: 747, ppid: 745, user: "www-data", cpu: 0.0, vsz: 55860, rss: 5632, tty: "?", stat: "S", start: "08:00", time: "0:00", command: "nginx: worker process" },
+        { pid: 702, ppid: 1, user: "mysql", cpu: 0.8, vsz: 2443560, rss: 409600, tty: "?", stat: "Ssl", start: "08:00", time: "1:12", command: "/usr/sbin/mysqld", service: "mysql" },
+        { pid: 745, ppid: 1, user: "root", cpu: 0.0, vsz: 55228, rss: 2432, tty: "?", stat: "Ss", start: "08:00", time: "0:00", command: "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;", reload: true, stopsChildren: true, service: "nginx" },
+        { pid: 746, ppid: 745, user: "www-data", cpu: 0.0, vsz: 55860, rss: 5632, tty: "?", stat: "S", start: "08:00", time: "0:00", command: "nginx: worker process", service: "nginx" },
+        { pid: 747, ppid: 745, user: "www-data", cpu: 0.0, vsz: 55860, rss: 5632, tty: "?", stat: "S", start: "08:00", time: "0:00", command: "nginx: worker process", service: "nginx" },
         { pid: 1201, ppid: 611, user: "root", cpu: 0.0, vsz: 17120, rss: 11008, tty: "?", stat: "Ss", start: "09:12", time: "0:00", command: "sshd: user [priv]", session: true },
         { pid: 1230, ppid: 1201, user: "user", cpu: 0.0, vsz: 17380, rss: 7040, tty: "?", stat: "S", start: "09:12", time: "0:00", command: "sshd: user@pts/0", session: true },
         { pid: 1231, ppid: 1230, user: "user", cpu: 0.0, vsz: 8784, rss: 5376, tty: "pts/0", stat: "Ss", start: "09:12", time: "0:00", command: "-bash", session: true, shell: true },
@@ -92,5 +93,46 @@ Playground.defineSystem({
     ],
 
     // The next free process id. ps uses one each time it runs.
-    nextPid: 5012
+    nextPid: 5012,
+
+    // Services that service start / stop / restart / status control. Starting
+    // one makes its processes, with new pids. The first process is the main
+    // one, the others are started by it (like nginx's workers).
+    services: {
+        cron: {
+            description: "Regular background program processing daemon",
+            processes: [
+                { user: "root", cpu: 0.0, vsz: 7272, rss: 2816, stat: "Ss", command: "/usr/sbin/cron -f" }
+            ]
+        },
+        mysql: {
+            description: "MySQL Community Server",
+            processes: [
+                { user: "mysql", cpu: 0.8, vsz: 2443560, rss: 409600, stat: "Ssl", command: "/usr/sbin/mysqld" }
+            ]
+        },
+        nginx: {
+            description: "A high performance web server and a reverse proxy server",
+            processes: [
+                { user: "root", cpu: 0.0, vsz: 55228, rss: 2432, stat: "Ss", command: "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;", reload: true, stopsChildren: true },
+                { user: "www-data", cpu: 0.0, vsz: 55860, rss: 5632, stat: "S", command: "nginx: worker process" },
+                { user: "www-data", cpu: 0.0, vsz: 55860, rss: 5632, stat: "S", command: "nginx: worker process" }
+            ]
+        }
+    },
+
+    // Installed packages and their versions, for apt.
+    packages: {
+        "cron": "3.0pl1-184ubuntu2",
+        "mysql-client": "8.0.40-0ubuntu0.24.04.1",
+        "mysql-server": "8.0.40-0ubuntu0.24.04.1",
+        "nginx": "1.24.0-2ubuntu7.1"
+    },
+
+    // The MySQL server's data, see lib/mysql-server.js. databases is null
+    // until the server is first used; then the example databases are made.
+    mysql: {
+        rootPassword: "root",
+        databases: null
+    }
 });

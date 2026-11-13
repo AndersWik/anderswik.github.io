@@ -5,22 +5,45 @@ permalink: /utils/mysql-playground/
 nonav: true
 css:
   - /assets/linux-playground/linux-playground.css
+# The same terminal and programs as the Linux Playground, with fewer
+# commands: there is no cd, so everything happens in /home/user.
 js:
-  - /assets/mysql-playground/mysql-playground.js
+  - /assets/linux-playground/core.js
+  - /assets/linux-playground/data/filesystem.js
+  - /assets/linux-playground/data/system.js
+  - /assets/linux-playground/data/mysql-playground.js
+  - /assets/linux-playground/lib/mysql-server.js
+  - /assets/linux-playground/commands/help.js
+  - /assets/linux-playground/commands/ls.js
+  - /assets/linux-playground/commands/cat.js
+  - /assets/linux-playground/commands/rm.js
+  - /assets/linux-playground/commands/echo.js
+  - /assets/linux-playground/commands/mysql.js
+  - /assets/linux-playground/commands/mysqldump.js
+  - /assets/linux-playground/commands/sudo.js
+  - /assets/linux-playground/commands/service.js
+  - /assets/linux-playground/commands/apt.js
+  - /assets/linux-playground/commands/ps.js
+  - /assets/linux-playground/commands/man.js
+  - /assets/linux-playground/commands/whoami.js
+  - /assets/linux-playground/commands/pwd.js
+  - /assets/linux-playground/commands/history.js
+  - /assets/linux-playground/commands/clear.js
+  - /assets/linux-playground/commands/reset.js
 ---
 
 <div class="linux-playground mysql-playground container-md mt-3 mb-3 pt-5 pb-5">
   <h2 class="text-center">MySQL Playground</h2>
   <p class="text-center text-muted">Log in to a pretend MySQL server and try SQL. The password for <code>root</code> is <code>root</code>. Nothing here touches your computer, and <code>reset</code> in the shell puts everything back.</p>
 
-  <div class="terminal" id="terminal">
+  <div class="terminal" id="terminal" data-storage-key="mysql-playground">
     <div id="output" role="log"></div>
     <form class="input-line" id="command-form" autocomplete="off">
       <label class="prompt" id="prompt" for="command"></label>
       <input type="text" id="command" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="Command">
     </form>
   </div>
-  <p class="hint">Tab completes names, ↑ and ↓ go through earlier commands, Ctrl+L clears the screen, Ctrl+C cancels a line.</p>
+  <p class="hint">Tab completes names, ↑ and ↓ go through earlier commands, Ctrl+L clears the screen, Ctrl+C cancels a line. <code>man mysql</code> shows the manual (q to quit).</p>
 
   <h3 class="h5 mt-4">In the shell</h3>
   <div class="examples">
@@ -31,7 +54,10 @@ js:
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="mysqldump -u root -p shop &gt; shop.sql">mysqldump -u root -p shop &gt; shop.sql</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="cat books.sql">cat books.sql</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="mysql -u root -p library &lt; books.sql">mysql -u root -p library &lt; books.sql</button>
-    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="sudo service mysql restart">sudo service mysql restart</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="service mysql status">service mysql status</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="sudo service mysql stop">sudo service mysql stop</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="sudo service mysql start">sudo service mysql start</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="ps aux">ps aux</button>
   </div>
 
   <h3 class="h5 mt-4">In mysql</h3>

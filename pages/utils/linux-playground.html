@@ -11,6 +11,7 @@ js:
   - /assets/linux-playground/core.js
   - /assets/linux-playground/data/filesystem.js
   - /assets/linux-playground/data/system.js
+  - /assets/linux-playground/lib/mysql-server.js
   - /assets/linux-playground/commands/help.js
   - /assets/linux-playground/commands/pwd.js
   - /assets/linux-playground/commands/ls.js
@@ -30,6 +31,10 @@ js:
   - /assets/linux-playground/commands/df.js
   - /assets/linux-playground/commands/uname.js
   - /assets/linux-playground/commands/man.js
+  - /assets/linux-playground/commands/service.js
+  - /assets/linux-playground/commands/apt.js
+  - /assets/linux-playground/commands/mysql.js
+  - /assets/linux-playground/commands/mysqldump.js
   - /assets/linux-playground/commands/history.js
   - /assets/linux-playground/commands/clear.js
   - /assets/linux-playground/commands/reset.js
@@ -75,6 +80,8 @@ js:
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="df -h /home">df -h /home</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="uname -a">uname -a</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="man ls">man ls</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="mysql -u root -p shop">mysql -u root -p shop</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="sudo service mysql stop">sudo service mysql stop</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="help">help</button>
   </div>
 

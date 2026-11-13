@@ -4,11 +4,12 @@ Playground.register({
     usage: "help",
     summary: "show this list",
     run: function (args, env) {
+        const commands = env.commands().filter(function (command) { return command.name !== "help"; });
+        // The first column is as wide as the longest usage.
+        const width = Math.max.apply(null, commands.map(function (command) { return command.usage.length; })) + 2;
         env.out("Commands you can use:\n");
-        env.commands().forEach(function (command) {
-            if (command.name !== "help") {
-                env.out("  " + command.usage.padEnd(20) + command.summary + "\n");
-            }
+        commands.forEach(function (command) {
+            env.out("  " + command.usage.padEnd(width) + command.summary + "\n");
         });
         env.out("A file can also be the target of > (write) and >> (add to the end).\n");
     }
