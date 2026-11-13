@@ -1,0 +1,179 @@
+---
+layout: default
+title: Visibility constant
+permalink: /php/visibility-constant/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, visibility, constants, const, class constants, public const, protected const, private const, self, parent]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Visibility constant</h1>
+  <h2>Visibility constant attributes</h2>
+  <h3>Constants from within class</h3>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	const CONSTANTVAR = "Constant Variable";
+
+	function getConstant() {
+		return self::CONSTANTVAR;
+	}
+
+}
+
+$foo = new Foo();</code></pre>
+  <pre><code class="language-php">&lt;?php
+// From the class name
+echo Foo::CONSTANTVAR;
+// Output: Constant Variable
+// From an instance
+echo $foo-&gt;getConstant();
+// Output: Constant Variable</code></pre>
+  <h3>Constants from extended class</h3>
+  <pre><code class="language-php">&lt;?php
+class Bar extends Foo {
+
+	function getConstant() {
+		return parent::CONSTANTVAR;
+	}
+
+}
+
+$extendsFoo = new Bar();</code></pre>
+  <p>We can access the constant both from within and from an instance of the child class. This since the default visibility is public.</p>
+  <pre><code class="language-php">&lt;?php
+echo Bar::CONSTANTVAR;
+// Output: Constant Variable
+echo $extendsFoo-&gt;getConstant();
+// Output: Constant Variable</code></pre>
+  <h3>Using Parent Self This</h3>
+  <p>As of PHP 7.1 constants can be public, protected or private. The visibility is written before <code>const</code>. A child class can not give an inherited constant a stricter visibility.</p>
+  <h4>Public</h4>
+  <p>Inside the class a constant can be reached with the class name, with <code>self::</code> or with <code>$this::</code>.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	public const CONPUB = "Foo";
+
+	function getPub() {
+		return Foo::CONPUB;
+	}
+
+	function getPubSelf() {
+		return self::CONPUB;
+	}
+
+	function getPubThis() {
+		return $this::CONPUB;
+	}
+
+}
+
+$foo = new Foo();</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Class name:
+echo $foo-&gt;getPub();
+// Output: Foo
+// 2: Foo Self:
+echo $foo-&gt;getPubSelf();
+// Output: Foo
+// 3: Foo This:
+echo $foo-&gt;getPubThis();
+// Output: Foo</code></pre>
+  <h4>Protected</h4>
+  <p>A child class can override a constant. <code>parent::</code> gives the value from the parent, <code>self::</code> and <code>$this::</code> the value from the child. A protected constant can not be read from outside.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	protected const CONPRO = "Foo";
+
+}
+
+class Bar extends Foo {
+
+	protected const CONPRO = "Bar";
+
+	function getPro() {
+		return parent::CONPRO;
+	}
+
+	function getProSelf() {
+		return self::CONPRO;
+	}
+
+	function getProThis() {
+		return $this::CONPRO;
+	}
+
+}
+
+$extendsFoo = new Bar();</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Extends Parent:
+echo $extendsFoo-&gt;getPro();
+// Output: Foo
+// 2: Foo Extends Self:
+echo $extendsFoo-&gt;getProSelf();
+// Output: Bar
+// 3: Foo Extends This:
+echo $extendsFoo-&gt;getProThis();
+// Output: Bar
+// 4: From outside:
+echo Bar::CONPRO;
+// Output: Fatal error: Uncaught Error: Cannot access protected constant Bar::CONPRO</code></pre>
+  <h4>Private</h4>
+  <p>A private constant is only visible in the class that declares it. When <code>Foo</code> uses <code>$this::CONPRI</code> on a <code>Bar</code> object it finds the private constant of <code>Bar</code>, which <code>Foo</code> is not allowed to see. Use <code>self::</code> for private constants.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	private const CONPRI = "Foo";
+
+	function getPri() {
+		return self::CONPRI;
+	}
+
+	function getPriThis() {
+		return $this::CONPRI;
+	}
+
+}
+
+class Bar extends Foo {
+
+	private const CONPRI = "Bar";
+
+	function getParPri() {
+		return parent::getPri();
+	}
+
+	function getParPriSelf() {
+		return self::CONPRI;
+	}
+
+	function getParPriThis() {
+		return parent::getPriThis();
+	}
+
+}
+
+$extendsFoo = new Bar();</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Extends Parent:
+echo $extendsFoo-&gt;getParPri();
+// Output: Foo
+// 2: Foo Extends Self:
+echo $extendsFoo-&gt;getParPriSelf();
+// Output: Bar
+// 3: Foo Extends This:
+echo $extendsFoo-&gt;getParPriThis();
+// Output: Fatal error: Uncaught Error: Cannot access private constant Bar::CONPRI</code></pre>
+  <h2>More about constant visibility</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.oop5.constants.php">Class constants</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,55 @@
+---
+layout: default
+title: Comments
+permalink: /php/comments/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [php, comments, single line, multiline, phpdoc, docblock]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Comments</h1>
+  <p>Comments are ignored by PHP. They are used to explain the code to the next person who reads it, often yourself.</p>
+  <h2>Single line</h2>
+  <p>Everything after <code>//</code> until the end of the line is a comment.</p>
+  <pre><code class="language-php">&lt;?php
+// Single line</code></pre>
+  <h2>Single line shell style</h2>
+  <p><code>#</code> works the same way as <code>//</code>. <code>//</code> is more common.</p>
+  <pre><code class="language-php">&lt;?php
+# Single line shell style</code></pre>
+  <h2>Multiline</h2>
+  <p>Everything between <code>/*</code> and <code>*/</code> is a comment, even if it covers many lines. Multiline comments can not be nested.</p>
+  <pre><code class="language-php">&lt;?php
+/* Multiline
+   Multiline
+   Multiline */</code></pre>
+  <h2>Phpdoc</h2>
+  <p>A Phpdoc block starts with <code>/**</code> and is written right above a function, class or variable. Editors and documentation tools read it, for example to know the types of the parameters.</p>
+  <pre><code class="language-php">&lt;?php
+/* Phpdoc
+ *
+ * Text text text.
+ * Text text text.
+ */</code></pre>
+  <pre><code class="language-php">&lt;?php
+/**
+ * Adds two numbers.
+ *
+ * @param int $a The first number
+ * @param int $b The second number
+ * @return int The sum
+ */
+function add($a, $b) {
+  return $a + $b;
+}</code></pre>
+  <h2>More about comments</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.basic-syntax.comments.php">Comments</a> in the PHP manual</li>
+    <li><a href="https://docs.phpdoc.org/">phpDocumentor</a> documentation of the Phpdoc tags</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

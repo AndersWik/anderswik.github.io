@@ -1,0 +1,106 @@
+---
+layout: default
+title: Boolean
+permalink: /php/boolean/
+chapter: "02"
+chapter_title: "Variables"
+keywords: [php, boolean, bool, true, false, is_bool, cast, truthy, falsy]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Boolean</h1>
+  <p>A Boolean can have the value <code>true</code> or <code>false</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$val = true;
+
+echo gettype( $val );
+// Output: boolean
+
+echo is_bool( $val );
+// Output: 1</code></pre>
+  <h2>Casting</h2>
+  <p>In php we can cast other variables to booleans. We can cast an integer to a boolean.</p>
+  <pre><code class="language-php">&lt;?php
+$variable = -1;
+var_dump( (bool) $variable );
+// Output: bool(true)
+
+$variable = 0;
+var_dump( (bool) $variable );
+// Output: bool(false)
+
+$variable = 1;
+var_dump( (bool) $variable );
+// Output: bool(true)</code></pre>
+  <p>Notice that <code>-1</code> is cast to <code>true</code>. We can also cast a float to a boolean.</p>
+  <pre><code class="language-php">&lt;?php
+$variable = -1.0;
+var_dump( (bool) $variable );
+// Output: bool(true)
+
+$variable = 0.0;
+var_dump( (bool) $variable );
+// Output: bool(false)
+
+$variable = 1.0;
+var_dump( (bool) $variable );
+// Output: bool(true)</code></pre>
+  <p>Notice that <code>-1.0</code> is cast to <code>true</code>. We can also cast a string to a boolean.</p>
+  <pre><code class="language-php">&lt;?php
+$variable = "";
+var_dump( (bool) $variable );
+// Output: bool(false)
+
+$variable = "0";
+var_dump( (bool) $variable );
+// Output: bool(false)
+
+$variable = "false";
+var_dump( (bool) $variable );
+// Output: bool(true)
+
+$variable = "False";
+var_dump( (bool) $variable );
+// Output: bool(true)
+
+$variable = "1";
+var_dump( (bool) $variable );
+// Output: bool(true)
+
+$variable = "true";
+var_dump( (bool) $variable );
+// Output: bool(true)
+
+$variable = "True";
+var_dump( (bool) $variable );
+// Output: bool(true)</code></pre>
+  <p>Notice that only a empty string and <code>"0"</code> is cast to <code>false</code>. All other strings are cast to true. Even <code>"false"</code> and <code>"False"</code> are cast to <code>true</code>.</p>
+  <h2>All values that are false</h2>
+  <ul>
+    <li><code>false</code></li>
+    <li><code>0</code> and <code>0.0</code></li>
+    <li><code>""</code> and <code>"0"</code></li>
+    <li>an empty array <code>[]</code></li>
+    <li><code>null</code></li>
+  </ul>
+  <p>Everything else is cast to <code>true</code>.</p>
+  <h2>Defining Constants</h2>
+  <h3>Boolean Constant</h3>
+  <pre><code class="language-php">&lt;?php
+define("BOOLEANCONSTANT", true);
+
+echo gettype( BOOLEANCONSTANT );
+//Outputs: boolean
+
+echo BOOLEANCONSTANT;
+//Outputs: 1</code></pre>
+  <h2>More about boolean</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.types.boolean.php">Booleans</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/types.comparisons.php">Type comparison tables</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

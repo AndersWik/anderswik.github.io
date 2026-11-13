@@ -1,0 +1,81 @@
+---
+layout: default
+title: JSON
+permalink: /php/json/
+chapter: "11"
+chapter_title: "Files and formats"
+keywords: [php, json, json_encode, json_decode, JsonSerializable, JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, api]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>JSON</h1>
+  <p>JSON is a text format for data, used by almost every web API. PHP converts between JSON and arrays or objects with <code>json_encode</code> and <code>json_decode</code>.</p>
+  <h2>Json Encode</h2>
+  <p><code>json_encode</code> turns a PHP value into a JSON string. Arrays with keys become objects and lists become arrays. Letters like Å are escaped by default, <code>JSON_UNESCAPED_UNICODE</code> keeps them as they are.</p>
+  <pre><code class="language-php">&lt;?php
+$data = ["name" =&gt; "Åsa", "age" =&gt; 30, "tags" =&gt; ["php", "sql"]];
+
+echo json_encode($data);
+// Output: {"name":"\u00c5sa","age":30,"tags":["php","sql"]}
+
+echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+// Output:
+// {
+//     "name": "Åsa",
+//     "age": 30,
+//     "tags": [
+//         "php",
+//         "sql"
+//     ]
+// }</code></pre>
+  <h2>Json Decode</h2>
+  <p><code>json_decode</code> turns a JSON string into PHP values. With <code>true</code> as the second parameter objects become arrays, otherwise they become <code>stdClass</code> objects.</p>
+  <pre><code class="language-php">&lt;?php
+$json = '{"name":"Anna","age":30}';
+
+$array = json_decode($json, true);
+echo $array["name"];
+// Output: Anna
+
+$object = json_decode($json);
+echo $object-&gt;name;
+// Output: Anna</code></pre>
+  <h2>Errors</h2>
+  <p><code>json_decode</code> returns <code>null</code> for invalid JSON, which can not be told apart from the JSON <code>null</code>. <code>JSON_THROW_ON_ERROR</code> throws an exception instead.</p>
+  <pre><code class="language-php">&lt;?php
+try {
+  $data = json_decode('{"name":', true, 512, JSON_THROW_ON_ERROR);
+} catch (JsonException $e) {
+  echo "Invalid JSON: " . $e-&gt;getMessage();
+}
+// Output: Invalid JSON: Syntax error</code></pre>
+  <h2>Send JSON</h2>
+  <pre><code class="language-php">&lt;?php
+header("Content-Type: application/json");
+echo json_encode(["ok" =&gt; true]);</code></pre>
+  <h2>Json Serializable</h2>
+  <p>A class that implements <code>JsonSerializable</code> decides what <code>json_encode</code> should output for it. Without it only the public variables are included.</p>
+  <pre><code class="language-php">&lt;?php
+class MyColors implements JsonSerializable {
+
+    private array $colors = ["red" =&gt; "#ff0000", "yellow" =&gt; "#ffff00"];
+
+    public function jsonSerialize(): mixed {
+        return $this-&gt;colors;
+    }
+}
+
+echo json_encode(new MyColors());
+// Output: {"red":"#ff0000","yellow":"#ffff00"}</code></pre>
+  <h2>More about json</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.json-encode.php">json_encode</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.json-decode.php">json_decode</a></li>
+    <li><a href="https://www.php.net/manual/en/jsonserializable.jsonserialize.php">JsonSerializable</a></li>
+    <li><a href="https://www.php.net/manual/en/json.constants.php">JSON constants</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

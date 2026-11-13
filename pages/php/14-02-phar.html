@@ -1,0 +1,74 @@
+---
+layout: default
+title: Phar
+permalink: /php/phar/
+chapter: "14"
+chapter_title: "Command line"
+keywords: [php, phar, php archive, Phar class, buildFromDirectory, setDefaultStub, phar.readonly, command line tool]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Phar</h1>
+  <p>A Phar (PHP Archive) packs a whole PHP application into one file, like a <code>.jar</code> file in Java. It is the common way to share command line tools. Composer itself is shipped as <code>composer.phar</code>.</p>
+  <h2>Run a phar</h2>
+  <pre><code class="language-bash">$ php composer.phar --version</code></pre>
+  <h2>Create a phar</h2>
+  <p>The application is in the folder <code>src</code> and starts in <code>src/index.php</code>.</p>
+  <pre><code class="language-bash">hello/
+  build.php
+  src/
+    index.php
+    Greeter.php</code></pre>
+  <pre><code class="language-php">&lt;?php
+// src/index.php
+require __DIR__ . '/Greeter.php';
+
+echo (new Greeter())-&gt;greet($argv[1] ?? 'World') . PHP_EOL;</code></pre>
+  <pre><code class="language-php">&lt;?php
+// src/Greeter.php
+class Greeter {
+  public function greet(string $name): string {
+    return "Hello $name";
+  }
+}</code></pre>
+  <p><code>build.php</code> creates the archive. The stub is the code that runs first when the phar is started. The shebang line makes it possible to run the file directly.</p>
+  <pre><code class="language-php">&lt;?php
+// build.php
+$file = __DIR__ . '/hello.phar';
+
+if (file_exists($file)) {
+  unlink($file);
+}
+
+$phar = new Phar($file);
+$phar-&gt;buildFromDirectory(__DIR__ . '/src');
+$phar-&gt;setStub("#!/usr/bin/env php\n" . $phar-&gt;createDefaultStub('index.php'));
+
+echo "Created $file\n";</code></pre>
+  <p>Creating phar files is turned off by default with the setting <code>phar.readonly</code>. Turn it off only for the build.</p>
+  <pre><code class="language-bash">$ php -d phar.readonly=0 build.php
+Created /home/user/hello/hello.phar
+$ chmod +x hello.phar
+$ ./hello.phar Anna
+Hello Anna</code></pre>
+  <p><code>__DIR__</code> inside the phar points into the archive, like <code>phar:///home/user/hello/hello.phar</code>, so <code>require</code> works as usual.</p>
+  <h2>List the content</h2>
+  <pre><code class="language-php">&lt;?php
+$phar = new Phar(__DIR__ . '/hello.phar');
+
+foreach (new RecursiveIteratorIterator($phar) as $file) {
+  echo $file-&gt;getPathname() . "\n";
+}</code></pre>
+  <h2>Security</h2>
+  <p>A phar can contain any code. Only run phar files from sources you trust, and check the signature or checksum when it is published.</p>
+  <h2>More about phar</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/book.phar.php">Phar</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/phar.buildfromdirectory.php">Phar::buildFromDirectory</a></li>
+    <li><a href="https://github.com/box-project/box">Box</a> is a tool for building phar files</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

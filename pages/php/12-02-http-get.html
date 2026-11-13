@@ -1,0 +1,57 @@
+---
+layout: default
+title: GET
+permalink: /php/http-get/
+chapter: "12"
+chapter_title: "HTTP"
+keywords: [php, http, get, client, file_get_contents, http_build_query, stream_context_create, request]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>GET</h1>
+  <h2>Client</h2>
+  <p>GET request with <code>file_get_contents</code>. It returns the body of the response, or <code>false</code> if the request failed. Always include <code>https://</code>, without it PHP looks for a local file.</p>
+  <pre><code class="language-php">&lt;?php
+$url = "https://www.anderswik.se";
+$result = file_get_contents($url);
+var_dump($result);</code></pre>
+  <p>Adding parameters to the url. <code>http_build_query</code> encodes the values.</p>
+  <pre><code class="language-php">&lt;?php
+$parameters = array(
+    "option" =&gt; "stuff",
+    "option2" =&gt; "other stuff"
+);
+$url = "https://www.anderswik.se?".http_build_query($parameters);
+$result = file_get_contents($url);</code></pre>
+  <h2>Timeout and status code</h2>
+  <p>A stream context sets options for the request. <code>timeout</code> stops PHP from waiting forever, and <code>ignore_errors</code> returns the body also for 404 and 500. The response headers are returned by <code>http_get_last_response_headers</code> in PHP 8.4, and in the variable <code>$http_response_header</code> in older versions.</p>
+  <pre><code class="language-php">&lt;?php
+$context = stream_context_create([
+  "http" =&gt; [
+    "timeout" =&gt; 10,
+    "ignore_errors" =&gt; true,
+    "header" =&gt; "Accept: application/json",
+  ],
+]);
+
+$result = file_get_contents("https://api.example.com/users/1", false, $context);
+$headers = http_get_last_response_headers();
+
+echo $headers[0];
+// Output: HTTP/1.1 200 OK</code></pre>
+  <h2>Server</h2>
+  <p>On the server the parameters are in <code>$_GET</code>. Read more in <a href="/php/get/">Get</a>.</p>
+  <pre><code class="language-php">&lt;?php
+var_dump($_GET);</code></pre>
+  <h2>More about get</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.file-get-contents.php">file_get_contents</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.http-build-query.php">http_build_query</a></li>
+    <li><a href="https://www.php.net/manual/en/context.http.php">HTTP context options</a></li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.get.php">$_GET</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

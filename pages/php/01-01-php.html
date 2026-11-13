@@ -1,0 +1,75 @@
+---
+layout: default
+title: PHP
+permalink: /php/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [php, introduction, install, php -v, built-in server, phpinfo, keywords, hello world]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>PHP</h1>
+  <p>PHP stands for PHP: Hypertext Preprocessor. It is a scripting language that runs on the server, most often to build web pages. The web server hands a <code>.php</code> file to PHP, PHP runs the code and sends the result, usually HTML, back to the browser. PHP can also be used to write scripts for the <a href="/php/command-line/">command line</a>.</p>
+  <h2>Install PHP</h2>
+  <h3>Debian and Ubuntu</h3>
+  <pre><code class="language-bash">$ sudo apt-get update
+$ sudo apt-get install php-cli</code></pre>
+  <h3>macOS</h3>
+  <p>PHP is no longer shipped with macOS. Install it with <a href="https://brew.sh/">Homebrew</a>.</p>
+  <pre><code class="language-bash">$ brew install php</code></pre>
+  <h3>Check the version</h3>
+  <p>To verify you have php installed on your machine open a terminal. Type <code>php -v</code> and the output should look something like the one below.</p>
+  <pre><code class="language-bash">$ php -v
+PHP 7.1.7 (cli) (built: Jul 15 2017 18:08:09) ( NTS )
+Copyright (c) 1997-2017 The PHP Group
+Zend Engine v3.1.0, Copyright (c) 1998-2017 Zend Technologies</code></pre>
+  <h2>Run PHP</h2>
+  <p>Create a folder and a file called <code>index.php</code>.</p>
+  <pre><code class="language-bash">$ mkdir php
+$ cd php
+$ touch index.php
+$ nano index.php</code></pre>
+  <p>All PHP code is written after the opening tag <code>&lt;?php</code>. In a file that only contains PHP the closing tag <code>?&gt;</code> is left out, so no extra whitespace is sent by mistake.</p>
+  <pre><code class="language-php">&lt;?php
+echo "Hello World";</code></pre>
+  <p>Run the file with the <code>php</code> command.</p>
+  <pre><code class="language-bash">$ php index.php
+Hello World</code></pre>
+  <h2>Built-in web server</h2>
+  <p>With PHP 5.4 and newer we can start a local php server. In the php folder run the following command and open <code>http://localhost:8000</code> in the browser. The built-in server is only meant for development, never use it on a public server.</p>
+  <pre><code class="language-bash">$ php -S localhost:8000</code></pre>
+  <p>Change <code>index.php</code> to the page below. <code>phpinfo()</code> prints the version of PHP, the loaded extensions and all settings.</p>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;PHP Info&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+  &lt;?php phpinfo(); ?&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>PHP in HTML</h2>
+  <p>PHP can be included in a html page. The PHP need to be written between PHP tags. Everything outside of the tags is sent to the browser as it is.</p>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;PHP Basic&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+  &lt;p&gt;&lt;?php echo 1+1; ?&gt;&lt;/p&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Show all errors</h2>
+  <p>While developing it helps to see every error, warning and notice. Put this at the top of the script. Read more in <a href="/php/debug/">Debug</a>.</p>
+  <pre><code class="language-php">&lt;?php
+error_reporting(E_ALL);</code></pre>
+  <h2>More about PHP</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/index.php">PHP manual</a></li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.php">Object oriented PHP</a> in the manual</li>
+    <li><a href="https://www.php.net/manual/en/reserved.keywords.php">PHP keywords</a>, words that can not be used as names</li>
+    <li><a href="https://phptherightway.com/#code_style_guide">PHP The Right Way</a> has a code style guide and good practices</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

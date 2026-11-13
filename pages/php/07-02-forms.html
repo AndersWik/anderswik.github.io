@@ -1,0 +1,64 @@
+---
+layout: default
+title: Forms
+permalink: /php/forms/
+chapter: "07"
+chapter_title: "Web pages"
+keywords: [php, forms, html form, input, submit, "$_POST", isset, htmlspecialchars, xss]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Forms</h1>
+  <p>A HTML form sends the values the visitor types to a PHP file. The <code>name</code> of every input becomes the key in <code>$_POST</code> or <code>$_GET</code>, depending on the <code>method</code> of the form.</p>
+  <p>The page below shows a form. When the form is submitted to the same file, <code>$_POST['input-field']</code> is set and the page shows what was typed instead.</p>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;PHP Form&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+   &lt;?php if(isset($_POST['input-field'])): ?&gt;
+     &lt;h1&gt;You submited a form&lt;/h1&gt;
+     &lt;p&gt;Your input is: &lt;?php echo htmlspecialchars($_POST['input-field']) ?&gt;&lt;/p&gt;
+   &lt;?php else: ?&gt;
+     &lt;h1&gt;This is a form&lt;/h1&gt;
+     &lt;form action="form.php" method="post"&gt;
+      &lt;p&gt;My Input: &lt;input type="text" name="input-field" /&gt;&lt;/p&gt;
+      &lt;p&gt;&lt;input type="submit" /&gt;&lt;/p&gt;
+     &lt;/form&gt;
+  &lt;?php endif; ?&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <p>Save the file as <code>form.php</code>, start the <a href="/php/introduction/">built-in server</a> and open <code>http://localhost:8000/form.php</code>.</p>
+  <h2>Escape the output</h2>
+  <p>The value is printed with <code>htmlspecialchars</code>. Without it a visitor could type <code>&lt;script&gt;</code> and the browser would run it. This is called cross site scripting (XSS). Escape every value that comes from a visitor or a database when it is printed in HTML.</p>
+  <h2>Validate the input</h2>
+  <p>Check that the value has the type and length you expect before using it. Show the form again with an error if it does not.</p>
+  <pre><code class="language-php">&lt;?php
+$errors = [];
+$name = trim($_POST['name'] ?? '');
+
+if ($name === '') {
+  $errors[] = "Name is required.";
+} elseif (mb_strlen($name) &gt; 100) {
+  $errors[] = "Name can be at most 100 characters.";
+}
+
+$age = filter_var($_POST['age'] ?? '', FILTER_VALIDATE_INT, [
+  "options" =&gt; ["min_range" =&gt; 0, "max_range" =&gt; 150],
+]);
+
+if ($age === false) {
+  $errors[] = "Age must be a number between 0 and 150.";
+}</code></pre>
+  <h2>More about forms</h2>
+  <ul>
+    <li><a href="/php/get/">Get</a> and <a href="/php/post/">Post</a> on the next pages</li>
+    <li><a href="https://www.php.net/manual/en/tutorial.forms.php">Dealing with forms</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/filter.filters.validate.php">Validate filters</a></li>
+    <li><a href="https://www.php.net/manual/en/function.htmlspecialchars.php">htmlspecialchars</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

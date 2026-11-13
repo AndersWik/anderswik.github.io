@@ -1,0 +1,99 @@
+---
+layout: default
+title: MVC controller
+permalink: /php/mvc-controller/
+chapter: "10"
+chapter_title: "MVC"
+keywords: [php, mvc, controller, model view controller, router, validation, redirect]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>MVC controller</h1>
+  <p>The controller connects the parts. It reads the request, validates the input, calls the <a href="/php/mvc-model/">model</a> and renders a <a href="/php/mvc-view/">view</a>. Each public function is called an action and handles one route.</p>
+  <h2>The controller</h2>
+  <pre><code class="language-php">&lt;?php
+// src/NoteController.php
+class NoteController {
+
+  public function __construct(private NoteModel $notes) {
+  }
+
+  public function index(string $error = ''): void {
+    $this-&gt;render('Notes', 'notes/index', [
+      'notes' =&gt; $this-&gt;notes-&gt;all(),
+      'error' =&gt; $error,
+    ]);
+  }
+
+  public function show(string $id): void {
+    $note = ctype_digit($id) ? $this-&gt;notes-&gt;find((int) $id) : null;
+
+    if ($note === null) {
+      http_response_code(404);
+      echo 'Note not found';
+      return;
+    }
+
+    $this-&gt;render($note['title'], 'notes/show', ['note' =&gt; $note]);
+  }
+
+  public function store(): void {
+    $title = trim(is_string($_POST['title'] ?? null) ? $_POST['title'] : '');
+    $body = trim(is_string($_POST['body'] ?? null) ? $_POST['body'] : '');
+
+    if ($title === '' || $body === '' || mb_strlen($title) &gt; 100) {
+      http_response_code(422);
+      $this-&gt;index('Write a title of at most 100 characters and a note.');
+      return;
+    }
+
+    $id = $this-&gt;notes-&gt;create($title, $body);
+    header('Location: /notes/' . $id, true, 303);
+  }
+
+  private function render(string $title, string $template, array $data): void {
+    echo view('layout', [
+      'title' =&gt; $title,
+      'content' =&gt; view($template, $data),
+    ]);
+  }
+}</code></pre>
+  <p>After a note is saved the controller redirects with <code>303 See Other</code>, so reloading the page does not save it again. Read more in <a href="/php/post/">Post</a>.</p>
+  <h2>The front controller</h2>
+  <p><code>index.php</code> creates the objects and connects the routes to the actions.</p>
+  <pre><code class="language-php">&lt;?php
+// public/index.php
+declare(strict_types=1);
+
+require __DIR__ . '/../src/Router.php';
+require __DIR__ . '/../src/NoteModel.php';
+require __DIR__ . '/../src/NoteController.php';
+require __DIR__ . '/../src/view.php';
+
+$pdo = new PDO('sqlite:' . __DIR__ . '/../data/notes.sqlite', null, null, [
+  PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION,
+  PDO::ATTR_DEFAULT_FETCH_MODE =&gt; PDO::FETCH_ASSOC,
+]);
+
+$controller = new NoteController(new NoteModel($pdo));
+
+$router = new Router();
+$router-&gt;get('/', fn() =&gt; $controller-&gt;index());
+$router-&gt;get('/notes/{id}', fn(string $id) =&gt; $controller-&gt;show($id));
+$router-&gt;post('/notes', fn() =&gt; $controller-&gt;store());
+
+$router-&gt;dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);</code></pre>
+  <h2>Run it</h2>
+  <pre><code class="language-bash">$ mkdir data
+$ php -S localhost:8000 -t public public/index.php</code></pre>
+  <p>Open <code>http://localhost:8000</code> and add a note. The form changes data, so a public version should also have a CSRF token, see <a href="/php/sessions/">Sessions</a>.</p>
+  <h2>More about mvc controller</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">Model view controller</a> on Wikipedia</li>
+    <li>Frameworks like <a href="https://laravel.com/">Laravel</a> and <a href="https://symfony.com/">Symfony</a> are built on the same ideas</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

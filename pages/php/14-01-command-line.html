@@ -1,0 +1,89 @@
+---
+layout: default
+title: Command line
+permalink: /php/command-line/
+chapter: "14"
+chapter_title: "Command line"
+keywords: [php, command line, cli, shebang, argv, argc, getopt, STDIN, STDERR, exit code, PHP_SAPI]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Command line</h1>
+  <p>PHP is not only for web pages. Scripts can be run from the terminal, for example to import data, run scheduled jobs with <a href="/linux/crontab/">crontab</a> or build tools.</p>
+  <pre><code class="language-bash">$ php script.php
+$ php -r 'echo PHP_VERSION;'
+$ php -a</code></pre>
+  <p><code>-r</code> runs code directly and <code>-a</code> starts an interactive shell.</p>
+  <h2>Shebang</h2>
+  <p>With a shebang as the first line, the script can be run like any other program. <code>#!/usr/bin/env php</code> finds <code>php</code> in the <code>PATH</code>, which works on more systems than a fixed path like <code>#!/usr/bin/php</code>.</p>
+  <pre><code class="language-bash">#!/usr/bin/php</code></pre>
+  <pre><code class="language-bash">#!/usr/bin/env php
+&lt;?php
+var_dump($argv);
+?&gt;</code></pre>
+  <pre><code class="language-bash">$ chmod +x script.php
+$ ./script.php one two
+array(3) {
+  [0]=&gt;
+  string(12) "./script.php"
+  [1]=&gt;
+  string(3) "one"
+  [2]=&gt;
+  string(3) "two"
+}</code></pre>
+  <h2>Arguments</h2>
+  <p><code>$argv</code> is an array with the name of the script and the arguments, and <code>$argc</code> is the number of items in it.</p>
+  <pre><code class="language-php">&lt;?php
+if ($argc &lt; 2) {
+  fwrite(STDERR, "Usage: php greet.php &lt;name&gt;\n");
+  exit(1);
+}
+
+echo "Hello " . $argv[1] . "\n";</code></pre>
+  <p><code>getopt</code> reads options like <code>-v</code> and <code>--name=Anna</code>. One <code>:</code> means the option needs a value.</p>
+  <pre><code class="language-php">&lt;?php
+$options = getopt("v", ["name:"]);
+
+$verbose = isset($options["v"]);
+$name = $options["name"] ?? "World";
+
+echo "Hello $name\n";</code></pre>
+  <pre><code class="language-bash">$ php greet.php -v --name=Anna
+Hello Anna</code></pre>
+  <h2>Input and output</h2>
+  <p><code>STDIN</code>, <code>STDOUT</code> and <code>STDERR</code> are open from the start. Errors should go to <code>STDERR</code>, so they are not mixed with the output when it is sent on to another program.</p>
+  <pre><code class="language-php">&lt;?php
+echo "What is your name? ";
+$name = trim(fgets(STDIN));
+echo "Hello $name\n";</code></pre>
+  <pre><code class="language-php">&lt;?php
+// Count the lines sent to the script, like: cat file.txt | php count.php
+$count = 0;
+while (($line = fgets(STDIN)) !== false) {
+  $count++;
+}
+echo $count . "\n";</code></pre>
+  <h2>Exit code</h2>
+  <p><code>exit(0)</code> means success and any other number means an error. Other programs and shell scripts check this value.</p>
+  <pre><code class="language-bash">$ php greet.php
+Usage: php greet.php &lt;name&gt;
+$ echo $?
+1</code></pre>
+  <h2>Only run from the command line</h2>
+  <p>A script that should never be run from a browser can check <code>PHP_SAPI</code>.</p>
+  <pre><code class="language-php">&lt;?php
+if (PHP_SAPI !== 'cli') {
+  http_response_code(404);
+  exit;
+}</code></pre>
+  <h2>More about command line</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/features.commandline.php">Command line usage</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.getopt.php">getopt</a></li>
+    <li><a href="/php/phar/">Phar</a> packs a command line tool into one file</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,121 @@
+---
+layout: default
+title: Files
+permalink: /php/files/
+chapter: "11"
+chapter_title: "Files and formats"
+keywords: [php, files, file_exists, is_readable, is_writable, fopen, fread, fwrite, fclose, file_get_contents, file_put_contents, file, FILE_APPEND, LOCK_EX]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Files</h1>
+  <p>PHP can read and write files on the server. The examples use the file <code>data/file.txt</code>. The user that runs PHP, often <code>www-data</code>, must have permission to read and write the folder. Never build a path from a value the visitor sends, like <code>$_GET['file']</code>, since <code>../</code> would let them read any file on the server.</p>
+  <h2>Check a file</h2>
+  <p><code>file_exists</code> checks if a file or folder exists.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$test = file_exists($path);
+if($test) {
+  echo "File exist";
+}</code></pre>
+  <p><code>is_readable</code> checks that the file exists and that PHP is allowed to read it.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$test = is_readable($path);
+if($test) {
+  echo "File is readable";
+}</code></pre>
+  <p><code>is_writable</code> checks that PHP is allowed to write to it.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$test = is_writable($path);
+if($test) {
+  echo "File is writable";
+}</code></pre>
+  <h2>Open, read, write and close</h2>
+  <p><code>fopen</code> opens a file and returns a handle that the other functions use. The second parameter is the mode: <code>r</code> read, <code>w</code> write and empty the file first, <code>a</code> add to the end and <code>x</code> create a new file, which fails if it exists.</p>
+  <p>Read the data from a file.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$file = fopen($path, "r");
+$content = fread($file, filesize($path));
+var_dump($content);
+fclose($file);</code></pre>
+  <p>Write to a file. <code>fwrite</code> returns the number of bytes written.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$content = "This is content";
+$file = fopen($path, "w");
+echo fwrite($file, $content);
+fclose($file);</code></pre>
+  <p>The mode <code>w</code> will truncate the file before writing. While the file is open we can keep calling <code>fwrite()</code>, and each call is added after the last one. To keep what is already in the file, open it with the mode <code>a</code> instead.</p>
+  <p><code>fopen</code> returns <code>false</code> if the file can not be opened. <code>or die</code> stops the script with a message in that case.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$content = "This is content\n";
+$file = fopen($path, 'w') or die('Cannot open file:  '.$path);
+echo fwrite($file, $content);
+echo fwrite($file, $content);
+fclose($file);</code></pre>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$file = fopen($path, 'a') or die('Cannot open file:  '.$path);
+fwrite($file, "One more line\n");
+fclose($file);</code></pre>
+  <h2>Read a whole file</h2>
+  <p>A simpler way to read from a file.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$content = file_get_contents($path);
+echo $content;</code></pre>
+  <p>Can also be used to get an url. Read more in <a href="/php/http-get/">GET</a>.</p>
+  <pre><code class="language-php">&lt;?php
+$url = "https://www.anderswik.se";
+$content = file_get_contents($url);
+echo $content;</code></pre>
+  <h2>Write a whole file</h2>
+  <p>A simpler way to write to a file.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$content = "This is content";
+file_put_contents($path, $content);</code></pre>
+  <p>Using file_put_contents will truncate the file before writing. The solution is to use the <code>FILE_APPEND</code> flag. <code>LOCK_EX</code> locks the file while writing, so two visitors writing at the same time do not mix their lines.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$content = "This is content";
+file_put_contents($path, $content, FILE_APPEND);
+file_put_contents($path, $content, FILE_APPEND | LOCK_EX);</code></pre>
+  <h2>Read line by line</h2>
+  <p><code>file</code> returns the file as an array with one row per line. The flags remove the line breaks and skip empty lines.</p>
+  <pre><code class="language-php">&lt;?php
+$path = "data/file.txt";
+$rows = file($path);
+
+foreach($rows as $row)
+{
+    echo $row;
+}</code></pre>
+  <pre><code class="language-php">&lt;?php
+$rows = file("data/file.txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);</code></pre>
+  <p>For big files, read one line at a time with <code>fgets</code> so the whole file is not loaded into memory.</p>
+  <pre><code class="language-php">&lt;?php
+$file = fopen("data/file.txt", "r");
+while (($line = fgets($file)) !== false) {
+  echo $line;
+}
+fclose($file);</code></pre>
+  <h2>More about files</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.file-exists.php">file_exists</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.is-readable.php">is_readable</a></li>
+    <li><a href="https://www.php.net/manual/en/function.is-writable.php">is_writable</a></li>
+    <li><a href="https://www.php.net/manual/en/function.fopen.php">fopen</a>, <a href="https://www.php.net/manual/en/function.fread.php">fread</a>, <a href="https://www.php.net/manual/en/function.fwrite.php">fwrite</a> and <a href="https://www.php.net/manual/en/function.fclose.php">fclose</a></li>
+    <li><a href="https://www.php.net/manual/en/function.file-get-contents.php">file_get_contents</a></li>
+    <li><a href="https://www.php.net/manual/en/function.file-put-contents.php">file_put_contents</a></li>
+    <li><a href="https://www.php.net/manual/en/function.file.php">file</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,154 @@
+---
+layout: default
+title: Logical operators
+permalink: /php/logical-operators/
+chapter: "04"
+chapter_title: "Operators"
+keywords: [php, logical, operators, and, or, xor, not, "&&", "||", "!"]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Logical operators</h1>
+  <p>When assessing a statement we can add multiple conditions that needs to be true or false.</p>
+  <h2>Name "And"</h2>
+  <p>When the <code>and</code> operator is used both the statement to the left and right of <code>and</code> needs to evaluate to <code>true</code>.</p>
+  <pre><code class="language-php">&lt;?php
+if (true and true) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (true and false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering Else.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (false and false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering Else.</code></pre>
+  <p>The <code>&amp;&amp;</code> works the same as the <code>and</code> operator. Both statement needs to evaluate to true. The only difference is that <code>&amp;&amp;</code> has greater precedence than <code>and</code>. <code>and</code> even has lower precedence than <code>=</code>, so <code>$a = true and false;</code> sets <code>$a</code> to <code>true</code>. Use <code>&amp;&amp;</code> to avoid that.</p>
+  <pre><code class="language-php">&lt;?php
+if (true &amp;&amp; true) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (false &amp;&amp; true) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering Else.</code></pre>
+  <pre><code class="language-bash">      true false
+true  | X | - |
+false | - | - |</code></pre>
+  <h2>Name "Or"</h2>
+  <p>When the <code>or</code> operator is used only one of the statements needs to evaluate to <code>true</code>.</p>
+  <pre><code class="language-php">&lt;?php
+if (true or true) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (true or false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (false or false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering Else.</code></pre>
+  <p>The <code>||</code> works the same as the <code>or</code> operator. Only one statement needs to evaluate to <code>true</code>. The only difference is that <code>||</code> has greater precedence than <code>or</code>.</p>
+  <pre><code class="language-php">&lt;?php
+if (true || false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (false || false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering Else.</code></pre>
+  <pre><code class="language-bash">      true false
+true  | X | X |
+false | X | - |</code></pre>
+  <h2>Name "Xor"</h2>
+  <p>When the <code>xor</code> operator is used only one of the statements can be true.</p>
+  <pre><code class="language-php">&lt;?php
+if (true xor true) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering Else.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (true xor false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (false xor false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering Else.</code></pre>
+  <pre><code class="language-bash">      true false
+true  | - | X |
+false | X | - |</code></pre>
+  <h2>Name "Not"</h2>
+  <p>When the <code>!</code> operator is used the statements value is inverted. True equals false and false equals true.</p>
+  <pre><code class="language-php">&lt;?php
+if (!true) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering Else.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (!false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering Else.";
+}
+// Output: Entering the If.</code></pre>
+  <h2>Short circuit</h2>
+  <p>PHP stops as soon as the answer is known. With <code>&amp;&amp;</code> the right side is not run if the left side is false, and with <code>||</code> it is not run if the left side is true. This is often used to check that something exists before using it.</p>
+  <pre><code class="language-php">&lt;?php
+$user = null;
+
+if ($user !== null &amp;&amp; $user["admin"]) {
+  echo "Admin";
+}
+// Output: nothing, and no warning</code></pre>
+  <h2>More about logical operators</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.operators.logical.php">Logical operators</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

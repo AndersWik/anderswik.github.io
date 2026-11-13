@@ -1,0 +1,107 @@
+---
+layout: default
+title: POST
+permalink: /php/http-post/
+chapter: "12"
+chapter_title: "HTTP"
+keywords: [php, http, post, client, server, stream_context_create, file_get_contents, json, "php://input"]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>POST</h1>
+  <h2>Client</h2>
+  <p>POST request with <code>file_get_contents</code> and <code>stream_context_create</code>. The content is encoded like a form, and the <code>Content-Type</code> header tells the server that.</p>
+  <pre><code class="language-php">&lt;?php
+$content = "param1=Parameter1&amp;param2=Parameter2";
+
+$parameters = array(
+ 'http' =&gt; array
+ (
+   'method' =&gt; 'POST',
+   'header' =&gt; 'Content-Type: application/x-www-form-urlencoded',
+   'content' =&gt; $content
+ )
+);
+
+$context = stream_context_create($parameters);
+$result = file_get_contents("http://localhost:8888/", false, $context );
+echo $result;</code></pre>
+  <p><code>http_build_query</code> creates the content from an array and encodes it correctly.</p>
+  <pre><code class="language-php">&lt;?php
+$content = http_build_query(["param1" =&gt; "Parameter 1", "param2" =&gt; "Parameter &amp; 2"]);</code></pre>
+  <p>We can add headers to the request. Headers like <code>Accept-Encoding: gzip</code> and <code>Connection: keep-alive</code> are left out, since <code>file_get_contents</code> does not unpack gzip and closes the connection anyway.</p>
+  <pre><code class="language-php">&lt;?php
+$content = "param1=Parameter1&amp;param2=Parameter2";
+$parameters = array(
+  'http' =&gt; array
+  (
+    'method' =&gt; 'POST',
+    'header'=&gt; [
+      'Content-Type: application/x-www-form-urlencoded',
+      'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:58.0) Gecko/20100101 Firefox/58.0',
+      'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language: sv-SE,sv;q=0.8,en-US;q=0.5,en;q=0.3',
+    ],
+    'content' =&gt; $content
+  )
+);
+
+$context = stream_context_create($parameters);
+$result = file_get_contents("http://localhost:8888/", false, $context );
+echo $result;</code></pre>
+  <h2>Server</h2>
+  <p>First we need a file to POST to. Start it with <code>php -S localhost:8888</code> in the folder of the file and run the client from another terminal. The values are escaped since they come from the client.</p>
+  <pre><code class="language-php">&lt;html&gt;
+  &lt;body&gt;
+    &lt;h1&gt;POST&lt;/h1&gt;
+    &lt;p&gt;Parameter 1:&lt;?php echo htmlspecialchars($_POST["param1"] ?? ''); ?&gt;&lt;/p&gt;
+    &lt;p&gt;Parameter 2:&lt;?php echo htmlspecialchars($_POST["param2"] ?? ''); ?&gt;&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>JSON</h2>
+  <h3>Client</h3>
+  <p>To send JSON, encode the content with <code>json_encode</code> and set the <code>Content-Type</code> to <code>application/json</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$content = ["param1" =&gt; "Parameter 1", "param2" =&gt; "Parameter2"];
+$parameters = array(
+  'http' =&gt; array
+  (
+    'method' =&gt; 'POST',
+    'header'=&gt; [
+      'Content-Type: application/json',
+      'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:58.0) Gecko/20100101 Firefox/58.0',
+      'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language: sv-SE,sv;q=0.8,en-US;q=0.5,en;q=0.3',
+    ],
+    'content' =&gt; json_encode($content)
+  )
+);
+
+$context = stream_context_create($parameters);
+$result = file_get_contents("http://localhost:8888/", false, $context );
+echo $result;</code></pre>
+  <h3>Server</h3>
+  <p>Since we no longer are sending normal post parameters we need to change how we get the post content. <code>$_POST</code> is only filled for forms, so the body is read from <code>php://input</code> and decoded.</p>
+  <pre><code class="language-php">&lt;html&gt;
+  &lt;body&gt;
+    &lt;h1&gt;POST&lt;/h1&gt;
+    &lt;?php $json = file_get_contents('php://input'); ?&gt;
+    &lt;?php $result = json_decode($json, true); ?&gt;
+    &lt;p&gt;JSON&lt;/p&gt;
+    &lt;?php if(is_array($result)): ?&gt;
+      &lt;p&gt;Parameter 1:&lt;?php echo htmlspecialchars((string) ($result["param1"] ?? '')); ?&gt;&lt;/p&gt;
+      &lt;p&gt;Parameter 2:&lt;?php echo htmlspecialchars((string) ($result["param2"] ?? '')); ?&gt;&lt;/p&gt;
+    &lt;?php endif; ?&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>More about post</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.file-get-contents.php">file_get_contents</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.stream-context-create.php">stream_context_create</a></li>
+    <li><a href="https://www.php.net/manual/en/wrappers.php.php">php://input</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,126 @@
+---
+layout: default
+title: Status codes
+permalink: /php/status-codes/
+chapter: "12"
+chapter_title: "HTTP"
+keywords: [php, http, status codes, response codes, http_response_code, header, location, redirect, 200, 201, 204, 301, 302, 304, 400, 404, 500]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Status codes</h1>
+  <p>The status code in the response tells the client how the request went. <code>2xx</code> means success, <code>3xx</code> redirect, <code>4xx</code> an error by the client and <code>5xx</code> an error on the server. PHP sends <code>200</code> by default. <code>http_response_code</code> sets another code, and must be called before any output.</p>
+  <h2>200 OK (Read, Put, Delete)</h2>
+  <p>The request worked and the response has content.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(200);
+echo json_encode(["id" =&gt; 5, "name" =&gt; "Anna"]);</code></pre>
+  <h2>201 Created (Post, Put)</h2>
+  <p>A new resource was created. The <code>Location</code> header tells where it can be found.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(201);
+header("Location: /users/5");</code></pre>
+  <h2>202 Accepted</h2>
+  <p>The request was accepted but is not finished yet, for example when it is put in a queue.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(202);</code></pre>
+  <h2>204 No Content (Put, Delete)</h2>
+  <p>The request worked but there is no content to send back.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(204);
+exit;</code></pre>
+  <h2>301 Moved Permanently</h2>
+  <p>The page has moved for good. Browsers and search engines remember the new address. The third parameter of <code>header</code> sets the status code.</p>
+  <pre><code class="language-php">&lt;?php
+header("Location: /foo.php",TRUE,301);
+exit;</code></pre>
+  <h2>302 Found</h2>
+  <p>A temporary redirect. <code>header</code> with <code>Location</code> sends <code>302</code> if no other code is given. After a form, use <code>303 See Other</code> so the browser follows it with a GET.</p>
+  <pre><code class="language-php">&lt;?php
+header("Location: /foo.php");
+exit;</code></pre>
+  <pre><code class="language-php">&lt;?php
+header("Location: /foo.php", true, 303);
+exit;</code></pre>
+  <h2>304 Not Modified</h2>
+  <p>The client already has the latest version. It is sent when the <code>ETag</code> the browser has is the same as the current one, and then no body is sent.</p>
+  <pre><code class="language-php">&lt;?php
+$etag = '"' . md5($content) . '"';
+header("ETag: $etag");
+
+if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {
+  http_response_code(304);
+  exit;
+}
+echo $content;</code></pre>
+  <h2>400 Bad Request</h2>
+  <p>The request is wrong, for example a missing parameter or invalid JSON. <code>422 Unprocessable Content</code> is often used when the JSON is valid but the values are not.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(400);
+echo json_encode(["error" =&gt; "id is required"]);</code></pre>
+  <h2>404 Not Found</h2>
+  <pre><code class="language-php">&lt;?php
+http_response_code(404);
+echo "Page not found";</code></pre>
+  <h2>500 Internal Server Error</h2>
+  <p>Something went wrong on the server. Log the details and do not show them to the client.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(500);
+echo "Something went wrong";</code></pre>
+  <h2>Implementation</h2>
+  <h2>Client</h2>
+  <p>The client sends a <code>DELETE</code> with an extra header. <code>CURLOPT_VERBOSE</code> prints the request and response, including the status code, to the terminal.</p>
+  <pre><code class="language-php">&lt;?php
+$ch = curl_init("http://localhost:8888/");
+
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+
+curl_setopt_array($ch, array(
+    CURLOPT_HTTPHEADER  =&gt; array('Bazinga: !!!'),
+    CURLOPT_RETURNTRANSFER  =&gt; 1,
+    CURLOPT_VERBOSE     =&gt; 1
+));
+
+$content = curl_exec($ch);
+
+echo curl_getinfo($ch, CURLINFO_HTTP_CODE) . "\n";
+
+curl_close($ch);
+
+echo $content;</code></pre>
+  <h2>Server</h2>
+  <p>The server answers with a different status code for each method. Start it with <code>php -S localhost:8888</code>.</p>
+  <pre><code class="language-php">&lt;?php
+switch ($_SERVER['REQUEST_METHOD']) {
+  case 'GET':
+    http_response_code(200);
+    $content = "I am in get";
+    break;
+  case 'PUT':
+    http_response_code(201);
+    $content = "I am in put";
+    break;
+  case 'DELETE':
+    http_response_code(200);
+    $content = "I am in delete";
+    break;
+  default:
+    http_response_code(405);
+    header("Allow: GET, PUT, DELETE");
+    $content = "What is ".htmlspecialchars($_SERVER['REQUEST_METHOD']);
+    break;
+}
+
+echo $content;</code></pre>
+  <h2>More about status codes</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.http-response-code.php">http_response_code</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.header.php">header</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">List of HTTP status codes</a> on Wikipedia</li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status">HTTP response status codes</a> at MDN</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

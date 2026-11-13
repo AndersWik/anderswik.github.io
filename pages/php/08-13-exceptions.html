@@ -1,0 +1,94 @@
+---
+layout: default
+title: Exceptions
+permalink: /php/exceptions/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, exceptions, try, catch, finally, throw, Exception, Throwable, Error, custom exception]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Exceptions</h1>
+  <p>An exception is thrown when something goes wrong. It stops the normal flow of the code, until it is caught by a <code>try</code> and <code>catch</code>. If it is never caught the script stops with a fatal error.</p>
+  <h2>Try and catch</h2>
+  <pre><code class="language-php">&lt;?php
+function divide(int $a, int $b): float {
+  if ($b === 0) {
+    throw new InvalidArgumentException("Can not divide by zero");
+  }
+  return $a / $b;
+}
+
+try {
+  echo divide(10, 0);
+} catch (InvalidArgumentException $e) {
+  echo "Error: " . $e-&gt;getMessage();
+}
+// Output: Error: Can not divide by zero</code></pre>
+  <h2>Finally</h2>
+  <p>The code in <code>finally</code> always runs, both when an exception was thrown and when it was not. It is used to clean up, like closing a file.</p>
+  <pre><code class="language-php">&lt;?php
+$file = fopen(__DIR__ . "/data.txt", "r");
+
+try {
+  // Read the file
+} finally {
+  fclose($file);
+}</code></pre>
+  <h2>Catch more than one type</h2>
+  <p>Many <code>catch</code> blocks can follow each other. The first one that matches is used. <code>|</code> catches several types in one block.</p>
+  <pre><code class="language-php">&lt;?php
+try {
+  // Code that can fail
+} catch (InvalidArgumentException | LengthException $e) {
+  echo "Bad input";
+} catch (Exception $e) {
+  echo "Something else went wrong";
+}</code></pre>
+  <h2>Exception and Error</h2>
+  <p><code>Exception</code> is for errors the code can expect, like a missing file. <code>Error</code> is thrown by PHP itself for programming errors, like calling a function that does not exist or a <code>TypeError</code>. Both implement <code>Throwable</code>, so catch <code>Throwable</code> to catch everything.</p>
+  <pre><code class="language-php">&lt;?php
+try {
+  undefinedFunction();
+} catch (Error $e) {
+  echo get_class($e) . ": " . $e-&gt;getMessage();
+}
+// Output: Error: Call to undefined function undefinedFunction()</code></pre>
+  <h2>Custom exception</h2>
+  <p>Extend <code>Exception</code> to create your own type, so it can be caught separately.</p>
+  <pre><code class="language-php">&lt;?php
+class NotFoundException extends Exception {
+}
+
+function findUser(int $id): array {
+  throw new NotFoundException("User $id not found");
+}
+
+try {
+  findUser(5);
+} catch (NotFoundException $e) {
+  http_response_code(404);
+  echo $e-&gt;getMessage();
+}
+// Output: User 5 not found</code></pre>
+  <h2>Do not show the message to visitors</h2>
+  <p>Exception messages can contain paths, SQL or passwords. Log the details with <code>error_log</code> and show a general message on a public site.</p>
+  <pre><code class="language-php">&lt;?php
+try {
+  // Code that can fail
+} catch (Throwable $e) {
+  error_log($e-&gt;getMessage());
+  http_response_code(500);
+  echo "Something went wrong.";
+}</code></pre>
+  <h2>More about exceptions</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.exceptions.php">Exceptions</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/reserved.exceptions.php">Predefined exceptions</a></li>
+    <li><a href="https://www.php.net/manual/en/spl.exceptions.php">SPL exceptions</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

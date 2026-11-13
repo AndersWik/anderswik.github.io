@@ -1,0 +1,54 @@
+---
+layout: default
+title: SOAP server
+permalink: /php/soap-server/
+chapter: "13"
+chapter_title: "Web services"
+keywords: [php, soap, SoapServer, setClass, handle, web service, non-wsdl mode]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>SOAP server</h1>
+  <h2>Server</h2>
+  <p><code>SoapServer</code> turns a PHP class into a SOAP service. Without a WSDL file, called non WSDL mode, the option <code>uri</code> is required and is the namespace of the service. All public functions in the class can be called.</p>
+  <pre><code class="language-php">&lt;?php
+// server.php
+class Calculator {
+
+    public function add(int $a, int $b): int {
+        return $a + $b;
+    }
+
+    public function subtract(int $a, int $b): int {
+        return $a - $b;
+    }
+}
+
+$server = new SoapServer(null, ['uri' =&gt; 'urn:Calculator']);
+$server-&gt;setClass(Calculator::class);
+$server-&gt;handle();</code></pre>
+  <h2>Run the server</h2>
+  <pre><code class="language-bash">$ php -S localhost:8000</code></pre>
+  <h2>Errors</h2>
+  <p>Throw a <code>SoapFault</code> to send an error to the client. Add this function to the <code>Calculator</code> class.</p>
+  <pre><code class="language-php">&lt;?php
+class Calculator {
+
+    public function divide(int $a, int $b): float {
+        if ($b === 0) {
+            throw new SoapFault('Client', 'Can not divide by zero');
+        }
+        return $a / $b;
+    }
+}</code></pre>
+  <h2>More about soap server</h2>
+  <ul>
+    <li><a href="/php/soap-client/">SOAP client</a> on the next page</li>
+    <li><a href="https://www.php.net/manual/en/class.soapserver.php">SoapServer</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/class.soapfault.php">SoapFault</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

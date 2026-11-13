@@ -1,0 +1,91 @@
+---
+layout: default
+title: Functions
+permalink: /php/functions/
+chapter: "06"
+chapter_title: "Functions"
+keywords: [php, functions, function, parameters, default value, return, global, scope]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Functions</h1>
+  <p>In php we can encapsulate code in functions. A function is written once and can then be called many times.</p>
+  <p>When defining a function we start with the function keyword. Then the name of the function.</p>
+  <p>All function names start with a letter or underscore. The rest of the name can be a letter (a-z/A-Z), number or underscore.</p>
+  <p>The functions code need to be between the curly braces. A function can contain any valid php code.</p>
+  <pre><code class="language-php">&lt;?php
+function printString() {
+  echo "Hello";
+}
+
+printString();
+// Output: Hello</code></pre>
+  <h2>Parameters</h2>
+  <p>A function can have parameters. These variables can be used inside the function.</p>
+  <pre><code class="language-php">&lt;?php
+$parameter = "Hello";
+
+function printString($par) {
+  echo $par;
+}
+
+printString($parameter);
+// Output: Hello</code></pre>
+  <p>If we call a function with parameters without passing any parameters we get an error.</p>
+  <pre><code class="language-php">&lt;?php
+printString();
+
+// Fatal error: Uncaught ArgumentCountError:
+// Too few arguments to function printString()</code></pre>
+  <h2>Default value</h2>
+  <p>We can give a default value to the parameters when defining the function. This allows us to call the function without passing any parameters.</p>
+  <pre><code class="language-php">&lt;?php
+function printString($par = "Unknown") {
+  echo $par;
+}
+
+printString();
+// Output: Unknown</code></pre>
+  <h2>Return</h2>
+  <p><code>return</code> sends a value back to the code that called the function and stops the function. It is often better to return a value than to print it, then the caller decides what to do with it.</p>
+  <pre><code class="language-php">&lt;?php
+function add($a, $b) {
+  return $a + $b;
+}
+
+$sum = add(2, 3);
+echo $sum;
+// Output: 5</code></pre>
+  <h2>Scope</h2>
+  <p>The variables in the function have a local scope. In the following function we try to access a global variable.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "Hello";
+function printString() {
+  echo $val;
+}
+
+printString();
+// Output: Warning: Undefined variable $val</code></pre>
+  <p>The output becomes nothing but a warning, because the variable is not defined in the local scope.</p>
+  <p>To access a global variable in the function we must use the <code>global</code> key word.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "Hello";
+function printString() {
+  global $val;
+  echo $val;
+}
+
+printString();
+// Output: Hello</code></pre>
+  <p>Note: using the global keyword can make the code unclear. It is better to pass the variables as parameters to the function. Read more in <a href="/php/variable-scope/">Variable scope</a>.</p>
+  <h2>More about functions</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/functions.user-defined.php">User defined functions</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/functions.arguments.php">Function arguments</a></li>
+    <li><a href="https://www.php.net/manual/en/functions.returning-values.php">Returning values</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,59 @@
+---
+layout: default
+title: HTTP
+permalink: /php/http/
+chapter: "12"
+chapter_title: "HTTP"
+keywords: [php, http, request, response, headers, methods, status code, apache_request_headers]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>HTTP</h1>
+  <p>HTTP is the protocol browsers and servers use to talk. The client sends a request with a method, a path, headers and sometimes a body. The server answers with a status code, headers and a body.</p>
+  <pre><code class="language-bash">GET /index.php?id=5 HTTP/1.1
+Host: www.anderswik.se
+User-Agent: curl/8.5.0
+Accept: */*</code></pre>
+  <pre><code class="language-bash">HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 1256
+
+&lt;html&gt;...</code></pre>
+  <p>The <a href="/linux/curl/">curl</a> command shows the full request and response with <code>-v</code>.</p>
+  <pre><code class="language-bash">$ curl -v https://www.anderswik.se</code></pre>
+  <h2>Methods</h2>
+  <ul>
+    <li><code>GET</code> reads a resource</li>
+    <li><code>POST</code> creates a resource or sends data to be processed</li>
+    <li><code>PUT</code> replaces a resource</li>
+    <li><code>PATCH</code> changes a part of a resource</li>
+    <li><code>DELETE</code> removes a resource</li>
+    <li><code>HEAD</code> is like GET but only returns the headers</li>
+  </ul>
+  <h2>The request in PHP</h2>
+  <p>The method is in <code>$_SERVER['REQUEST_METHOD']</code>, the path in <code>$_SERVER['REQUEST_URI']</code> and the headers can be read with <code>apache_request_headers</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$headers = apache_request_headers();
+
+foreach ($headers as $header =&gt; $value) {
+  echo htmlspecialchars("$header: $value") . "&lt;br&gt;";
+}</code></pre>
+  <h2>The response in PHP</h2>
+  <p>The status code is set with <code>http_response_code</code> and headers with <code>header</code>. Both must be called before any output.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(200);
+header("Content-Type: text/plain; charset=utf-8");
+echo "Hello";</code></pre>
+  <h2>Make requests from PHP</h2>
+  <p>The next pages show how PHP itself can send requests to other servers, with <a href="/php/http-get/">GET</a>, <a href="/php/http-post/">POST</a> and <a href="/php/curl/">cURL</a>.</p>
+  <h2>More about http</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP">HTTP</a> at MDN</li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP request methods</a></li>
+    <li><a href="/php/status-codes/">Status codes</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

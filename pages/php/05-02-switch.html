@@ -1,0 +1,120 @@
+---
+layout: default
+title: Switch statements
+permalink: /php/switch/
+chapter: "05"
+chapter_title: "Control structures"
+keywords: [php, switch, case, break, default, match, template syntax, endswitch]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Switch statements</h1>
+  <p>A <code>switch</code> compares one value with many <code>case</code> values and runs the code for the first one that matches. <code>switch</code> uses loose comparison, like <code>==</code>.</p>
+  <p>We can use booleans.</p>
+  <pre><code class="language-php">&lt;?php
+$val = true;
+
+switch($val) {
+  case true:
+   echo "Hello.";
+  break;
+  case false:
+   echo "Good bye.";
+}
+// Output: Hello.</code></pre>
+  <p>We can use int.</p>
+  <pre><code class="language-php">&lt;?php
+$val = 2;
+
+switch($val) {
+  case 1:
+   echo "Hello.";
+  break;
+  case 2:
+   echo "Good bye.";
+}
+// Output: Good bye.</code></pre>
+  <p>We can use a string.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "Two";
+
+switch($val) {
+  case "One":
+   echo "Option One.";
+   break;
+  case "Two":
+   echo "Option Two.";
+   break;
+  case "Three":
+   echo "Option Three.";
+}
+// Output: Option Two.</code></pre>
+  <h2>Break</h2>
+  <p>We can omit the breaks from the switch. Then all options after and including the match will be executed.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "Two";
+
+switch($val) {
+  case "One":
+   echo "Option One. ";
+  case "Two":
+   echo "Option Two. ";
+  case "Three":
+   echo "Option Three.";
+}
+// Output: Option Two. Option Three.</code></pre>
+  <h2>Default</h2>
+  <p>We can add a default option to a switch. It runs when no case matches.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "Something else";
+
+switch($val) {
+  case "One":
+   echo "Option One.";
+  break;
+  case "Two":
+   echo "Option Two.";
+  default:
+   echo "Default Option.";
+}
+// Output: Default Option.</code></pre>
+  <h3>Template syntax</h3>
+  <p>There can not be any output, not even whitespace, between <code>switch:</code> and the first <code>case</code>. That is why the PHP tags below start at the beginning of the line.</p>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;Switch&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+&lt;?php $val = "One"; ?&gt;
+&lt;?php switch($val): ?&gt;
+&lt;?php case "One": ?&gt;
+   &lt;p&gt;Option One.&lt;/p&gt;
+&lt;?php break; ?&gt;
+&lt;?php case "Two": ?&gt;
+  &lt;p&gt;Option Two.&lt;/p&gt;
+&lt;?php endswitch; ?&gt;
+   &lt;?php // Output: Option One. ?&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Match</h2>
+  <p>PHP 8 added <code>match</code>. It returns a value, uses strict comparison (<code>===</code>), needs no <code>break</code> and throws an <code>UnhandledMatchError</code> if nothing matches and there is no <code>default</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "Two";
+
+echo match($val) {
+  "One" =&gt; "Option One.",
+  "Two", "Three" =&gt; "Option Two or Three.",
+  default =&gt; "Default Option.",
+};
+// Output: Option Two or Three.</code></pre>
+  <h2>More about switch statements</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/control-structures.switch.php">switch</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/control-structures.match.php">match</a></li>
+    <li><a href="https://www.php.net/manual/en/control-structures.alternative-syntax.php">Alternative syntax</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

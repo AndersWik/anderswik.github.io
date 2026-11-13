@@ -1,0 +1,99 @@
+---
+layout: default
+title: WSDL
+permalink: /php/soap-wsdl/
+chapter: "13"
+chapter_title: "Web services"
+keywords: [php, soap, wsdl, web services description language, xml, SoapServer, SoapClient, wsdl cache]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>WSDL</h1>
+  <h2>Wsdl</h2>
+  <p>WSDL, Web Services Description Language, is an XML file that describes a SOAP service: which operations it has, which parameters and return values they use and the address of the service. PHP can read WSDL files but not create them. They are written by hand or generated with a tool.</p>
+  <p>This WSDL describes the <code>add</code> function of the calculator. Save it as <code>calculator.wsdl</code> next to the server.</p>
+  <pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;definitions name="Calculator"
+  targetNamespace="urn:Calculator"
+  xmlns:tns="urn:Calculator"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://schemas.xmlsoap.org/wsdl/"&gt;
+
+  &lt;message name="addRequest"&gt;
+    &lt;part name="a" type="xsd:int"/&gt;
+    &lt;part name="b" type="xsd:int"/&gt;
+  &lt;/message&gt;
+  &lt;message name="addResponse"&gt;
+    &lt;part name="result" type="xsd:int"/&gt;
+  &lt;/message&gt;
+
+  &lt;portType name="CalculatorPortType"&gt;
+    &lt;operation name="add"&gt;
+      &lt;input message="tns:addRequest"/&gt;
+      &lt;output message="tns:addResponse"/&gt;
+    &lt;/operation&gt;
+  &lt;/portType&gt;
+
+  &lt;binding name="CalculatorBinding" type="tns:CalculatorPortType"&gt;
+    &lt;soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/&gt;
+    &lt;operation name="add"&gt;
+      &lt;soap:operation soapAction="urn:Calculator#add"/&gt;
+      &lt;input&gt;
+        &lt;soap:body use="encoded" namespace="urn:Calculator" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/&gt;
+      &lt;/input&gt;
+      &lt;output&gt;
+        &lt;soap:body use="encoded" namespace="urn:Calculator" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/&gt;
+      &lt;/output&gt;
+    &lt;/operation&gt;
+  &lt;/binding&gt;
+
+  &lt;service name="CalculatorService"&gt;
+    &lt;port name="CalculatorPort" binding="tns:CalculatorBinding"&gt;
+      &lt;soap:address location="http://localhost:8000/server.php"/&gt;
+    &lt;/port&gt;
+  &lt;/service&gt;
+&lt;/definitions&gt;</code></pre>
+  <ul>
+    <li><code>message</code> lists the parameters and the return value</li>
+    <li><code>portType</code> lists the operations</li>
+    <li><code>binding</code> says how the messages are sent, here as SOAP RPC</li>
+    <li><code>service</code> has the address of the server</li>
+  </ul>
+  <h2>Server with WSDL</h2>
+  <pre><code class="language-php">&lt;?php
+// server.php
+class Calculator {
+
+    public function add(int $a, int $b): int {
+        return $a + $b;
+    }
+}
+
+$server = new SoapServer(__DIR__ . '/calculator.wsdl');
+$server-&gt;setClass(Calculator::class);
+$server-&gt;handle();</code></pre>
+  <h2>Client with WSDL</h2>
+  <pre><code class="language-php">&lt;?php
+$client = new SoapClient('http://localhost:8000/calculator.wsdl');
+echo $client-&gt;add(2, 3);
+// Output: 5</code></pre>
+  <h2>WSDL cache</h2>
+  <p>PHP saves WSDL files in a cache, so changes to the file are not seen at once. Turn the cache off while developing.</p>
+  <pre><code class="language-php">&lt;?php
+ini_set('soap.wsdl_cache_enabled', '0');
+
+$client = new SoapClient('http://localhost:8000/calculator.wsdl', [
+    'cache_wsdl' =&gt; WSDL_CACHE_NONE,
+]);</code></pre>
+  <h2>More about wsdl</h2>
+  <ul>
+    <li><a href="https://www.w3.org/TR/wsdl">WSDL</a> at W3C</li>
+    <li><a href="https://www.php.net/manual/en/class.soapserver.php">SoapServer</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/class.soapclient.php">SoapClient</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

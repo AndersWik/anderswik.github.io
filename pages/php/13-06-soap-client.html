@@ -1,0 +1,67 @@
+---
+layout: default
+title: SOAP client
+permalink: /php/soap-client/
+chapter: "13"
+chapter_title: "Web services"
+keywords: [php, soap, SoapClient, "__soapCall", SoapFault, web service, wsdl]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>SOAP client</h1>
+  <h2>Client</h2>
+  <p><code>SoapClient</code> calls the functions of a service as if they were functions on a PHP object. Without a WSDL file, <code>location</code> is the address of the server and <code>uri</code> its namespace. Run the client from the terminal while the <a href="/php/soap-server/">server</a> is running in another.</p>
+  <pre><code class="language-php">&lt;?php
+// client.php
+$client = new SoapClient(null, [
+    'location' =&gt; 'http://localhost:8000/server.php',
+    'uri' =&gt; 'urn:Calculator',
+    'connection_timeout' =&gt; 10,
+    'exceptions' =&gt; true,
+]);
+
+echo $client-&gt;add(2, 3);
+// Output: 5
+
+echo $client-&gt;__soapCall('subtract', [10, 4]);
+// Output: 6</code></pre>
+  <h2>With WSDL</h2>
+  <p>With a WSDL file the client knows all functions and types by itself, so only the address of the WSDL is needed. See <a href="/php/soap-wsdl/">WSDL</a>.</p>
+  <pre><code class="language-php">&lt;?php
+$client = new SoapClient('http://localhost:8000/calculator.wsdl');
+
+print_r($client-&gt;__getFunctions());
+// Output: Array ( [0] =&gt; int add(int $a, int $b) )
+
+echo $client-&gt;add(2, 3);
+// Output: 5</code></pre>
+  <h2>Errors</h2>
+  <p>Errors from the server and network errors are thrown as a <code>SoapFault</code>.</p>
+  <pre><code class="language-php">&lt;?php
+try {
+    echo $client-&gt;divide(1, 0);
+} catch (SoapFault $e) {
+    echo "Error: " . $e-&gt;getMessage();
+}</code></pre>
+  <h2>Debug</h2>
+  <p>With <code>trace</code> the client saves the last request and response, which shows the XML that was sent.</p>
+  <pre><code class="language-php">&lt;?php
+$client = new SoapClient(null, [
+    'location' =&gt; 'http://localhost:8000/server.php',
+    'uri' =&gt; 'urn:Calculator',
+    'trace' =&gt; true,
+]);
+
+$client-&gt;add(2, 3);
+echo $client-&gt;__getLastRequest();
+echo $client-&gt;__getLastResponse();</code></pre>
+  <h2>More about soap client</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/class.soapclient.php">SoapClient</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/soapclient.construct.php">SoapClient options</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

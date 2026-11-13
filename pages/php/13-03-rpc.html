@@ -1,0 +1,104 @@
+---
+layout: default
+title: RPC
+permalink: /php/rpc/
+chapter: "13"
+chapter_title: "Web services"
+keywords: [php, rpc, json-rpc, remote procedure call, api, json, web service]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>RPC</h1>
+  <p>RPC, remote procedure call, means calling a function on another server as if it was a local function. Instead of resources like in <a href="/php/rest-api/">REST</a>, the client sends the name of a method and its parameters. JSON-RPC is a simple version that uses JSON over HTTP POST.</p>
+  <pre><code class="language-bash">--&gt; {"jsonrpc": "2.0", "method": "add", "params": [2, 3], "id": 1}
+&lt;-- {"jsonrpc": "2.0", "result": 5, "id": 1}</code></pre>
+  <h2>Server</h2>
+  <p>The methods that can be called are listed in an array. Never call a function directly from the name the client sends, then the client could call any PHP function. Errors use the codes from the JSON-RPC specification.</p>
+  <pre><code class="language-php">&lt;?php
+// rpc.php
+declare(strict_types=1);
+
+header('Content-Type: application/json');
+
+$methods = [
+    'add' =&gt; fn(int $a, int $b): int =&gt; $a + $b,
+    'hello' =&gt; fn(string $name): string =&gt; "Hello $name",
+];
+
+function rpcError(mixed $id, int $code, string $message): never {
+    echo json_encode(['jsonrpc' =&gt; '2.0', 'error' =&gt; ['code' =&gt; $code, 'message' =&gt; $message], 'id' =&gt; $id]);
+    exit;
+}
+
+$request = json_decode(file_get_contents('php://input'), true);
+
+if (json_last_error() !== JSON_ERROR_NONE) {
+    rpcError(null, -32700, 'Parse error');
+}
+
+if (!is_array($request) || ($request['jsonrpc'] ?? null) !== '2.0' || !is_string($request['method'] ?? null)) {
+    rpcError(null, -32600, 'Invalid Request');
+}
+
+$id = $request['id'] ?? null;
+$method = $methods[$request['method']] ?? null;
+$params = $request['params'] ?? [];
+
+if ($method === null) {
+    rpcError($id, -32601, 'Method not found');
+}
+
+if (!is_array($params)) {
+    rpcError($id, -32602, 'Invalid params');
+}
+
+try {
+    $result = $method(...$params);
+} catch (Error $e) {
+    rpcError($id, -32602, 'Invalid params');
+}
+
+echo json_encode(['jsonrpc' =&gt; '2.0', 'result' =&gt; $result, 'id' =&gt; $id]);</code></pre>
+  <p><code>params</code> can be a list or an object. An object is passed as named arguments, so <code>{"a": 2, "b": 3}</code> also works. Wrong types or missing parameters throw an <code>Error</code>, which is returned as invalid params.</p>
+  <h2>Client</h2>
+  <p>The built-in server only handles one request at a time, so start the server in one terminal and run the client in another.</p>
+  <pre><code class="language-php">&lt;?php
+// client.php
+function rpc(string $method, array $params): mixed {
+    static $id = 0;
+
+    $context = stream_context_create([
+        'http' =&gt; [
+            'method' =&gt; 'POST',
+            'header' =&gt; 'Content-Type: application/json',
+            'content' =&gt; json_encode(['jsonrpc' =&gt; '2.0', 'method' =&gt; $method, 'params' =&gt; $params, 'id' =&gt; ++$id]),
+            'timeout' =&gt; 10,
+        ],
+    ]);
+
+    $response = json_decode(file_get_contents('http://localhost:8000/rpc.php', false, $context), true);
+
+    if (isset($response['error'])) {
+        throw new RuntimeException($response['error']['message'], $response['error']['code']);
+    }
+    return $response['result'];
+}
+
+echo rpc('add', [2, 3]);
+// Output: 5
+
+echo rpc('hello', ['name' =&gt; 'Anna']);
+// Output: Hello Anna</code></pre>
+  <pre><code class="language-bash">$ php -S localhost:8000
+$ php client.php</code></pre>
+  <h2>More about rpc</h2>
+  <ul>
+    <li><a href="https://www.jsonrpc.org/specification">JSON-RPC 2.0 specification</a></li>
+    <li><a href="/php/soap/">SOAP</a> is an older RPC style that uses XML</li>
+    <li><a href="https://en.wikipedia.org/wiki/Remote_procedure_call">Remote procedure call</a> on Wikipedia</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

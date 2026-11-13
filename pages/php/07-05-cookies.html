@@ -1,0 +1,54 @@
+---
+layout: default
+title: Cookies
+permalink: /php/cookies/
+chapter: "07"
+chapter_title: "Web pages"
+keywords: [php, cookies, setcookie, "$_COOKIE", httponly, secure, samesite, delete cookie]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Cookies</h1>
+  <p>A cookie is a small value that the server asks the browser to store. The browser sends it back with every request to the same site. Cookies are stored by the visitor, who can read and change them, so never store secrets or trust the value.</p>
+  <h2>Get cookie</h2>
+  <p>To get the value from the cookie we use the COOKIE super global variable. Use <code>??</code> in case the cookie is not set.</p>
+  <pre><code class="language-php">&lt;?php
+echo $_COOKIE['ACookie'] ?? 'No cookie';</code></pre>
+  <h2>Set cookie</h2>
+  <p><code>setcookie</code> takes a name, a value and the time when it expires as a Unix timestamp. Here one hour from now. It sends a header, so it must be called before any output.</p>
+  <pre><code class="language-php">&lt;?php
+setcookie("ACookie", 'Testing', time()+3600);</code></pre>
+  <p>The new cookie is not in <code>$_COOKIE</code> until the next request, when the browser sends it back.</p>
+  <p>Cookies can be named like an array. They are then read as an array from <code>$_COOKIE['ACookie']</code>.</p>
+  <pre><code class="language-php">&lt;?php
+setcookie("ACookie[one]", 'Test 1', time()+3600);
+setcookie("ACookie[two]", 'Test 2', time()+3600);</code></pre>
+  <h2>Set cookie with options</h2>
+  <p>Since PHP 7.3 the options can be given as an array. <code>httponly</code> hides the cookie from JavaScript, <code>secure</code> only sends it over HTTPS and <code>samesite</code> stops it from being sent with requests from other sites.</p>
+  <pre><code class="language-php">&lt;?php
+setcookie("ACookie", 'Testing', [
+  'expires' =&gt; time() + 3600,
+  'path' =&gt; '/',
+  'secure' =&gt; true,
+  'httponly' =&gt; true,
+  'samesite' =&gt; 'Lax',
+]);</code></pre>
+  <h2>Update cookie</h2>
+  <p>When updating a cookie we set the new value to the same cookie name.</p>
+  <pre><code class="language-php">&lt;?php
+setcookie("ACookie", 'Testing', time()+3600);</code></pre>
+  <h2>Delete cookie</h2>
+  <p>If we want to remove a cookie we set an expiration time that has passed and an empty value. The path must be the same as when the cookie was set.</p>
+  <pre><code class="language-php">&lt;?php
+setcookie("ACookie", '', time() - 3600);</code></pre>
+  <h2>More about cookies</h2>
+  <ul>
+    <li><a href="/php/sessions/">Sessions</a> store the data on the server and only keep an id in a cookie</li>
+    <li><a href="https://www.php.net/manual/en/function.setcookie.php">setcookie</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.cookies.php">$_COOKIE</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

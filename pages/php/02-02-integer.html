@@ -1,0 +1,91 @@
+---
+layout: default
+title: Integer
+permalink: /php/integer/
+chapter: "02"
+chapter_title: "Variables"
+keywords: [php, integer, int, is_int, gettype, cast, constant, define, number]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Integer</h1>
+  <p>A Integer value is a number without any decimals.</p>
+  <pre><code class="language-php">&lt;?php
+$val = 123;
+
+echo gettype( $val );
+// Output: integer
+
+echo is_int( $val );
+// Output: 1</code></pre>
+  <p><code>echo</code> prints <code>true</code> as <code>1</code> and <code>false</code> as nothing, which is why <code>is_int</code> prints <code>1</code>.</p>
+  <h2>Casting</h2>
+  <p>We can cast other variables to integers. We can cast a boolean to a integer.</p>
+  <pre><code class="language-php">&lt;?php
+$variable = true;
+var_dump( (int) $variable );
+// Output: int(1)
+
+$variable = false;
+var_dump( (int) $variable );
+// Output: int(0)</code></pre>
+  <p>We can also cast a float to a integer.</p>
+  <pre><code class="language-php">&lt;?php
+$variable = -1.3;
+var_dump( (int) $variable );
+// Output: int(-1)
+
+$variable = 0.0;
+var_dump( (int) $variable );
+// Output: int(0)
+
+$variable = 1.6;
+var_dump( (int) $variable );
+// Output: int(1)</code></pre>
+  <p>Notice that <code>1.6</code> is not rounded up. Instead the decimal is cut off. Use <code>round</code> if the number should be rounded. We can also cast a string to a integer.</p>
+  <pre><code class="language-php">&lt;?php
+$variable = "-1.5";
+var_dump( (int) $variable );
+// Output: int(-1)
+
+$variable = "-1";
+var_dump( (int) $variable );
+// Output: int(-1)
+
+$variable = "0";
+var_dump( (int) $variable );
+// Output: int(0)
+
+$variable = "1";
+var_dump( (int) $variable );
+// Output: int(1)
+
+$variable = "1.5";
+var_dump( (int) $variable );
+// Output: int(1)
+
+$variable = "Some string";
+var_dump( (int) $variable );
+// Output: int(0)</code></pre>
+  <h2>Defining Constants</h2>
+  <h3>Integer Constant</h3>
+  <pre><code class="language-php">&lt;?php
+define("INTEGERCONSTANT", 123);
+
+echo gettype( INTEGERCONSTANT );
+//Outputs: integer
+
+echo INTEGERCONSTANT;
+//Outputs: 123</code></pre>
+  <h2>More about integer</h2>
+  <ul>
+    <li><code>PHP_INT_MAX</code> is the largest integer, 9223372036854775807 on 64 bit systems. Bigger numbers become floats.</li>
+    <li><code>intdiv(7, 2)</code> divides and returns an integer, <code>3</code></li>
+    <li><a href="https://www.php.net/manual/en/language.types.integer.php">Integers</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.types.numeric-strings.php">String conversion to numbers</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

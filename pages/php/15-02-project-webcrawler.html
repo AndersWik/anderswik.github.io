@@ -1,0 +1,272 @@
+---
+layout: default
+title: "Project: Web crawler"
+permalink: /php/project-webcrawler/
+chapter: "15"
+chapter_title: "Projects"
+keywords: [php, project, tutorial, web crawler, spider, scraper, curl, domdocument, robots.txt, links, command line]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Project: Web crawler</h1>
+  <p>A web crawler starts at one page, finds all links on it, visits them and continues with the links on those pages. Search engines use crawlers to find pages. In this tutorial we build a small and polite crawler for the command line that lists the pages of one site with their status code and title.</p>
+  <h2>What it does</h2>
+  <pre><code class="language-bash">$ php crawl.php https://example.com/ 20
+200  https://example.com/  Example Domain
+200  https://example.com/about  About us
+404  https://example.com/old-page</code></pre>
+  <ul>
+    <li>Starts at the given URL and visits at most the given number of pages, 20 by default</li>
+    <li>Only follows links on the same host</li>
+    <li>Prints the status code, URL and title of every page</li>
+  </ul>
+  <h2>What makes it safe and polite</h2>
+  <ul>
+    <li>Only <code>http</code> and <code>https</code> URLs are followed, also after redirects, so links like <code>file://</code> or <code>javascript:</code> are never fetched</li>
+    <li>Every request has a timeout and a maximum size, so a slow or huge page can not hang the crawler</li>
+    <li>It waits one second between requests and stops after a fixed number of pages, so it never overloads a server</li>
+    <li>It reads <code>robots.txt</code> and skips the paths the site asks crawlers to avoid</li>
+    <li>It sends a <code>User-Agent</code> that says what it is</li>
+    <li>Titles from the pages are cleaned of control characters before they are printed, since they could otherwise send escape codes to the terminal</li>
+    <li>SSL certificates are always verified</li>
+  </ul>
+  <h2>Requirements</h2>
+  <p>PHP 8.0 or newer with the <code>curl</code> and <code>dom</code> extensions.</p>
+  <pre><code class="language-bash">$ php -m | grep -E "curl|dom"</code></pre>
+  <h2>Step 1: Settings and fetching a page</h2>
+  <p>All code goes into one file, <code>crawl.php</code>. Each step below adds to the end of the file, the <code>&lt;?php</code> line is only written once at the top. Change the <code>User-Agent</code> to point to a page about your crawler.</p>
+  <p><code>fetch</code> downloads one URL with <a href="/php/curl/">cURL</a> and returns the body, the status code, the content type and the final URL after redirects.</p>
+  <pre><code class="language-php">&lt;?php
+// crawl.php
+declare(strict_types=1);
+
+const USER_AGENT = 'MyCrawler/1.0 (+https://example.com/crawler)';
+const DELAY_SECONDS = 1;
+
+function fetch(string $url): array
+{
+    $curl = curl_init($url);
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER =&gt; true,
+        CURLOPT_FOLLOWLOCATION =&gt; true,
+        CURLOPT_MAXREDIRS =&gt; 5,
+        CURLOPT_PROTOCOLS =&gt; CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_REDIR_PROTOCOLS =&gt; CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_CONNECTTIMEOUT =&gt; 5,
+        CURLOPT_TIMEOUT =&gt; 15,
+        CURLOPT_MAXFILESIZE =&gt; 5_000_000,
+        CURLOPT_USERAGENT =&gt; USER_AGENT,
+    ]);
+
+    $body = curl_exec($curl);
+
+    return [
+        'body' =&gt; is_string($body) ? $body : '',
+        'status' =&gt; (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE),
+        'type' =&gt; (string) curl_getinfo($curl, CURLINFO_CONTENT_TYPE),
+        'url' =&gt; (string) curl_getinfo($curl, CURLINFO_EFFECTIVE_URL),
+        'error' =&gt; curl_error($curl),
+    ];
+}</code></pre>
+  <h2>Step 2: Turn links into full URLs</h2>
+  <p>Links on a page can be written in many ways: <code>https://example.com/a</code>, <code>//example.com/a</code>, <code>/a</code>, <code>?page=2</code> or just <code>a</code>. <code>resolveUrl</code> turns them into full URLs based on the page they were found on. Fragments like <code>#top</code> are removed, since they point to the same page. Links with any other scheme, like <code>mailto:</code>, are skipped.</p>
+  <p>This handles the common cases. It does not clean up <code>../</code> in paths or read a <code>&lt;base&gt;</code> tag, which is fine for a small crawler since every URL is only visited once anyway.</p>
+  <pre><code class="language-php">&lt;?php
+function resolveUrl(string $href, string $base): ?string
+{
+    $href = explode('#', trim($href), 2)[0];
+    if ($href === '') {
+        return null;
+    }
+
+    $parts = parse_url($href);
+    if ($parts === false) {
+        return null;
+    }
+
+    if (isset($parts['scheme'])) {
+        return in_array(strtolower($parts['scheme']), ['http', 'https'], true) ? $href : null;
+    }
+
+    $b = parse_url($base);
+    $origin = $b['scheme'] . '://' . $b['host'] . (isset($b['port']) ? ':' . $b['port'] : '');
+    $basePath = $b['path'] ?? '/';
+
+    if (str_starts_with($href, '//')) {
+        return $b['scheme'] . ':' . $href;
+    }
+    if (str_starts_with($href, '/')) {
+        return $origin . $href;
+    }
+    if (str_starts_with($href, '?')) {
+        return $origin . $basePath . $href;
+    }
+
+    $dir = preg_replace('#/[^/]*$#', '/', $basePath);
+    return $origin . $dir . $href;
+}</code></pre>
+  <h2>Step 3: Read the title and the links</h2>
+  <p><code>DOMDocument</code> parses the HTML. Real pages are often not valid HTML, so the warnings are turned off. The <code>&lt;?xml encoding&gt;</code> in front tells the parser that the page is UTF-8, which most pages are.</p>
+  <p><code>cleanText</code> removes control characters, both the normal ones and the ones from <code>U+0080</code> to <code>U+009F</code>, and squeezes whitespace.</p>
+  <pre><code class="language-php">&lt;?php
+function cleanText(string $text): string
+{
+    $text = preg_replace('/[\x00-\x1F\x7F\x{80}-\x{9F}]+/u', ' ', $text) ?? '';
+    return trim(preg_replace('/ {2,}/', ' ', $text) ?? '');
+}
+
+function parseHtml(string $html, string $baseUrl): array
+{
+    if (trim($html) === '') {
+        return ['', []];
+    }
+
+    $dom = new DOMDocument();
+    libxml_use_internal_errors(true);
+    $dom-&gt;loadHTML('&lt;?xml encoding="UTF-8"&gt;' . $html, LIBXML_NONET);
+    libxml_clear_errors();
+
+    $titleNode = $dom-&gt;getElementsByTagName('title')-&gt;item(0);
+    $title = $titleNode !== null ? cleanText($titleNode-&gt;textContent) : '';
+
+    $links = [];
+    foreach ($dom-&gt;getElementsByTagName('a') as $a) {
+        $link = resolveUrl($a-&gt;getAttribute('href'), $baseUrl);
+        if ($link !== null) {
+            $links[] = $link;
+        }
+    }
+
+    return [$title, $links];
+}</code></pre>
+  <h2>Step 4: Respect robots.txt</h2>
+  <p><code>robots.txt</code> tells crawlers which paths they should not visit. This simple version reads the <code>Disallow</code> lines in the group for <code>User-agent: *</code>. It does not understand <code>Allow</code> or wildcards, so it is a bit stricter than needed, never less.</p>
+  <pre><code class="language-php">&lt;?php
+function disallowedPaths(string $origin): array
+{
+    $response = fetch($origin . '/robots.txt');
+    if ($response['status'] !== 200) {
+        return [];
+    }
+
+    $paths = [];
+    $applies = false;
+    foreach (preg_split('/\R/', $response['body']) as $line) {
+        $line = trim(explode('#', $line, 2)[0]);
+
+        if (stripos($line, 'user-agent:') === 0) {
+            $applies = trim(substr($line, 11)) === '*';
+        } elseif ($applies &amp;&amp; stripos($line, 'disallow:') === 0) {
+            $path = trim(substr($line, 9));
+            if ($path !== '') {
+                $paths[] = $path;
+            }
+        }
+    }
+
+    return $paths;
+}
+
+function isAllowed(string $url, array $disallowed): bool
+{
+    $path = parse_url($url, PHP_URL_PATH);
+    if (!is_string($path)) {
+        $path = '/';
+    }
+    foreach ($disallowed as $prefix) {
+        if (str_starts_with($path, $prefix)) {
+            return false;
+        }
+    }
+    return true;
+}</code></pre>
+  <h2>Step 5: The crawl loop</h2>
+  <p>The start URL is validated first. The crawler keeps a queue of URLs to visit and a list of URLs it has already seen, so no page is visited twice. Only pages that are HTML and on the same host are searched for more links. If a redirect leads to another host, the page is not searched.</p>
+  <pre><code class="language-php">&lt;?php
+if (PHP_SAPI !== 'cli') {
+    exit("Run this script from the command line.\n");
+}
+
+if ($argc &lt; 2) {
+    fwrite(STDERR, "Usage: php crawl.php &lt;url&gt; [max pages]\n");
+    exit(1);
+}
+
+$start = $argv[1];
+$maxPages = isset($argv[2]) ? max(1, (int) $argv[2]) : 20;
+
+$scheme = strtolower((string) parse_url($start, PHP_URL_SCHEME));
+if (filter_var($start, FILTER_VALIDATE_URL) === false || !in_array($scheme, ['http', 'https'], true)) {
+    fwrite(STDERR, "The start URL must be a full http:// or https:// URL.\n");
+    exit(1);
+}
+
+$host = strtolower((string) parse_url($start, PHP_URL_HOST));
+$port = parse_url($start, PHP_URL_PORT);
+$origin = $scheme . '://' . $host . ($port !== null ? ':' . $port : '');
+
+$disallowed = disallowedPaths($origin);
+$queue = [$start];
+$seen = [$start =&gt; true];
+$crawled = 0;
+
+while ($queue !== [] &amp;&amp; $crawled &lt; $maxPages) {
+    $url = array_shift($queue);
+
+    if (!isAllowed($url, $disallowed)) {
+        continue;
+    }
+
+    sleep(DELAY_SECONDS);
+    $crawled++;
+    $response = fetch($url);
+
+    if ($response['error'] !== '') {
+        printf("ERR  %s  %s\n", $url, cleanText($response['error']));
+        continue;
+    }
+
+    $isHtml = str_contains(strtolower($response['type']), 'text/html');
+    $sameHost = strtolower((string) parse_url($response['url'], PHP_URL_HOST)) === $host;
+    [$title, $links] = $isHtml &amp;&amp; $sameHost
+        ? parseHtml($response['body'], $response['url'])
+        : ['', []];
+
+    printf("%d  %s  %s\n", $response['status'], $url, $title);
+
+    if ($response['status'] !== 200) {
+        continue;
+    }
+
+    foreach ($links as $link) {
+        if (strtolower((string) parse_url($link, PHP_URL_HOST)) === $host &amp;&amp; !isset($seen[$link])) {
+            $seen[$link] = true;
+            $queue[] = $link;
+        }
+    }
+}
+
+echo "Crawled $crawled pages\n";</code></pre>
+  <h2>Step 6: Run it</h2>
+  <p>Only crawl sites you own or have permission to crawl.</p>
+  <pre><code class="language-bash">$ php crawl.php https://example.com/ 10</code></pre>
+  <p>The output can be saved to a file and opened as a table.</p>
+  <pre><code class="language-bash">$ php crawl.php https://example.com/ 50 &gt; pages.txt</code></pre>
+  <h2>Next steps</h2>
+  <ul>
+    <li>Find broken links by also listing the page each link was found on</li>
+    <li>Save the pages to SQLite with <a href="/php/mysql/">prepared statements</a> instead of printing them</li>
+    <li>Use <code>Dom\HTMLDocument</code> in PHP 8.4, which understands HTML5 and the encoding of the page</li>
+    <li>Use <code>curl_multi</code> to fetch a few pages at the same time, but keep the delay per host</li>
+  </ul>
+  <h2>More about the web crawler</h2>
+  <ul>
+    <li><a href="/php/curl/">cURL</a> and <a href="/php/xml/">XML</a> cover the parts used here</li>
+    <li><a href="https://www.rfc-editor.org/rfc/rfc9309">robots.txt</a> in RFC 9309</li>
+    <li><a href="https://en.wikipedia.org/wiki/Web_crawler">Web crawler</a> on Wikipedia</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

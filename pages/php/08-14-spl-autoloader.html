@@ -1,0 +1,78 @@
+---
+layout: default
+title: SPL autoloader
+permalink: /php/spl-autoloader/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, spl, autoloader, spl_autoload_register, psr-4, composer, namespace]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>SPL autoloader</h1>
+  <p>An autoloader loads the file for a class the first time the class is used, so we do not need a <code>require</code> for every class. <code>spl_autoload_register</code> registers a function that PHP calls with the full class name when it finds a class it does not know.</p>
+  <h2>Folder structure</h2>
+  <p>The common way, called PSR-4, is that the namespace follows the folders. The class <code>App\Models\User</code> is in the file <code>src/Models/User.php</code>.</p>
+  <pre><code class="language-bash">project/
+  index.php
+  src/
+    Models/
+      User.php</code></pre>
+  <pre><code class="language-php">&lt;?php
+// src/Models/User.php
+namespace App\Models;
+
+class User {
+  public function getName(): string {
+    return "Anna";
+  }
+}</code></pre>
+  <h2>Register an autoloader</h2>
+  <pre><code class="language-php">&lt;?php
+// index.php
+spl_autoload_register(function (string $class) {
+  $prefix = 'App\\';
+  $baseDir = __DIR__ . '/src/';
+
+  if (!str_starts_with($class, $prefix)) {
+    return;
+  }
+
+  $relative = substr($class, strlen($prefix));
+  $file = $baseDir . str_replace('\\', '/', $relative) . '.php';
+
+  if (is_file($file)) {
+    require $file;
+  }
+});
+
+use App\Models\User;
+
+$user = new User();
+echo $user-&gt;getName();
+// Output: Anna</code></pre>
+  <p><code>'App\\'</code> is the string <code>App\</code>, the backslash needs to be escaped. Classes from other namespaces are left for other autoloaders.</p>
+  <h2>Composer</h2>
+  <p>In real projects the autoloader is usually created by <a href="https://getcomposer.org/">Composer</a>. Add the namespace to <code>composer.json</code> and run <code>composer dump-autoload</code>.</p>
+  <pre><code class="language-json">{
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  }
+}</code></pre>
+  <pre><code class="language-bash">$ composer dump-autoload</code></pre>
+  <pre><code class="language-php">&lt;?php
+require __DIR__ . '/vendor/autoload.php';
+
+$user = new App\Models\User();</code></pre>
+  <h2>More about spl autoloader</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.spl-autoload-register.php">spl_autoload_register</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.autoload.php">Autoloading classes</a></li>
+    <li><a href="https://www.php-fig.org/psr/psr-4/">PSR-4</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

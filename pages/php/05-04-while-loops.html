@@ -1,0 +1,59 @@
+---
+layout: default
+title: While loops
+permalink: /php/while-loops/
+chapter: "05"
+chapter_title: "Control structures"
+keywords: [php, while, do while, loop, template syntax, endwhile]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>While loops</h1>
+  <h2>While</h2>
+  <p>A while loop will run as long as the condition is true. The condition is checked before every round, so if it is false from the start the loop never runs. Remember to change the value in the loop, otherwise it runs forever.</p>
+  <pre><code class="language-php">&lt;?php
+$count = 10;
+while ($count &gt; 0) {
+    echo $count;
+    $count--;
+}
+// Output: 10987654321</code></pre>
+  <h3>Template syntax</h3>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;While&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+   &lt;?php $count = 0; ?&gt;
+   &lt;?php while($count &lt; 5): ?&gt;
+     &lt;?php echo $count; $count++; ?&gt;
+   &lt;?php endwhile; ?&gt;
+   &lt;?php // Output: 0 1 2 3 4 ?&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Do while</h2>
+  <p>The difference between a while loop and a do while loop is that the condition is checked after every round, so it will always run once.</p>
+  <pre><code class="language-php">&lt;?php
+$count = 10;
+do {
+  echo $count;
+  $count--;
+} while ($count &gt; 0);
+// Output: 10987654321</code></pre>
+  <pre><code class="language-php">&lt;?php
+$count = 0;
+do {
+  echo "Runs once";
+} while ($count &gt; 0);
+// Output: Runs once</code></pre>
+  <h2>More about while loops</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/control-structures.while.php">while</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/control-structures.do.while.php">do-while</a></li>
+    <li><a href="https://www.php.net/manual/en/control-structures.alternative-syntax.php">Alternative syntax</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

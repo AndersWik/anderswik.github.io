@@ -1,0 +1,46 @@
+---
+layout: default
+title: Object oriented PHP
+permalink: /php/oop/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, oop, object oriented, class, object, instance, property, method]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Object oriented PHP</h1>
+  <p>Object oriented programming (OOP) groups data and the code that works on the data into objects. A class is the blueprint, and an object is an instance created from the class. The variables in a class are called properties and the functions are called methods.</p>
+  <pre><code class="language-php">&lt;?php
+class Dog {
+
+  public $name;
+
+  public function __construct($name) {
+    $this-&gt;name = $name;
+  }
+
+  public function bark() {
+    return $this-&gt;name . " says woof";
+  }
+}
+
+$dog = new Dog("Fido");
+echo $dog-&gt;bark();
+// Output: Fido says woof</code></pre>
+  <h2>Why objects</h2>
+  <ul>
+    <li><strong>Encapsulation</strong>, the data is hidden in the object and only changed through its methods, see <a href="/php/visibility/">Visibility</a></li>
+    <li><strong>Inheritance</strong>, a class can reuse and extend another class, see <a href="/php/inheritance/">Inheritance</a></li>
+    <li><strong>Polymorphism</strong>, different classes can be used the same way, see <a href="/php/polymorphism/">Polymorphism</a></li>
+  </ul>
+  <h2>In this chapter</h2>
+  <p>The pages in this chapter go through <a href="/php/class/">classes</a>, <a href="/php/constructs/">constructors</a>, inheritance, visibility, <a href="/php/abstract/">abstract classes</a>, <a href="/php/interface/">interfaces</a>, <a href="/php/namespace/">namespaces</a>, <a href="/php/magic-methods/">magic methods</a>, <a href="/php/exceptions/">exceptions</a> and two parts of the Standard PHP Library.</p>
+  <h2>More about OOP</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.oop5.php">Classes and objects</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

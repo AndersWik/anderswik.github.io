@@ -1,0 +1,67 @@
+---
+layout: default
+title: Polymorphism
+permalink: /php/polymorphism/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, polymorphism, interface, abstract, override, oop]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Polymorphism</h1>
+  <p>Polymorphism means "many shapes". Different classes have functions with the same name, and the code that calls them does not need to know which class it has. Each object does its own version. In PHP this is done with <a href="/php/interface/">interfaces</a>, <a href="/php/abstract/">abstract classes</a> or by overriding functions with <a href="/php/inheritance/">inheritance</a>.</p>
+  <pre><code class="language-php">&lt;?php
+interface Shape {
+  public function area(): float;
+}
+
+class Rectangle implements Shape {
+
+  public function __construct(private float $width, private float $height) {
+  }
+
+  public function area(): float {
+    return $this-&gt;width * $this-&gt;height;
+  }
+}
+
+class Circle implements Shape {
+
+  public function __construct(private float $radius) {
+  }
+
+  public function area(): float {
+    return M_PI * $this-&gt;radius ** 2;
+  }
+}
+
+$shapes = [new Rectangle(2, 3), new Circle(1)];
+
+$total = 0;
+foreach ($shapes as $shape) {
+  $total += $shape-&gt;area();
+}
+
+echo round($total, 2);
+// Output: 9.14</code></pre>
+  <p>The loop only knows that every object is a <code>Shape</code>. Adding a new shape, like a triangle, does not change the loop at all.</p>
+  <h2>Without polymorphism</h2>
+  <p>The same code without polymorphism needs to check the type of every object. Every new shape means another <code>if</code>.</p>
+  <pre><code class="language-php">&lt;?php
+foreach ($shapes as $shape) {
+  if ($shape instanceof Rectangle) {
+    // calculate rectangle
+  } elseif ($shape instanceof Circle) {
+    // calculate circle
+  }
+}</code></pre>
+  <h2>More about polymorphism</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Polymorphism_(computer_science">Polymorphism</a>) on Wikipedia</li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.interfaces.php">Object interfaces</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

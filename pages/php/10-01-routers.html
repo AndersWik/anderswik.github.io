@@ -1,0 +1,126 @@
+---
+layout: default
+title: Routers
+permalink: /php/routers/
+chapter: "10"
+chapter_title: "MVC"
+keywords: [php, router, routing, front controller, url, 404, 405, built-in server, preg_match]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Routers</h1>
+  <p>A router decides which code should handle a request, based on the method and the path of the URL. All requests are sent to one file, the front controller, often <code>public/index.php</code>. Then the URLs can look like <code>/notes/5</code> instead of <code>/note.php?id=5</code>.</p>
+  <h2>Send all requests to index.php</h2>
+  <p>With the built-in server, give the front controller as the last argument. <code>-t public</code> makes <code>public</code> the web root, so the other folders can not be reached from a browser.</p>
+  <pre><code class="language-bash">$ php -S localhost:8000 -t public public/index.php</code></pre>
+  <p>On Apache a <code>.htaccess</code> file in the <code>public</code> folder does the same. Files that exist, like images and CSS, are still served directly.</p>
+  <pre><code class="language-bash">RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]</code></pre>
+  <h2>A simple router</h2>
+  <p>The routes are listed in an array. The path is compared with a regular expression, and the parts in parentheses are passed on to the function.</p>
+  <pre><code class="language-php">&lt;?php
+// public/index.php
+$routes = [
+  'GET' =&gt; [
+    '#^/$#' =&gt; fn() =&gt; 'Home page',
+    '#^/notes/(\d+)$#' =&gt; fn(string $id) =&gt; 'Note ' . (int) $id,
+  ],
+  'POST' =&gt; [
+    '#^/notes$#' =&gt; fn() =&gt; 'Create note',
+  ],
+];
+
+$method = $_SERVER['REQUEST_METHOD'];
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+
+foreach ($routes[$method] ?? [] as $pattern =&gt; $handler) {
+  if (preg_match($pattern, $path, $matches)) {
+    array_shift($matches);
+    echo $handler(...$matches);
+    exit;
+  }
+}
+
+http_response_code(404);
+echo 'Page not found';</code></pre>
+  <h2>A router class</h2>
+  <p>A small class makes the routes easier to write. <code>{id}</code> in the path is turned into a named group in the regular expression. If the path exists but not for this method the router answers <code>405 Method Not Allowed</code>.</p>
+  <pre><code class="language-php">&lt;?php
+// src/Router.php
+class Router {
+
+  private array $routes = [];
+
+  public function get(string $path, callable $handler): void {
+    $this-&gt;add('GET', $path, $handler);
+  }
+
+  public function post(string $path, callable $handler): void {
+    $this-&gt;add('POST', $path, $handler);
+  }
+
+  public function add(string $method, string $path, callable $handler): void {
+    $regex = '#^' . preg_replace('#\{(\w+)\}#', '(?P&lt;$1&gt;[^/]+)', $path) . '$#';
+    $this-&gt;routes[] = [$method, $regex, $handler];
+  }
+
+  public function dispatch(string $method, string $uri): void {
+    $path = parse_url($uri, PHP_URL_PATH);
+    if (!is_string($path)) {
+      $path = '/';
+    }
+
+    $allowed = [];
+    foreach ($this-&gt;routes as [$routeMethod, $regex, $handler]) {
+      if (preg_match($regex, $path, $matches) !== 1) {
+        continue;
+      }
+      if ($routeMethod !== $method) {
+        $allowed[] = $routeMethod;
+        continue;
+      }
+      $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+      $handler(...$params);
+      return;
+    }
+
+    if ($allowed) {
+      http_response_code(405);
+      header('Allow: ' . implode(', ', array_unique($allowed)));
+      echo 'Method not allowed';
+      return;
+    }
+
+    http_response_code(404);
+    echo 'Page not found';
+  }
+}</code></pre>
+  <p>Only the named groups are kept, and they are passed as named arguments, which needs PHP 8.1.</p>
+  <pre><code class="language-php">&lt;?php
+// public/index.php
+require __DIR__ . '/../src/Router.php';
+
+$router = new Router();
+
+$router-&gt;get('/', function () {
+  echo 'Home page';
+});
+
+$router-&gt;get('/notes/{id}', function (string $id) {
+  echo 'Note ' . htmlspecialchars($id);
+});
+
+$router-&gt;dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);</code></pre>
+  <p>The values from the URL are strings from the visitor. Validate them in the handler. The <a href="/php/mvc-model/">MVC pages</a> build a small notes application on top of this router.</p>
+  <h2>More about routers</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/features.commandline.webserver.php">Built-in web server</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.preg-match.php">preg_match</a></li>
+    <li><a href="https://www.php.net/manual/en/book.pcre.php">Regular expressions (PCRE)</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

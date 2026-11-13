@@ -1,0 +1,59 @@
+---
+layout: default
+title: Multidimensional arrays
+permalink: /php/multidimensional-arrays/
+chapter: "03"
+chapter_title: "Arrays"
+keywords: [php, multidimensional array, nested array, array of arrays, foreach]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Multidimensional arrays</h1>
+  <p>A multidimensional array is an array that contains other arrays. Use one pair of brackets for every level.</p>
+  <pre><code class="language-php">&lt;?php
+$value = array( array("A","B","C"),
+            array("D","E","F"),
+            array("G","H","I"));
+
+print_r($value[1]);
+// Output: Array ( [0] =&gt; D [1] =&gt; E [2] =&gt; F )
+
+echo $value[1][1];
+// Output: E</code></pre>
+  <p>The inner arrays can have keys too.</p>
+  <pre><code class="language-php">&lt;?php
+$value = array( array("A" =&gt; "a","B" =&gt; "b","C" =&gt; "c"),
+            array("D" =&gt; "d","E" =&gt; "e","F" =&gt; "f"),
+            array("G" =&gt; "g","H" =&gt; "h","I" =&gt; "i"));
+
+print_r($value[1]);
+// Output: Array ( [D] =&gt; d [E] =&gt; e [F] =&gt; f )
+
+echo $value[1]['E'];
+// Output: e</code></pre>
+  <h2>A list of records</h2>
+  <p>A common use is a list of rows, like the result from a database. Loop over it with <a href="/php/for-loops/">foreach</a>.</p>
+  <pre><code class="language-php">&lt;?php
+$users = [
+  ["id" =&gt; 1, "name" =&gt; "Anna"],
+  ["id" =&gt; 2, "name" =&gt; "Bo"],
+];
+
+foreach ($users as $user) {
+  echo $user["id"] . ": " . $user["name"] . "\n";
+}
+// Output: 1: Anna
+//         2: Bo
+
+$users[] = ["id" =&gt; 3, "name" =&gt; "Cecilia"];
+echo count($users);
+// Output: 3</code></pre>
+  <h2>More about multidimensional arrays</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.types.array.php">Arrays</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

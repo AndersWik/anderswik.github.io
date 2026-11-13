@@ -1,0 +1,75 @@
+---
+layout: default
+title: Type hinting
+permalink: /php/type-hinting/
+chapter: "06"
+chapter_title: "Functions"
+keywords: [php, type hinting, type declarations, return type, nullable, union types, strict_types, void, mixed]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Type hinting</h1>
+  <p>Type hinting, or type declarations, tells PHP which type a parameter or return value must have. PHP then checks the type when the function is called. It catches mistakes early and makes the code easier to read.</p>
+  <h2>Parameter types</h2>
+  <p>The type is written before the parameter name.</p>
+  <pre><code class="language-php">&lt;?php
+function add(int $a, int $b) {
+  return $a + $b;
+}
+
+echo add(2, 3);
+// Output: 5
+
+echo add("abc", 3);
+// Output: Fatal error: Uncaught TypeError: add(): Argument #1 ($a) must be of type int, string given</code></pre>
+  <h2>Return types</h2>
+  <p>The return type is written after the parameter list with a colon. <code>void</code> means the function returns nothing.</p>
+  <pre><code class="language-php">&lt;?php
+function add(int $a, int $b): int {
+  return $a + $b;
+}
+
+function sayHello(string $name): void {
+  echo "Hello " . $name;
+}</code></pre>
+  <h2>Strict types</h2>
+  <p>By default PHP converts values when it can, so <code>add("2", "3")</code> works and returns <code>5</code>. With <code>declare(strict_types=1);</code> at the very top of the file the types must match exactly. Using it in all files is a good habit.</p>
+  <pre><code class="language-php">&lt;?php
+declare(strict_types=1);
+
+function add(int $a, int $b): int {
+  return $a + $b;
+}
+
+echo add("2", "3");
+// Output: Fatal error: Uncaught TypeError: add(): Argument #1 ($a) must be of type int, string given</code></pre>
+  <h2>Nullable and union types</h2>
+  <p><code>?</code> in front of a type also allows <code>null</code>. Since PHP 8 <code>|</code> allows more than one type. <code>mixed</code> allows any type.</p>
+  <pre><code class="language-php">&lt;?php
+function findUser(int $id): ?array {
+  return $id === 1 ? ["id" =&gt; 1, "name" =&gt; "Anna"] : null;
+}
+
+function formatId(int|string $id): string {
+  return "#" . $id;
+}
+
+echo formatId(5);
+// Output: #5</code></pre>
+  <h2>Types that can be used</h2>
+  <ul>
+    <li><code>int</code>, <code>float</code>, <code>string</code>, <code>bool</code></li>
+    <li><code>array</code>, <code>callable</code>, <code>iterable</code>, <code>object</code>, <code>mixed</code></li>
+    <li>class and interface names, like <code>DateTime</code></li>
+    <li><code>self</code>, <code>static</code>, <code>void</code>, <code>never</code>, <code>null</code>, <code>true</code> and <code>false</code></li>
+  </ul>
+  <h2>More about type hinting</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.types.declarations.php">Type declarations</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.types.declarations.php#language.types.declarations.strict">Strict typing</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

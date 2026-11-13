@@ -1,0 +1,48 @@
+---
+layout: default
+title: Include
+permalink: /php/include/
+chapter: "06"
+chapter_title: "Functions"
+keywords: [php, include, include_once, files, templates, "__DIR__"]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Include</h1>
+  <p><code>include</code> reads another PHP file and runs it, as if the code was written where the <code>include</code> is. It is used to split code into files, for example a header and footer that are shared by many pages.</p>
+  <pre><code class="language-php">&lt;?php include 'file.php'; ?&gt;</code></pre>
+  <h2>Example</h2>
+  <pre><code class="language-php">&lt;?php
+// header.php
+?&gt;
+&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;My site&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;</code></pre>
+  <pre><code class="language-php">&lt;?php include 'header.php'; ?&gt;
+  &lt;p&gt;The page content&lt;/p&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Relative paths</h2>
+  <p>A relative path is resolved from the include path and the current working directory, not from the file that has the <code>include</code>. Start the path with <code>__DIR__</code>, the folder of the current file, to always get the right file.</p>
+  <pre><code class="language-php">&lt;?php
+include __DIR__ . '/header.php';</code></pre>
+  <h2>Include once</h2>
+  <p><code>include_once</code> does not include the file again if it already has been included. Use it for files with functions or classes, which can not be defined twice.</p>
+  <pre><code class="language-php">&lt;?php
+include_once __DIR__ . '/functions.php';
+include_once __DIR__ . '/functions.php'; // Ignored</code></pre>
+  <h2>Include or require</h2>
+  <p>If the file is missing <code>include</code> gives a warning and the script continues. <a href="/php/require/">require</a> stops the script with a fatal error. Use <code>require</code> for files the code can not run without.</p>
+  <p>Never include a file name that comes from the user, like <code>include $_GET['page'];</code>. That lets anyone run or read files on the server.</p>
+  <h2>More about include</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.include.php">include</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.include-once.php">include_once</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

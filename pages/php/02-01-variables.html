@@ -1,0 +1,60 @@
+---
+layout: default
+title: Variables
+permalink: /php/variables/
+chapter: "02"
+chapter_title: "Variables"
+keywords: [php, variables, names, types, gettype, unset, null, isset, constants, define]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Variables</h1>
+  <p>A variable is container that stores a value. All variables start with <code>$</code> followed with a letter or underscore. The rest of the name can be a letter (a-z/A-Z), number or underscore. Names are case sensitive, so <code>$name</code> and <code>$Name</code> are two different variables.</p>
+  <pre><code class="language-php">&lt;?php
+$name = "Anders";
+$_count = 1;
+$value2 = 2.5;</code></pre>
+  <p>PHP decides the type from the value. The same variable can hold a different type later. The basic types are covered on the next pages: <a href="/php/integer/">integer</a>, <a href="/php/float/">float</a>, <a href="/php/boolean/">boolean</a> and <a href="/php/string/">string</a>. <code>gettype</code> tells which type a variable has.</p>
+  <pre><code class="language-php">&lt;?php
+$val = 123;
+echo gettype($val);
+// Outputs: integer
+
+$val = "123";
+echo gettype($val);
+// Outputs: string</code></pre>
+  <h2>Null</h2>
+  <p>A variable can have a Null value. Null is the default value of variables that are not initialized. <code>isset</code> returns <code>false</code> for variables that are not set or are null.</p>
+  <pre><code class="language-php">&lt;?php
+$value = NULL;
+
+var_dump(isset($value));
+// Outputs: bool(false)</code></pre>
+  <h2>Remove variable</h2>
+  <p><code>unset</code> removes a variable. Using it after that gives a warning and the value <code>NULL</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "remove me";
+
+unset($val);
+var_dump($val);
+// Outputs: Warning: Undefined variable $val
+// Outputs: NULL</code></pre>
+  <h2>Constants</h2>
+  <p>A constant is like a variable that can not be changed. It has no <code>$</code> and is written in upper case by convention. Constants can be created with <code>define</code> or with the <code>const</code> keyword.</p>
+  <pre><code class="language-php">&lt;?php
+define("SITE_NAME", "AndersWik");
+const MAX_ITEMS = 10;
+
+echo SITE_NAME;
+// Outputs: AndersWik</code></pre>
+  <h2>More about variables</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.variables.basics.php">Variables</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.types.php">Types</a></li>
+    <li><a href="https://www.php.net/manual/en/language.constants.php">Constants</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

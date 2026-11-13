@@ -1,0 +1,73 @@
+---
+layout: default
+title: Custom requests
+permalink: /php/custom-requests/
+chapter: "12"
+chapter_title: "HTTP"
+keywords: [php, http, custom request, put, patch, delete, CURLOPT_CUSTOMREQUEST, "php://input", method override]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Custom requests</h1>
+  <p>Browsers and HTML forms only send GET and POST. Other clients, like curl and JavaScript, can also send PUT, PATCH and DELETE, which are used by <a href="/php/rest-api/">REST APIs</a>.</p>
+  <h2>Client with cURL</h2>
+  <pre><code class="language-php">&lt;?php
+$curl = curl_init("http://localhost:8888/users/5");
+curl_setopt_array($curl, [
+  CURLOPT_CUSTOMREQUEST =&gt; "PATCH",
+  CURLOPT_POSTFIELDS =&gt; json_encode(["name" =&gt; "Anna"]),
+  CURLOPT_HTTPHEADER =&gt; ["Content-Type: application/json"],
+  CURLOPT_RETURNTRANSFER =&gt; true,
+]);
+$result = curl_exec($curl);</code></pre>
+  <h2>Client with file_get_contents</h2>
+  <pre><code class="language-php">&lt;?php
+$context = stream_context_create([
+  "http" =&gt; [
+    "method" =&gt; "DELETE",
+    "ignore_errors" =&gt; true,
+  ],
+]);
+$result = file_get_contents("http://localhost:8888/users/5", false, $context);</code></pre>
+  <h2>Server</h2>
+  <p>PHP only fills <code>$_POST</code> for POST requests with form data. For PUT, PATCH and DELETE the body is read from <code>php://input</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$method = $_SERVER['REQUEST_METHOD'];
+
+if ($method === 'PUT' || $method === 'PATCH') {
+  $data = json_decode(file_get_contents('php://input'), true);
+
+  if (!is_array($data)) {
+    http_response_code(400);
+    exit("Send a JSON object");
+  }
+  echo "Update with " . htmlspecialchars(implode(", ", array_keys($data)));
+} elseif ($method === 'DELETE') {
+  http_response_code(204);
+}</code></pre>
+  <h2>Method override</h2>
+  <p>An HTML form can send another method in a hidden field. The server then treats the POST as that method. Only allow the methods you expect.</p>
+  <pre><code class="language-php">&lt;form method="post" action="/users/5"&gt;
+  &lt;input type="hidden" name="_method" value="DELETE"&gt;
+  &lt;button&gt;Delete&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+  <pre><code class="language-php">&lt;?php
+$method = $_SERVER['REQUEST_METHOD'];
+
+if ($method === 'POST' &amp;&amp; in_array($_POST['_method'] ?? '', ['PUT', 'PATCH', 'DELETE'], true)) {
+  $method = $_POST['_method'];
+}</code></pre>
+  <h2>Test from the command line</h2>
+  <pre><code class="language-bash">$ curl -i -X PUT -H "Content-Type: application/json" -d '{"name":"Anna"}' http://localhost:8888/users/5
+$ curl -i -X DELETE http://localhost:8888/users/5</code></pre>
+  <h2>More about custom requests</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.curl-setopt.php">CURLOPT_CUSTOMREQUEST</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/wrappers.php.php">php://input</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">HTTP request methods</a> at MDN</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

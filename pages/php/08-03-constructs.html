@@ -1,0 +1,89 @@
+---
+layout: default
+title: Constructors
+permalink: /php/constructs/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, constructor, "__construct", destructor, "__destruct", constructor promotion]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Constructors</h1>
+  <h2>Constructor</h2>
+  <p>The constructor is a function called <code>__construct</code>. It runs automatically when an instance is created with <code>new</code>, and is used to give the object its start values.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+  function __construct() {
+
+       echo "Constructor";
+   }
+}
+
+$foo = new Foo();
+// Output: Constructor</code></pre>
+  <h2>Constructor with parameters</h2>
+  <p>The values given to <code>new</code> are passed to the constructor.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+  function __construct($param) {
+
+       echo $param;
+   }
+}
+
+$foo = new Foo("Hello");
+// Output: Hello</code></pre>
+  <p>Usually the constructor saves the parameters in properties.</p>
+  <pre><code class="language-php">&lt;?php
+class User {
+
+  private $name;
+
+  function __construct($name) {
+    $this-&gt;name = $name;
+  }
+
+  function getName() {
+    return $this-&gt;name;
+  }
+}
+
+$user = new User("Anna");
+echo $user-&gt;getName();
+// Output: Anna</code></pre>
+  <h2>Constructor promotion</h2>
+  <p>Since PHP 8 a visibility in front of a constructor parameter creates the property and sets it. This class does the same as the one above.</p>
+  <pre><code class="language-php">&lt;?php
+class User {
+
+  function __construct(private string $name) {
+  }
+
+  function getName(): string {
+    return $this-&gt;name;
+  }
+}</code></pre>
+  <h2>Class with destructor</h2>
+  <p>The destructor <code>__destruct</code> runs when the object is no longer used, or at the latest when the script ends.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+  function __destruct() {
+
+       echo "Destructor";
+   }
+}
+
+$foo = new Foo();
+// Output: Destructor</code></pre>
+  <h2>More about constructors</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.oop5.decon.php">Constructors and destructors</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

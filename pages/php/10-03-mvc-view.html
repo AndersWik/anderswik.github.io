@@ -1,0 +1,76 @@
+---
+layout: default
+title: MVC view
+permalink: /php/mvc-view/
+chapter: "10"
+chapter_title: "MVC"
+keywords: [php, mvc, view, template, output buffering, ob_start, htmlspecialchars, escape]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>MVC view</h1>
+  <p>The view turns data into HTML. It should not talk to the database or read <code>$_POST</code>, it only prints what it is given. PHP itself works well as a template language with the <a href="/php/if/">template syntax</a>.</p>
+  <h2>Render a template</h2>
+  <p><code>view</code> includes a template file and returns the HTML as a string. <code>ob_start</code> catches the output instead of sending it, and <code>ob_get_clean</code> returns it. <code>extract</code> turns the keys of the array into variables for the template. The template name must always come from the code, never from the visitor.</p>
+  <p><code>e</code> is a short name for <code>htmlspecialchars</code>. Every value printed in a template goes through it, so a note with <code>&lt;script&gt;</code> in the title is shown as text.</p>
+  <pre><code class="language-php">&lt;?php
+// src/view.php
+function e(string $value): string {
+  return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function view(string $template, array $data = []): string {
+  extract($data, EXTR_SKIP);
+  ob_start();
+  require __DIR__ . '/../views/' . $template . '.php';
+  return ob_get_clean();
+}</code></pre>
+  <h2>Layout</h2>
+  <p>The layout is the HTML that is shared by all pages. <code>$content</code> is HTML from another view, which is already escaped, so it is printed as it is. <code>&lt;?=</code> is short for <code>&lt;?php echo</code>.</p>
+  <pre><code class="language-php">&lt;!-- views/layout.php --&gt;
+&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;title&gt;&lt;?= e($title) ?&gt;&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;?= $content ?&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>List of notes</h2>
+  <pre><code class="language-php">&lt;!-- views/notes/index.php --&gt;
+&lt;h1&gt;Notes&lt;/h1&gt;
+
+&lt;form action="/notes" method="post"&gt;
+  &lt;p&gt;&lt;input name="title" placeholder="Title" required maxlength="100"&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;textarea name="body" placeholder="Note" required&gt;&lt;/textarea&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;button&gt;Save&lt;/button&gt;&lt;/p&gt;
+&lt;/form&gt;
+
+&lt;?php if ($error): ?&gt;
+  &lt;p&gt;&lt;?= e($error) ?&gt;&lt;/p&gt;
+&lt;?php endif; ?&gt;
+
+&lt;ul&gt;
+  &lt;?php foreach ($notes as $note): ?&gt;
+    &lt;li&gt;&lt;a href="/notes/&lt;?= (int) $note['id'] ?&gt;"&gt;&lt;?= e($note['title']) ?&gt;&lt;/a&gt;&lt;/li&gt;
+  &lt;?php endforeach; ?&gt;
+&lt;/ul&gt;</code></pre>
+  <h2>One note</h2>
+  <p><code>nl2br</code> keeps the line breaks of the note. It is used after <code>e</code>, so the <code>&lt;br&gt;</code> tags are not escaped.</p>
+  <pre><code class="language-php">&lt;!-- views/notes/show.php --&gt;
+&lt;h1&gt;&lt;?= e($note['title']) ?&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;?= nl2br(e($note['body'])) ?&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="/"&gt;All notes&lt;/a&gt;&lt;/p&gt;</code></pre>
+  <h2>More about mvc view</h2>
+  <ul>
+    <li><a href="/php/mvc-controller/">MVC controller</a> on the next page</li>
+    <li><a href="https://www.php.net/manual/en/book.outcontrol.php">Output control</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.htmlspecialchars.php">htmlspecialchars</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

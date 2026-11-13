@@ -1,0 +1,48 @@
+---
+layout: default
+title: Ternary operators
+permalink: /php/ternary-operators/
+chapter: "04"
+chapter_title: "Operators"
+keywords: [php, ternary, operator, short ternary, elvis, null coalescing, condition]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Ternary operators</h1>
+  <p>The ternary operator is a short <code>if else</code>. It has the form <code>condition ? value if true : value if false</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$val = true;
+echo ($val) ? "Val is true" : "Val is false";
+// Outputs: Val is true</code></pre>
+  <pre><code class="language-php">&lt;?php
+$val = true;
+echo ($val === true) ? "Val is true" : "Val is false";
+// Outputs: Val is true</code></pre>
+  <h2>Nested ternary</h2>
+  <p>We can nest ternary operators in other ternary operator statements. Since PHP 8 the parentheses are required, without them it is an error. Nested ternaries are hard to read, an <code>if</code> is often clearer.</p>
+  <pre><code class="language-php">&lt;?php
+$val1 = true;
+$val2 = false;
+echo ($val1) ? ("Val1 is true " . (($val2) ? "Val2 is true" : "Val2 is false")) : "Val1 is false";
+// Outputs: Val1 is true Val2 is false</code></pre>
+  <h2>Short ternary</h2>
+  <p><code>?:</code> returns the left value if it is true, otherwise the right value.</p>
+  <pre><code class="language-php">&lt;?php
+$name = "";
+echo $name ?: "Guest";
+// Outputs: Guest</code></pre>
+  <h2>Null coalescing</h2>
+  <p><code>??</code> is like <code>?:</code> but only checks for null and missing values. An empty string is kept. Read more in <a href="/php/comparison-operators/">Comparison operators</a>.</p>
+  <pre><code class="language-php">&lt;?php
+$name = "";
+var_dump($name ?? "Guest");
+// Outputs: string(0) ""</code></pre>
+  <h2>More about ternary operators</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.operators.comparison.php#language.operators.comparison.ternary">Ternary operator</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

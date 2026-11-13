@@ -1,0 +1,74 @@
+---
+layout: default
+title: Function functions
+permalink: /php/function-functions/
+chapter: "06"
+chapter_title: "Functions"
+keywords: [php, function_exists, polyfill, call_user_func, is_callable, func_get_args, variadic, named arguments]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Function functions</h1>
+  <p>PHP has functions that work on other functions. They are used to check if a function exists, to call a function by name and to accept any number of parameters.</p>
+  <h2>function_exists</h2>
+  <p><code>function_exists</code> checks if a function is defined. It is used to write a polyfill, a function that only is defined if PHP does not already have it. <code>boolval</code> was added in PHP 5.5, so older versions get our version.</p>
+  <pre><code class="language-php">&lt;?php
+if (!function_exists('boolval')) {
+ function boolval($val) {
+  return (bool) $val;
+ }
+}</code></pre>
+  <h2>Call a function by name</h2>
+  <p>A function can be called from a string with its name. <code>is_callable</code> checks that it can be called first.</p>
+  <pre><code class="language-php">&lt;?php
+function hello($name) {
+  return "Hello " . $name;
+}
+
+$function = "hello";
+
+if (is_callable($function)) {
+  echo $function("Anna");
+  // Output: Hello Anna
+
+  echo call_user_func($function, "Bo");
+  // Output: Hello Bo
+}</code></pre>
+  <p>Never call a function name that comes from a user, like <code>$_GET["action"]()</code>. Map the allowed values to functions in an array instead.</p>
+  <h2>Any number of parameters</h2>
+  <p><code>...</code> in front of the last parameter collects all remaining arguments into an array (variadic function).</p>
+  <pre><code class="language-php">&lt;?php
+function sum(...$numbers) {
+  return array_sum($numbers);
+}
+
+echo sum(1, 2, 3, 4);
+// Output: 10</code></pre>
+  <p>The older way is <code>func_get_args</code>, which returns all arguments given to the function.</p>
+  <pre><code class="language-php">&lt;?php
+function sum() {
+  return array_sum(func_get_args());
+}
+
+echo sum(1, 2, 3);
+// Output: 6</code></pre>
+  <h2>Named arguments</h2>
+  <p>Since PHP 8 arguments can be given by name. Then the order does not matter and default values can be skipped.</p>
+  <pre><code class="language-php">&lt;?php
+function greet($greeting = "Hello", $name = "Guest") {
+  return "$greeting $name";
+}
+
+echo greet(name: "Anna");
+// Output: Hello Anna</code></pre>
+  <h2>More about function functions</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/ref.funchand.php">Function handling functions</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/functions.arguments.php#functions.variable-arg-list">Variable-length argument lists</a></li>
+    <li><a href="https://www.php.net/manual/en/functions.arguments.php#functions.named-arguments">Named arguments</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

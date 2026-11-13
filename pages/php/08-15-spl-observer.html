@@ -1,0 +1,88 @@
+---
+layout: default
+title: SPL observer
+permalink: /php/spl-observer/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, spl, observer, SplObserver, SplSubject, SplObjectStorage, design pattern]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>SPL observer</h1>
+  <p>The observer pattern lets objects subscribe to changes in another object. The subject keeps a list of observers and notifies all of them when something happens. The subject does not need to know what the observers do. PHP has the interfaces <code>SplSubject</code> and <code>SplObserver</code> for this.</p>
+  <h2>Subject</h2>
+  <p><code>SplObjectStorage</code> stores objects, and every object can only be stored once.</p>
+  <pre><code class="language-php">&lt;?php
+class Newsletter implements SplSubject {
+
+  private SplObjectStorage $observers;
+  public string $lastPost = '';
+
+  public function __construct() {
+    $this-&gt;observers = new SplObjectStorage();
+  }
+
+  public function attach(SplObserver $observer): void {
+    $this-&gt;observers[$observer] = null;
+  }
+
+  public function detach(SplObserver $observer): void {
+    unset($this-&gt;observers[$observer]);
+  }
+
+  public function notify(): void {
+    foreach ($this-&gt;observers as $observer) {
+      $observer-&gt;update($this);
+    }
+  }
+
+  public function publish(string $post): void {
+    $this-&gt;lastPost = $post;
+    $this-&gt;notify();
+  }
+}</code></pre>
+  <h2>Observers</h2>
+  <pre><code class="language-php">&lt;?php
+class EmailSubscriber implements SplObserver {
+
+  public function __construct(private string $email) {
+  }
+
+  public function update(SplSubject $subject): void {
+    echo "Mail to {$this-&gt;email}: {$subject-&gt;lastPost}\n";
+  }
+}
+
+class Logger implements SplObserver {
+
+  public function update(SplSubject $subject): void {
+    echo "Log: new post published\n";
+  }
+}</code></pre>
+  <h2>Use it</h2>
+  <pre><code class="language-php">&lt;?php
+$newsletter = new Newsletter();
+$anna = new EmailSubscriber("anna@example.com");
+
+$newsletter-&gt;attach($anna);
+$newsletter-&gt;attach(new Logger());
+
+$newsletter-&gt;publish("Hello World");
+// Output: Mail to anna@example.com: Hello World
+//         Log: new post published
+
+$newsletter-&gt;detach($anna);
+$newsletter-&gt;publish("Second post");
+// Output: Log: new post published</code></pre>
+  <h2>More about spl observer</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/class.splobserver.php">SplObserver</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/class.splsubject.php">SplSubject</a></li>
+    <li><a href="https://www.php.net/manual/en/class.splobjectstorage.php">SplObjectStorage</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Observer_pattern">Observer pattern</a> on Wikipedia</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

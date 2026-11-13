@@ -1,0 +1,64 @@
+---
+layout: default
+title: Namespaces
+permalink: /php/namespace/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, namespace, use, alias, "::class", global namespace]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Namespaces</h1>
+  <p>Namespaces group classes, functions and constants, like folders for code. Two classes can have the same name if they are in different namespaces. This is how libraries can be used together without name collisions.</p>
+  <h2>Declare a namespace</h2>
+  <p>The namespace is written first in the file. Everything in the file belongs to it.</p>
+  <pre><code class="language-php">&lt;?php
+namespace MyNameSpace;
+
+class ClassName {
+}
+
+echo ClassName::class;
+// Output: MyNameSpace\ClassName</code></pre>
+  <p>A file can have more than one namespace with curly braces. The two styles can not be mixed in the same file. One namespace per file is the normal way.</p>
+  <pre><code class="language-php">&lt;?php
+namespace MyOtherNameSpace {
+    class ClassName {
+    }
+
+    echo ClassName::class;
+    // Output: MyOtherNameSpace\ClassName
+}</code></pre>
+  <p>Namespaces can have more levels, separated with <code>\</code>. By convention the levels follow the folders of the files, see <a href="/php/spl-autoloader/">SPL autoloader</a>.</p>
+  <pre><code class="language-php">&lt;?php
+namespace App\Models;
+
+class User {
+}</code></pre>
+  <h2>Use</h2>
+  <p><code>use</code> imports a class from another namespace, so we do not have to write the full name. <code>as</code> gives it another name.</p>
+  <pre><code class="language-php">&lt;?php
+namespace App\Controllers;
+
+use App\Models\User;
+use App\Models\User as UserModel;
+
+$user = new User();
+$other = new UserModel();
+$full = new \App\Models\User();</code></pre>
+  <h2>Global namespace</h2>
+  <p>PHP's own classes are in the global namespace. Inside a namespace, start the name with <code>\</code> or import it with <code>use</code>.</p>
+  <pre><code class="language-php">&lt;?php
+namespace App;
+
+$date = new \DateTime();</code></pre>
+  <h2>More about namespaces</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.namespaces.php">Namespaces</a> in the PHP manual</li>
+    <li><a href="https://stackoverflow.com/questions/3384204/what-are-namespaces">What are namespaces?</a> on Stack Overflow</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

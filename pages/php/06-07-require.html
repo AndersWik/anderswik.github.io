@@ -1,0 +1,56 @@
+---
+layout: default
+title: Require
+permalink: /php/require/
+chapter: "06"
+chapter_title: "Functions"
+keywords: [php, require, require_once, files, return, "__DIR__"]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Require</h1>
+  <p><code>require</code> works like <a href="/php/include/">include</a> but stops the script with a fatal error if the file is missing.</p>
+  <p>Path to file from the current folder to helper/get_text.php.</p>
+  <pre><code class="language-php">&lt;?php
+require "helper/get_text.php";</code></pre>
+  <h2>Return a value</h2>
+  <p>If we have a file we require and the file is returning a value we can save it to a variable. This is often used for configuration files.</p>
+  <pre><code class="language-php">&lt;?php
+// helper/get_text.php
+function getText() {
+  return "Text from function";
+}
+
+return "Helper file";</code></pre>
+  <pre><code class="language-php">&lt;?php
+$text = require "helper/get_text.php";
+echo $text;
+// Output: Helper file
+
+echo getText();
+// Output: Text from function</code></pre>
+  <pre><code class="language-php">&lt;?php
+// config.php
+return [
+  "db_host" =&gt; "localhost",
+  "db_name" =&gt; "mydb",
+];</code></pre>
+  <pre><code class="language-php">&lt;?php
+$config = require __DIR__ . "/config.php";
+echo $config["db_name"];
+// Output: mydb</code></pre>
+  <h2>Require once</h2>
+  <p><code>require_once</code> only includes the file the first time. It is the safe choice for files with functions and classes. Today classes are usually loaded with an <a href="/php/spl-autoloader/">autoloader</a> instead.</p>
+  <pre><code class="language-php">&lt;?php
+require_once __DIR__ . "/helper/get_text.php";
+require_once __DIR__ . "/helper/get_text.php"; // Ignored</code></pre>
+  <h2>More about require</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.require.php">require</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.require-once.php">require_once</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
