@@ -1,0 +1,57 @@
+---
+layout: default
+title: MySQL Playground
+permalink: /utils/mysql-playground/
+nonav: true
+css:
+  - /assets/linux-playground/linux-playground.css
+js:
+  - /assets/mysql-playground/mysql-playground.js
+---
+
+<div class="linux-playground mysql-playground container-md mt-3 mb-3 pt-5 pb-5">
+  <h2 class="text-center">MySQL Playground</h2>
+  <p class="text-center text-muted">Log in to a pretend MySQL server and try SQL. The password for <code>root</code> is <code>root</code>. Nothing here touches your computer, and <code>reset</code> in the shell puts everything back.</p>
+
+  <div class="terminal" id="terminal">
+    <div id="output" role="log"></div>
+    <form class="input-line" id="command-form" autocomplete="off">
+      <label class="prompt" id="prompt" for="command"></label>
+      <input type="text" id="command" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="Command">
+    </form>
+  </div>
+  <p class="hint">Tab completes names, ↑ and ↓ go through earlier commands, Ctrl+L clears the screen, Ctrl+C cancels a line.</p>
+
+  <h3 class="h5 mt-4">In the shell</h3>
+  <div class="examples">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="ls -l">ls -l</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="mysql -u root -p">mysql -u root -p</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="mysql -u root -p shop">mysql -u root -p shop</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="sudo mysql">sudo mysql</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="mysqldump -u root -p shop &gt; shop.sql">mysqldump -u root -p shop &gt; shop.sql</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="cat books.sql">cat books.sql</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="mysql -u root -p library &lt; books.sql">mysql -u root -p library &lt; books.sql</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="sudo service mysql restart">sudo service mysql restart</button>
+  </div>
+
+  <h3 class="h5 mt-4">In mysql</h3>
+  <div class="examples">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="show databases;">show databases;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="use shop;">use shop;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="show tables;">show tables;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="describe products;">describe products;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="select * from products;">select * from products;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="select name, price from products where price &gt; 100 order by price desc;">select name, price from products where price &gt; 100 order by price desc;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="select * from products where price is null;">select * from products where price is null;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="insert into users (name, active) values ('Olle', true);">insert into users (name, active) values ('Olle', true);</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="update users set active = false where id = 1;">update users set active = false where id = 1;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="delete from users where id = 2;">delete from users where id = 2;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="update links set url = concat('/', url) where url not like '/%';">update links set url = concat('/', url) where url not like '/%';</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="create database library;">create database library;</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="create table notes (id integer PRIMARY KEY AUTO_INCREMENT, text varchar(100) NOT NULL);">create table notes (...);</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="help">help</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="exit">exit</button>
+  </div>
+
+  <p class="mt-4 text-center"><a href="/mysql/">MySQL notes</a>: read more about each command. · <a href="/utils/linux-playground/">Linux Playground</a></p>
+</div>
