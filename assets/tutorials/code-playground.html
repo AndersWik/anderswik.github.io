@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Code playground</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 16px;
+    }
+
+    .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .panes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 800px) {
+        .panes {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin: 12px 0 4px;
+    }
+
+    textarea {
+        width: 100%;
+        box-sizing: border-box;
+        font-family: monospace;
+        font-size: 14px;
+        tab-size: 2;
+        white-space: pre;
+        background: #1b1d21;
+        color: #e6e6e6;
+        padding: 8px;
+        border-radius: 6px;
+    }
+
+    iframe {
+        width: 100%;
+        height: 420px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+    #console {
+        list-style: none;
+        margin: 0;
+        padding: 8px;
+        min-height: 60px;
+        max-height: 200px;
+        overflow: auto;
+        background: #1b1d21;
+        color: #e6e6e6;
+        font-family: monospace;
+        border-radius: 6px;
+    }
+
+    #console .warn { color: #e8b455; }
+    #console .error { color: #ff8b8b; }
+  </style>
+</head>
+<body>
+  <h1>Code playground</h1>
+
+  <div class="toolbar">
+    <select id="library">
+      <option value="">Add a library…</option>
+    </select>
+    <button type="button" id="run">Run</button>
+    <label><input type="checkbox" id="auto-run" checked> Run as I type</label>
+    <button type="button" id="download">Download</button>
+  </div>
+
+  <div class="panes">
+    <div>
+      <label for="head-code">Head</label>
+      <textarea id="head-code" rows="3" spellcheck="false"></textarea>
+
+      <label for="html-code">HTML</label>
+      <textarea id="html-code" rows="8" spellcheck="false"></textarea>
+
+      <label for="css-code">CSS</label>
+      <textarea id="css-code" rows="6" spellcheck="false"></textarea>
+
+      <label for="js-code">JavaScript</label>
+      <textarea id="js-code" rows="8" spellcheck="false"></textarea>
+    </div>
+
+    <div>
+      <label>Result</label>
+      <iframe id="preview" title="Result" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe>
+
+      <label>Console</label>
+      <ol id="console"></ol>
+    </div>
+  </div>
+
+  <script>
+    /*
+     * Code playground: write HTML, CSS and JavaScript and see the result.
+     *
+     * The four boxes are put into a template of a whole HTML page, and the
+     * page is shown in a sandboxed <iframe> with srcdoc. A small script first
+     * in that page catches console.log() and errors and sends them here with
+     * postMessage().
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const headCode = document.getElementById("head-code");
+    const htmlCode = document.getElementById("html-code");
+    const cssCode = document.getElementById("css-code");
+    const jsCode = document.getElementById("js-code");
+    const codeBoxes = [headCode, htmlCode, cssCode, jsCode];
+
+    const librarySelect = document.getElementById("library");
+    const runButton = document.getElementById("run");
+    const autoRunBox = document.getElementById("auto-run");
+    const downloadButton = document.getElementById("download");
+    const preview = document.getElementById("preview");
+    const consoleList = document.getElementById("console");
+
+    // --- Data ----------------------------------------------------------------
+
+    const STORAGE_KEY = "tutorial-code-playground";
+    const RUN_DELAY = 600;
+
+    const LIBRARIES = [
+        { name: "Bootstrap 5.3", tags: [
+            '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">',
+            '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"><\/script>'] },
+        { name: "jQuery 3.7", tags: [
+            '<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"><\/script>'] },
+        { name: "Font Awesome 6.5", tags: [
+            '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">'] },
+        { name: "Chart.js 4.4", tags: [
+            '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"><\/script>'] }
+    ];
+
+    const EXAMPLE = {
+        head: "",
+        html: '<h1>Hello, world!</h1>\n<button id="hello">Click me</button>',
+        css: "body {\n  font-family: sans-serif;\n}\n\nh1 {\n  color: #e8b455;\n}",
+        js: 'document.getElementById("hello").addEventListener("click", function () {\n  console.log("Hello!");\n});'
+    };
+
+    // Put first in the result page. "<\/script>" has a backslash, or it would
+    // end the <script> this code is in.
+    const CONSOLE_CATCHER = `<script>
+    (function () {
+      function show(value) {
+        if (typeof value === "string") return value;
+        if (value instanceof Error) return value.name + ": " + value.message;
+        try { return JSON.stringify(value); } catch (error) { return String(value); }
+      }
+      function send(type, values, line) {
+        parent.postMessage({ playground: true, type: type, text: values.map(show).join(" "), line: line }, "*");
+      }
+      ["log", "warn", "error"].forEach(function (type) {
+        const original = console[type];
+        console[type] = function () {
+          send(type, Array.from(arguments));
+          original.apply(console, arguments);
+        };
+      });
+      window.addEventListener("error", function (event) {
+        send("error", [event.message], event.lineno);
+      });
+    })();
+    <\/script>`;
+
+    // --- State ---------------------------------------------------------------
+
+    let runTimer = null;
+    let jsFirstLine = 0;
+
+    // --- Building the page ---------------------------------------------------
+
+    function readCode() {
+        return { head: headCode.value, html: htmlCode.value, css: cssCode.value, js: jsCode.value };
+    }
+
+    // A closing script tag in the JavaScript would end the <script> early.
+    function escapeEnd(code, tagName) {
+        return code.replace(new RegExp("</" + tagName, "gi"), "<\\/" + tagName);
+    }
+
+    function buildPage(code, forPreview) {
+        const lines = [
+            "<!DOCTYPE html>",
+            '<html lang="en">',
+            "<head>",
+            '<meta charset="utf-8">',
+            '<meta name="viewport" content="width=device-width, initial-scale=1">',
+            "<title>Playground</title>"
+        ];
+        if (forPreview) {
+            lines.push(CONSOLE_CATCHER);
+        }
+        lines.push(code.head, "<style>", escapeEnd(code.css, "style"), "</style>",
+                   "</head>", "<body>", code.html, "<script>");
+        const top = lines.join("\n") + "\n";
+
+        return {
+            text: top + escapeEnd(code.js, "script") + "\n<\/script>\n</body>\n</html>\n",
+            jsFirstLine: top.split("\n").length
+        };
+    }
+
+    // --- Console -------------------------------------------------------------
+
+    function addConsoleLine(type, text, line) {
+        const item = document.createElement("li");
+        item.className = type;
+        item.textContent = (line >= jsFirstLine ? "Line " + (line - jsFirstLine + 1) + ": " : "") + text;
+        consoleList.appendChild(item);
+        consoleList.scrollTop = consoleList.scrollHeight;
+    }
+
+    function receiveMessage(event) {
+        if (event.source !== preview.contentWindow || !event.data || !event.data.playground) {
+            return;
+        }
+        addConsoleLine(event.data.type, String(event.data.text), event.data.line);
+    }
+
+    // --- Running -------------------------------------------------------------
+
+    function run() {
+        clearTimeout(runTimer);
+        consoleList.replaceChildren();
+        const page = buildPage(readCode(), true);
+        jsFirstLine = page.jsFirstLine;
+        preview.srcdoc = page.text;
+    }
+
+    function runSoon() {
+        clearTimeout(runTimer);
+        if (autoRunBox.checked) {
+            runTimer = setTimeout(run, RUN_DELAY);
+        }
+    }
+
+    // --- Saving --------------------------------------------------------------
+
+    function save() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(readCode()));
+        } catch (error) {
+            // Not saved, but the playground still works.
+        }
+    }
+
+    function load() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (saved && typeof saved.html === "string") {
+                return saved;
+            }
+        } catch (error) {
+            // Use the example.
+        }
+        return EXAMPLE;
+    }
+
+    function changed() {
+        save();
+        runSoon();
+    }
+
+    // --- Libraries and download ----------------------------------------------
+
+    function fillLibraryList() {
+        LIBRARIES.forEach(function (library, index) {
+            librarySelect.appendChild(new Option(library.name, String(index)));
+        });
+    }
+
+    function addLibrary() {
+        const library = LIBRARIES[Number(librarySelect.value)];
+        librarySelect.value = "";
+        if (!library) {
+            return;
+        }
+        const newTags = library.tags.filter(function (tag) {
+            return !headCode.value.includes(tag);
+        });
+        if (newTags.length > 0) {
+            const before = headCode.value.trimEnd();
+            headCode.value = (before ? before + "\n" : "") + newTags.join("\n");
+            changed();
+        }
+    }
+
+    function download() {
+        const blob = new Blob([buildPage(readCode(), false).text], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "playground.html";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    // Tab adds two spaces instead of leaving the box.
+    function insertTab(event) {
+        if (event.key !== "Tab" || event.shiftKey) {
+            return;
+        }
+        event.preventDefault();
+        const box = event.target;
+        box.setRangeText("  ", box.selectionStart, box.selectionEnd, "end");
+        changed();
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    codeBoxes.forEach(function (box) {
+        box.addEventListener("input", changed);
+        box.addEventListener("keydown", insertTab);
+    });
+    librarySelect.addEventListener("change", addLibrary);
+    runButton.addEventListener("click", run);
+    downloadButton.addEventListener("click", download);
+    window.addEventListener("message", receiveMessage);
+
+    // --- Start ---------------------------------------------------------------
+
+    fillLibraryList();
+    const start = load();
+    headCode.value = start.head;
+    htmlCode.value = start.html;
+    cssCode.value = start.css;
+    jsCode.value = start.js;
+    run();
+  </script>
+</body>
+</html>

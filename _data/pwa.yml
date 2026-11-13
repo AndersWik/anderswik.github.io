@@ -39,6 +39,7 @@
 
 - { slug: ascii, page: pages/utils/ascii.html, name: ASCII table, short_name: ASCII, emoji: "🔤" }
 - { slug: calculator, page: pages/utils/calculator.html, short_name: Calculator, emoji: "🧮" }
+- { slug: code-playground, page: pages/utils/code-playground.html, short_name: Playground, emoji: "💻" }
 - { slug: colorhex, page: pages/utils/colorhex.html, short_name: Color Hex, emoji: "🎨" }
 - { slug: crontab, page: pages/utils/crontab.html, short_name: Crontab, emoji: "⏰" }
 - { slug: data-conversion, page: pages/utils/data-conversion.html, short_name: Data Size, emoji: "💾" }
