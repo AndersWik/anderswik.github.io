@@ -1,0 +1,7 @@
+/* A popup is as big as its content, so give it a width. */
+body {
+  width: 240px;
+  padding: 16px;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+}

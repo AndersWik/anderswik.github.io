@@ -1,0 +1,51 @@
+---
+layout: default
+title: Temporary add-on
+permalink: /firefox-plugins/temporary-add-on/
+chapter: "04"
+chapter_title: "Testing"
+keywords: [firefox, extension, test, about:debugging, temporary add-on, load, reload, inspect, devtools, not verified, popup auto-hide]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Temporary add-on</h1>
+  <p>Normal Firefox only installs extensions that Mozilla has signed. If you try to install your own zip, Firefox says it <em>could not be verified</em> and refuses. While building, load it as a <strong>temporary add-on</strong> instead. That skips the signing check.</p>
+  <h2>Load it</h2>
+  <ol>
+    <li>Open <code>about:debugging#/runtime/this-firefox</code> in Firefox.</li>
+    <li>Click <strong>Load Temporary Add-on…</strong></li>
+    <li>Pick the <strong>manifest.json</strong> in the extension's folder, not the zip, for example <code>_extensions/8-ball/manifest.json</code>.</li>
+    <li>The extension's button shows up in the toolbar. If it does not, click the puzzle piece icon, <em>Extensions</em>, and pin it.</li>
+  </ol>
+  <p>A temporary add-on stays until Firefox is restarted. Then it has to be loaded again. To keep it installed, see <a href="/firefox-plugins/signing/">Signing</a>.</p>
+  <h2>Reload after a change</h2>
+  <p>Firefox does not see changed files by itself. After changing the game, build again and click <strong>Reload</strong> next to the extension in <code>about:debugging</code>.</p>
+  <pre><code class="language-bash">$ python3 _scripts/make-extension.py 8-ball</code></pre>
+  <p>A popup is loaded fresh every time it opens, so for a change in the popup's own files, closing and opening it is often enough. Changes to <code>manifest.json</code> or the background script always need <strong>Reload</strong>.</p>
+  <h2>Inspect</h2>
+  <p>Click <strong>Inspect</strong> next to the extension in <code>about:debugging</code>. It opens DevTools for the extension, with a console for errors and <code>console.log()</code> from the background script.</p>
+  <h2>Debug a popup</h2>
+  <p>The popup closes as soon as DevTools gets focus, which makes it hard to look at. In the DevTools window, open the <strong>⋯</strong> menu at the top right and turn on <strong>Disable Popup Auto-Hide</strong>. Now open the popup, and pick it in the frame list, the icon that looks like a page, at the top of DevTools.</p>
+  <h2>Open the page in a tab</h2>
+  <p>A popup page can also be opened in a normal tab, which is easier to inspect. In the DevTools console of the extension:</p>
+  <pre><code class="language-javascript">browser.tabs.create({ url: browser.runtime.getURL("index.html") });</code></pre>
+  <h2>A checklist</h2>
+  <ol>
+    <li>Load the extension. Any error in <code>manifest.json</code> is shown right away in <code>about:debugging</code>.</li>
+    <li>Click the button. Does the popup or tab open, with the right size?</li>
+    <li>Use every part of the app: every button, picture and sound.</li>
+    <li>Click <strong>Inspect</strong> and check the console for red errors, especially <em>Content-Security-Policy</em>, see <a href="/firefox-plugins/content-security-policy/">Content Security Policy</a>.</li>
+    <li>Turn off the network and try again. Only apps like My IP should need it.</li>
+  </ol>
+  <h2>Firefox for Android</h2>
+  <p>Firefox for Android also runs extensions. Test with <code>web-ext run --target=firefox-android</code>, see <a href="/firefox-plugins/web-ext/">web-ext</a>.</p>
+  <h2>More about testing</h2>
+  <ul>
+    <li><a href="https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/">Temporary installation in Firefox</a></li>
+    <li><a href="https://extensionworkshop.com/documentation/develop/debugging/">Debugging extensions</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, test, about:debugging, temporary add-on, load, reload, inspect, devtools, not verified, popup auto-hide</p>
+  {% include trail.html %}
+</div>

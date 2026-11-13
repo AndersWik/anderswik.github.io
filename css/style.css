@@ -442,7 +442,7 @@ footer .social:hover img {
   font-size: 35px;
 }
 
-.tutorials pre, .linux pre, .markdown pre, .git pre, .vagrant pre, .mysql pre, .php pre, .latex pre, .pwa pre {
+.tutorials pre, .linux pre, .markdown pre, .git pre, .vagrant pre, .mysql pre, .php pre, .latex pre, .pwa pre, .firefox-plugins pre {
   background-color: #1b1d21;
   color: #e6e6e6;
   border-radius: 10px;
@@ -453,36 +453,36 @@ footer .social:hover img {
   line-height: 1.55;
   tab-size: 4;
 }
-.tutorials pre code, .linux pre code, .markdown pre code, .git pre code, .vagrant pre code, .mysql pre code, .php pre code, .latex pre code, .pwa pre code {
+.tutorials pre code, .linux pre code, .markdown pre code, .git pre code, .vagrant pre code, .mysql pre code, .php pre code, .latex pre code, .pwa pre code, .firefox-plugins pre code {
   color: inherit;
   background: none;
   padding: 0;
   font-size: inherit;
 }
-.tutorials pre .tok-comment, .linux pre .tok-comment, .markdown pre .tok-comment, .git pre .tok-comment, .vagrant pre .tok-comment, .mysql pre .tok-comment, .php pre .tok-comment, .latex pre .tok-comment, .pwa pre .tok-comment {
+.tutorials pre .tok-comment, .linux pre .tok-comment, .markdown pre .tok-comment, .git pre .tok-comment, .vagrant pre .tok-comment, .mysql pre .tok-comment, .php pre .tok-comment, .latex pre .tok-comment, .pwa pre .tok-comment, .firefox-plugins pre .tok-comment {
   color: #7f8b99;
   font-style: italic;
 }
-.tutorials pre .tok-prompt, .linux pre .tok-prompt, .markdown pre .tok-prompt, .git pre .tok-prompt, .vagrant pre .tok-prompt, .mysql pre .tok-prompt, .php pre .tok-prompt, .latex pre .tok-prompt, .pwa pre .tok-prompt {
+.tutorials pre .tok-prompt, .linux pre .tok-prompt, .markdown pre .tok-prompt, .git pre .tok-prompt, .vagrant pre .tok-prompt, .mysql pre .tok-prompt, .php pre .tok-prompt, .latex pre .tok-prompt, .pwa pre .tok-prompt, .firefox-plugins pre .tok-prompt {
   color: #7f8b99;
   user-select: none;
 }
-.tutorials pre .tok-string, .linux pre .tok-string, .markdown pre .tok-string, .git pre .tok-string, .vagrant pre .tok-string, .mysql pre .tok-string, .php pre .tok-string, .latex pre .tok-string, .pwa pre .tok-string {
+.tutorials pre .tok-string, .linux pre .tok-string, .markdown pre .tok-string, .git pre .tok-string, .vagrant pre .tok-string, .mysql pre .tok-string, .php pre .tok-string, .latex pre .tok-string, .pwa pre .tok-string, .firefox-plugins pre .tok-string {
   color: #a8d38f;
 }
-.tutorials pre .tok-keyword, .linux pre .tok-keyword, .markdown pre .tok-keyword, .git pre .tok-keyword, .vagrant pre .tok-keyword, .mysql pre .tok-keyword, .php pre .tok-keyword, .latex pre .tok-keyword, .pwa pre .tok-keyword {
+.tutorials pre .tok-keyword, .linux pre .tok-keyword, .markdown pre .tok-keyword, .git pre .tok-keyword, .vagrant pre .tok-keyword, .mysql pre .tok-keyword, .php pre .tok-keyword, .latex pre .tok-keyword, .pwa pre .tok-keyword, .firefox-plugins pre .tok-keyword {
   color: #e8b455;
 }
-.tutorials pre .tok-number, .linux pre .tok-number, .markdown pre .tok-number, .git pre .tok-number, .vagrant pre .tok-number, .mysql pre .tok-number, .php pre .tok-number, .latex pre .tok-number, .pwa pre .tok-number {
+.tutorials pre .tok-number, .linux pre .tok-number, .markdown pre .tok-number, .git pre .tok-number, .vagrant pre .tok-number, .mysql pre .tok-number, .php pre .tok-number, .latex pre .tok-number, .pwa pre .tok-number, .firefox-plugins pre .tok-number {
   color: #f29e74;
 }
-.tutorials pre .tok-function, .linux pre .tok-function, .markdown pre .tok-function, .git pre .tok-function, .vagrant pre .tok-function, .mysql pre .tok-function, .php pre .tok-function, .latex pre .tok-function, .pwa pre .tok-function {
+.tutorials pre .tok-function, .linux pre .tok-function, .markdown pre .tok-function, .git pre .tok-function, .vagrant pre .tok-function, .mysql pre .tok-function, .php pre .tok-function, .latex pre .tok-function, .pwa pre .tok-function, .firefox-plugins pre .tok-function {
   color: #82b1ff;
 }
-.tutorials pre .tok-property, .linux pre .tok-property, .markdown pre .tok-property, .git pre .tok-property, .vagrant pre .tok-property, .mysql pre .tok-property, .php pre .tok-property, .latex pre .tok-property, .pwa pre .tok-property {
+.tutorials pre .tok-property, .linux pre .tok-property, .markdown pre .tok-property, .git pre .tok-property, .vagrant pre .tok-property, .mysql pre .tok-property, .php pre .tok-property, .latex pre .tok-property, .pwa pre .tok-property, .firefox-plugins pre .tok-property {
   color: #c3a6ff;
 }
-.tutorials pre .tok-tag, .linux pre .tok-tag, .markdown pre .tok-tag, .git pre .tok-tag, .vagrant pre .tok-tag, .mysql pre .tok-tag, .php pre .tok-tag, .latex pre .tok-tag, .pwa pre .tok-tag {
+.tutorials pre .tok-tag, .linux pre .tok-tag, .markdown pre .tok-tag, .git pre .tok-tag, .vagrant pre .tok-tag, .mysql pre .tok-tag, .php pre .tok-tag, .latex pre .tok-tag, .pwa pre .tok-tag, .firefox-plugins pre .tok-tag {
   color: #ff8b8b;
 }
 

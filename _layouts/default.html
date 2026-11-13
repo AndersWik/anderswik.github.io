@@ -11,7 +11,7 @@
   {% for script in page.js %}
   <script src="{{ script | relative_url }}"></script>
   {% endfor %}
-  {% assign highlight_sections = "tutorials,linux,markdown,git,vagrant,mysql,php,latex,pwa" | split: "," %}
+  {% assign highlight_sections = "tutorials,linux,markdown,git,vagrant,mysql,php,latex,pwa,firefox-plugins" | split: "," %}
   {% assign path_parts = page.path | split: "/" %}
   {% if path_parts[0] == "pages" and highlight_sections contains path_parts[1] %}{% include code-highlight.html %}{% endif %}
   {% include footer.html %}

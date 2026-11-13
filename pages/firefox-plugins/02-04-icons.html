@@ -1,0 +1,50 @@
+---
+layout: default
+title: Icons
+permalink: /firefox-plugins/icons/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [firefox, extension, icons, png, svg, toolbar icon, default_icon, emoji, pillow, sizes]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Icons</h1>
+  <p>An extension uses icons in two places: the toolbar button, and the add-ons manager and store page.</p>
+  <h2>The sizes</h2>
+  <ul>
+    <li><code>action.default_icon</code> the toolbar button: <strong>16</strong> and <strong>32</strong> pixels, for normal and high resolution screens.</li>
+    <li><code>icons</code> the add-ons manager and addons.mozilla.org: <strong>48</strong> and <strong>96</strong> pixels. Chrome also wants <strong>128</strong>.</li>
+  </ul>
+  <pre><code class="language-json">"icons": {
+  "48": "icons/icon-48.png",
+  "96": "icons/icon-96.png",
+  "128": "icons/icon-128.png"
+},
+"action": {
+  "default_icon": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png"
+  }
+}</code></pre>
+  <p>Firefox picks the best size for the screen and scales it if one is missing. Firefox also accepts SVG icons, which look sharp in every size, but Chrome does not.</p>
+  <h2>Small icons need big pictures</h2>
+  <p>At 16 pixels there is no room for detail. Use one simple shape that fills most of the icon. A thin outline or small text disappears.</p>
+  <h2>How ours are made</h2>
+  <p><code>_scripts/make-extension.py</code> draws every app's emoji from <code>_data/extensions.yml</code> on a dark tile, using the icon code from <code>make-pwa.py</code>, see <a href="/pwa/icons/">PWA icons</a>. For the two smallest sizes the emoji is made bigger, and the optional label under it, like "AI" or "64", is left out since it can not be read.</p>
+  <pre><code class="language-python">for size in ICON_SIZES:                     # 16, 32, 48, 96, 128
+    # The smallest toolbar icons get a bigger emoji, or it can't be seen.
+    scale = 0.78 if size &lt;= 32 else 0.62
+    pwa.make_icon(app["emoji"], None if size &lt;= 32 else app.get("label"), size, True, scale) \
+        .save(folder / f"icons/icon-{size}.png", optimize=True)</code></pre>
+  <h2>Dark and light toolbars</h2>
+  <p>The toolbar can be light or dark depending on the theme. An icon on its own tile, like ours, looks the same on both. A transparent icon with a dark picture can disappear on a dark theme. Firefox can use different icons per theme with <code>theme_icons</code> in <code>action</code>.</p>
+  <h2>More about icons</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/icons">icons on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/action">action, with default_icon and theme_icons, on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, icons, png, svg, toolbar icon, default_icon, emoji, pillow, sizes</p>
+  {% include trail.html %}
+</div>

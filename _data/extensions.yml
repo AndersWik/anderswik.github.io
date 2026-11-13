@@ -1,0 +1,75 @@
+# Games and apps that are made into browser extensions for Firefox.
+#
+# After changing this list or any of the apps, run:
+#   python3 _scripts/make-extension.py
+# It writes a folder and a zip for every app into _extensions/.
+# Test a folder in Firefox: about:debugging, This Firefox, Load Temporary
+# Add-on, and pick its manifest.json. Upload the zip to addons.mozilla.org.
+#
+#   slug         folder in assets/, and the add-on id <slug>@anderswik.se
+#                (never change it after the add-on is published)
+#   page         the page the app is made from
+#   name         full name (default: the page title)
+#   emoji        icon picture
+#   label        optional short text under the emoji, for apps with the same emoji
+#   version      raise it for every new upload to addons.mozilla.org (default 1.0)
+#   description  text on the add-on page (default: "<name> from anderswik.se.")
+#   open         popup (default): a small window under the toolbar button
+#                tab: a new tab, for big apps and keyboard games, since a popup
+#                closes as soon as it loses focus
+#   width        popup width in pixels (default 360, at most 800)
+#
+# Timers (countdown, egg-clock) open in a tab: a popup and its timer stop as
+# soon as it loses focus.
+
+- { slug: 8-ball, page: pages/games/8-ball.html, name: Magic 8 Ball, emoji: "🎱", description: "Ask a question and shake the Magic 8 Ball for an answer." }
+- { slug: blackjack, page: pages/games/blackjack.html, emoji: "🃏" }
+- { slug: choose-dice, page: pages/games/choose-dice.html, emoji: "🎲" }
+- { slug: chore-wheel, page: pages/games/chore-wheel.html, emoji: "🧹" }
+- { slug: coin-flip, page: pages/games/coin-flip.html, emoji: "🪙" }
+- { slug: four-in-a-row, page: pages/games/four-in-a-row.html, emoji: "🔴" }
+- { slug: four-in-a-row-ai, page: pages/games/four-in-a-row-ai.html, emoji: "🔴", label: AI }
+- { slug: hangman, page: pages/games/hangman.html, emoji: "🪢" }
+- { slug: kvarn, page: pages/games/kvarn.html, emoji: "⚪", label: "9" }
+- { slug: memory, page: pages/games/memory.html, name: Memory, emoji: "🧠" }
+- { slug: quiz, page: pages/games/quiz.html, emoji: "❓" }
+- { slug: reversi, page: pages/games/reversi.html, name: Reversi, emoji: "🌗" }
+- { slug: reversi-ai, page: pages/games/reversi-ai.html, emoji: "🌗", label: AI }
+- { slug: rock-paper-scissors, page: pages/games/rock-paper-scissors.html, emoji: "✌️" }
+- { slug: roulette, page: pages/games/roulette.html, emoji: "🎡" }
+- { slug: slot-machine, page: pages/games/slot-machine.html, emoji: "🎰" }
+- { slug: sudoku, page: pages/games/sudoku.html, emoji: "🔢" }
+- { slug: tic-tac-toe, page: pages/games/tic-tac-toe.html, emoji: "❌" }
+- { slug: ascii, page: pages/utils/ascii.html, name: ASCII table, emoji: "🔤", open: tab }
+- { slug: calculator, page: pages/utils/calculator.html, emoji: "🧮" }
+- { slug: colorhex, page: pages/utils/colorhex.html, emoji: "🎨", width: 560 }
+- { slug: crontab, page: pages/utils/crontab.html, emoji: "⏰" }
+- { slug: data-conversion, page: pages/utils/data-conversion.html, emoji: "💾" }
+- { slug: decode-base64, page: pages/utils/decode-base64.html, name: Base64 decode, emoji: "🔓", label: "64" }
+- { slug: encode-base64, page: pages/utils/encode-base64.html, name: Base64 encode, emoji: "🔒", label: "64" }
+- { slug: decode-url, page: pages/utils/decode-url.html, name: URL decode, emoji: "🔓", label: URL }
+- { slug: encode-url, page: pages/utils/encode-url.html, name: URL encode, emoji: "🔒", label: URL }
+- { slug: unix-timestamp-convertor, page: pages/utils/unix-timestamp-convertor.html, name: Unix Timestamp Converter, emoji: "🕒" }
+- { slug: countdown, page: pages/other/countdown.html, emoji: "⏳", open: tab }
+- { slug: discgolf, page: pages/other/discgolf.html, name: Discgolf score card, emoji: "🥏" }
+- { slug: egg-clock, page: pages/other/egg-clock.html, emoji: "🥚", open: tab }
+- { slug: eliza, page: pages/other/eliza.html, emoji: "💬" }
+- { slug: myip, page: pages/other/myip.html, name: My IP, emoji: "🌐" }
+- { slug: week, page: pages/other/week.html, name: Week number, emoji: "📅" }
+
+# Keyboard games: not PWAs, but fine in a desktop browser. 800 pixel canvas, so a tab.
+- { slug: arcade-shooter, page: pages/games/arcade-shooter.html, emoji: "👾", label: ARCADE, open: tab }
+- { slug: artillery-game, page: pages/games/artillery-game.html, name: Artillery, emoji: "💣", open: tab }
+- { slug: asteroids, page: pages/games/asteroids.html, name: Asteroids, emoji: "☄️", open: tab }
+- { slug: breakout, page: pages/games/breakout.html, name: Breakout, emoji: "🧱", open: tab }
+- { slug: hock-a-loogie, page: pages/games/hock-a-loogie.html, emoji: "💦", open: tab }
+- { slug: missile-command, page: pages/games/missile-command.html, emoji: "🚀", open: tab }
+- { slug: pong, page: pages/games/pong.html, name: Pong, emoji: "🏓", open: tab }
+- { slug: pool, page: pages/games/pool.html, name: Pool, emoji: "🎱", label: POOL, open: tab }
+- { slug: space-fighter, page: pages/games/space-fighter.html, name: Space Fighter, emoji: "🛸", open: tab }
+- { slug: space-invader, page: pages/games/space-invader.html, emoji: "👾", open: tab }
+- { slug: volleyball, page: pages/games/volleyball.html, name: Volleyball, emoji: "🏐", open: tab }
+- { slug: whack-a-mole, page: pages/games/whack-a-mole.html, emoji: "🔨", open: tab }
+
+# Downloads a file, which is easier from a tab than from a popup.
+- { slug: vagrant, page: pages/utils/vagrant.html, emoji: "📦", open: tab }

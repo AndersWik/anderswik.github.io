@@ -1,0 +1,62 @@
+---
+layout: default
+title: Content Security Policy
+permalink: /firefox-plugins/content-security-policy/
+chapter: "03"
+chapter_title: "Port the 8-ball"
+keywords: [firefox, extension, csp, content security policy, inline script, onclick, eval, remote code, cdn, security]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Content Security Policy</h1>
+  <p>Extensions can do much more than web pages, so Firefox is strict about what code they may run. The rules are a Content Security Policy, CSP, and for Manifest V3 the default is:</p>
+  <pre><code class="language-bash">script-src 'self'; upgrade-insecure-requests;</code></pre>
+  <p>In plain words: scripts may only come from files inside the extension. This is the most common reason a ported app does nothing at all.</p>
+  <h2>No inline scripts</h2>
+  <p>A <code>&lt;script&gt;</code> with code in it is blocked. Move the code to a file.</p>
+  <pre><code class="language-html">&lt;!-- Blocked --&gt;
+&lt;script&gt;
+  document.getElementById("go").addEventListener("click", start);
+&lt;/script&gt;
+
+&lt;!-- Works --&gt;
+&lt;script src="start.js"&gt;&lt;/script&gt;</code></pre>
+  <p>Our <code>game</code> layout has a small inline script that stops the arrow keys from scrolling the page. The script writes it to its own file, <code>game-keys.js</code>, for the games.</p>
+  <h2>No inline event handlers</h2>
+  <p><code>onclick</code>, <code>onsubmit</code> and the other <code>on...</code> attributes are inline scripts too.</p>
+  <pre><code class="language-html">&lt;!-- Blocked --&gt;
+&lt;button onclick="shake()"&gt;Shake&lt;/button&gt;</code></pre>
+  <pre><code class="language-javascript">// Works: in the .js file
+document.getElementById("shake").addEventListener("click", shake);</code></pre>
+  <p>Also <code>javascript:</code> links, like <code>&lt;a href="javascript:reset()"&gt;</code>.</p>
+  <h2>No eval</h2>
+  <p><code>eval()</code>, <code>new Function()</code> and <code>setTimeout("code as text")</code> turn text into code, and are blocked. Pass a function instead:</p>
+  <pre><code class="language-javascript">setTimeout(function () { showAnswer(); }, 500);   // Not setTimeout("showAnswer()", 500)</code></pre>
+  <h2>No code from other sites</h2>
+  <p>A <code>&lt;script src="https://..."&gt;</code> from a CDN is blocked, since Mozilla can not review code that is not in the zip. Download the file and put it in the extension. Our extensions get their own copy of Bootstrap in <code>vendor/</code>.</p>
+  <p>Stylesheets and pictures from other sites are not blocked by the CSP, but addons.mozilla.org prefers everything in the zip. It also makes the app work offline.</p>
+  <h2>What is allowed</h2>
+  <ul>
+    <li>Inline <code>&lt;style&gt;</code> and <code>style="..."</code> attributes.</li>
+    <li><code>fetch()</code> to other sites, like the API in <a href="/other/myip/">My IP</a>, if that site allows it with CORS headers. Otherwise add the site to <code>host_permissions</code>.</li>
+    <li><code>localStorage</code>, canvas, audio and everything else a normal page can use.</li>
+  </ul>
+  <h2>How the script checks it</h2>
+  <p><code>_scripts/make-extension.py</code> stops with an error for each of these before Firefox has a chance to complain:</p>
+  <pre><code class="language-python">if re.search(r"&lt;script\b(?![^&gt;]*\bsrc=)[^&gt;]*&gt;", body):
+    problems.append("an inline &lt;script&gt; block, move it to a .js file")
+handler = re.search(r"\son[a-z]+\s*=", body)
+if handler:
+    problems.append(f"an inline event handler ({handler.group(0).strip()}...), use addEventListener in the .js file")</code></pre>
+  <p>All of the games and apps on this site already passed, since they were written with <code>addEventListener</code> from the start.</p>
+  <h2>See the errors</h2>
+  <p>Blocked code fails silently on the page. The reason is in the console: open <code>about:debugging</code>, click <strong>Inspect</strong> next to the extension, and look for <em>Content-Security-Policy</em> errors.</p>
+  <h2>More about CSP</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy">Content Security Policy for extensions on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, csp, content security policy, inline script, onclick, eval, remote code, cdn, security</p>
+  {% include trail.html %}
+</div>

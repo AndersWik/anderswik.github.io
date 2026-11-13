@@ -1,0 +1,57 @@
+---
+layout: default
+title: Open in a tab
+permalink: /firefox-plugins/open-in-tab/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [firefox, extension, tab, background script, action.onClicked, tabs.create, runtime.getURL, service_worker, chrome]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Open in a tab</h1>
+  <p>Some apps are too big for a popup, or must keep running when the user clicks somewhere else. Instead of a popup, the toolbar button can open the app's page in a new tab. That takes a <em>background script</em>.</p>
+  <h2>The manifest</h2>
+  <p>Leave out <code>default_popup</code>, and add a background script. Without a popup, a click on the button fires an event instead.</p>
+  <pre><code class="language-json">"action": {
+  "default_title": "Asteroids",
+  "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png" }
+},
+"background": {
+  "scripts": ["background.js"],
+  "service_worker": "background.js"
+}</code></pre>
+  <p>Firefox reads <code>scripts</code>, Chrome and Edge read <code>service_worker</code>. With both, the same extension loads in all of them.</p>
+  <h2>background.js</h2>
+  <pre><code class="language-javascript">// Clicking the toolbar button opens the app in a new tab.
+// Firefox has "browser", Chrome and Edge only "chrome".
+const api = typeof browser !== "undefined" ? browser : chrome;
+
+api.action.onClicked.addListener(function () {
+    api.tabs.create({ url: api.runtime.getURL("index.html") });
+});</code></pre>
+  <ul>
+    <li><code>action.onClicked</code> fires when the toolbar button is clicked, but only if there is no popup.</li>
+    <li><code>runtime.getURL()</code> turns a path in the extension into a full address, like <code>moz-extension://…/index.html</code>.</li>
+    <li><code>tabs.create()</code> opens a new tab. Opening a tab needs no permission.</li>
+  </ul>
+  <h2>Which of our apps open in a tab</h2>
+  <ul>
+    <li><strong>The keyboard games</strong>, like Asteroids, Pong and Space Invaders. Their canvas is 800 pixels wide, and a popup would close the moment you clicked outside it. These were left out of the PWAs since they need a keyboard, but in a desktop browser they work fine.</li>
+    <li><strong>Egg Clock and Countdown</strong>, since a timer in a popup stops when the popup closes.</li>
+    <li><strong>ASCII table</strong>, a wide table.</li>
+    <li><strong>Vagrantfile Maker</strong>, which downloads a file.</li>
+  </ul>
+  <p>In <code>_data/extensions.yml</code> this is <code>open: tab</code>:</p>
+  <pre><code class="language-bash">- { slug: asteroids, page: pages/games/asteroids.html, name: Asteroids, emoji: "☄️", open: tab }</code></pre>
+  <h2>Debug the background script</h2>
+  <p>A background script has no page to look at. Its <code>console.log()</code> shows up when you click <strong>Inspect</strong> next to the extension in <code>about:debugging</code>.</p>
+  <h2>More about background scripts</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Background_scripts">Background scripts on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/action/onClicked">action.onClicked on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, tab, background script, action.onClicked, tabs.create, runtime.getURL, service_worker, chrome</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,48 @@
+---
+layout: default
+title: Common problems
+permalink: /firefox-plugins/problems/
+chapter: "04"
+chapter_title: "Testing"
+keywords: [firefox, extension, problems, troubleshooting, not verified, corrupt, blank popup, csp error, manifest error, id]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Common problems</h1>
+  <h2>"This add-on could not be installed because it has not been verified"</h2>
+  <p>Normal Firefox only installs extensions signed by Mozilla, and your own zip is not. While testing, load it as a <a href="/firefox-plugins/temporary-add-on/">temporary add-on</a>. To keep it installed, get it <a href="/firefox-plugins/signing/">signed</a>, or use <a href="/firefox-plugins/developer-edition/">Developer Edition</a>.</p>
+  <h2>"This add-on could not be installed because it appears to be corrupt"</h2>
+  <ul>
+    <li><code>manifest.json</code> is not at the top of the zip. Zip the <em>contents</em> of the folder, not the folder itself.</li>
+    <li>The manifest is not valid JSON. Check it with <code>python3 -m json.tool manifest.json</code>.</li>
+  </ul>
+  <h2>"There was an error during the temporary add-on installation"</h2>
+  <p><code>about:debugging</code> shows the reason under the button, for example a missing file or a field with the wrong type. A common one is a missing icon: the paths in the manifest must match the files exactly, also upper and lower case.</p>
+  <h2>The popup is blank or tiny</h2>
+  <ul>
+    <li>There is no width on <code>body</code>, and the content is only as wide as the text. Set a width, see <a href="/firefox-plugins/popup/">Popup</a>.</li>
+    <li>A path is wrong. Remember that <code>/</code> is the top of the extension, not the website.</li>
+  </ul>
+  <h2>The popup shows but nothing happens</h2>
+  <p>Almost always a script that was blocked. Click <strong>Inspect</strong> in <code>about:debugging</code> and look for <em>Content-Security-Policy</em> errors in the console. See <a href="/firefox-plugins/content-security-policy/">Content Security Policy</a>.</p>
+  <h2>A game stops when I click outside</h2>
+  <p>A popup closes when it loses focus, and the page is thrown away. Use <code>open: tab</code> in <code>_data/extensions.yml</code>, see <a href="/firefox-plugins/open-in-tab/">Open in a tab</a>.</p>
+  <h2>My change does not show up</h2>
+  <ul>
+    <li>Run <code>make-extension.py</code> again. The extension uses copies of the site's files.</li>
+    <li>Click <strong>Reload</strong> in <code>about:debugging</code>.</li>
+  </ul>
+  <h2>"Duplicate add-on ID found" when uploading</h2>
+  <p>Someone else already uses that <code>id</code>, or you uploaded it before as a different add-on. The id must be unique, use your own domain, like <code>8-ball@anderswik.se</code>.</p>
+  <h2>"Version already exists" when uploading</h2>
+  <p>Every upload needs a higher <code>version</code>. Raise it in <code>_data/extensions.yml</code> and build again, see <a href="/firefox-plugins/signing/">Signing</a>.</p>
+  <h2>More about problems</h2>
+  <ul>
+    <li><a href="https://extensionworkshop.com/documentation/develop/debugging/">Debugging extensions</a></li>
+    <li><a href="https://discourse.mozilla.org/c/add-ons/35">Mozilla add-ons forum</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, problems, troubleshooting, not verified, corrupt, blank popup, csp error, manifest error, id</p>
+  {% include trail.html %}
+</div>

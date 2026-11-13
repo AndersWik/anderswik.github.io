@@ -1,0 +1,55 @@
+---
+layout: default
+title: Publish on addons.mozilla.org
+permalink: /firefox-plugins/publish/
+chapter: "05"
+chapter_title: "Publishing"
+keywords: [firefox, extension, publish, listed, addons.mozilla.org, amo, review, screenshots, listing, privacy, license, chrome web store]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Publish on addons.mozilla.org</h1>
+  <p>A listed extension gets its own page on addons.mozilla.org, shows up in search, and Firefox updates it for everyone by itself when you upload a new version.</p>
+  <h2>Submit</h2>
+  <ol>
+    <li>Build the zip and run <code>web-ext lint</code> on the folder, see <a href="/firefox-plugins/web-ext/">web-ext</a>.</li>
+    <li>On <a href="https://addons.mozilla.org/developers/">the developer hub</a>, click <strong>Submit a New Add-on</strong> and pick <strong>On this site</strong>.</li>
+    <li>Upload the zip. Pick which platforms it is for, desktop and Android.</li>
+    <li>Fill in the listing, see below, and submit.</li>
+  </ol>
+  <h2>The listing</h2>
+  <ul>
+    <li><strong>Name and summary</strong> taken from the manifest, and can be changed. The summary is the first thing people read, so say what it does in one sentence.</li>
+    <li><strong>Description</strong> a longer text. How to use it, and that it works offline and collects nothing.</li>
+    <li><strong>Categories</strong> like <em>Games &amp; Entertainment</em> or <em>Other</em>.</li>
+    <li><strong>Screenshots</strong> 1280 × 800 pixels look best. Take them with the app open in a tab.</li>
+    <li><strong>License</strong> the license of your code, for example MIT.</li>
+    <li><strong>Privacy policy</strong> only needed if the extension collects or sends data. My IP sends a request to ipify, so say that in its description.</li>
+    <li><strong>Homepage</strong> link to the game's page on this site.</li>
+  </ul>
+  <h2>Review</h2>
+  <p>Every listed extension is checked automatically, and may also be reviewed by a person, before or after it goes public. Reviews are faster when:</p>
+  <ul>
+    <li>The code is plain and not minified, or the source is attached.</li>
+    <li>It asks for as few permissions as possible. Our games ask for none.</li>
+    <li>There is no code from other sites, see <a href="/firefox-plugins/content-security-policy/">Content Security Policy</a>.</li>
+  </ul>
+  <h2>Many extensions or one?</h2>
+  <p>Publishing 47 small extensions means 47 listings to keep up. Mozilla's policies also say an extension should do something useful on its own, and many near copies can be seen as spam. Two ways to think about it:</p>
+  <ul>
+    <li>Publish the few that stand on their own, like the Magic 8 Ball, the Discgolf score card or the Unix timestamp converter, and keep the rest unlisted.</li>
+    <li>Or make one extension, a games collection, with a menu that opens each game.</li>
+  </ul>
+  <h2>Chrome and Edge</h2>
+  <p>The same zip loads in Chrome and Edge, which ignore <code>browser_specific_settings</code>. They have their own stores: the <a href="https://chrome.google.com/webstore/devconsole">Chrome Web Store</a>, with a one time fee, and <a href="https://partner.microsoft.com/dashboard/microsoftedge/">Microsoft Edge Add-ons</a>. Test in Chrome first with <code>chrome://extensions</code>, <strong>Developer mode</strong>, <strong>Load unpacked</strong>.</p>
+  <h2>More about publishing</h2>
+  <ul>
+    <li><a href="https://extensionworkshop.com/documentation/publish/submitting-an-add-on/">Submitting an add-on</a></li>
+    <li><a href="https://extensionworkshop.com/documentation/publish/add-on-policies/">Add-on policies</a></li>
+    <li><a href="https://extensionworkshop.com/documentation/develop/create-an-appealing-listing/">Create an appealing listing</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, publish, listed, addons.mozilla.org, amo, review, screenshots, listing, privacy, license, chrome web store</p>
+  {% include trail.html %}
+</div>

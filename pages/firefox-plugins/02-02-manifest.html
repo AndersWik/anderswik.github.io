@@ -1,0 +1,77 @@
+---
+layout: default
+title: Manifest
+permalink: /firefox-plugins/manifest/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [firefox, extension, manifest.json, manifest_version, version, gecko, id, browser_specific_settings, data_collection_permissions, permissions, action]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Manifest</h1>
+  <p><code>manifest.json</code> is the only file every extension must have. It must be at the top of the extension's folder and be valid JSON: no comments, and no comma after the last item.</p>
+  <h2>Our 8-ball's manifest</h2>
+  <p>This is the manifest of the <a href="/games/8-ball/">Magic 8 Ball</a> extension, made by <code>_scripts/make-extension.py</code>:</p>
+  <pre><code class="language-json">{
+  "manifest_version": 3,
+  "name": "Magic 8 Ball",
+  "version": "1.0",
+  "description": "Ask a question and shake the Magic 8 Ball for an answer.",
+  "homepage_url": "https://www.anderswik.se/games/8-ball/",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Magic 8 Ball",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    },
+    "default_popup": "index.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "8-ball@anderswik.se",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}</code></pre>
+  <h2>The fields</h2>
+  <ul>
+    <li><code>manifest_version</code> always <code>3</code> for a new extension.</li>
+    <li><code>name</code> shown in the add-ons list and on addons.mozilla.org.</li>
+    <li><code>version</code> one to four numbers with dots, like <code>1.0</code> or <code>1.2.3</code>. Every upload to addons.mozilla.org needs a higher version than the last one.</li>
+    <li><code>description</code> a short text about the extension.</li>
+    <li><code>homepage_url</code> a link shown in the add-ons manager.</li>
+    <li><code>icons</code> icons for the add-ons manager and store, see <a href="/firefox-plugins/icons/">Icons</a>.</li>
+    <li><code>action</code> the toolbar button: its tooltip, icon and popup page, see <a href="/firefox-plugins/popup/">Popup</a>.</li>
+  </ul>
+  <h2>browser_specific_settings</h2>
+  <p>Settings only Firefox reads. Other browsers ignore them.</p>
+  <ul>
+    <li><code>id</code> the extension's id. It looks like an email address and must be unique, so use a domain you own, like <code>8-ball@anderswik.se</code>. Never change it after publishing: Firefox would see a new extension, and users would not get updates.</li>
+    <li><code>strict_min_version</code> the oldest Firefox the extension runs in.</li>
+    <li><code>data_collection_permissions</code> what data the extension collects or sends away. addons.mozilla.org asks this of every new extension. Our apps collect nothing, so it is <code>["none"]</code>. Firefox reads this from version 140, which is why <code>strict_min_version</code> is 140.</li>
+  </ul>
+  <h2>Permissions</h2>
+  <p>An extension that uses browser APIs has to ask for them, and the user sees the list when installing. Ask for as little as possible: the more permissions, the more users say no, and the longer a review takes.</p>
+  <pre><code class="language-json">"permissions": ["storage", "tabs"],
+"host_permissions": ["https://api.example.com/*"]</code></pre>
+  <p>Our games ask for no permissions at all. Even <code>tabs.create()</code>, used to open an app in a tab, works without the <code>tabs</code> permission.</p>
+  <h2>More about the manifest</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json">manifest.json on MDN</a></li>
+    <li><a href="https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/">Firefox built-in data collection consent</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, manifest.json, manifest_version, version, gecko, id, browser_specific_settings, data_collection_permissions, permissions, action</p>
+  {% include trail.html %}
+</div>

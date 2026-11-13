@@ -1,0 +1,108 @@
+---
+layout: default
+title: Hello World
+permalink: /firefox-plugins/hello-world/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [firefox, extension, hello world, first extension, popup, manifest.json, toolbar button, example]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Hello World</h1>
+  <p>The smallest useful extension is a toolbar button that opens a popup. It needs a manifest, a page for the popup, and a few icons. The finished example is in <code>_extensions/hello-world/</code> in this site's repository.</p>
+  <pre><code class="language-bash">hello-world/
+├── manifest.json
+├── popup.html
+├── popup.css
+├── popup.js
+└── icons/
+    ├── icon-16.png
+    ├── icon-32.png
+    ├── icon-48.png
+    └── icon-96.png</code></pre>
+  <h2>manifest.json</h2>
+  <p>Tells Firefox the name and version, which icons to use, and that the toolbar button opens <code>popup.html</code>. Read more in <a href="/firefox-plugins/manifest/">Manifest</a>.</p>
+  <pre><code class="language-json">{
+  "manifest_version": 3,
+  "name": "Hello World",
+  "version": "1.0",
+  "description": "My first Firefox extension.",
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  },
+  "action": {
+    "default_title": "Hello World",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "hello-world@anderswik.se",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}</code></pre>
+  <h2>popup.html</h2>
+  <p>A normal HTML page. The script is in its own file, since extensions do not run inline scripts.</p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;title&gt;Hello World&lt;/title&gt;
+  &lt;link rel="stylesheet" href="popup.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello, world!&lt;/h1&gt;
+  &lt;button type="button" id="hello"&gt;Click me&lt;/button&gt;
+  &lt;p id="clicks"&gt;0 clicks&lt;/p&gt;
+
+  &lt;!-- No inline scripts in an extension, the code is in its own file. --&gt;
+  &lt;script src="popup.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>popup.css</h2>
+  <p>A popup grows to fit its content, so give the body a width.</p>
+  <pre><code class="language-css">body {
+  width: 240px;
+  padding: 16px;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+}</code></pre>
+  <h2>popup.js</h2>
+  <pre><code class="language-javascript">// Count the clicks on the button.
+const button = document.getElementById("hello");
+const clicksText = document.getElementById("clicks");
+let clicks = 0;
+
+button.addEventListener("click", function () {
+    clicks++;
+    clicksText.textContent = clicks + (clicks === 1 ? " click" : " clicks");
+});</code></pre>
+  <h2>Icons</h2>
+  <p>Any square PNG files work. See <a href="/firefox-plugins/icons/">Icons</a> for the sizes and how ours are made.</p>
+  <h2>Try it</h2>
+  <ol>
+    <li>Open <code>about:debugging#/runtime/this-firefox</code> in Firefox.</li>
+    <li>Click <strong>Load Temporary Add-on…</strong> and pick <code>hello-world/manifest.json</code>.</li>
+    <li>The 👋 button shows up in the toolbar. If not, click the puzzle piece icon and pin it.</li>
+    <li>Click it, and click the button in the popup.</li>
+  </ol>
+  <p>Close the popup and open it again: the count is back at 0. A popup is a new page every time it opens. To remember something, save it, see <a href="/firefox-plugins/popup/">Popup</a>.</p>
+  <p>Read more about testing in <a href="/firefox-plugins/temporary-add-on/">Temporary add-on</a>.</p>
+  <h2>More about Hello World</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension">Your first extension on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_second_WebExtension">Your second extension on MDN</a>, with a popup</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, hello world, first extension, popup, manifest.json, toolbar button, example</p>
+  {% include trail.html %}
+</div>

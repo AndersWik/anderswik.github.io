@@ -1,0 +1,53 @@
+---
+layout: default
+title: Signing
+permalink: /firefox-plugins/signing/
+chapter: "05"
+chapter_title: "Publishing"
+keywords: [firefox, extension, signing, sign, unlisted, on your own, xpi, addons.mozilla.org, amo, version, upload]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Signing</h1>
+  <p>Release Firefox only installs extensions that Mozilla has signed. Signing is free and done on addons.mozilla.org, AMO for short. You do not have to publish the extension to get it signed.</p>
+  <h2>Two ways to distribute</h2>
+  <ul>
+    <li><strong>On this site</strong>, listed: the extension gets a public page on addons.mozilla.org where anyone can find and install it. A person at Mozilla may review it. See <a href="/firefox-plugins/publish/">Publish on addons.mozilla.org</a>.</li>
+    <li><strong>On your own</strong>, unlisted: Mozilla signs it, usually within minutes, and you download a signed <code>.xpi</code> file. It is not shown anywhere. Install it yourself, or share the file.</li>
+  </ul>
+  <p>For trying an extension on your own computers, or sharing it with a few friends, unlisted is the quick way.</p>
+  <h2>Make an account</h2>
+  <ol>
+    <li>Go to <a href="https://addons.mozilla.org/developers/">addons.mozilla.org/developers</a> and log in with a Mozilla account.</li>
+    <li>Accept the developer agreement the first time.</li>
+  </ol>
+  <h2>Upload for signing</h2>
+  <ol>
+    <li>Build the zip: <code>python3 _scripts/make-extension.py 8-ball</code>.</li>
+    <li>On the developer hub, click <strong>Submit a New Add-on</strong>.</li>
+    <li>Pick <strong>On your own</strong>.</li>
+    <li>Upload <code>_extensions/8-ball.zip</code>. AMO runs the same checks as <code>web-ext lint</code> and shows any errors.</li>
+    <li>Answer if the extension uses code that is minified or made by a tool. Our apps are plain JavaScript; the only minified file is <code>vendor/bootstrap.min.css</code>, a copy of a known library, which you can say in the notes to the reviewer.</li>
+    <li>When it is signed, download the <code>.xpi</code>.</li>
+  </ol>
+  <h2>Install the signed file</h2>
+  <p>Drag the <code>.xpi</code> into a Firefox window, or open the add-ons manager, <code>about:addons</code>, click the gear and pick <strong>Install Add-on From File…</strong>. It stays installed after a restart, like any other extension.</p>
+  <h2>A new version</h2>
+  <p>Every upload must have a higher <code>version</code> than the one before. For our apps it is set in <code>_data/extensions.yml</code>:</p>
+  <pre><code class="language-bash">- { slug: 8-ball, page: pages/games/8-ball.html, name: Magic 8 Ball, emoji: "🎱", version: "1.1" }</code></pre>
+  <pre><code class="language-bash">$ python3 _scripts/make-extension.py 8-ball</code></pre>
+  <p>On the developer hub, open the extension and click <strong>Upload New Version</strong>. Keep the same <code>id</code>, or Firefox sees a new extension.</p>
+  <h2>From the command line</h2>
+  <p><code>web-ext sign</code> does the upload and download for you, see <a href="/firefox-plugins/web-ext/">web-ext</a>. It needs API keys from the developer hub, under <strong>Tools</strong>, <strong>Manage API Keys</strong>.</p>
+  <pre><code class="language-bash">$ cd _extensions/8-ball
+$ web-ext sign --channel=unlisted --api-key=$AMO_JWT_ISSUER --api-secret=$AMO_JWT_SECRET</code></pre>
+  <h2>More about signing</h2>
+  <ul>
+    <li><a href="https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/">Signing and distributing your add-on</a></li>
+    <li><a href="https://extensionworkshop.com/documentation/publish/submitting-an-add-on/">Submitting an add-on</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, signing, sign, unlisted, on your own, xpi, addons.mozilla.org, amo, version, upload</p>
+  {% include trail.html %}
+</div>

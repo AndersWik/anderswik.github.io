@@ -1,0 +1,76 @@
+---
+layout: default
+title: Many apps at once
+permalink: /firefox-plugins/make-extension/
+chapter: "03"
+chapter_title: "Port the 8-ball"
+keywords: [firefox, extension, make-extension.py, script, python, automate, extensions.yml, generate, zip, many apps]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Many apps at once</h1>
+  <p>Porting the 8-ball by hand took seven steps. For the 47 games and apps on this site, a Python script does the same steps from a list: <code>_scripts/make-extension.py</code>. It reuses the page reading and icon drawing from the <a href="/pwa/make-pwa/">PWA script</a>.</p>
+  <h2>The list</h2>
+  <p><code>_data/extensions.yml</code> has one line for every app.</p>
+  <pre><code class="language-bash">#   slug         folder in assets/, and the add-on id &lt;slug&gt;@anderswik.se
+#   page         the page the app is made from
+#   name         full name (default: the page title)
+#   emoji        icon picture
+#   label        optional short text under the emoji
+#   version      raise it for every new upload to addons.mozilla.org (default 1.0)
+#   description  text on the add-on page
+#   open         popup (default) or tab
+#   width        popup width in pixels (default 360, at most 800)
+
+- { slug: 8-ball, page: pages/games/8-ball.html, name: Magic 8 Ball, emoji: "🎱", description: "Ask a question and shake the Magic 8 Ball for an answer." }
+- { slug: colorhex, page: pages/utils/colorhex.html, emoji: "🎨", width: 560 }
+- { slug: asteroids, page: pages/games/asteroids.html, name: Asteroids, emoji: "☄️", open: tab }</code></pre>
+  <h2>Run it</h2>
+  <pre><code class="language-bash">$ python3 _scripts/make-extension.py           # All apps
+$ python3 _scripts/make-extension.py 8-ball    # Only some apps
+8-ball                      17 files  popup  Magic 8 Ball</code></pre>
+  <p>Run it again after changing a page, an app's files or the list. For every app it writes:</p>
+  <ul>
+    <li><code>_extensions/&lt;slug&gt;/</code> the folder to load in <code>about:debugging</code>.</li>
+    <li><code>_extensions/&lt;slug&gt;.zip</code> the file to upload to addons.mozilla.org.</li>
+  </ul>
+  <p>The folder starts with an underscore, so Jekyll leaves it out of the site. The folders and zips are in <code>.gitignore</code>, since the script can make them again. Only <code>_extensions/hello-world/</code> and <code>_extensions/vendor/</code> are kept in git.</p>
+  <h2>What it does for every app</h2>
+  <ol>
+    <li><strong>Reads the page</strong> and cleans the HTML, the same way as for the PWA.</li>
+    <li><strong>Checks the rules</strong> in <a href="/firefox-plugins/content-security-policy/">Content Security Policy</a> and stops on inline scripts, <code>onclick=</code>, <code>eval()</code> and code from other sites.</li>
+    <li><strong>Copies the files</strong> with the same paths as on the site: the app's folder, the page's CSS and JavaScript, <code>style.css</code> and the fonts.</li>
+    <li><strong>Finds more files</strong> by looking for paths like <code>/assets/...</code> in the HTML, CSS and JavaScript it copied. That is how the Vagrant templates and the Memory card pictures come along.</li>
+    <li><strong>Downloads Bootstrap</strong> once into <code>_extensions/vendor/</code>, checks it against its integrity hash, and copies it in.</li>
+    <li><strong>Draws the icons</strong>, writes <code>index.html</code> and <code>manifest.json</code>, and for tab apps <code>background.js</code>.</li>
+    <li><strong>Zips the folder</strong> with <code>manifest.json</code> at the top.</li>
+  </ol>
+  <h2>Keep the paths</h2>
+  <p>The trick that keeps the script small: in an extension page, <code>/</code> means the top of the extension. So when <code>/assets/8-ball/8-ball.js</code> is copied to <code>_extensions/8-ball/assets/8-ball/8-ball.js</code>, every path in the HTML, CSS and JavaScript still works, and nothing has to be rewritten.</p>
+  <pre><code class="language-python">target = folder / href.lstrip("/")     # /assets/8-ball/8-ball.js -&gt; _extensions/8-ball/assets/8-ball/8-ball.js
+target.parent.mkdir(parents=True, exist_ok=True)
+shutil.copy2(source, target)</code></pre>
+  <h2>Popup or tab</h2>
+  <p>Each popup was opened in a headless Firefox at 360 pixels to see if it fits:</p>
+  <pre><code class="language-bash">$ cd _extensions/colorhex
+$ python3 -m http.server 8801 &amp;
+$ firefox --headless --no-remote --profile /tmp/ff --window-size=800,1000 \
+    --screenshot colorhex.png http://localhost:8801/index.html</code></pre>
+  <p>Most fit. Color Hex got <code>width: 560</code>. The ASCII table, the timers and the 800 pixel keyboard games got <code>open: tab</code>, see <a href="/firefox-plugins/open-in-tab/">Open in a tab</a>. Use a new port for every app, or Firefox shows the last page from its cache.</p>
+  <h2>Add a new app</h2>
+  <ol>
+    <li>Make sure all its files are in its folder in <code>assets/</code> or listed in the page's front matter.</li>
+    <li>Add a line to <code>_data/extensions.yml</code>.</li>
+    <li>Run <code>python3 _scripts/make-extension.py &lt;slug&gt;</code>.</li>
+    <li>Load <code>_extensions/&lt;slug&gt;/manifest.json</code> in <code>about:debugging</code> and test it.</li>
+  </ol>
+  <h2>More about the script</h2>
+  <ul>
+    <li>The source is <code>_scripts/make-extension.py</code> in this site's repository</li>
+    <li>The PWA version of the same idea: <a href="/pwa/make-pwa/">Many PWAs at once</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, make-extension.py, script, python, automate, extensions.yml, generate, zip, many apps</p>
+  {% include trail.html %}
+</div>

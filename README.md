@@ -42,3 +42,14 @@ The apps in `_data/pwa.yml` can be installed. After changing an app or the list:
 $ python3 _scripts/make-pwa.py            # all apps
 $ python3 _scripts/make-pwa.py blackjack  # only some apps
 ```
+
+### Firefox extensions
+
+The apps in `_data/extensions.yml` are made into browser extensions in `_extensions/` (Jekyll leaves that folder out of the site). After changing an app or the list:
+
+```bash
+$ python3 _scripts/make-extension.py         # all apps
+$ python3 _scripts/make-extension.py 8-ball  # only some apps
+```
+
+Test in Firefox: `about:debugging`, This Firefox, Load Temporary Add-on, pick `_extensions/<slug>/manifest.json`. Upload `_extensions/<slug>.zip` to https://addons.mozilla.org/developers/ and raise `version` in the list for every new upload.

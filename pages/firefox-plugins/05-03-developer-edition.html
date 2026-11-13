@@ -1,0 +1,46 @@
+---
+layout: default
+title: Developer Edition
+permalink: /firefox-plugins/developer-edition/
+chapter: "05"
+chapter_title: "Publishing"
+keywords: [firefox, extension, developer edition, nightly, unsigned, xpinstall.signatures.required, about:config, install from file]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Developer Edition</h1>
+  <p>Firefox Developer Edition, Nightly and the ESR builds without branding can install extensions that are <strong>not signed</strong>. That is handy for keeping your own extensions installed while you work on them, without uploading every version to addons.mozilla.org.</p>
+  <p>This does <strong>not</strong> work in normal Firefox. There the setting below is ignored, and only <a href="/firefox-plugins/signing/">signed</a> extensions can be installed.</p>
+  <h2>Install Developer Edition</h2>
+  <p>Download it from <a href="https://www.mozilla.org/firefox/developer/">mozilla.org/firefox/developer</a>. It installs next to normal Firefox, with its own profile.</p>
+  <h2>Turn off the signing check</h2>
+  <ol>
+    <li>Open <code>about:config</code> and accept the warning.</li>
+    <li>Search for <code>xpinstall.signatures.required</code>.</li>
+    <li>Click the toggle to set it to <code>false</code>.</li>
+  </ol>
+  <h2>Install the zip</h2>
+  <ol>
+    <li>Open <code>about:addons</code>.</li>
+    <li>Click the gear and pick <strong>Install Add-on From File…</strong></li>
+    <li>Pick the zip, for example <code>_extensions/8-ball.zip</code>.</li>
+  </ol>
+  <p>Unlike a <a href="/firefox-plugins/temporary-add-on/">temporary add-on</a>, it stays after a restart. The extension needs an <code>id</code> in <code>browser_specific_settings</code> for this, which all of ours have.</p>
+  <h2>Update it</h2>
+  <p>Build again, raise the <code>version</code>, and install the new zip the same way. Firefox replaces the old one, since the <code>id</code> is the same.</p>
+  <h2>Which way to choose</h2>
+  <ul>
+    <li><strong>Building and testing</strong>: <a href="/firefox-plugins/temporary-add-on/">temporary add-on</a> or <a href="/firefox-plugins/web-ext/">web-ext run</a>.</li>
+    <li><strong>Keep it installed on your own computer</strong>: Developer Edition, or an unlisted <a href="/firefox-plugins/signing/">signed</a> copy.</li>
+    <li><strong>Share it with others</strong>: an unlisted signed <code>.xpi</code>, or <a href="/firefox-plugins/publish/">publish it</a>.</li>
+  </ul>
+  <h2>More about Developer Edition</h2>
+  <ul>
+    <li><a href="https://wiki.mozilla.org/Add-ons/Extension_Signing">Extension signing on the Mozilla wiki</a></li>
+    <li><a href="https://www.mozilla.org/firefox/channel/desktop/">Firefox release channels</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, developer edition, nightly, unsigned, xpinstall.signatures.required, about:config, install from file</p>
+  {% include trail.html %}
+</div>
