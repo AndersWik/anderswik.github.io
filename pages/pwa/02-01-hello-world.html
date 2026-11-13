@@ -1,0 +1,99 @@
+---
+layout: default
+title: Hello World
+permalink: /pwa/hello-world/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [pwa, hello world, first app, index.html, manifest, service worker, example]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Hello World</h1>
+  <p>The smallest PWA is one folder with a page, a manifest, a service worker and two icons. The finished app is on this site, so you can <a href="/assets/pwa-hello/">open the Hello World app</a> and install it.</p>
+  <pre><code class="language-bash">hello/
+├── index.html              # The page
+├── manifest.webmanifest    # Name, icons and colors
+├── sw.js                   # Service worker, makes it work offline
+├── icon-192.png
+└── icon-512.png</code></pre>
+  <h2>The page</h2>
+  <p>A normal HTML page. The <code>&lt;link rel="manifest"&gt;</code> line and the small script at the bottom are all that make it a PWA.</p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Hello PWA&lt;/title&gt;
+  &lt;link rel="manifest" href="manifest.webmanifest"&gt;
+  &lt;meta name="theme-color" content="#1b1d21"&gt;
+  &lt;link rel="icon" href="icon-192.png" type="image/png"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello, world!&lt;/h1&gt;
+
+  &lt;script&gt;
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>The manifest</h2>
+  <p>Tells the browser what the installed app is called, which icon to use and how to open it. Read more in <a href="/pwa/manifest/">Manifest</a>.</p>
+  <pre><code class="language-json">{
+  "name": "Hello PWA",
+  "short_name": "Hello",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#1b1d21",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}</code></pre>
+  <h2>The service worker</h2>
+  <p>On <code>install</code> it saves every file in a cache. On <code>fetch</code> it answers from the cache, and only asks the network for files it does not have. Read more in <a href="/pwa/service-worker/">Service worker</a>.</p>
+  <pre><code class="language-javascript">const CACHE = "hello-v1";
+
+const FILES = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./icon-192.png",
+  "./icon-512.png"
+];
+
+self.addEventListener("install", function (event) {
+  event.waitUntil(
+    caches.open(CACHE).then(function (cache) { return cache.addAll(FILES); })
+  );
+});
+
+self.addEventListener("fetch", function (event) {
+  event.respondWith(
+    caches.match(event.request).then(function (cached) {
+      return cached || fetch(event.request);
+    })
+  );
+});</code></pre>
+  <h2>Try it</h2>
+  <pre><code class="language-bash">$ cd hello
+$ python3 -m http.server 8000</code></pre>
+  <ol>
+    <li>Open <code>http://localhost:8000/</code> in Chrome or Edge.</li>
+    <li>An install icon shows up at the right end of the address bar. Click it to install.</li>
+    <li>Stop the server with <code>Ctrl+C</code> and reload the app. It still works, because the files come from the cache.</li>
+  </ol>
+  <p>The icons can be any square PNG. The ones in the example were made with the same script as the rest of the apps on this site, see <a href="/pwa/icons/">Icons</a>.</p>
+  <h2>More about Hello World</h2>
+  <ul>
+    <li>The source of the example is in <code>assets/pwa-hello/</code> in this site's repository</li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Tutorials/CycleTracker">Create a PWA tutorial on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, hello world, first app, index.html, manifest, service worker, example</p>
+  {% include trail.html %}
+</div>

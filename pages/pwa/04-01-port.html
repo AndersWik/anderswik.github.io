@@ -1,0 +1,63 @@
+---
+layout: default
+title: Port your app
+permalink: /pwa/port/
+chapter: "04"
+chapter_title: "Port your app"
+keywords: [pwa, port, convert, javascript app, checklist, standalone, paths, cdn, viewport, mobile]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Port your app</h1>
+  <p>If you already have a JavaScript app that runs in the browser, most of the work is done. Turning it into a PWA is a checklist: make the page stand on its own, list its files, and add the manifest and service worker from <a href="/pwa/hello-world/">Hello World</a>.</p>
+  <h2>1. Does it work on a phone?</h2>
+  <p>Most installs happen on phones, so check this first.</p>
+  <ul>
+    <li>The page has <code>&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;</code>.</li>
+    <li>Buttons are big enough to tap, and nothing needs a mouse hover.</li>
+    <li>Nothing needs a keyboard. This is why games like Asteroids and Pong on this site are not apps: they are played with the arrow keys. The list of what was left out and why is at the top of <code>_data/pwa.yml</code>.</li>
+  </ul>
+  <h2>2. Give it a page of its own</h2>
+  <p>On a site, the app is usually part of a bigger page with a menu, header and footer. An installed app opens in its own window, so those links to the rest of the site get in the way, and they would lead out of the app's <a href="/pwa/manifest/">scope</a> anyway. Make a clean page that only has the app.</p>
+  <p>On this site each app's normal page is still where the app is edited, and a script makes the clean <code>app.html</code> from it. See <a href="/pwa/example-coin-flip/">Coin Flip</a>.</p>
+  <h2>3. Fix the paths</h2>
+  <p>Paths work the same in the app as on the site, but check two things:</p>
+  <ul>
+    <li>Template code, like Jekyll's <code>{% raw %}{{ site.baseurl }}{% endraw %}</code>, has to be turned into plain paths in the app's page.</li>
+    <li>Paths in <code>manifest.webmanifest</code> are relative to the manifest, and paths in <code>sw.js</code> are relative to the worker. Absolute paths like <code>/assets/coin-flip/coin-flip.js</code> are easiest to get right.</li>
+  </ul>
+  <h2>4. List every file</h2>
+  <p>The worker can only work offline with files it has saved. Open DevTools, <em>Network</em>, reload the page and write down every file it loads: HTML, CSS, JavaScript, images, fonts and sounds. Files a script loads later, like an image shown after a button is pressed, are easy to miss.</p>
+  <pre><code class="language-bash">$ find assets/coin-flip -type f      # Everything in the app's folder
+assets/coin-flip/coin-flip.css
+assets/coin-flip/coin-flip.js
+assets/coin-flip/images/favicon.svg
+assets/coin-flip/images/head.svg
+assets/coin-flip/images/tails.svg</code></pre>
+  <p>Remember files outside the folder too, like the site's stylesheet and the fonts it loads.</p>
+  <h2>5. Files from a CDN</h2>
+  <p>Our apps use Bootstrap from <code>cdn.jsdelivr.net</code>. Files from another site can be cached like any other, just put the full address in the list. The other site has to allow it with CORS headers, which all big CDNs do.</p>
+  <pre><code class="language-javascript">const FILES = [
+    "/assets/coin-flip/app.html",
+    "/assets/coin-flip/coin-flip.js",
+    "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+];</code></pre>
+  <p>Or copy the file into your own site, so the app does not depend on someone else's server.</p>
+  <h2>6. Add the manifest, icons and worker</h2>
+  <p>Copy them from <a href="/pwa/hello-world/">Hello World</a>, change the name, colors and file list, and link them from the app's page. See <a href="/pwa/manifest/">Manifest</a>, <a href="/pwa/icons/">Icons</a> and <a href="/pwa/service-worker/">Service worker</a>.</p>
+  <h2>7. Save the user's data</h2>
+  <p>If the app has state worth keeping, like a score or settings, save it in <code>localStorage</code>. See <a href="/pwa/saving-data/">Saving data</a>.</p>
+  <h2>8. Decide what needs the network</h2>
+  <p>Anything that calls a server will fail offline. Show a clear message instead of a broken page. See <a href="/pwa/example-my-ip/">My IP</a>.</p>
+  <h2>9. Test it</h2>
+  <p>Install it, turn off the network and use every part of the app. See <a href="/pwa/devtools/">DevTools</a>.</p>
+  <h2>More about porting</h2>
+  <ul>
+    <li><a href="https://web.dev/learn/pwa">Learn PWA on web.dev</a>, a full course</li>
+    <li>When you have many apps, let a script do steps 2 to 6, see <a href="/pwa/make-pwa/">Many apps at once</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, port, convert, javascript app, checklist, standalone, paths, cdn, viewport, mobile</p>
+  {% include trail.html %}
+</div>

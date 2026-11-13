@@ -33,3 +33,12 @@ $ JEKYLL_ENV=production jekyll build
 ```
 
 This uses `url` from `_config.yml` (https://www.anderswik.se). `jekyll serve` overrides it with the local address, so never deploy a `_site` built by `serve`.
+
+### Progressive Web Apps
+
+The apps in `_data/pwa.yml` can be installed. After changing an app or the list:
+
+```bash
+$ python3 _scripts/make-pwa.py            # all apps
+$ python3 _scripts/make-pwa.py blackjack  # only some apps
+```

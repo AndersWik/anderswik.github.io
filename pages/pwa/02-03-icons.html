@@ -1,0 +1,53 @@
+---
+layout: default
+title: Icons
+permalink: /pwa/icons/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [pwa, icons, png, maskable, apple-touch-icon, iphone, favicon, pillow, emoji]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Icons</h1>
+  <p>An installed app needs an icon for the home screen, the start menu and the splash screen. Give the browser PNG files in a few sizes and it picks the best one.</p>
+  <h2>The sizes you need</h2>
+  <ul>
+    <li><code>icon-192.png</code> 192 × 192 pixels, for the home screen</li>
+    <li><code>icon-512.png</code> 512 × 512 pixels, for the splash screen and install dialog</li>
+    <li><code>icon-maskable-512.png</code> 512 × 512 pixels, for Android, see below</li>
+    <li><code>apple-touch-icon.png</code> 180 × 180 pixels, for iPhone and iPad</li>
+  </ul>
+  <h2>Maskable icons</h2>
+  <p>Android cuts every icon to its own shape, like a circle or a rounded square. A normal icon then gets its corners cut off, or ends up small on a white tile. A <em>maskable</em> icon fills the whole square with background, and keeps the picture inside the middle 80 percent, the safe zone.</p>
+  <pre><code class="language-json">{ "src": "images/icon-512.png",          "sizes": "512x512", "type": "image/png", "purpose": "any" },
+{ "src": "images/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }</code></pre>
+  <p>Test how a maskable icon looks in every shape with <a href="https://maskable.app/">maskable.app</a>.</p>
+  <h2>iPhone and iPad</h2>
+  <p>Safari does not use the icons in the manifest. It reads a link in the page instead. The icon should have no transparency and square corners, iOS rounds them itself.</p>
+  <pre><code class="language-html">&lt;link rel="apple-touch-icon" href="images/apple-touch-icon.png"&gt;
+&lt;meta name="apple-mobile-web-app-title" content="Calculator"&gt;</code></pre>
+  <h2>How the icons on this site are made</h2>
+  <p>Drawing four icons for each of 30 apps is a lot of work. Instead <code>_scripts/make-pwa.py</code> draws every app's emoji from <code>_data/pwa.yml</code> on a dark tile, with Python and Pillow. The tile is rounded for the normal icons, and square with a smaller emoji for the maskable and Apple icons.</p>
+  <pre><code class="language-bash">$ sudo apt install python3-yaml python3-pil fonts-noto-color-emoji
+$ python3 _scripts/make-pwa.py calculator</code></pre>
+  <p>The important part of the script draws the emoji in the only size the color emoji font has, 109, and then scales it to fit the icon:</p>
+  <pre><code class="language-python">picture = Image.new("RGBA", (160, 160), (0, 0, 0, 0))
+ImageDraw.Draw(picture).text((80, 80), emoji, font=ImageFont.truetype(EMOJI_FONT, 109),
+                             embedded_color=True, anchor="mm")</code></pre>
+  <p>Read more about the script in <a href="/pwa/make-pwa/">Many apps at once</a>.</p>
+  <h2>Other ways to make icons</h2>
+  <ul>
+    <li>Export an SVG to PNG in any size with Inkscape: <code>inkscape icon.svg -w 512 -h 512 -o icon-512.png</code></li>
+    <li>Resize one big PNG with ImageMagick: <code>convert icon.png -resize 192x192 icon-192.png</code></li>
+    <li><a href="https://realfavicongenerator.net/">RealFaviconGenerator</a> makes all sizes from one picture in the browser</li>
+  </ul>
+  <h2>More about icons</h2>
+  <ul>
+    <li><a href="https://web.dev/articles/maskable-icon">Adaptive icon support with maskable icons on web.dev</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/How_to/Define_app_icons">Define your app icons on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, icons, png, maskable, apple-touch-icon, iphone, favicon, pillow, emoji</p>
+  {% include trail.html %}
+</div>

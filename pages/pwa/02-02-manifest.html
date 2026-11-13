@@ -1,0 +1,72 @@
+---
+layout: default
+title: Manifest
+permalink: /pwa/manifest/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [pwa, manifest, webmanifest, json, name, short_name, start_url, scope, display, standalone, theme_color, id]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Manifest</h1>
+  <p>The web app manifest is a JSON file that describes the installed app. The page links to it from <code>&lt;head&gt;</code>. The usual file name is <code>manifest.webmanifest</code>, but <code>manifest.json</code> works too.</p>
+  <pre><code class="language-html">&lt;link rel="manifest" href="manifest.webmanifest"&gt;</code></pre>
+  <h2>Our calculator's manifest</h2>
+  <p>This is the manifest of the <a href="/utils/calculator/">Calculator</a> on this site, from <code>assets/calculator/manifest.webmanifest</code>.</p>
+  <pre><code class="language-json">{
+  "name": "Calculator",
+  "short_name": "Calculator",
+  "id": "./app.html",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#1b1d21",
+  "icons": [
+    { "src": "images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "images/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}</code></pre>
+  <h2>The fields</h2>
+  <ul>
+    <li><code>name</code> the full name, shown in the install dialog and the app list.</li>
+    <li><code>short_name</code> shown under the icon on a home screen. Keep it under about 12 characters, or it gets cut off.</li>
+    <li><code>start_url</code> the page that opens when the app starts.</li>
+    <li><code>scope</code> the pages that belong to the app. A link outside the scope opens in the normal browser.</li>
+    <li><code>id</code> what the browser uses to tell apps apart. If it is missing <code>start_url</code> is used. Set it once and never change it, or the browser sees a new app.</li>
+    <li><code>display</code> how the window looks, see below.</li>
+    <li><code>background_color</code> the color of the splash screen while the app starts.</li>
+    <li><code>theme_color</code> the color of the title bar. Use the same color in <code>&lt;meta name="theme-color"&gt;</code> in the page.</li>
+    <li><code>icons</code> see <a href="/pwa/icons/">Icons</a>.</li>
+  </ul>
+  <h2>Paths are relative to the manifest</h2>
+  <p><code>start_url</code>, <code>scope</code>, <code>id</code> and the icon paths are read relative to where the manifest file is, not the page. Our apps live in <code>/assets/&lt;app&gt;/</code>, so <code>"./"</code> means only that folder. That gives every app its own scope, and many apps can live on the same site without getting in each other's way.</p>
+  <h2>Display</h2>
+  <ul>
+    <li><code>standalone</code> its own window with no address bar. This is what most apps use.</li>
+    <li><code>fullscreen</code> hides the status bar too. Good for games.</li>
+    <li><code>minimal-ui</code> like standalone, with a few browser buttons such as back and reload.</li>
+    <li><code>browser</code> a normal browser tab, so it does not really feel installed.</li>
+  </ul>
+  <p>CSS can check how the app is shown, for example to hide a "Install" hint when it is already installed:</p>
+  <pre><code class="language-css">@media (display-mode: standalone) {
+    .install-hint { display: none; }
+}</code></pre>
+  <h2>More fields</h2>
+  <ul>
+    <li><code>description</code> a longer text about the app</li>
+    <li><code>orientation</code> such as <code>"portrait"</code>, to lock the screen</li>
+    <li><code>screenshots</code> pictures shown in a richer install dialog on Android and desktop</li>
+    <li><code>shortcuts</code> extra entries when you long press the icon</li>
+  </ul>
+  <h2>More about the manifest</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest">Web app manifest on MDN</a></li>
+    <li>In Chrome DevTools, <em>Application</em>, <em>Manifest</em> shows what the browser read and any problems, see <a href="/pwa/devtools/">DevTools</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, manifest, webmanifest, json, name, short_name, start_url, scope, display, standalone, theme_color, id</p>
+  {% include trail.html %}
+</div>

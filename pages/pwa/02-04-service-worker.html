@@ -1,0 +1,95 @@
+---
+layout: default
+title: Service worker
+permalink: /pwa/service-worker/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [pwa, service worker, sw.js, register, install, activate, fetch, lifecycle, cache api, waituntil]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Service worker</h1>
+  <p>A service worker is a JavaScript file that the browser runs apart from the page. It sits between the app and the network: every request the page makes, for HTML, CSS, JavaScript or images, goes through the worker first. That lets it answer from a cache when there is no connection.</p>
+  <p>A service worker has no access to the page. It can not read or change <code>document</code>, only listen to events.</p>
+  <h2>Register the worker</h2>
+  <p>The page tells the browser where the worker is. Our apps do it at the end of <code>app.html</code>:</p>
+  <pre><code class="language-html">&lt;script&gt;
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+&lt;/script&gt;</code></pre>
+  <p>Calling <code>register</code> on every page load is fine. If the worker is already installed, the browser only checks if <code>sw.js</code> has changed.</p>
+  <h2>Scope</h2>
+  <p>A worker only controls pages in its own folder and below. <code>/assets/calculator/sw.js</code> controls <code>/assets/calculator/app.html</code> but not <code>/games/</code>. That is why every app on this site has its own <code>sw.js</code> next to its <code>app.html</code>. Put the worker in the root of the site if it should control the whole site.</p>
+  <h2>The lifecycle</h2>
+  <ol>
+    <li><strong>install</strong> runs once for every new version of <code>sw.js</code>. This is where the files are saved in the cache.</li>
+    <li><strong>activate</strong> runs when the new version takes over. This is where old caches are deleted.</li>
+    <li><strong>fetch</strong> runs for every request from the pages the worker controls.</li>
+  </ol>
+  <p><code>event.waitUntil()</code> tells the browser to wait for a promise before the step is done. If saving a file fails during install, the whole install fails and the old version is kept.</p>
+  <h2>Our service worker</h2>
+  <p>Every app on this site has a worker like this one, from <code>assets/calculator/sw.js</code>. It is made by a script, see <a href="/pwa/make-pwa/">Many apps at once</a>.</p>
+  <pre><code class="language-javascript">const CACHE = "calculator-2a1a0259dc";
+
+const FILES = [
+    "/assets/calculator/app.html",
+    "/assets/calculator/calculator.css",
+    "/assets/calculator/calculator.js",
+    "/assets/calculator/images/icon-192.png",
+    "/assets/calculator/manifest.webmanifest",
+    "/css/style.css",
+    "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+];
+
+// Save all files when the worker is installed.
+self.addEventListener("install", function (event) {
+    event.waitUntil(
+        caches.open(CACHE)
+            .then(function (cache) { return cache.addAll(FILES); })
+            .then(function () { return self.skipWaiting(); })
+    );
+});
+
+// Delete the caches of older versions.
+self.addEventListener("activate", function (event) {
+    event.waitUntil(
+        caches.keys()
+            .then(function (names) {
+                return Promise.all(names
+                    .filter(function (name) { return name.startsWith("calculator-") &amp;&amp; name !== CACHE; })
+                    .map(function (name) { return caches.delete(name); }));
+            })
+            .then(function () { return self.clients.claim(); })
+    );
+});
+
+// Answer from the cache first, and only go to the network for anything else.
+self.addEventListener("fetch", function (event) {
+    if (event.request.method !== "GET") return;
+
+    event.respondWith(
+        caches.match(event.request, { ignoreSearch: true }).then(function (cached) {
+            return cached || fetch(event.request);
+        })
+    );
+});</code></pre>
+  <p>The list of files above is shortened. The real one also has the other icons and the fonts.</p>
+  <ul>
+    <li><code>caches</code> is the Cache API, a store of requests and their answers that the worker and the page can both use.</li>
+    <li><code>skipWaiting()</code> and <code>clients.claim()</code> make a new version take over at once, see <a href="/pwa/updates/">Updates</a>.</li>
+    <li><code>ignoreSearch: true</code> makes <code>app.html?x=1</code> match the saved <code>app.html</code>.</li>
+    <li>Only <code>GET</code> requests are cached. A form that posts data goes straight to the network.</li>
+  </ul>
+  <h2>More about service workers</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers">Using Service Workers on MDN</a></li>
+    <li><a href="https://web.dev/articles/service-worker-lifecycle">The service worker lifecycle on web.dev</a></li>
+    <li>See <a href="/pwa/caching/">Caching strategies</a> for other ways to answer a request</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, service worker, sw.js, register, install, activate, fetch, lifecycle, cache api, waituntil</p>
+  {% include trail.html %}
+</div>

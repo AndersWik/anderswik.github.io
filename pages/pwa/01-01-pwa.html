@@ -1,0 +1,47 @@
+---
+layout: default
+title: Progressive Web Apps
+permalink: /pwa/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [pwa, progressive web app, introduction, install, offline, home screen]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Progressive Web Apps</h1>
+  <p>A Progressive Web App, or PWA, is a normal web page that can be installed like an app. It gets an icon on the home screen or in the start menu, opens in its own window without the browser's address bar, and keeps working without a network connection.</p>
+  <p>There is no app store and no special language. A PWA is HTML, CSS and JavaScript, plus two small extra files that tell the browser how to install and run it.</p>
+  <h2>The three parts</h2>
+  <ul>
+    <li><strong>A page served over HTTPS.</strong> Browsers only allow the app features on secure pages. <code>localhost</code> also counts as secure, so you can test on your own computer.</li>
+    <li><strong>A web app manifest.</strong> A JSON file with the app's name, icons and colors. It is what makes the page installable.</li>
+    <li><strong>A service worker.</strong> A JavaScript file that runs in the background, between the page and the network. It saves the app's files in a cache, so the app starts without a connection.</li>
+  </ul>
+  <p>The page links to the manifest and registers the service worker:</p>
+  <pre><code class="language-html">&lt;link rel="manifest" href="manifest.webmanifest"&gt;
+
+&lt;script&gt;
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+&lt;/script&gt;</code></pre>
+  <h2>Why progressive?</h2>
+  <p>"Progressive" means the page works everywhere and gets better where the browser can do more. A browser without service workers simply shows the normal page. A browser with them adds offline support and an install button. Nothing breaks for anyone, which is why the register code above starts with <code>if ("serviceWorker" in navigator)</code>.</p>
+  <h2>PWAs on this site</h2>
+  <p>Most of the games and utilities on this site can be installed. Open for example <a href="/games/coin-flip/">Coin Flip</a> or the <a href="/utils/calculator/">Calculator</a> and click <em>Install as an app</em> below it. These notes go from a Hello World page to how those apps were made, so you can do the same with your own JavaScript app.</p>
+  <h2>What a PWA can not do</h2>
+  <ul>
+    <li>It can not reach everything a native app can, like contacts or files outside what the user picks.</li>
+    <li>On iPhone and iPad the support is smaller. Installing is done by hand from the Share menu, see <a href="/pwa/install/">Install</a>.</li>
+    <li>Anything that talks to a server, like an API, still needs the network. See <a href="/pwa/example-my-ip/">My IP</a>.</li>
+  </ul>
+  <h2>More about PWAs</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps">Progressive web apps on MDN</a></li>
+    <li><a href="https://web.dev/explore/progressive-web-apps">Progressive Web Apps on web.dev</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, progressive web app, introduction, install, offline, home screen</p>
+  {% include trail.html %}
+</div>

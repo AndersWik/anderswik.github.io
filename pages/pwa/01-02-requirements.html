@@ -1,0 +1,49 @@
+---
+layout: default
+title: Requirements
+permalink: /pwa/requirements/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [pwa, requirements, https, localhost, browser support, installable, jekyll]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Requirements</h1>
+  <p>Before a browser offers to install a page, a few things have to be in place. The exact rules differ a little between browsers, but this list works everywhere.</p>
+  <h2>What the browser checks</h2>
+  <ul>
+    <li>The page is served over <strong>HTTPS</strong>, or from <code>localhost</code>.</li>
+    <li>The page links to a <strong>manifest</strong> with at least <code>name</code> or <code>short_name</code>, <code>start_url</code>, <code>display</code> and icons in 192 and 512 pixels.</li>
+    <li>A <strong>service worker</strong> is registered. Chrome no longer demands one to install, but without it the app does not work offline, so always add it.</li>
+  </ul>
+  <h2>HTTPS</h2>
+  <p>Service workers can change every answer from the network, so browsers only allow them on secure pages. GitHub Pages, Netlify and most hosts give you HTTPS for free. A page opened as a file, with an address that starts with <code>file://</code>, does not work.</p>
+  <h2>Test on your own computer</h2>
+  <p>Any small web server works, as long as you open the page on <code>localhost</code> or <code>127.0.0.1</code>.</p>
+  <pre><code class="language-bash">$ cd my-app
+$ python3 -m http.server 8000     # Open http://localhost:8000/</code></pre>
+  <p>This site is built with Jekyll, which also serves on localhost. Inside the Vagrant box, open the forwarded port on the host.</p>
+  <pre><code class="language-bash">$ jekyll serve --host=0.0.0.0 --watch --force_polling     # http://localhost:4000/</code></pre>
+  <p>An address like <code>http://192.168.56.35:4000</code> is not secure, so the service worker will not start there. Use <code>localhost</code> instead.</p>
+  <h2>Test on a phone</h2>
+  <p>A phone on the same network reaches your computer by its IP address, which is not secure. Two easy ways around it:</p>
+  <ul>
+    <li>Deploy to a host with HTTPS, like GitHub Pages, and test there.</li>
+    <li>With Android and Chrome, connect the phone with USB and open <code>chrome://inspect</code> on the computer. <em>Port forwarding</em> makes <code>localhost:4000</code> on the phone point to your computer.</li>
+  </ul>
+  <h2>Browser support</h2>
+  <ul>
+    <li><strong>Chrome, Edge, Samsung Internet</strong> on Android and desktop show an install button.</li>
+    <li><strong>Safari</strong> on iPhone and iPad installs with <em>Share</em>, <em>Add to Home Screen</em>. Safari on Mac uses <em>File</em>, <em>Add to Dock</em>.</li>
+    <li><strong>Firefox</strong> runs service workers, so the offline part works, but desktop Firefox does not install apps.</li>
+  </ul>
+  <h2>More about requirements</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable">Making PWAs installable on MDN</a></li>
+    <li><a href="https://web.dev/articles/install-criteria">What does it take to be installable? on web.dev</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, requirements, https, localhost, browser support, installable, jekyll</p>
+  {% include trail.html %}
+</div>

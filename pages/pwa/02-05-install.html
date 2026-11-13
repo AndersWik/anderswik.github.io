@@ -1,0 +1,71 @@
+---
+layout: default
+title: Install
+permalink: /pwa/install/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [pwa, install, add to home screen, beforeinstallprompt, android, iphone, ios, desktop, uninstall]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Install</h1>
+  <p>When the <a href="/pwa/requirements/">requirements</a> are met, the browser lets the user install the app. How it looks depends on the device.</p>
+  <h2>Android</h2>
+  <p>Chrome shows an <em>Install app</em> banner or a menu entry under the three dots. The app gets an icon on the home screen and shows up in the app drawer like any other app.</p>
+  <h2>iPhone and iPad</h2>
+  <p>Safari never shows an install button by itself. The user has to do it by hand:</p>
+  <ol>
+    <li>Open the app in Safari.</li>
+    <li>Tap <em>Share</em>, the square with an arrow.</li>
+    <li>Tap <em>Add to Home Screen</em>.</li>
+  </ol>
+  <p>Since you can not show a button for this, it is worth writing a short hint in the page for iPhone users.</p>
+  <h2>Desktop</h2>
+  <p>Chrome and Edge show an install icon at the right end of the address bar. The app opens in its own window and can be found in the start menu, launcher or Applications folder. On Mac Safari it is <em>File</em>, <em>Add to Dock</em>.</p>
+  <h2>Our "Install as an app" link</h2>
+  <p>The normal pages on this site show the site's header and footer, which an installed app does not need. So each app has its own clean page, <code>app.html</code>, and the normal page links to it. The link is added by <code>_layouts/default.html</code> for every page listed in <code>_data/pwa.yml</code>:</p>
+  <pre><code class="language-html">{% raw %}{% assign pwa_app = site.data.pwa | where: "page", page.path | first %}
+{% if pwa_app %}
+  &lt;p class="text-center mb-5"&gt;
+    &lt;a href="{{ '/assets/' | append: pwa_app.slug | append: '/app.html' | relative_url }}"&gt;Install as an app&lt;/a&gt;
+  &lt;/p&gt;
+{% endif %}{% endraw %}</code></pre>
+  <p>On <code>app.html</code> the browser sees the manifest and offers to install.</p>
+  <h2>Your own install button</h2>
+  <p>Chrome and Edge fire a <code>beforeinstallprompt</code> event when the app can be installed. Save the event and call <code>prompt()</code> when the user clicks your button. Safari and Firefox do not have this event, so the button stays hidden there.</p>
+  <pre><code class="language-html">&lt;button id="install" hidden&gt;Install&lt;/button&gt;
+
+&lt;script&gt;
+  let installEvent = null;
+  const installButton = document.getElementById("install");
+
+  window.addEventListener("beforeinstallprompt", function (event) {
+    event.preventDefault();          // Don't show the browser's own banner
+    installEvent = event;
+    installButton.hidden = false;
+  });
+
+  installButton.addEventListener("click", async function () {
+    installButton.hidden = true;
+    installEvent.prompt();
+    const choice = await installEvent.userChoice;
+    console.log("The user said", choice.outcome);   // "accepted" or "dismissed"
+    installEvent = null;
+  });
+&lt;/script&gt;</code></pre>
+  <h2>Uninstall</h2>
+  <ul>
+    <li><strong>Android</strong> long press the icon and pick <em>Uninstall</em>.</li>
+    <li><strong>iPhone</strong> long press the icon and pick <em>Remove App</em>.</li>
+    <li><strong>Desktop Chrome</strong> open the app, click the three dots in the title bar and pick <em>Uninstall</em>. Or go to <code>chrome://apps</code>.</li>
+  </ul>
+  <h2>More about install</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable">Making PWAs installable on MDN</a></li>
+    <li><a href="https://web.dev/articles/customize-install">How to provide your own in-app install experience on web.dev</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, install, add to home screen, beforeinstallprompt, android, iphone, ios, desktop, uninstall</p>
+  {% include trail.html %}
+</div>

@@ -560,7 +560,7 @@ footer {
 // Dark code blocks for the tutorials and notes. The colors come from
 // _includes/code-highlight.html, which wraps words in <span class="tok-...">
 // when the page loads. Add new sections here and in _layouts/default.html.
-.tutorials, .linux, .markdown, .git, .vagrant, .mysql, .php, .latex {
+.tutorials, .linux, .markdown, .git, .vagrant, .mysql, .php, .latex, .pwa {
 	pre {
 		background-color: #1b1d21;
 		color: #e6e6e6;

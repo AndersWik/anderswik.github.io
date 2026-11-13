@@ -1,0 +1,77 @@
+---
+layout: default
+title: Caching strategies
+permalink: /pwa/caching/
+chapter: "03"
+chapter_title: "Offline"
+keywords: [pwa, offline, cache, cache first, network first, stale while revalidate, fetch, strategy]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Caching strategies</h1>
+  <p>The <code>fetch</code> event in the service worker decides where every answer comes from. There are a few common ways to do it, and an app can use different ones for different files.</p>
+  <h2>Cache first</h2>
+  <p>Look in the cache, and only go to the network if the file is not there. This is the fastest and works fully offline. All apps on this site use it, since their files only change when a new version is built.</p>
+  <pre><code class="language-javascript">self.addEventListener("fetch", function (event) {
+    event.respondWith(
+        caches.match(event.request).then(function (cached) {
+            return cached || fetch(event.request);
+        })
+    );
+});</code></pre>
+  <p>The catch: the user does not see a change until the cache is replaced. See <a href="/pwa/updates/">Updates</a> for how a new version reaches them.</p>
+  <h2>Network first</h2>
+  <p>Ask the network, and use the cache only when that fails. Good for things that change often, like a news page, but it is slow on a bad connection since it waits for the network first.</p>
+  <pre><code class="language-javascript">self.addEventListener("fetch", function (event) {
+    event.respondWith(
+        fetch(event.request)
+            .then(function (response) {
+                // Save a copy for next time we are offline.
+                const copy = response.clone();
+                caches.open(CACHE).then(function (cache) { cache.put(event.request, copy); });
+                return response;
+            })
+            .catch(function () {
+                return caches.match(event.request);
+            })
+    );
+});</code></pre>
+  <p>An answer can only be read once, so <code>response.clone()</code> makes a copy for the cache and the original goes to the page.</p>
+  <h2>Stale while revalidate</h2>
+  <p>Answer from the cache at once, and at the same time fetch a fresh copy for next time. Fast like cache first, and the app is never more than one visit behind.</p>
+  <pre><code class="language-javascript">self.addEventListener("fetch", function (event) {
+    event.respondWith(
+        caches.open(CACHE).then(function (cache) {
+            return cache.match(event.request).then(function (cached) {
+                const fresh = fetch(event.request).then(function (response) {
+                    cache.put(event.request, response.clone());
+                    return response;
+                });
+                return cached || fresh;
+            });
+        })
+    );
+});</code></pre>
+  <h2>Network only</h2>
+  <p>Some requests must never be cached, like an API that gives a new answer every time. Just leave them alone: if the worker does not call <code>event.respondWith()</code>, the browser handles the request as usual.</p>
+  <pre><code class="language-javascript">self.addEventListener("fetch", function (event) {
+    const url = new URL(event.request.url);
+    if (url.hostname === "api.ipify.org") return;   // Always ask the network
+    // ... cache first for everything else
+});</code></pre>
+  <h2>Which one to use</h2>
+  <ul>
+    <li>The app's own HTML, CSS, JavaScript and images: <strong>cache first</strong>, with a new cache name for every version.</li>
+    <li>Content that changes, like a list loaded from a server: <strong>network first</strong> or <strong>stale while revalidate</strong>.</li>
+    <li>Live data, logins and anything that posts: <strong>network only</strong>.</li>
+  </ul>
+  <h2>More about caching</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Caching">Caching on MDN</a></li>
+    <li><a href="https://developer.chrome.com/docs/workbox">Workbox</a>, a library from Google with all these strategies ready made</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, offline, cache, cache first, network first, stale while revalidate, fetch, strategy</p>
+  {% include trail.html %}
+</div>
