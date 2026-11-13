@@ -5,8 +5,34 @@ permalink: /utils/linux-playground/
 nonav: true
 css:
   - /assets/linux-playground/linux-playground.css
+# The core first, then the data, then one file per command (help lists
+# them in this order). To add a command, add its file here.
 js:
-  - /assets/linux-playground/linux-playground.js
+  - /assets/linux-playground/core.js
+  - /assets/linux-playground/data/filesystem.js
+  - /assets/linux-playground/data/system.js
+  - /assets/linux-playground/commands/help.js
+  - /assets/linux-playground/commands/pwd.js
+  - /assets/linux-playground/commands/ls.js
+  - /assets/linux-playground/commands/cd.js
+  - /assets/linux-playground/commands/cat.js
+  - /assets/linux-playground/commands/echo.js
+  - /assets/linux-playground/commands/touch.js
+  - /assets/linux-playground/commands/mkdir.js
+  - /assets/linux-playground/commands/rmdir.js
+  - /assets/linux-playground/commands/rm.js
+  - /assets/linux-playground/commands/chmod.js
+  - /assets/linux-playground/commands/sudo.js
+  - /assets/linux-playground/commands/whoami.js
+  - /assets/linux-playground/commands/ps.js
+  - /assets/linux-playground/commands/kill.js
+  - /assets/linux-playground/commands/free.js
+  - /assets/linux-playground/commands/df.js
+  - /assets/linux-playground/commands/uname.js
+  - /assets/linux-playground/commands/man.js
+  - /assets/linux-playground/commands/history.js
+  - /assets/linux-playground/commands/clear.js
+  - /assets/linux-playground/commands/reset.js
 ---
 
 <div class="linux-playground container-md mt-3 mb-3 pt-5 pb-5">
@@ -20,7 +46,7 @@ js:
       <input type="text" id="command" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="Command">
     </form>
   </div>
-  <p class="hint">Tab completes names, ↑ and ↓ go through earlier commands, Ctrl+L clears the screen.</p>
+  <p class="hint">Tab completes names, ↑ and ↓ go through earlier commands, Ctrl+L clears the screen. In <code>man</code>, scroll with the arrow keys or Space and press q to quit.</p>
 
   <h3 class="h5 mt-4">Try these</h3>
   <div class="examples">
@@ -37,6 +63,18 @@ js:
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="touch /etc/test">touch /etc/test</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="sudo touch /etc/test">sudo touch /etc/test</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="rm -r Downloads">rm -r Downloads</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="ps">ps</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="ps aux">ps aux</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="ps -ef --forest">ps -ef --forest</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="ps aux --sort=-%mem">ps aux --sort=-%mem</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="kill 4321">kill 4321</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="kill 702">kill 702</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="sudo kill 702">sudo kill 702</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="free -h">free -h</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="df -h">df -h</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="df -h /home">df -h /home</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="uname -a">uname -a</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-command="man ls">man ls</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" data-command="help">help</button>
   </div>
 

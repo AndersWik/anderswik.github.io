@@ -73,3 +73,65 @@
 .linux-playground .examples .btn {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
+
+/* Hidden parts stay hidden, also where Bootstrap isn't loaded. */
+.linux-playground [hidden] {
+  display: none !important;
+}
+
+/* The pager (man): fills the terminal while it is open. */
+.linux-playground .terminal.paging {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.linux-playground .pager {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+
+.linux-playground .pager-text {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-color: #555 #1b1d21;
+}
+
+/* Man pages are formatted for a fixed width, so long lines scroll sideways. */
+.linux-playground .pager-line {
+  white-space: pre;
+  min-height: 1.45em;
+}
+
+.linux-playground .pager-heading {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* Black text on light, like the status line of less. */
+.linux-playground .pager-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  background-color: #e6e6e6;
+  color: #1b1d21;
+}
+
+.linux-playground .pager-status button {
+  border: 0;
+  padding: 0 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.linux-playground .pager:focus-visible .pager-status {
+  outline: 2px solid #e8b455;
+}
