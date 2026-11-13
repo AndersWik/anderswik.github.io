@@ -1,18 +1,20 @@
 /*
- * Service worker for Base64 encode. Made by _scripts/make-pwa.py, don't edit by hand.
+ * Service worker for Base64. Made by _scripts/make-pwa.py, don't edit by hand.
  *
  * On install it saves every file the app needs in a cache. After that the app
  * loads from the cache, so it works without a connection. The cache name is a
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "encode-base64-6b80547a93";
+const CACHE = "encode-base64-e7c996b0f7";
 
 const FILES = [
     "/assets/encode-base64/app.html",
     "/assets/encode-base64/encode-base64.css",
     "/assets/encode-base64/encode-base64.js",
     "/assets/encode-base64/images/apple-touch-icon.png",
+    "/assets/encode-base64/images/decode-base-64.svg",
+    "/assets/encode-base64/images/favicon.svg",
     "/assets/encode-base64/images/icon-192.png",
     "/assets/encode-base64/images/icon-512.png",
     "/assets/encode-base64/images/icon-maskable-512.png",

@@ -45,10 +45,8 @@
 - { slug: colorhex, page: pages/utils/colorhex.html, emoji: "🎨", width: 560 }
 - { slug: crontab, page: pages/utils/crontab.html, emoji: "⏰" }
 - { slug: data-conversion, page: pages/utils/data-conversion.html, emoji: "💾" }
-- { slug: decode-base64, page: pages/utils/decode-base64.html, name: Base64 decode, emoji: "🔓", label: "64" }
-- { slug: encode-base64, page: pages/utils/encode-base64.html, name: Base64 encode, emoji: "🔒", label: "64" }
-- { slug: decode-url, page: pages/utils/decode-url.html, name: URL decode, emoji: "🔓", label: URL }
-- { slug: encode-url, page: pages/utils/encode-url.html, name: URL encode, emoji: "🔒", label: URL }
+- { slug: encode-base64, page: pages/utils/encode-base64.html, name: Base64, emoji: "🔁", label: "64" }
+- { slug: encode-url, page: pages/utils/encode-url.html, name: Url encode / decode, emoji: "🔁", label: URL }
 - { slug: unix-timestamp-convertor, page: pages/utils/unix-timestamp-convertor.html, name: Unix Timestamp Converter, emoji: "🕒" }
 - { slug: countdown, page: pages/other/countdown.html, emoji: "⏳", open: tab }
 - { slug: discgolf, page: pages/other/discgolf.html, name: Discgolf score card, emoji: "🥏" }
