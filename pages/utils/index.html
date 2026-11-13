@@ -3,7 +3,7 @@ layout: default
 title: Utils
 permalink: /utils/
 nonav: true
-# Thumbnails live in /assets/images/games/utils/<slug>.webp
+# Thumbnails live in /assets/images/utils/<slug>.webp
 categories:
   - title: Utils
     items:
@@ -28,7 +28,7 @@ categories:
     {% for item in category.items %}
     <li>
       <a class="badge-card" href="{{ '/utils/' | append: item.slug | append: '/' | relative_url }}">
-        <img src="{{ '/assets/images/games/utils/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
+        <img src="{{ '/assets/images/utils/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
         <span class="badge-name">{{ item.name }}</span>
       </a>
     </li>

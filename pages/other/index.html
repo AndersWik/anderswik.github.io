@@ -3,7 +3,7 @@ layout: default
 title: Other
 permalink: /other/
 nonav: true
-# Thumbnails live in /assets/images/games/other/<slug>.webp
+# Thumbnails live in /assets/images/other/<slug>.webp
 categories:
   - title: Other
     items:
@@ -22,7 +22,7 @@ categories:
     {% for item in category.items %}
     <li>
       <a class="badge-card" href="{{ '/other/' | append: item.slug | append: '/' | relative_url }}">
-        <img src="{{ '/assets/images/games/other/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
+        <img src="{{ '/assets/images/other/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
         <span class="badge-name">{{ item.name }}</span>
       </a>
     </li>
