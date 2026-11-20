@@ -1,0 +1,47 @@
+---
+layout: default
+title: Table headers
+permalink: /html/table-headers/
+chapter: "07"
+chapter_title: "Tables"
+keywords: [html, table headers, th, scope, caption]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Table headers</h1>
+  <p><code>&lt;th&gt;</code> is a header cell. It describes the other cells in its column or row.</p>
+  <h2>Column and row headers</h2>
+  <p><code>scope</code> tells which cells the header is for: <code>col</code> for the column below it, <code>row</code> for the row next to it. Screen readers use it to read the header with each cell.</p>
+  <pre><code class="language-html">&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th scope="col"&gt;Day&lt;/th&gt;
+    &lt;th scope="col"&gt;Open&lt;/th&gt;
+    &lt;th scope="col"&gt;Close&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th scope="row"&gt;Monday&lt;/th&gt;
+    &lt;td&gt;08:00&lt;/td&gt;
+    &lt;td&gt;17:00&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th scope="row"&gt;Saturday&lt;/th&gt;
+    &lt;td&gt;10:00&lt;/td&gt;
+    &lt;td&gt;14:00&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;</code></pre>
+  <h2>Caption</h2>
+  <p><code>&lt;caption&gt;</code> is the title of the table. It must be the first thing in the <code>&lt;table&gt;</code>:</p>
+  <pre><code class="language-html">&lt;table&gt;
+  &lt;caption&gt;Opening hours&lt;/caption&gt;
+  ...
+&lt;/table&gt;</code></pre>
+  <h2>More about table headers</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/th"><code>&lt;th&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/caption"><code>&lt;caption&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

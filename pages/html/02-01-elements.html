@@ -1,0 +1,37 @@
+---
+layout: default
+title: Elements
+permalink: /html/elements/
+chapter: "02"
+chapter_title: "Elements and attributes"
+keywords: [html, elements, tags, nesting, empty elements, void elements]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Elements</h1>
+  <p>An element is a piece of a page, like a heading, a paragraph or an image. Most elements have a start tag, some content and an end tag:</p>
+  <pre><code class="language-html">&lt;p&gt;This is a paragraph.&lt;/p&gt;</code></pre>
+  <p><code>&lt;p&gt;</code> is the start tag, <code>&lt;/p&gt;</code> the end tag with a slash, and the text between is the content.</p>
+  <h2>Nesting</h2>
+  <p>Elements can be inside other elements. An element that is opened inside another must also be closed inside it:</p>
+  <pre><code class="language-html">&lt;p&gt;This is &lt;strong&gt;important&lt;/strong&gt; text.&lt;/p&gt;   &lt;!-- right --&gt;
+&lt;p&gt;This is &lt;strong&gt;important&lt;/p&gt;&lt;/strong&gt;          &lt;!-- wrong --&gt;</code></pre>
+  <h2>Empty elements</h2>
+  <p>Some elements have no content and no end tag. They are called <strong>void elements</strong>:</p>
+  <pre><code class="language-html">&lt;br&gt;
+&lt;hr&gt;
+&lt;img src="cat.jpg" alt="A cat"&gt;
+&lt;input type="text"&gt;</code></pre>
+  <p>You may see them written as <code>&lt;br /&gt;</code>. The slash is allowed, but not needed in HTML.</p>
+  <h2>Upper or lower case</h2>
+  <p>Tag names are not case-sensitive: <code>&lt;P&gt;</code> and <code>&lt;p&gt;</code> are the same. Lower case is the common way to write them.</p>
+  <h2>More about elements</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements">HTML elements reference on MDN</a>: every element</li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Void_element">Void element on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

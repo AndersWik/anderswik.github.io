@@ -1,0 +1,38 @@
+---
+layout: default
+title: Buttons
+permalink: /html/buttons/
+chapter: "10"
+chapter_title: "Forms"
+keywords: [html, buttons, button, type, submit, reset]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Buttons</h1>
+  <p><code>&lt;button&gt;</code> is a button you can click:</p>
+  <pre><code class="language-html">&lt;button type="button"&gt;Click me&lt;/button&gt;</code></pre>
+  <h2>Types</h2>
+  <ul>
+    <li><code>type="submit"</code> sends the form. This is the <strong>default</strong> for a button in a form.</li>
+    <li><code>type="reset"</code> clears the form.</li>
+    <li><code>type="button"</code> does nothing by itself. Use it for buttons that run JavaScript.</li>
+  </ul>
+  <p>A button in a form without a <code>type</code> sends the form, which is a common mistake. Always write <code>type="button"</code> on buttons that are not meant to send the form.</p>
+  <h2>Button or link?</h2>
+  <ul>
+    <li>A <strong>link</strong> (<code>&lt;a&gt;</code>) goes to another page or another place.</li>
+    <li>A <strong>button</strong> does something on the page: opens a menu, saves, plays.</li>
+  </ul>
+  <p>CSS can make them look the same, but keyboard and screen reader users expect them to work differently.</p>
+  <h2>Content</h2>
+  <p>A button can hold more than text, for example an icon. If there is only an icon, describe it with <code>aria-label</code>:</p>
+  <pre><code class="language-html">&lt;button type="button" aria-label="Close"&gt;✕&lt;/button&gt;</code></pre>
+  <h2>More about buttons</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/button"><code>&lt;button&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

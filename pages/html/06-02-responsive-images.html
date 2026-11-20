@@ -1,0 +1,44 @@
+---
+layout: default
+title: Responsive images
+permalink: /html/responsive-images/
+chapter: "06"
+chapter_title: "Images and media"
+keywords: [html, responsive images, srcset, sizes, picture, source]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Responsive images</h1>
+  <p>A phone doesn't need the same big image as a large screen. With <code>srcset</code>, you give the browser several sizes of the image, and it chooses.</p>
+  <h2>Different sizes</h2>
+  <pre><code class="language-html">&lt;img src="cat-800.jpg"
+     srcset="cat-400.jpg 400w, cat-800.jpg 800w, cat-1600.jpg 1600w"
+     sizes="(max-width: 600px) 100vw, 50vw"
+     alt="A cat" width="800" height="533"&gt;</code></pre>
+  <ul>
+    <li><code>srcset</code> lists the files and their widths in pixels, with <code>w</code>.</li>
+    <li><code>sizes</code> tells how wide the image is shown: the whole screen (<code>100vw</code>) on screens up to 600px wide, else half of it.</li>
+    <li>The browser picks the smallest file that is sharp enough, also on high-resolution screens.</li>
+    <li><code>src</code> is used by old browsers.</li>
+  </ul>
+  <h2>Sharp on high-resolution screens</h2>
+  <p>For an image that is always shown at the same size, like a logo, give a version with twice the pixels:</p>
+  <pre><code class="language-html">&lt;img src="logo.png" srcset="logo.png 1x, logo@2x.png 2x" alt="Logo" width="200" height="50"&gt;</code></pre>
+  <h2>Different images or formats</h2>
+  <p><code>&lt;picture&gt;</code> chooses between <code>&lt;source&gt;</code> elements. The browser uses the first one it can, and else the <code>&lt;img&gt;</code>:</p>
+  <pre><code class="language-html">&lt;picture&gt;
+  &lt;source srcset="cat.avif" type="image/avif"&gt;
+  &lt;source srcset="cat.webp" type="image/webp"&gt;
+  &lt;img src="cat.jpg" alt="A cat" width="800" height="533"&gt;
+&lt;/picture&gt;</code></pre>
+  <p>With <code>media</code> instead of <code>type</code>, you can show another crop of the image on small screens.</p>
+  <h2>More about responsive images</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Responsive_images">Responsive images on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/picture"><code>&lt;picture&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,36 @@
+---
+layout: default
+title: Favicon
+permalink: /html/favicon/
+chapter: "06"
+chapter_title: "Images and media"
+keywords: [html, favicon, icon, link rel icon, apple-touch-icon]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Favicon</h1>
+  <p>A favicon is the small icon in the browser tab and in bookmarks. Add it with <code>&lt;link&gt;</code> in the <code>&lt;head&gt;</code>:</p>
+  <pre><code class="language-html">&lt;head&gt;
+  &lt;link rel="icon" href="/favicon.svg" type="image/svg+xml"&gt;
+  &lt;link rel="icon" href="/favicon.png" type="image/png"&gt;
+  &lt;link rel="apple-touch-icon" href="/apple-touch-icon.png"&gt;
+&lt;/head&gt;</code></pre>
+  <h2>Formats</h2>
+  <ul>
+    <li><strong>SVG</strong> looks sharp at every size, and can even change color in dark mode.</li>
+    <li><strong>PNG</strong>, 32×32 pixels or larger, works everywhere.</li>
+    <li><strong>apple-touch-icon</strong>, a 180×180 PNG, is used when someone adds the page to the home screen of an iPhone or iPad.</li>
+  </ul>
+  <p>If there is no <code>&lt;link rel="icon"&gt;</code>, browsers look for <code>/favicon.ico</code> at the root of the site.</p>
+  <h2>Installable apps</h2>
+  <p>An app that can be installed also needs icons in its manifest, in more sizes. See the <a href="/pwa/">Progressive web apps</a> notes.</p>
+  <h2>More about favicons</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/link"><code>&lt;link&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel">The rel attribute on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

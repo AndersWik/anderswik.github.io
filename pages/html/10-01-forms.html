@@ -1,0 +1,42 @@
+---
+layout: default
+title: Forms
+permalink: /html/forms/
+chapter: "10"
+chapter_title: "Forms"
+keywords: [html, forms, form, action, method, get, post, submit]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Forms</h1>
+  <p><code>&lt;form&gt;</code> collects input from the user and sends it to a server:</p>
+  <pre><code class="language-html">&lt;form action="/search" method="get"&gt;
+  &lt;label for="q"&gt;Search&lt;/label&gt;
+  &lt;input type="search" id="q" name="q"&gt;
+  &lt;button&gt;Search&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+  <p>When you press the button, the browser goes to <code>/search?q=what+you+typed</code>.</p>
+  <h2>Name</h2>
+  <p>Every field that is sent needs a <code>name</code>. The name and the value are sent as a pair, <code>q=cake</code>. A field without <code>name</code> is not sent.</p>
+  <h2>GET or POST</h2>
+  <ul>
+    <li><code>method="get"</code> puts the data in the address, after <code>?</code>. Use it for searches and filters, so the result can be bookmarked and shared.</li>
+    <li><code>method="post"</code> sends the data in the request, not in the address. Use it when something is saved or changed, like an order, and for passwords.</li>
+  </ul>
+  <h2>Without a server</h2>
+  <p>A form doesn't need a server. JavaScript can listen for the <code>submit</code> event and use the data on the page:</p>
+  <pre><code class="language-javascript">form.addEventListener("submit", function (event) {
+  event.preventDefault();          // don't send the form
+  const data = new FormData(form);
+  console.log(data.get("q"));
+});</code></pre>
+  <h2>More about forms</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/form"><code>&lt;form&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms">Web forms on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

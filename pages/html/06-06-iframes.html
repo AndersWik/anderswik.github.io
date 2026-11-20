@@ -1,0 +1,38 @@
+---
+layout: default
+title: Iframes
+permalink: /html/iframes/
+chapter: "06"
+chapter_title: "Images and media"
+keywords: [html, iframe, embed, youtube, sandbox, allow]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Iframes</h1>
+  <p><code>&lt;iframe&gt;</code> shows another web page inside your page. It is mostly used for videos and maps from other sites:</p>
+  <pre><code class="language-html">&lt;iframe src="https://www.youtube-nocookie.com/embed/VIDEO_ID"
+        title="A video about HTML"
+        width="560" height="315"
+        allow="fullscreen"
+        loading="lazy"&gt;&lt;/iframe&gt;</code></pre>
+  <h2>Attributes</h2>
+  <ul>
+    <li><code>title</code> describes the content for screen readers. Always set it.</li>
+    <li><code>loading="lazy"</code> waits until you scroll near the frame.</li>
+    <li><code>allow</code> gives the page in the frame permission to use things like full screen or the camera.</li>
+    <li><code>sandbox</code> takes permissions away, for example to run scripts. <code>sandbox</code> alone blocks almost everything.</li>
+  </ul>
+  <h2>Good to know</h2>
+  <ul>
+    <li>Many sites don't allow their pages in a frame on other sites. They stop it with a header, and the frame stays empty.</li>
+    <li>A page can only read the content of a frame from the same site. See the frame part of the <a href="/tutorials/page-search/">Page Search tutorial</a>.</li>
+  </ul>
+  <h2>More about iframes</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/iframe"><code>&lt;iframe&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

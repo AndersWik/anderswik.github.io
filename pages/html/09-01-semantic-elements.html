@@ -1,0 +1,67 @@
+---
+layout: default
+title: Semantic elements
+permalink: /html/semantic-elements/
+chapter: "09"
+chapter_title: "Page structure"
+keywords: [html, semantics, semantic elements, header, nav, main, article, section, aside, footer, layout]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Semantic elements</h1>
+  <p>Semantic elements say what their content <strong>is</strong>. A <code>&lt;div&gt;</code> could be anything, but a <code>&lt;nav&gt;</code> is always a menu. Screen readers use them to jump to the main content or the menu, and search engines use them to understand the page.</p>
+  <pre><code class="language-html">&lt;body&gt;
+  &lt;header&gt;
+    &lt;a href="/"&gt;My website&lt;/a&gt;
+    &lt;nav&gt;
+      &lt;a href="/"&gt;Home&lt;/a&gt;
+      &lt;a href="/recipes/"&gt;Recipes&lt;/a&gt;
+    &lt;/nav&gt;
+  &lt;/header&gt;
+
+  &lt;main&gt;
+    &lt;article&gt;
+      &lt;h1&gt;Chocolate cake&lt;/h1&gt;
+      &lt;section&gt;
+        &lt;h2&gt;Ingredients&lt;/h2&gt;
+        ...
+      &lt;/section&gt;
+      &lt;section&gt;
+        &lt;h2&gt;How to bake it&lt;/h2&gt;
+        ...
+      &lt;/section&gt;
+    &lt;/article&gt;
+
+    &lt;aside&gt;
+      &lt;h2&gt;More cakes&lt;/h2&gt;
+      ...
+    &lt;/aside&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    &lt;p&gt;© 2026 My website&lt;/p&gt;
+  &lt;/footer&gt;
+&lt;/body&gt;</code></pre>
+  <h2>The elements</h2>
+  <ul>
+    <li><code>&lt;header&gt;</code>, the top of the page or of an article: logo, title and often the menu.</li>
+    <li><code>&lt;nav&gt;</code>, a menu of links to other pages or parts of the page.</li>
+    <li><code>&lt;main&gt;</code>, the main content. Only one per page.</li>
+    <li><code>&lt;article&gt;</code>, content that makes sense on its own: a blog post, a news story, a product.</li>
+    <li><code>&lt;section&gt;</code>, a part of a page or article, usually with a heading.</li>
+    <li><code>&lt;aside&gt;</code>, content beside the main content: related links, ads, facts.</li>
+    <li><code>&lt;footer&gt;</code>, the bottom of the page or of an article: contact, copyright.</li>
+  </ul>
+  <p>These elements don't change how the page looks. The layout is made with CSS, for example with flexbox or grid.</p>
+  <h2>More about semantic elements</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Semantics">Semantics on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/main"><code>&lt;main&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/article"><code>&lt;article&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/section"><code>&lt;section&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

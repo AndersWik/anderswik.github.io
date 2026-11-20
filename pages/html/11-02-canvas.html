@@ -1,0 +1,43 @@
+---
+layout: default
+title: Canvas
+permalink: /html/canvas/
+chapter: "11"
+chapter_title: "Graphics"
+keywords: [html, canvas, 2d context, drawing, javascript]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Canvas</h1>
+  <p><code>&lt;canvas&gt;</code> is an empty area to draw on. Everything in it is drawn with JavaScript. In HTML, it is only the element, its size and a text for browsers that can't show it:</p>
+  <pre><code class="language-html">&lt;canvas id="drawing" width="300" height="150"&gt;
+  A red square.
+&lt;/canvas&gt;
+
+&lt;script&gt;
+  const canvas = document.getElementById("drawing");
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "red";
+  ctx.fillRect(100, 25, 100, 100);
+&lt;/script&gt;</code></pre>
+  <h2>Width and height</h2>
+  <p><code>width</code> and <code>height</code> are the number of pixels you draw on, 300 × 150 if they are missing. CSS width and height only stretch the result. A canvas that is only made larger with CSS looks blurry, so set the size with the attributes.</p>
+  <h2>Accessibility</h2>
+  <p>Screen readers can't see what is drawn. Describe it in the text between the tags, or with <code>aria-label</code>.</p>
+  <h2>Canvas or SVG?</h2>
+  <ul>
+    <li><strong>SVG</strong> is shapes as elements. Use it for icons, logos, diagrams and charts that you can style and click.</li>
+    <li><strong>Canvas</strong> is pixels. Use it for games, animation and image editing, where thousands of things move and are drawn again many times a second.</li>
+  </ul>
+  <h2>Learn to draw on a canvas</h2>
+  <p>The <a href="/games/">games</a> on this site are drawn on a canvas. The <a href="/tutorials/pong/">Pong tutorial</a> shows how, step by step: drawing shapes, moving them with <code>requestAnimationFrame</code>, and the keyboard.</p>
+  <h2>More about canvas</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/canvas"><code>&lt;canvas&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API">The Canvas API on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

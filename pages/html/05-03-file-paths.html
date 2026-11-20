@@ -1,0 +1,38 @@
+---
+layout: default
+title: File paths
+permalink: /html/file-paths/
+chapter: "05"
+chapter_title: "Links and paths"
+keywords: [html, file paths, absolute, relative, url, url encode]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>File paths</h1>
+  <p>A file path is the address of a file, like an image or another page. It is used in <code>href</code>, <code>src</code> and other attributes.</p>
+  <h2>Absolute address</h2>
+  <p>The full address, with the site. Use it for other sites:</p>
+  <pre><code class="language-html">&lt;img src="https://www.example.com/images/cat.jpg" alt="A cat"&gt;</code></pre>
+  <h2>From the root of the site</h2>
+  <p>Starts with <code>/</code>. Read from the top folder of the site, wherever the page is:</p>
+  <pre><code class="language-html">&lt;img src="/images/cat.jpg" alt="A cat"&gt;</code></pre>
+  <h2>From the page</h2>
+  <p>No <code>/</code> at the start. Read from the folder of the page:</p>
+  <pre><code class="language-html">&lt;img src="cat.jpg" alt="A cat"&gt;           &lt;!-- the same folder --&gt;
+&lt;img src="images/cat.jpg" alt="A cat"&gt;    &lt;!-- a folder in this folder --&gt;
+&lt;img src="../cat.jpg" alt="A cat"&gt;        &lt;!-- the folder above --&gt;</code></pre>
+  <h2>Good to know</h2>
+  <ul>
+    <li>On most web servers, file names are case-sensitive: <code>Cat.jpg</code> and <code>cat.jpg</code> are different files. Use lower case only.</li>
+    <li>Don't use spaces in file names. A space is written <code>%20</code> in an address, which is easy to get wrong. Use <code>-</code> instead. <a href="/utils/encode-url/">Url encode / decode</a> shows how other characters are written.</li>
+    <li><code>/</code> paths don't work when you open the page as a file, without a web server. Use paths from the page then, or start a local web server.</li>
+  </ul>
+  <h2>More about file paths</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/URI">URLs on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

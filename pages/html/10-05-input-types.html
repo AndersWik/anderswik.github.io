@@ -1,0 +1,44 @@
+---
+layout: default
+title: Input types
+permalink: /html/input-types/
+chapter: "10"
+chapter_title: "Forms"
+keywords: [html, input types, text, password, email, number, date, checkbox, radio, range, color, file]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Input types</h1>
+  <p><code>&lt;input&gt;</code> is a field, and <code>type</code> decides what kind. The browser shows the right keyboard on phones, and checks the value.</p>
+  <pre><code class="language-html">&lt;input type="text" name="name"&gt;
+&lt;input type="email" name="email"&gt;
+&lt;input type="password" name="password"&gt;
+&lt;input type="number" name="age" min="0" max="120"&gt;
+&lt;input type="tel" name="phone"&gt;
+&lt;input type="url" name="website"&gt;
+&lt;input type="search" name="q"&gt;</code></pre>
+  <h2>Date and time</h2>
+  <pre><code class="language-html">&lt;input type="date" name="day"&gt;
+&lt;input type="time" name="start"&gt;
+&lt;input type="datetime-local" name="meeting"&gt;</code></pre>
+  <h2>Choose</h2>
+  <pre><code class="language-html">&lt;label&gt;&lt;input type="checkbox" name="terms"&gt; I accept the terms&lt;/label&gt;
+
+&lt;label&gt;&lt;input type="radio" name="size" value="s"&gt; Small&lt;/label&gt;
+&lt;label&gt;&lt;input type="radio" name="size" value="l"&gt; Large&lt;/label&gt;</code></pre>
+  <p>Radio buttons with the same <code>name</code> belong together: only one can be checked.</p>
+  <h2>Other types</h2>
+  <pre><code class="language-html">&lt;input type="range" name="volume" min="0" max="10"&gt;
+&lt;input type="color" name="color" value="#ff6347"&gt;
+&lt;input type="file" name="photo" accept="image/*"&gt;
+&lt;input type="hidden" name="id" value="42"&gt;</code></pre>
+  <p><code>hidden</code> is not shown, but is sent with the form.</p>
+  <h2>More about input types</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input"><code>&lt;input&gt;</code> on MDN</a>, with a list of all types</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

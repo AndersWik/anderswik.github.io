@@ -1,0 +1,46 @@
+---
+layout: default
+title: Add CSS
+permalink: /html/add-css/
+chapter: "03"
+chapter_title: "Style HTML"
+keywords: [html, css, style attribute, style element, link, stylesheet, inline, internal, external]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Add CSS</h1>
+  <p>CSS decides how the HTML looks. There are three ways to add it to a page.</p>
+  <h2>In a separate file</h2>
+  <p>The best way. Write the CSS in a file, <code>style.css</code>, and link it in the <code>&lt;head&gt;</code>:</p>
+  <pre><code class="language-html">&lt;head&gt;
+  &lt;link rel="stylesheet" href="style.css"&gt;
+&lt;/head&gt;</code></pre>
+  <pre><code class="language-css">h1 {
+  color: navy;
+}</code></pre>
+  <p>The same file can be used by every page of the site, so a change in one place changes them all. The browser also keeps the file in its cache.</p>
+  <h2>In a style element</h2>
+  <p>CSS for one page can be written in a <code>&lt;style&gt;</code> element in the <code>&lt;head&gt;</code>:</p>
+  <pre><code class="language-html">&lt;head&gt;
+  &lt;style&gt;
+    h1 {
+      color: navy;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;</code></pre>
+  <h2>In a style attribute</h2>
+  <p>CSS for one element can be written in its <code>style</code> attribute. Use this for quick tests only. It is hard to find and change later.</p>
+  <pre><code class="language-html">&lt;h1 style="color: navy;"&gt;Heading&lt;/h1&gt;</code></pre>
+  <h2>Which one wins?</h2>
+  <p>If the same thing is set in several places, the <code>style</code> attribute wins. Between the file and the <code>&lt;style&gt;</code> element, the one that comes last in the HTML wins.</p>
+  <h2>More about CSS</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/link"><code>&lt;link&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/style"><code>&lt;style&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS">CSS on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

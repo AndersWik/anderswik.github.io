@@ -1,0 +1,37 @@
+---
+layout: default
+title: Form attributes
+permalink: /html/form-attributes/
+chapter: "10"
+chapter_title: "Forms"
+keywords: [html, form attributes, action, method, target, autocomplete, novalidate, enctype]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Form attributes</h1>
+  <p>The attributes on <code>&lt;form&gt;</code> decide where and how the form is sent.</p>
+  <pre><code class="language-html">&lt;form action="/order" method="post" autocomplete="on"&gt;
+  ...
+&lt;/form&gt;</code></pre>
+  <ul>
+    <li><code>action</code>, the address the form is sent to. Without it, the form is sent to the same page.</li>
+    <li><code>method</code>, <code>get</code> or <code>post</code>. See <a href="/html/forms/">Forms</a>.</li>
+    <li><code>target="_blank"</code>, opens the answer in a new tab.</li>
+    <li><code>autocomplete="off"</code>, asks the browser not to fill in fields from earlier.</li>
+    <li><code>novalidate</code>, turns off the browser's checks of the fields, for example when JavaScript does the checks.</li>
+  </ul>
+  <h2>Send files</h2>
+  <p>A form with a file field must use POST and <code>enctype="multipart/form-data"</code>. Without it, only the file name is sent:</p>
+  <pre><code class="language-html">&lt;form action="/upload" method="post" enctype="multipart/form-data"&gt;
+  &lt;input type="file" name="photo"&gt;
+  &lt;button&gt;Upload&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+  <h2>More about form attributes</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/form"><code>&lt;form&gt;</code> on MDN</a>, with all its attributes</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

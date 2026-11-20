@@ -1,0 +1,33 @@
+---
+layout: default
+title: Headings
+permalink: /html/headings/
+chapter: "04"
+chapter_title: "Text"
+keywords: [html, headings, h1, h2, h3, h4, h5, h6, outline]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Headings</h1>
+  <p>There are six levels of headings, from <code>&lt;h1&gt;</code>, the most important, to <code>&lt;h6&gt;</code>, the least:</p>
+  <pre><code class="language-html">&lt;h1&gt;Recipes&lt;/h1&gt;
+&lt;h2&gt;Cakes&lt;/h2&gt;
+&lt;h3&gt;Chocolate cake&lt;/h3&gt;
+&lt;h3&gt;Carrot cake&lt;/h3&gt;
+&lt;h2&gt;Bread&lt;/h2&gt;</code></pre>
+  <h2>The outline of the page</h2>
+  <p>Headings make an outline, like a table of contents. Screen readers use it to jump between the parts of a page, and search engines use it to understand what the page is about.</p>
+  <ul>
+    <li>Use one <code>&lt;h1&gt;</code> per page, the title of the page.</li>
+    <li>Don't skip levels: an <code>&lt;h4&gt;</code> should come after an <code>&lt;h3&gt;</code>, not directly after an <code>&lt;h2&gt;</code>.</li>
+    <li>Choose the level from the outline, not the size. If you want a smaller heading, change the size with CSS.</li>
+  </ul>
+  <h2>More about headings</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/Heading_Elements"><code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

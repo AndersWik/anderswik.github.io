@@ -1,0 +1,43 @@
+---
+layout: default
+title: Head
+permalink: /html/head/
+chapter: "08"
+chapter_title: "The head"
+keywords: [html, head, meta, link, script, base]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Head</h1>
+  <p><code>&lt;head&gt;</code> holds information about the page. It is not shown on the page, but the browser, search engines and social media read it.</p>
+  <pre><code class="language-html">&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Recipes - My website&lt;/title&gt;
+  &lt;meta name="description" content="Simple recipes for every day."&gt;
+  &lt;link rel="icon" href="/favicon.svg"&gt;
+  &lt;link rel="stylesheet" href="/style.css"&gt;
+  &lt;script src="/script.js" defer&gt;&lt;/script&gt;
+&lt;/head&gt;</code></pre>
+  <h2>What goes in the head</h2>
+  <ul>
+    <li><code>&lt;meta charset&gt;</code>, the character set. See <a href="/html/charset/">Charset</a>.</li>
+    <li><code>&lt;meta name="viewport"&gt;</code>, the size on phones. See <a href="/html/viewport/">Viewport</a>.</li>
+    <li><code>&lt;title&gt;</code>, the name in the tab. See <a href="/html/page-title/">Page title</a>.</li>
+    <li><code>&lt;meta name="description"&gt;</code>, the text search engines often show below the title.</li>
+    <li><code>&lt;link&gt;</code>, for example the style sheet and the <a href="/html/favicon/">favicon</a>.</li>
+    <li><code>&lt;style&gt;</code> and <code>&lt;script&gt;</code>.</li>
+  </ul>
+  <h2>Scripts</h2>
+  <p>A <code>&lt;script&gt;</code> in the head stops the page from showing until the script has loaded. <code>defer</code> loads it at the same time, and runs it when the page is ready. The other way is to put the <code>&lt;script&gt;</code> at the end of the <code>&lt;body&gt;</code>.</p>
+  <h2>More about the head</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/head"><code>&lt;head&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta"><code>&lt;meta&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script"><code>&lt;script&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

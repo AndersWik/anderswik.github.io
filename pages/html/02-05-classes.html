@@ -1,0 +1,42 @@
+---
+layout: default
+title: Classes
+permalink: /html/classes/
+chapter: "02"
+chapter_title: "Elements and attributes"
+keywords: [html, class, classes, multiple classes, grouping]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Classes</h1>
+  <p>The <code>class</code> attribute gives an element one or more names. Many elements can have the same class, and CSS and JavaScript use it to find them.</p>
+  <pre><code class="language-html">&lt;p class="note"&gt;Remember to save.&lt;/p&gt;
+&lt;p class="note"&gt;The page reloads by itself.&lt;/p&gt;</code></pre>
+  <h2>Many classes</h2>
+  <p>An element can have several classes, separated by spaces:</p>
+  <pre><code class="language-html">&lt;p class="note important"&gt;Don't close the window.&lt;/p&gt;</code></pre>
+  <h2>Use a class in CSS</h2>
+  <p>In CSS, a class is written with a dot:</p>
+  <pre><code class="language-css">.note {
+  background-color: lightyellow;
+}
+
+.important {
+  font-weight: bold;
+}</code></pre>
+  <h2>Use a class in JavaScript</h2>
+  <pre><code class="language-javascript">document.querySelectorAll(".note");           // all elements with the class
+element.classList.add("important");           // add a class
+element.classList.toggle("hidden");           // add or remove</code></pre>
+  <h2>Names</h2>
+  <p>A class name can't have spaces, since a space separates classes. Use names that say what the content is, like <code>warning</code>, not what it looks like, like <code>red-text</code>. Then the name is still right when the color changes.</p>
+  <h2>More about classes</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/class">The class attribute on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/Class_selectors">Class selectors on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

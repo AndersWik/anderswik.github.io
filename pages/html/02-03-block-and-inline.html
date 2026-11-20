@@ -1,0 +1,39 @@
+---
+layout: default
+title: Block and inline
+permalink: /html/block-and-inline/
+chapter: "02"
+chapter_title: "Elements and attributes"
+keywords: [html, block, inline, display, flow]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Block and inline</h1>
+  <p>Every element is shown either as a <strong>block</strong> or <strong>inline</strong>, and this decides how it is placed on the page.</p>
+  <h2>Block elements</h2>
+  <p>A block element starts on a new line and is as wide as it can be. The next element comes below it.</p>
+  <pre><code class="language-html">&lt;h1&gt;Heading&lt;/h1&gt;
+&lt;p&gt;A paragraph.&lt;/p&gt;
+&lt;div&gt;A div.&lt;/div&gt;</code></pre>
+  <p>Some block elements: <code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;table&gt;</code>, <code>&lt;form&gt;</code>, <code>&lt;header&gt;</code>, <code>&lt;section&gt;</code> and <code>&lt;footer&gt;</code>.</p>
+  <h2>Inline elements</h2>
+  <p>An inline element sits inside a line of text, and is only as wide as its content.</p>
+  <pre><code class="language-html">&lt;p&gt;Some &lt;strong&gt;bold&lt;/strong&gt; text with a &lt;a href="#"&gt;link&lt;/a&gt; and an &lt;em&gt;emphasis&lt;/em&gt;.&lt;/p&gt;</code></pre>
+  <p>Some inline elements: <code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;img&gt;</code>, <code>&lt;br&gt;</code>, <code>&lt;input&gt;</code> and <code>&lt;button&gt;</code>.</p>
+  <h2>Rules</h2>
+  <ul>
+    <li>Inline elements go inside block elements, not the other way around.</li>
+    <li><code>&lt;a&gt;</code> is an exception: it can hold block elements, for example to make a whole card a link.</li>
+    <li><code>&lt;p&gt;</code> can only hold inline content. A <code>&lt;div&gt;</code> inside a <code>&lt;p&gt;</code> closes the paragraph.</li>
+  </ul>
+  <p>CSS can change how an element is shown with <code>display: block</code> or <code>display: inline</code>, without changing what it means.</p>
+  <h2>More about block and inline</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Block-level_content">Block-level content on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Inline-level_content">Inline-level content on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

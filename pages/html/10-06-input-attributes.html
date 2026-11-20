@@ -1,0 +1,50 @@
+---
+layout: default
+title: Input attributes
+permalink: /html/input-attributes/
+chapter: "10"
+chapter_title: "Forms"
+keywords: [html, input attributes, value, placeholder, required, disabled, readonly, min, max, pattern, form]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Input attributes</h1>
+  <p>Attributes change how an input works, and what values it accepts.</p>
+  <pre><code class="language-html">&lt;input type="text" name="username" value="anna" placeholder="Your user name"
+       required minlength="3" maxlength="20" autocomplete="username"&gt;</code></pre>
+  <h2>Value and help</h2>
+  <ul>
+    <li><code>value</code>, the value the field starts with.</li>
+    <li><code>placeholder</code>, a hint shown when the field is empty. It disappears when you type, so it can't replace the <code>&lt;label&gt;</code>.</li>
+    <li><code>autocomplete</code>, tells the browser what to fill in, like <code>email</code>, <code>name</code> or <code>new-password</code>.</li>
+    <li><code>autofocus</code>, puts the cursor in the field when the page opens.</li>
+  </ul>
+  <h2>Checks</h2>
+  <p>The browser checks these when the form is sent, and shows a message:</p>
+  <ul>
+    <li><code>required</code>, the field can't be empty.</li>
+    <li><code>minlength</code> and <code>maxlength</code>, the length of the text.</li>
+    <li><code>min</code>, <code>max</code> and <code>step</code>, for numbers and dates.</li>
+    <li><code>pattern</code>, a <a href="/regular-expressions/introduction/">regular expression</a> the value must match.</li>
+  </ul>
+  <pre><code class="language-html">&lt;input type="text" name="zip" pattern="[0-9]{3} ?[0-9]{2}" title="Like 123 45"&gt;</code></pre>
+  <p>Always check the values on the server too. Anyone can turn off the checks in the browser.</p>
+  <h2>Disabled or read-only</h2>
+  <ul>
+    <li><code>disabled</code>, the field can't be used, and is <strong>not</strong> sent.</li>
+    <li><code>readonly</code>, the field can't be changed, but is sent.</li>
+  </ul>
+  <h2>A field outside the form</h2>
+  <p><code>form</code> connects a field to a form by its <code>id</code>, even if the field is somewhere else on the page:</p>
+  <pre><code class="language-html">&lt;form id="signup"&gt;...&lt;/form&gt;
+&lt;input type="email" name="email" form="signup"&gt;</code></pre>
+  <h2>More about input attributes</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input"><code>&lt;input&gt;</code> on MDN</a>, with all its attributes</li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/pattern">The pattern attribute on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

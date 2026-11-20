@@ -1,0 +1,40 @@
+---
+layout: default
+title: Colors
+permalink: /html/colors/
+chapter: "03"
+chapter_title: "Style HTML"
+keywords: [html, colors, colours, color names, hex, rgb, rgba, hsl, hsla]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Colors</h1>
+  <p>Colors are set with CSS: <code>color</code> for the text and <code>background-color</code> for the background.</p>
+  <pre><code class="language-html">&lt;p style="color: white; background-color: tomato;"&gt;White text on red.&lt;/p&gt;</code></pre>
+  <h2>Ways to write a color</h2>
+  <pre><code class="language-css">color: tomato;                  /* a name, there are 148 */
+color: #ff6347;                 /* hex: red, green, blue from 00 to ff */
+color: #f63;                    /* short hex, the same as #ff6633 */
+color: rgb(255 99 71);          /* red, green, blue from 0 to 255 */
+color: hsl(9 100% 64%);         /* hue, saturation, lightness */</code></pre>
+  <h2>Transparency</h2>
+  <p>Add a fourth value for the alpha, from 0 (invisible) to 1 (solid):</p>
+  <pre><code class="language-css">background-color: rgb(255 99 71 / 0.5);
+background-color: #ff634780;    /* 80 in hex is about 0.5 */</code></pre>
+  <h2>Which one to use?</h2>
+  <ul>
+    <li><strong>Hex</strong> is the most common, and what design programs give you.</li>
+    <li><strong>HSL</strong> is the easiest to change by hand: change the lightness to get a lighter or darker version of the same color.</li>
+    <li><strong>Names</strong> are handy for quick tests.</li>
+  </ul>
+  <p>Try colors and convert between the formats with <a href="/utils/colorhex/">Colorhex</a>.</p>
+  <h2>More about colors</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value">Color values on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/named-color">Color names on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

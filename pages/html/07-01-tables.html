@@ -1,0 +1,58 @@
+---
+layout: default
+title: Tables
+permalink: /html/tables/
+chapter: "07"
+chapter_title: "Tables"
+keywords: [html, tables, table, tr, td, th, thead, tbody, tfoot]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tables</h1>
+  <p><code>&lt;table&gt;</code> shows data in rows and columns. Each row is a <code>&lt;tr&gt;</code>, and each cell a <code>&lt;td&gt;</code>:</p>
+  <pre><code class="language-html">&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Name&lt;/th&gt;
+    &lt;th&gt;Age&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Anna&lt;/td&gt;
+    &lt;td&gt;34&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Erik&lt;/td&gt;
+    &lt;td&gt;28&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;</code></pre>
+  <p><code>&lt;th&gt;</code> is a header cell, shown in bold. See <a href="/html/table-headers/">Table headers</a>.</p>
+  <h2>Head, body and foot</h2>
+  <p>Large tables can be split in three parts:</p>
+  <pre><code class="language-html">&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;Month&lt;/th&gt;&lt;th&gt;Sales&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;January&lt;/td&gt;&lt;td&gt;100&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;February&lt;/td&gt;&lt;td&gt;120&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+  &lt;tfoot&gt;
+    &lt;tr&gt;&lt;td&gt;Total&lt;/td&gt;&lt;td&gt;220&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tfoot&gt;
+&lt;/table&gt;</code></pre>
+  <p>When a long table is printed, the head and foot are repeated on every page.</p>
+  <h2>Tables are for data</h2>
+  <p>Use tables for data that has rows and columns, like a price list or a timetable. Don't use them to place things on the page, use CSS for that.</p>
+  <p>A table has no lines between the cells until you add them with CSS:</p>
+  <pre><code class="language-css">table { border-collapse: collapse; }
+th, td { border: 1px solid #ccc; padding: 4px 8px; }</code></pre>
+  <h2>More about tables</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/table"><code>&lt;table&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/tr"><code>&lt;tr&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/td"><code>&lt;td&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

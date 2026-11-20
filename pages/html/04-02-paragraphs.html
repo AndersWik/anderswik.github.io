@@ -1,0 +1,47 @@
+---
+layout: default
+title: Paragraphs
+permalink: /html/paragraphs/
+chapter: "04"
+chapter_title: "Text"
+keywords: [html, paragraphs, p, br, line break, hr, pre, white space]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Paragraphs</h1>
+  <p><code>&lt;p&gt;</code> is a paragraph of text. The browser adds some space before and after it.</p>
+  <pre><code class="language-html">&lt;p&gt;This is the first paragraph.&lt;/p&gt;
+&lt;p&gt;This is the second paragraph.&lt;/p&gt;</code></pre>
+  <h2>White space</h2>
+  <p>The browser shows several spaces and line breaks as one space. These two paragraphs look the same:</p>
+  <pre><code class="language-html">&lt;p&gt;One two three.&lt;/p&gt;
+&lt;p&gt;One
+      two
+   three.&lt;/p&gt;</code></pre>
+  <h2>Line break</h2>
+  <p><code>&lt;br&gt;</code> breaks the line without starting a new paragraph. Use it where the line break is part of the content, like in a poem or an address. Don't use it to make space, use CSS for that.</p>
+  <pre><code class="language-html">&lt;p&gt;Storgatan 1&lt;br&gt;
+123 45 Stockholm&lt;/p&gt;</code></pre>
+  <h2>Horizontal rule</h2>
+  <p><code>&lt;hr&gt;</code> is a break between topics. It is shown as a line.</p>
+  <pre><code class="language-html">&lt;p&gt;The end of the first part.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;The second part.&lt;/p&gt;</code></pre>
+  <h2>Preformatted text</h2>
+  <p><code>&lt;pre&gt;</code> keeps all spaces and line breaks, and uses a font where all characters are the same width. It is used for code and text art.</p>
+  <pre><code class="language-html">&lt;pre&gt;
+  /\_/\
+ ( o.o )
+&lt;/pre&gt;</code></pre>
+  <h2>More about paragraphs</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/p"><code>&lt;p&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/br"><code>&lt;br&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/hr"><code>&lt;hr&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/pre"><code>&lt;pre&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

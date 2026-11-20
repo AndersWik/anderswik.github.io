@@ -1,0 +1,41 @@
+---
+layout: default
+title: Colgroup
+permalink: /html/colgroup/
+chapter: "07"
+chapter_title: "Tables"
+keywords: [html, colgroup, col, columns]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Colgroup</h1>
+  <p><code>&lt;colgroup&gt;</code> and <code>&lt;col&gt;</code> let you style whole columns, instead of each cell. They come first in the table, after the <code>&lt;caption&gt;</code>:</p>
+  <pre><code class="language-html">&lt;table&gt;
+  &lt;colgroup&gt;
+    &lt;col style="width: 40%"&gt;
+    &lt;col span="2" style="background-color: #f3f3f3"&gt;
+  &lt;/colgroup&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Product&lt;/th&gt;
+    &lt;th&gt;Price&lt;/th&gt;
+    &lt;th&gt;Stock&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Apples&lt;/td&gt;
+    &lt;td&gt;25 kr&lt;/td&gt;
+    &lt;td&gt;40&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;</code></pre>
+  <p><code>span="2"</code> makes one <code>&lt;col&gt;</code> count for two columns.</p>
+  <h2>Good to know</h2>
+  <p>Only a few CSS properties work on columns: <code>width</code>, <code>background-color</code>, <code>border</code> and <code>visibility</code>. A column can't change the text color or the font of its cells. For that, use a class on the cells, or <code>td:nth-child(2)</code> in CSS.</p>
+  <h2>More about colgroup</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/colgroup"><code>&lt;colgroup&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/col"><code>&lt;col&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
