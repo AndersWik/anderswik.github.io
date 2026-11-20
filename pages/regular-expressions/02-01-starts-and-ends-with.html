@@ -1,0 +1,38 @@
+---
+layout: default
+title: Starts and ends with
+permalink: /regular-expressions/starts-and-ends-with/
+chapter: "02"
+chapter_title: "Characters"
+keywords: [regular expressions, regex, starts with, ends with, caret, dollar, anchor, "^", "$"]
+---
+
+<div class="regular-expressions container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Starts and ends with</h1>
+  <p><code>^</code> and <code>$</code> do not find characters. They find a position: the start or the end of the line.</p>
+  <h2>^ Starts with</h2>
+  <p>When a pattern starts with <code>^</code>, the match must be at the start of the line.</p>
+  <pre><code class="language-regex">/^[0-9]/</code></pre>
+  <p class="regex-example"><mark>1</mark>: This text starts and ends with number 1</p>
+  <p>The regular expression finds the first <code>1</code>. The last <code>1</code> is not a match, because it is not at the start of the line.</p>
+  <h2>$ Ends with</h2>
+  <p>When a pattern ends with <code>$</code>, the match must be at the end of the line.</p>
+  <pre><code class="language-regex">/[0-9]$/</code></pre>
+  <p class="regex-example">1: This text starts and ends with number <mark>1</mark></p>
+  <p>The regular expression finds the last <code>1</code>. The first <code>1</code> is not a match, because it is not at the end of the line.</p>
+  <h2>Starts and ends with</h2>
+  <p>You can use <code>^</code> and <code>$</code> in the same pattern. Then the pattern must agree with all of the line.</p>
+  <pre><code class="language-regex">/^[0-9]+$/</code></pre>
+  <p class="regex-example"><mark>12345</mark></p>
+  <p class="regex-example">12345 is a number</p>
+  <p>The first line contains only digits, so all of the line is a match. The second line also contains letters, so there is no match.</p>
+  <h2>More about starts and ends with</h2>
+  <ul>
+    <li>Use the <code>m</code> flag to find the start and the end of each line in a text with many lines. See <a href="/regular-expressions/introduction/#flags">Flags</a>.</li>
+    <li>In brackets, <code>^</code> means "not". See <a href="/regular-expressions/character-class/">Character class</a>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

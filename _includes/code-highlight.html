@@ -121,6 +121,17 @@ Loaded by _layouts/default.html for the sections listed there.
         },
         bash: SHELL,
         powershell: SHELL,
+        // Regular expressions: /pattern/flags
+        regex: {
+            rules: [
+                ['comment', /^\/|\/[dgimsuvy]*$/],
+                ['string', /\[(?:\\.|[^\]\\\n])*\]/],
+                ['property', /\\./],
+                ['tag', /\(\?[=!:]|[()]/],
+                ['number', /\{\d+(?:,\d*)?\}\??|[?*+]\??/],
+                ['keyword', /[\^$|.]/]
+            ]
+        },
         html: { rules: MARKUP },
         xml: { rules: MARKUP }
     };

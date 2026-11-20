@@ -560,7 +560,7 @@ footer {
 // Dark code blocks for the tutorials and notes. The colors come from
 // _includes/code-highlight.html, which wraps words in <span class="tok-...">
 // when the page loads. Add new sections here and in _layouts/default.html.
-.tutorials, .linux, .markdown, .git, .vagrant, .mysql, .php, .latex, .pwa, .firefox-plugins {
+.tutorials, .linux, .markdown, .git, .vagrant, .mysql, .php, .latex, .pwa, .firefox-plugins, .regular-expressions {
 	pre {
 		background-color: #1b1d21;
 		color: #e6e6e6;
@@ -587,6 +587,25 @@ footer {
 		.tok-function { color: #82b1ff; }
 		.tok-property { color: #c3a6ff; }
 		.tok-tag      { color: #ff8b8b; }
+	}
+}
+
+// A text with the matches of a regular expression marked, in the
+// regular expression notes: <p class="regex-example">a<mark>b</mark>c</p>
+.regular-expressions .regex-example {
+	font-family: monospace;
+	background-color: #f6f8fa;
+	border: 1px solid #dee2e6;
+	border-radius: 10px;
+	padding: .75rem 1.25rem;
+	font-size: .9375rem;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+
+	mark {
+		background-color: #ffe58f;
+		padding: 0 1px;
+		border-radius: 3px;
 	}
 }
 

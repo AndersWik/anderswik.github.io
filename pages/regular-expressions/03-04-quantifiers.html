@@ -1,0 +1,46 @@
+---
+layout: default
+title: Quantifiers
+permalink: /regular-expressions/quantifiers/
+chapter: "03"
+chapter_title: "Combine and repeat"
+keywords: [regular expressions, regex, quantifiers, braces, exact, minimum, range, "{}"]
+---
+
+<div class="regular-expressions container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>{ } Quantifiers</h1>
+  <p>Braces (<code>{}</code>) tell how many times the character before them must occur.</p>
+  <h2>Exact number of times</h2>
+  <p><code>{2}</code> finds the character exactly two times.</p>
+  <pre><code class="language-regex">/^[0-9]{2}/</code></pre>
+  <p class="regex-example"><mark>12</mark>3: This text starts and ends 123</p>
+  <p>The regular expression finds two digits at the start of the line. The match is <code>12</code>. The <code>3</code> is not part of the match.</p>
+  <h2>Minimum number of times</h2>
+  <p><code>{3,}</code> finds the character three or more times.</p>
+  <pre><code class="language-regex">/^[0-9]{3,}/</code></pre>
+  <p class="regex-example"><mark>123</mark>: This text starts and ends 123</p>
+  <p>The regular expression finds three or more digits at the start of the line. The line starts with three digits, so the match is <code>123</code>.</p>
+  <h2>Range of times</h2>
+  <p><code>{3,5}</code> finds the character from three to five times.</p>
+  <pre><code class="language-regex">/^[0-9]{3,5}/</code></pre>
+  <p class="regex-example"><mark>12345</mark>67: This text starts and ends 1234567</p>
+  <p>The line starts with seven digits. The quantifier is greedy, so it finds the maximum number of digits. The match is the first five digits.</p>
+  <p class="regex-example"><mark>123</mark>: This text starts and ends 123</p>
+  <p class="regex-example">12: This text starts and ends 12</p>
+  <p>The first line has three digits at the start, so the match is <code>123</code>. The second line has only two digits at the start, so there is no match.</p>
+  <h2>Short forms</h2>
+  <p>The quantities <code>?</code>, <code>*</code> and <code>+</code> are short forms of quantifiers:</p>
+  <ul>
+    <li><code>?</code> is the same as <code>{0,1}</code>.</li>
+    <li><code>*</code> is the same as <code>{0,}</code>.</li>
+    <li><code>+</code> is the same as <code>{1,}</code>.</li>
+  </ul>
+  <h2>More about quantifiers</h2>
+  <ul>
+    <li>Put a question mark after a quantifier to make it not greedy, for example <code>{3,5}?</code>. See <a href="/regular-expressions/quantity/">Quantity</a>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

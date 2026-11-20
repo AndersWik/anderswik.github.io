@@ -1,0 +1,41 @@
+---
+layout: default
+title: Groups
+permalink: /regular-expressions/groups/
+chapter: "03"
+chapter_title: "Combine and repeat"
+keywords: [regular expressions, regex, groups, parentheses, lookahead, "()", "(?=)"]
+---
+
+<div class="regular-expressions container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>( ) Groups</h1>
+  <p>Parentheses (<code>()</code>) make a group. A group combines character classes and other parts into a larger pattern. The group finds the full pattern, not only one character.</p>
+  <pre><code class="language-regex">/([a-z]\s[a-z])/</code></pre>
+  <p class="regex-example">1: Thi<mark>s t</mark>ex<mark>t s</mark>tart<mark>s a</mark>n<mark>d e</mark>nds 1</p>
+  <p>The group finds a lowercase letter, a space, and one more lowercase letter. Each match is the last letter of a word, the space, and the first letter of the next word.</p>
+  <h2>Quantifiers in a group</h2>
+  <p>You can put quantifiers in a group.</p>
+  <pre><code class="language-regex">/([a-z]{1,2}\s[a-z])/</code></pre>
+  <p class="regex-example">1: Th<mark>is t</mark>e<mark>xt s</mark>tar<mark>ts a</mark><mark>nd e</mark>nds 1</p>
+  <p>The matches are <code>is t</code>, <code>xt s</code>, <code>ts a</code> and <code>nd e</code>.</p>
+  <p><code>[a-z]{1,2}</code> finds one or two lowercase letters before the space. The regular expression always tries to find the longest match, so each match has two letters before the space. The last two matches touch each other.</p>
+  <h2>Quantifier after a group</h2>
+  <p>A quantifier after a group applies to all of the group.</p>
+  <pre><code class="language-regex">/(ab)+/</code></pre>
+  <p class="regex-example"><mark>abab</mark>a <mark>ab</mark></p>
+  <p>The group <code>(ab)</code> occurs two times in the first word, so the first match is <code>abab</code>. The last <code>a</code> in the first word is not a match, because there is no <code>b</code> after it.</p>
+  <h2>Lookahead</h2>
+  <p><code>(?=...)</code> is a lookahead. It examines the characters after the match, but they are not part of the match.</p>
+  <pre><code class="language-regex">/a(?=r)/</code></pre>
+  <p class="regex-example">1: This text st<mark>a</mark>rts and ends 1</p>
+  <p>The regular expression finds an <code>a</code> that has an <code>r</code> after it. The <code>a</code> in "starts" is a match. The <code>a</code> in "and" is not a match, because an <code>n</code> comes after it. The <code>r</code> is not part of the match.</p>
+  <h2>More about groups</h2>
+  <ul>
+    <li><code>(?!...)</code> is a negative lookahead. <code>/a(?!r)/</code> finds an <code>a</code> that does not have an <code>r</code> after it.</li>
+    <li>A program can read the text that each group found. For example, in JavaScript, <code>match[1]</code> is the text of the first group.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

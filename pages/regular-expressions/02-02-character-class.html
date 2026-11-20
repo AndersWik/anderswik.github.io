@@ -1,0 +1,46 @@
+---
+layout: default
+title: Character class
+permalink: /regular-expressions/character-class/
+chapter: "02"
+chapter_title: "Characters"
+keywords: [regular expressions, regex, character class, brackets, range, not, inverted, escape, "[]"]
+---
+
+<div class="regular-expressions container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>[ ] Character class</h1>
+  <p>A character class tells which characters are a match. Write the characters between brackets (<code>[]</code>). The class finds one character that is in the brackets.</p>
+  <pre><code class="language-regex">/[Aaw]/</code></pre>
+  <p class="regex-example"><mark>A</mark> sentence <mark>w</mark>ith <mark>a</mark>n <mark>a</mark>.</p>
+  <p>The regular expression finds each <code>A</code>, <code>a</code> and <code>w</code>. The class is case-sensitive, so <code>[Aaw]</code> does not find <code>W</code>.</p>
+  <h2>Ranges</h2>
+  <p>Use a hyphen (<code>-</code>) between two characters to make a range. The range includes all the characters from the first character to the last character.</p>
+  <pre><code class="language-regex">/[0-9]/</code></pre>
+  <p class="regex-example"><mark>1</mark>: This text starts and ends with number <mark>1</mark></p>
+  <p>The range <code>0-9</code> finds all the digits.</p>
+  <pre><code class="language-regex">/[a-z]/</code></pre>
+  <p class="regex-example">1: T<mark>his</mark> <mark>text</mark> <mark>starts</mark> <mark>and</mark> <mark>ends</mark> <mark>with</mark> <mark>number</mark> 1</p>
+  <p>The range <code>a-z</code> finds all the lowercase letters. Each letter is a separate match. The <code>T</code> in "This" is not a match, because it is an uppercase letter. To find all letters, use <code>[a-zA-Z]</code>, or use the <code>i</code> flag.</p>
+  <h2>Not (inverted class)</h2>
+  <p>Usually, the caret (<code>^</code>) means "starts with".</p>
+  <pre><code class="language-regex">/^[0-9]/</code></pre>
+  <p class="regex-example"><mark>1</mark>: This text starts and ends with number 1</p>
+  <p>The regular expression finds only the digit at the start of the line.</p>
+  <p>When the caret is the first character in the brackets, it means "not". The class then finds one character that is not in the brackets.</p>
+  <pre><code class="language-regex">/[^0-9]/</code></pre>
+  <p class="regex-example">1<mark>: This text starts and ends with number </mark>1</p>
+  <p>The regular expression finds all the characters that are not digits. The spaces and the colon (<code>:</code>) are also matches.</p>
+  <h2>Metacharacters in a character class</h2>
+  <p>To find a metacharacter, put a backslash (<code>\</code>) before it. This is an escape.</p>
+  <pre><code class="language-regex">/[\?]/</code></pre>
+  <p class="regex-example">1: Will it work<mark>?</mark></p>
+  <p>The regular expression finds the question mark. Without the backslash, <code>?</code> is a quantity.</p>
+  <h2>More about character classes</h2>
+  <ul>
+    <li>Short forms for usual classes, for example <code>\d</code> for <code>[0-9]</code>, are in <a href="/regular-expressions/predefined-character-classes/">Predefined character classes</a>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
