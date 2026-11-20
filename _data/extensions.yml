@@ -42,6 +42,7 @@
 - { slug: tic-tac-toe, page: pages/games/tic-tac-toe.html, emoji: "❌" }
 - { slug: ascii, page: pages/utils/ascii.html, name: ASCII table, emoji: "🔤", open: tab }
 - { slug: calculator, page: pages/utils/calculator.html, emoji: "🧮" }
+- { slug: checklist, page: pages/utils/checklist.html, emoji: "✅", description: "A simple checklist that remembers its items." }
 - { slug: colorhex, page: pages/utils/colorhex.html, emoji: "🎨", width: 560 }
 - { slug: crontab, page: pages/utils/crontab.html, emoji: "⏰" }
 - { slug: data-conversion, page: pages/utils/data-conversion.html, emoji: "💾" }

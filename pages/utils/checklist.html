@@ -1,0 +1,59 @@
+---
+layout: default
+title: Checklist
+permalink: /utils/checklist/
+nonav: true
+css:
+  - /assets/checklist/checklist.css
+js:
+  - /assets/checklist/checklist.js
+---
+
+<div class="checklist container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Checklist</h2>
+    </div>
+  </div>
+
+  <div class="checklist-card mx-auto mt-4">
+    <p class="checklist-label">Checklist</p>
+
+    <button type="button" class="checklist-add" id="add">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"></path></svg>
+      Add an item
+    </button>
+
+    <form class="checklist-form" id="form" hidden>
+      <input type="text" id="new-item" maxlength="200" placeholder="What needs doing?" aria-label="New item" autocomplete="off">
+    </form>
+
+    <ul class="checklist-items" id="items"></ul>
+
+    <div class="checklist-empty" id="empty">
+      <svg viewBox="0 0 120 90" aria-hidden="true">
+        <defs>
+          <linearGradient id="check-gradient" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="#6fd39a"></stop>
+            <stop offset="1" stop-color="#23824a"></stop>
+          </linearGradient>
+        </defs>
+        <rect x="52" y="24" width="52" height="50" rx="9" fill="#f1f1f3"></rect>
+        <circle cx="63" cy="39" r="2.5" fill="#c9c9cf"></circle>
+        <circle cx="63" cy="49" r="2.5" fill="#c9c9cf"></circle>
+        <circle cx="63" cy="59" r="2.5" fill="#c9c9cf"></circle>
+        <rect x="70" y="36.5" width="26" height="5" rx="2.5" fill="#c9c9cf"></rect>
+        <rect x="70" y="46.5" width="26" height="5" rx="2.5" fill="#c9c9cf"></rect>
+        <rect x="70" y="56.5" width="26" height="5" rx="2.5" fill="#c9c9cf"></rect>
+        <path d="M18 38 L32 54 Q48 22 72 10 Q46 30 33 64 Z" fill="url(#check-gradient)"></path>
+      </svg>
+      <p>Nothing here yet</p>
+    </div>
+
+    <div class="checklist-footer" id="footer" hidden>
+      <span id="count"></span>
+      <button type="button" class="checklist-clear" id="clear">Clear done</button>
+    </div>
+  </div>
+  <p class="mt-5 text-center"><a href="/tutorials/checklist/">How to build this tool</a></p>
+</div>
