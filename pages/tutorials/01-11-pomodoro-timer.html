@@ -1,0 +1,539 @@
+---
+layout: default
+title: Pomodoro timer
+permalink: /tutorials/pomodoro-timer/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, pomodoro, timer, setInterval, Date.now, svg, circle, stroke-dasharray, stroke-dashoffset, progress ring, web audio, state, document.title]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Pomodoro timer</h1>
+  <p>The Pomodoro technique is a way to work: focus for 25 minutes, take a 5 minute break, and repeat. We build a timer for it with a ring that fills up as time passes, a play button in the middle, <code>-</code> and <code>+</code> to change the length, and a Focus / Break switch.</p>
+  <p>The new ideas are a timer that uses the clock instead of counting ticks, and drawing a progress ring with an SVG circle.</p>
+  <p><a href="/assets/tutorials/pomodoro-timer.html">Open the finished page</a></p>
+  <p>Read the <a href="/tutorials/egg-clock/">Egg clock</a> first. It explains <code>setInterval</code> and the beep.</p>
+  <h2>The state</h2>
+  <pre><code class="language-javascript">const minutes = { focus: 25, break: 5 };  // the length of each mode
+let mode = "focus";                       // "focus" or "break"
+let msLeft = minutes.focus * 60 * 1000;   // time left, in milliseconds
+let endTime = null;                       // when the session ends, null when paused
+let timer = null;                         // the id from setInterval, null when paused
+let audio = null;                         // for the beep</code></pre>
+  <p><code>minutes</code> is an object with one length per mode. <code>minutes[mode]</code> reads the length of the current mode, whichever it is. <code>minutes</code> is a <code>const</code>, but we can still change what is inside it. <code>const</code> only means the name always points to the same object.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>pomodoro-timer.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Pomodoro timer&lt;/h1&gt;
+
+&lt;div class="card"&gt;
+  &lt;div class="ring"&gt;
+    &lt;svg viewBox="0 0 120 120" aria-hidden="true"&gt;
+      &lt;circle class="track" cx="60" cy="60" r="50"&gt;&lt;/circle&gt;
+      &lt;circle class="progress" id="progress" cx="60" cy="60" r="50"&gt;&lt;/circle&gt;
+    &lt;/svg&gt;
+    &lt;button type="button" id="play" aria-label="Start"&gt;
+      &lt;svg viewBox="0 0 24 24" aria-hidden="true"&gt;&lt;path id="play-icon" d="M7 4.5v15l13-7.5z"&gt;&lt;/path&gt;&lt;/svg&gt;
+    &lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;div class="time-row"&gt;
+    &lt;button type="button" class="step" id="minus" aria-label="One minute less"&gt;&amp;minus;&lt;/button&gt;
+    &lt;span id="time" aria-live="polite"&gt;25:00&lt;/span&gt;
+    &lt;button type="button" class="step" id="plus" aria-label="One minute more"&gt;+&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;div class="modes"&gt;
+    &lt;button type="button" class="mode active" data-mode="focus"&gt;Focus&lt;/button&gt;
+    &lt;button type="button" class="mode" data-mode="break"&gt;Break&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+  <p>The ring is two circles on top of each other: a gray <strong>track</strong>, and a green <strong>progress</strong> circle that we draw only part of. The play icon is an SVG <code>&lt;path&gt;</code>. <code>M7 4.5</code> moves the pen to a point, <code>v15</code> draws a line 15 down, <code>l13-7.5</code> draws a line 13 right and 7.5 up, and <code>z</code> closes the shape. That gives a triangle that points right.</p>
+  <p>The play button has no text, so <code>aria-label</code> tells screen readers what it does. <code>aria-live="polite"</code> on the time lets a screen reader read the new time when it changes.</p>
+  <h2>Step 2: The CSS</h2>
+  <pre><code class="language-css">.ring {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+}
+
+.ring &gt; svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.track,
+.progress {
+    fill: none;
+    stroke-width: 18;
+}
+
+.track {
+    stroke: #d8d7dc;
+}
+
+.progress {
+    stroke: #2e9e5b;
+    stroke-linecap: round;
+}
+
+#play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 52px;
+    height: 52px;
+    transform: translate(-50%, -50%);
+    border: none;
+    border-radius: 50%;
+    background: #2e9e5b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}</code></pre>
+  <p>Circles are just lines here: <code>fill: none</code> leaves the middle empty and <code>stroke-width</code> makes the line thick.</p>
+  <p>An SVG circle's line starts at 3 o'clock. We turn the whole SVG <code>-90deg</code> so the ring starts filling from 12 o'clock, like a clock. Note the <code>&gt;</code> in <code>.ring &gt; svg</code>: it means only an SVG directly inside <code>.ring</code>. Without it the rule would also turn the play icon, which is an SVG further down, and the triangle would point up.</p>
+  <p>The play button sits in the middle with a common trick: <code>top: 50%; left: 50%</code> puts its top left corner in the middle, and <code>translate(-50%, -50%)</code> moves it back by half its own size.</p>
+  <p>The rest of the CSS, for the card, the time row and the Focus / Break pills, is in the complete page at the bottom.</p>
+  <h2>Step 3: The progress ring</h2>
+  <p>Two CSS properties draw part of a line:</p>
+  <ul>
+    <li><code>stroke-dasharray</code> turns the line into dashes. If the dash is as long as the whole line, there is one dash that covers it all.</li>
+    <li><code>stroke-dashoffset</code> moves the dash along the line. Move it by the whole length and nothing is visible. Move it by half and half the ring is drawn.</li>
+  </ul>
+  <p>The length of the line is the circumference of the circle, <code>2 &times; &pi; &times; radius</code>:</p>
+  <pre><code class="language-javascript">const RING_LENGTH = 2 * Math.PI * 50;   // r="50" in the HTML
+progress.style.strokeDasharray = RING_LENGTH;
+
+// done is 0 at the start and 1 when the time is up.
+const done = 1 - msLeft / totalMs();
+progress.style.strokeDashoffset = RING_LENGTH * (1 - done);</code></pre>
+  <p><code>stroke-linecap: round</code> gives the line round ends, which looks nice, but a round end is also drawn when the line has length 0, as a small dot at 12 o'clock. So we hide the progress circle until some time has passed:</p>
+  <pre><code class="language-javascript">progress.style.visibility = done &gt; 0 ? "visible" : "hidden";</code></pre>
+  <h2>Step 4: Use the clock, not the ticks</h2>
+  <p>The egg clock subtracts one second every time <code>setInterval</code> calls it. That is fine for a few minutes in a tab you are looking at. But browsers slow down timers in tabs you are not looking at, to save battery, sometimes to once a minute. A 25 minute timer that counts ticks can then end many minutes late.</p>
+  <p>Instead we remember <em>when</em> the session ends. <code>Date.now()</code> is the time right now in milliseconds, so:</p>
+  <pre><code class="language-javascript">function start() {
+    if (audio === null) {
+        audio = new AudioContext();
+    }
+    endTime = Date.now() + msLeft;
+    timer = setInterval(tick, 250);
+    render();
+}
+
+function tick() {
+    msLeft = Math.max(0, endTime - Date.now());
+    if (msLeft === 0) {
+        pause();
+        beep();
+        setMode(mode === "focus" ? "break" : "focus");
+        return;
+    }
+    render();
+}</code></pre>
+  <p>However late <code>tick</code> is called, <code>endTime - Date.now()</code> is the right time left. We tick four times a second instead of once, so the display never lags almost a whole second behind.</p>
+  <p>When the time is up we beep and switch to the other mode, so the next press on play starts the break (or the next focus session).</p>
+  <h2>Step 5: Pause</h2>
+  <pre><code class="language-javascript">function pause() {
+    msLeft = Math.max(0, endTime - Date.now());
+    clearInterval(timer);
+    timer = null;
+    endTime = null;
+    render();
+}
+
+function isRunning() {
+    return timer !== null;
+}</code></pre>
+  <p>Pause saves the time left, so <code>start()</code> can make a new <code>endTime</code> from it later. The play button calls <code>start()</code> or <code>pause()</code> depending on <code>isRunning()</code>, so one button does both.</p>
+  <h2>Step 6: Show the time</h2>
+  <pre><code class="language-javascript">// 90500 ms -&gt; "01:31"
+function formatTime(ms) {
+    const seconds = Math.ceil(ms / 1000);
+    const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+    const ss = String(seconds % 60).padStart(2, "0");
+    return mm + ":" + ss;
+}</code></pre>
+  <p><code>Math.ceil</code> rounds up. With 400 ms left it shows <code>00:01</code>, not <code>00:00</code>, so <code>00:00</code> only shows when the time is really up.</p>
+  <p>All the drawing happens in one function, <code>render()</code>, which reads the state and updates the page. It also puts the time in the browser tab with <code>document.title</code>, so you can see it from another tab, and swaps the play triangle for a pause icon while running:</p>
+  <pre><code class="language-javascript">const PLAY_ICON = "M7 4.5v15l13-7.5z";
+const PAUSE_ICON = "M6 4h4.5v16H6zM13.5 4H18v16h-4.5z";   // two bars
+
+playIcon.setAttribute("d", isRunning() ? PAUSE_ICON : PLAY_ICON);</code></pre>
+  <h2>Step 7: Change the length and the mode</h2>
+  <pre><code class="language-javascript">function changeMinutes(change) {
+    if (isRunning()) {
+        return;
+    }
+    minutes[mode] = Math.min(99, Math.max(1, minutes[mode] + change));
+    msLeft = totalMs();
+    render();
+}
+
+function setMode(newMode) {
+    if (isRunning()) {
+        pause();
+    }
+    mode = newMode;
+    msLeft = totalMs();
+    render();
+}</code></pre>
+  <p>The length can't change while the timer runs, so <code>render()</code> also disables <code>-</code> and <code>+</code> then. The Focus and Break buttons use <code>data-mode</code>, like the calculator keys use <code>data-val</code>, so one loop connects both:</p>
+  <pre><code class="language-javascript">modeButtons.forEach(function (button) {
+    button.addEventListener("click", function () { setMode(button.dataset.mode); });
+});</code></pre>
+  <h2>Step 8: Test it</h2>
+  <ul>
+    <li>Press <code>-</code> until it shows <code>01:00</code> and press play. The ring fills up and it beeps after one minute, then it shows Break and <code>05:00</code>.</li>
+    <li>Press play, then pause after a few seconds. The time and the ring stop. Press play again and they continue from there.</li>
+    <li>Start a session, switch to another tab for a few minutes, and come back. The time is still right.</li>
+    <li><code>-</code> and <code>+</code> are grey while it runs, and <code>-</code> stops at 1 minute.</li>
+    <li>Set Focus to 30 minutes, switch to Break and back. Focus is still 30.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>pomodoro-timer.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Pomodoro timer&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .card {
+        max-width: 300px;
+        margin: 0 auto;
+        padding: 28px 24px 24px;
+        text-align: center;
+        border: 1px solid #e3e3e8;
+        border-radius: 14px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .ring {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+
+    .ring &gt; svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .track,
+    .progress {
+        fill: none;
+        stroke-width: 18;
+    }
+
+    .track {
+        stroke: #d8d7dc;
+    }
+
+    .progress {
+        stroke: #2e9e5b;
+        stroke-linecap: round;
+    }
+
+    #play {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 52px;
+        height: 52px;
+        transform: translate(-50%, -50%);
+        border: none;
+        border-radius: 50%;
+        background: #2e9e5b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    #play:hover {
+        background: #23824a;
+    }
+
+    #play svg {
+        width: 22px;
+        height: 22px;
+        fill: #fff;
+    }
+
+    .time-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        margin-top: 22px;
+    }
+
+    #time {
+        font-size: 24px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .step {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        font-size: 22px;
+        cursor: pointer;
+    }
+
+    .step:disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+
+    .modes {
+        display: inline-flex;
+        gap: 4px;
+        margin-top: 14px;
+        padding: 3px;
+        border: 1px solid #555;
+        border-radius: 999px;
+    }
+
+    .mode {
+        padding: 5px 16px;
+        border: none;
+        border-radius: 999px;
+        background: transparent;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .mode.active {
+        background: #2e9e5b;
+        color: #fff;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Pomodoro timer&lt;/h1&gt;
+
+  &lt;div class="card"&gt;
+    &lt;div class="ring"&gt;
+      &lt;svg viewBox="0 0 120 120" aria-hidden="true"&gt;
+        &lt;circle class="track" cx="60" cy="60" r="50"&gt;&lt;/circle&gt;
+        &lt;circle class="progress" id="progress" cx="60" cy="60" r="50"&gt;&lt;/circle&gt;
+      &lt;/svg&gt;
+      &lt;button type="button" id="play" aria-label="Start"&gt;
+        &lt;svg viewBox="0 0 24 24" aria-hidden="true"&gt;&lt;path id="play-icon" d="M7 4.5v15l13-7.5z"&gt;&lt;/path&gt;&lt;/svg&gt;
+      &lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div class="time-row"&gt;
+      &lt;button type="button" class="step" id="minus" aria-label="One minute less"&gt;&amp;minus;&lt;/button&gt;
+      &lt;span id="time" aria-live="polite"&gt;25:00&lt;/span&gt;
+      &lt;button type="button" class="step" id="plus" aria-label="One minute more"&gt;+&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div class="modes"&gt;
+      &lt;button type="button" class="mode active" data-mode="focus"&gt;Focus&lt;/button&gt;
+      &lt;button type="button" class="mode" data-mode="break"&gt;Break&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Pomodoro timer: work in focus sessions with short breaks in between.
+     *
+     * State:
+     *   minutes   the length of each mode, e.g. { focus: 25, break: 5 }
+     *   mode      "focus" or "break"
+     *   msLeft    time left in milliseconds
+     *   endTime   when the session ends (Date.now() milliseconds), null when paused
+     *   timer     the id from setInterval, null when paused
+     *
+     * We don't count ticks. We remember when the session ends and work out
+     * the time left from the clock, so the timer stays right even when the
+     * browser slows down timers in a background tab.
+     */
+
+    // --- State ---------------------------------------------------------------
+
+    const minutes = { focus: 25, break: 5 };
+    let mode = "focus";
+    let msLeft = minutes.focus * 60 * 1000;
+    let endTime = null;
+    let timer = null;
+    let audio = null;   // made on the first click, see beep()
+
+    const PLAY_ICON = "M7 4.5v15l13-7.5z";
+    const PAUSE_ICON = "M6 4h4.5v16H6zM13.5 4H18v16h-4.5z";
+
+    // --- Elements on the page ------------------------------------------------
+
+    const timeText = document.getElementById("time");
+    const playButton = document.getElementById("play");
+    const playIcon = document.getElementById("play-icon");
+    const minusButton = document.getElementById("minus");
+    const plusButton = document.getElementById("plus");
+    const progress = document.getElementById("progress");
+    const modeButtons = document.querySelectorAll(".mode");
+
+    // The length of the ring's line: 2 * pi * radius.
+    const RING_LENGTH = 2 * Math.PI * 50;
+    progress.style.strokeDasharray = RING_LENGTH;
+
+    // --- Helpers -------------------------------------------------------------
+
+    function totalMs() {
+        return minutes[mode] * 60 * 1000;
+    }
+
+    function isRunning() {
+        return timer !== null;
+    }
+
+    // 90500 ms -&gt; "01:31". Round up, so it shows 00:01 until the very end.
+    function formatTime(ms) {
+        const seconds = Math.ceil(ms / 1000);
+        const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+        const ss = String(seconds % 60).padStart(2, "0");
+        return mm + ":" + ss;
+    }
+
+    // Three short beeps with the Web Audio API.
+    function beep() {
+        for (let i = 0; i &lt; 3; i++) {
+            const start = audio.currentTime + i * 0.35;
+            const tone = audio.createOscillator();
+            tone.frequency.value = 880;
+            tone.connect(audio.destination);
+            tone.start(start);
+            tone.stop(start + 0.25);
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    // Draw everything from the state.
+    function render() {
+        const text = formatTime(msLeft);
+        timeText.textContent = text;
+        document.title = isRunning() ? text + " - Pomodoro" : "Pomodoro timer";
+
+        // How much of the session is done, from 0 to 1.
+        const done = 1 - msLeft / totalMs();
+        progress.style.strokeDashoffset = RING_LENGTH * (1 - done);
+        // A round line end shows as a dot even at 0, so hide it then.
+        progress.style.visibility = done &gt; 0 ? "visible" : "hidden";
+
+        playIcon.setAttribute("d", isRunning() ? PAUSE_ICON : PLAY_ICON);
+        playButton.setAttribute("aria-label", isRunning() ? "Pause" : "Start");
+
+        minusButton.disabled = isRunning() || minutes[mode] &lt;= 1;
+        plusButton.disabled = isRunning() || minutes[mode] &gt;= 99;
+
+        modeButtons.forEach(function (button) {
+            button.classList.toggle("active", button.dataset.mode === mode);
+        });
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function start() {
+        // Browsers only allow sound after a click, so make the audio here.
+        if (audio === null) {
+            audio = new AudioContext();
+        }
+        endTime = Date.now() + msLeft;
+        timer = setInterval(tick, 250);
+        render();
+    }
+
+    function pause() {
+        msLeft = Math.max(0, endTime - Date.now());
+        clearInterval(timer);
+        timer = null;
+        endTime = null;
+        render();
+    }
+
+    // Called four times a second while running.
+    function tick() {
+        msLeft = Math.max(0, endTime - Date.now());
+        if (msLeft === 0) {
+            pause();
+            beep();
+            // After focus comes a break, after a break comes focus.
+            setMode(mode === "focus" ? "break" : "focus");
+            return;
+        }
+        render();
+    }
+
+    function setMode(newMode) {
+        if (isRunning()) {
+            pause();
+        }
+        mode = newMode;
+        msLeft = totalMs();
+        render();
+    }
+
+    // Add (1) or remove (-1) a minute, between 1 and 99 minutes.
+    function changeMinutes(change) {
+        if (isRunning()) {
+            return;
+        }
+        minutes[mode] = Math.min(99, Math.max(1, minutes[mode] + change));
+        msLeft = totalMs();
+        render();
+    }
+
+    // --- Connect the buttons -------------------------------------------------
+
+    playButton.addEventListener("click", function () {
+        if (isRunning()) {
+            pause();
+        } else {
+            start();
+        }
+    });
+
+    minusButton.addEventListener("click", function () { changeMinutes(-1); });
+    plusButton.addEventListener("click", function () { changeMinutes(1); });
+
+    modeButtons.forEach(function (button) {
+        button.addEventListener("click", function () { setMode(button.dataset.mode); });
+    });
+
+    render();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Count finished focus sessions, and give a long 15 minute break after every fourth.</li>
+    <li>Start the break by itself when a focus session ends.</li>
+    <li>Show a notification with the <code>Notification</code> API, so you see it even when the tab is hidden.</li>
+  </ul>
+  <h2>More about the Pomodoro timer</h2>
+  <ul>
+    <li><a href="/utils/pomodoro-timer/">The Pomodoro timer on this site</a></li>
+    <li>Make it an app you can install: <a href="/pwa/make-pwa/">Many apps at once</a></li>
+    <li>Make it a Firefox add-on: <a href="/firefox-plugins/make-extension/">Make an extension</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

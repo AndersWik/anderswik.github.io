@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pomodoro timer</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .card {
+        max-width: 300px;
+        margin: 0 auto;
+        padding: 28px 24px 24px;
+        text-align: center;
+        border: 1px solid #e3e3e8;
+        border-radius: 14px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .ring {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+
+    .ring > svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .track,
+    .progress {
+        fill: none;
+        stroke-width: 18;
+    }
+
+    .track {
+        stroke: #d8d7dc;
+    }
+
+    .progress {
+        stroke: #2e9e5b;
+        stroke-linecap: round;
+    }
+
+    #play {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 52px;
+        height: 52px;
+        transform: translate(-50%, -50%);
+        border: none;
+        border-radius: 50%;
+        background: #2e9e5b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    #play:hover {
+        background: #23824a;
+    }
+
+    #play svg {
+        width: 22px;
+        height: 22px;
+        fill: #fff;
+    }
+
+    .time-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        margin-top: 22px;
+    }
+
+    #time {
+        font-size: 24px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .step {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        font-size: 22px;
+        cursor: pointer;
+    }
+
+    .step:disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+
+    .modes {
+        display: inline-flex;
+        gap: 4px;
+        margin-top: 14px;
+        padding: 3px;
+        border: 1px solid #555;
+        border-radius: 999px;
+    }
+
+    .mode {
+        padding: 5px 16px;
+        border: none;
+        border-radius: 999px;
+        background: transparent;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .mode.active {
+        background: #2e9e5b;
+        color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pomodoro timer</h1>
+
+  <div class="card">
+    <div class="ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="track" cx="60" cy="60" r="50"></circle>
+        <circle class="progress" id="progress" cx="60" cy="60" r="50"></circle>
+      </svg>
+      <button type="button" id="play" aria-label="Start">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path id="play-icon" d="M7 4.5v15l13-7.5z"></path></svg>
+      </button>
+    </div>
+
+    <div class="time-row">
+      <button type="button" class="step" id="minus" aria-label="One minute less">&minus;</button>
+      <span id="time" aria-live="polite">25:00</span>
+      <button type="button" class="step" id="plus" aria-label="One minute more">+</button>
+    </div>
+
+    <div class="modes">
+      <button type="button" class="mode active" data-mode="focus">Focus</button>
+      <button type="button" class="mode" data-mode="break">Break</button>
+    </div>
+  </div>
+
+  <script>
+    /*
+     * Pomodoro timer: work in focus sessions with short breaks in between.
+     *
+     * State:
+     *   minutes   the length of each mode, e.g. { focus: 25, break: 5 }
+     *   mode      "focus" or "break"
+     *   msLeft    time left in milliseconds
+     *   endTime   when the session ends (Date.now() milliseconds), null when paused
+     *   timer     the id from setInterval, null when paused
+     *
+     * We don't count ticks. We remember when the session ends and work out
+     * the time left from the clock, so the timer stays right even when the
+     * browser slows down timers in a background tab.
+     */
+
+    // --- State ---------------------------------------------------------------
+
+    const minutes = { focus: 25, break: 5 };
+    let mode = "focus";
+    let msLeft = minutes.focus * 60 * 1000;
+    let endTime = null;
+    let timer = null;
+    let audio = null;   // made on the first click, see beep()
+
+    const PLAY_ICON = "M7 4.5v15l13-7.5z";
+    const PAUSE_ICON = "M6 4h4.5v16H6zM13.5 4H18v16h-4.5z";
+
+    // --- Elements on the page ------------------------------------------------
+
+    const timeText = document.getElementById("time");
+    const playButton = document.getElementById("play");
+    const playIcon = document.getElementById("play-icon");
+    const minusButton = document.getElementById("minus");
+    const plusButton = document.getElementById("plus");
+    const progress = document.getElementById("progress");
+    const modeButtons = document.querySelectorAll(".mode");
+
+    // The length of the ring's line: 2 * pi * radius.
+    const RING_LENGTH = 2 * Math.PI * 50;
+    progress.style.strokeDasharray = RING_LENGTH;
+
+    // --- Helpers -------------------------------------------------------------
+
+    function totalMs() {
+        return minutes[mode] * 60 * 1000;
+    }
+
+    function isRunning() {
+        return timer !== null;
+    }
+
+    // 90500 ms -> "01:31". Round up, so it shows 00:01 until the very end.
+    function formatTime(ms) {
+        const seconds = Math.ceil(ms / 1000);
+        const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+        const ss = String(seconds % 60).padStart(2, "0");
+        return mm + ":" + ss;
+    }
+
+    // Three short beeps with the Web Audio API.
+    function beep() {
+        for (let i = 0; i < 3; i++) {
+            const start = audio.currentTime + i * 0.35;
+            const tone = audio.createOscillator();
+            tone.frequency.value = 880;
+            tone.connect(audio.destination);
+            tone.start(start);
+            tone.stop(start + 0.25);
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    // Draw everything from the state.
+    function render() {
+        const text = formatTime(msLeft);
+        timeText.textContent = text;
+        document.title = isRunning() ? text + " - Pomodoro" : "Pomodoro timer";
+
+        // How much of the session is done, from 0 to 1.
+        const done = 1 - msLeft / totalMs();
+        progress.style.strokeDashoffset = RING_LENGTH * (1 - done);
+        // A round line end shows as a dot even at 0, so hide it then.
+        progress.style.visibility = done > 0 ? "visible" : "hidden";
+
+        playIcon.setAttribute("d", isRunning() ? PAUSE_ICON : PLAY_ICON);
+        playButton.setAttribute("aria-label", isRunning() ? "Pause" : "Start");
+
+        minusButton.disabled = isRunning() || minutes[mode] <= 1;
+        plusButton.disabled = isRunning() || minutes[mode] >= 99;
+
+        modeButtons.forEach(function (button) {
+            button.classList.toggle("active", button.dataset.mode === mode);
+        });
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function start() {
+        // Browsers only allow sound after a click, so make the audio here.
+        if (audio === null) {
+            audio = new AudioContext();
+        }
+        endTime = Date.now() + msLeft;
+        timer = setInterval(tick, 250);
+        render();
+    }
+
+    function pause() {
+        msLeft = Math.max(0, endTime - Date.now());
+        clearInterval(timer);
+        timer = null;
+        endTime = null;
+        render();
+    }
+
+    // Called four times a second while running.
+    function tick() {
+        msLeft = Math.max(0, endTime - Date.now());
+        if (msLeft === 0) {
+            pause();
+            beep();
+            // After focus comes a break, after a break comes focus.
+            setMode(mode === "focus" ? "break" : "focus");
+            return;
+        }
+        render();
+    }
+
+    function setMode(newMode) {
+        if (isRunning()) {
+            pause();
+        }
+        mode = newMode;
+        msLeft = totalMs();
+        render();
+    }
+
+    // Add (1) or remove (-1) a minute, between 1 and 99 minutes.
+    function changeMinutes(change) {
+        if (isRunning()) {
+            return;
+        }
+        minutes[mode] = Math.min(99, Math.max(1, minutes[mode] + change));
+        msLeft = totalMs();
+        render();
+    }
+
+    // --- Connect the buttons -------------------------------------------------
+
+    playButton.addEventListener("click", function () {
+        if (isRunning()) {
+            pause();
+        } else {
+            start();
+        }
+    });
+
+    minusButton.addEventListener("click", function () { changeMinutes(-1); });
+    plusButton.addEventListener("click", function () { changeMinutes(1); });
+
+    modeButtons.forEach(function (button) {
+        button.addEventListener("click", function () { setMode(button.dataset.mode); });
+    });
+
+    render();
+  </script>
+</body>
+</html>

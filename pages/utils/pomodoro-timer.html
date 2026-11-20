@@ -1,0 +1,43 @@
+---
+layout: default
+title: Pomodoro Timer
+permalink: /utils/pomodoro-timer/
+nonav: true
+css:
+  - /assets/pomodoro-timer/pomodoro-timer.css
+js:
+  - /assets/pomodoro-timer/pomodoro-timer.js
+---
+
+<div class="pomodoro container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Pomodoro Timer</h2>
+    </div>
+  </div>
+
+  <div class="pomodoro-card mx-auto mt-4">
+    <div class="pomodoro-ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+        <circle class="ring-progress" id="ring-progress" cx="60" cy="60" r="50"></circle>
+      </svg>
+      <button type="button" class="pomodoro-play" id="play" aria-label="Start">
+        <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"></path></svg>
+        <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4.5v16H6zM13.5 4H18v16h-4.5z"></path></svg>
+      </button>
+    </div>
+
+    <div class="pomodoro-time-row">
+      <button type="button" class="pomodoro-step" id="minus" aria-label="One minute less">&minus;</button>
+      <span class="pomodoro-time" id="time" aria-live="polite">25:00</span>
+      <button type="button" class="pomodoro-step" id="plus" aria-label="One minute more">+</button>
+    </div>
+
+    <div class="pomodoro-modes" role="group" aria-label="Mode">
+      <button type="button" class="pomodoro-mode active" data-mode="focus">Focus</button>
+      <button type="button" class="pomodoro-mode" data-mode="break">Break</button>
+    </div>
+  </div>
+  <p class="mt-5 text-center"><a href="/tutorials/pomodoro-timer/">How to build this tool</a></p>
+</div>
