@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Url Search</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    label {
+        display: block;
+        margin: 16px 0 4px;
+        font-weight: bold;
+    }
+
+    textarea,
+    input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        font-family: monospace;
+        font-size: 15px;
+    }
+
+    button {
+        margin-top: 16px;
+        padding: 8px 24px;
+        font-size: 16px;
+    }
+
+    #results {
+        list-style: none;
+        padding: 0;
+    }
+
+    #results li {
+        padding: 8px 0;
+        border-bottom: 1px solid #ddd;
+        overflow-wrap: anywhere;
+    }
+
+    .status {
+        float: right;
+        font-weight: bold;
+    }
+
+    .match .status  { color: #198754; }
+    .failed .status { color: #dc3545; }
+
+    .found {
+        display: inline-block;
+        margin: 4px 4px 0 0;
+        padding: 0 6px;
+        background: #fff3cd;
+        font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Url Search</h1>
+
+  <form id="form">
+    <label for="url-list">Pages to search, one per line</label>
+    <textarea id="url-list" rows="5" spellcheck="false" placeholder="https://jsonplaceholder.typicode.com/posts/1"></textarea>
+
+    <label for="pattern">Regular expression (ignores case)</label>
+    <input id="pattern" type="text" spellcheck="false" placeholder="\bsunt\b">
+
+    <label><input type="checkbox" id="search-html" style="width: auto"> Search the HTML source, not the text</label>
+
+    <button type="submit" id="start">Search</button>
+  </form>
+
+  <p id="summary"></p>
+  <ul id="results"></ul>
+
+  <script>
+    /*
+     * Url Search: download a list of pages and search each one for a
+     * regular expression.
+     *
+     * fetch() can only read pages from other sites if they allow it with
+     * CORS. Pages on the same site always work.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const form = document.getElementById("form");
+    const urlList = document.getElementById("url-list");
+    const patternInput = document.getElementById("pattern");
+    const searchHtml = document.getElementById("search-html");
+    const startButton = document.getElementById("start");
+    const summary = document.getElementById("summary");
+    const resultsList = document.getElementById("results");
+
+    // --- Reading the input ---------------------------------------------------
+
+    // One URL per line -> a list. Empty lines and duplicates are skipped,
+    // and /path is read from this page's address.
+    function readUrls() {
+        const urls = [];
+        urlList.value.split(/\s+/).forEach(function (part) {
+            if (part === "") {
+                return;
+            }
+            try {
+                const url = new URL(part, location.href).href;
+                if (!urls.includes(url)) {
+                    urls.push(url);
+                }
+            } catch (error) {
+                // Not a URL, skip it.
+            }
+        });
+        return urls;
+    }
+
+    // --- Loading and searching a page ----------------------------------------
+
+    // The words on a page, without tags, scripts and styles.
+    function pageText(html) {
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        doc.querySelectorAll("script, style, noscript, template").forEach(function (el) {
+            el.remove();
+        });
+        return doc.body.textContent.replace(/\s+/g, " ");
+    }
+
+    // Count every match: { "Test": 3, "test": 1 }
+    function findMatches(text, regex) {
+        const counts = {};
+        let total = 0;
+        for (const match of text.matchAll(regex)) {
+            counts[match[0]] = (counts[match[0]] || 0) + 1;
+            total++;
+        }
+        return { total: total, counts: counts };
+    }
+
+    async function searchPage(url, regex) {
+        const response = await fetch(url);
+        const html = await response.text();
+        const text = searchHtml.checked ? html : pageText(html);
+        return findMatches(text, regex);
+    }
+
+    // --- Showing results -----------------------------------------------------
+
+    function addResult(url) {
+        const li = document.createElement("li");
+        const status = document.createElement("span");
+        status.className = "status";
+        status.textContent = "waiting";
+        li.append(status, document.createTextNode(url));
+        resultsList.append(li);
+        return li;
+    }
+
+    function showMatches(li, found) {
+        li.classList.add(found.total > 0 ? "match" : "no-match");
+        li.querySelector(".status").textContent =
+            found.total === 0 ? "no match" : found.total + " matches";
+        for (const text in found.counts) {
+            const chip = document.createElement("span");
+            chip.className = "found";
+            chip.textContent = text + " ×" + found.counts[text];
+            li.append(document.createElement("br"), chip);
+        }
+    }
+
+    function showFailed(li) {
+        li.classList.add("failed");
+        li.querySelector(".status").textContent = "failed";
+        li.title = "Blocked by CORS, or the server could not be reached";
+    }
+
+    // --- The search ----------------------------------------------------------
+
+    async function search() {
+        let regex;
+        try {
+            regex = new RegExp(patternInput.value, "gi");
+        } catch (error) {
+            summary.textContent = "The regular expression is not valid: " + error.message;
+            return;
+        }
+        const urls = readUrls();
+        if (urls.length === 0 || patternInput.value === "") {
+            summary.textContent = "Write some URLs and a regular expression.";
+            return;
+        }
+
+        startButton.disabled = true;
+        resultsList.textContent = "";
+        const rows = urls.map(addResult);
+        let withMatches = 0;
+
+        // One page at a time, so we don't flood the server.
+        for (let i = 0; i < urls.length; i++) {
+            summary.textContent = "Searching " + (i + 1) + " of " + urls.length + "…";
+            rows[i].querySelector(".status").textContent = "searching…";
+            try {
+                const found = await searchPage(urls[i], regex);
+                showMatches(rows[i], found);
+                if (found.total > 0) {
+                    withMatches++;
+                }
+            } catch (error) {
+                showFailed(rows[i]);
+            }
+        }
+
+        summary.textContent = "Searched " + urls.length + " pages, " + withMatches + " with matches.";
+        startButton.disabled = false;
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        search();
+    });
+  </script>
+</body>
+</html>

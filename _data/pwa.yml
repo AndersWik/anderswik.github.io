@@ -48,7 +48,9 @@
 - { slug: checklist, page: pages/utils/checklist.html, short_name: Checklist, emoji: "✅" }
 - { slug: make-request, page: pages/utils/make-request.html, short_name: Request, emoji: "📨" }
 - { slug: pomodoro-timer, page: pages/utils/pomodoro-timer.html, short_name: Pomodoro, emoji: "🍅" }
+- { slug: sitemap-search, page: pages/utils/sitemap-search.html, short_name: Sitemap, emoji: "🗺️" }
 - { slug: unix-timestamp-convertor, page: pages/utils/unix-timestamp-convertor.html, name: Unix Timestamp Converter, short_name: Timestamp, emoji: "🕒" }
+- { slug: url-search, page: pages/utils/url-search.html, short_name: Url Search, emoji: "🔍" }
 
 - { slug: countdown, page: pages/other/countdown.html, short_name: Countdown, emoji: "⏳" }
 - { slug: discgolf, page: pages/other/discgolf.html, name: Discgolf score card, short_name: Discgolf, emoji: "🥏" }

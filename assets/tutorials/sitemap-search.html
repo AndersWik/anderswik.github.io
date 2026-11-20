@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sitemap Search</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    label {
+        display: block;
+        margin: 16px 0 4px;
+        font-weight: bold;
+    }
+
+    textarea,
+    input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        font-family: monospace;
+        font-size: 15px;
+    }
+
+    .row {
+        display: flex;
+        gap: 6px;
+    }
+
+    button {
+        padding: 8px 24px;
+        font-size: 16px;
+    }
+
+    #start {
+        margin-top: 16px;
+    }
+
+    #results {
+        list-style: none;
+        padding: 0;
+    }
+
+    #results li {
+        padding: 8px 0;
+        border-bottom: 1px solid #ddd;
+        overflow-wrap: anywhere;
+    }
+
+    .status {
+        float: right;
+        font-weight: bold;
+    }
+
+    .match .status  { color: #198754; }
+    .failed .status { color: #dc3545; }
+
+    .found {
+        display: inline-block;
+        margin: 4px 4px 0 0;
+        padding: 0 6px;
+        background: #fff3cd;
+        font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sitemap Search</h1>
+
+  <form id="form">
+    <label for="sitemap-url">Sitemap address</label>
+    <div class="row">
+      <input id="sitemap-url" type="text" spellcheck="false" placeholder="https://example.com/sitemap.xml">
+      <button type="button" id="load">Load</button>
+    </div>
+
+    <label for="sitemap">or paste the sitemap XML</label>
+    <textarea id="sitemap" rows="6" spellcheck="false"></textarea>
+    <p id="count"></p>
+
+    <label for="pattern">Regular expression (ignores case)</label>
+    <input id="pattern" type="text" spellcheck="false" placeholder="\bsunt\b">
+
+    <button type="submit" id="start">Search</button>
+  </form>
+
+  <p id="summary"></p>
+  <ul id="results"></ul>
+
+  <script>
+    /*
+     * Sitemap Search: read the page addresses from a sitemap, then download
+     * every page and search it for a regular expression.
+     *
+     * A sitemap is XML with one <loc> per page:
+     *
+     *   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+     *     <url><loc>https://example.com/</loc></url>
+     *   </urlset>
+     *
+     * A big site can have a sitemap index instead, a <sitemapindex> with
+     * one <loc> per sitemap. Then we download those sitemaps too.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const form = document.getElementById("form");
+    const sitemapUrl = document.getElementById("sitemap-url");
+    const loadButton = document.getElementById("load");
+    const sitemapInput = document.getElementById("sitemap");
+    const count = document.getElementById("count");
+    const patternInput = document.getElementById("pattern");
+    const startButton = document.getElementById("start");
+    const summary = document.getElementById("summary");
+    const resultsList = document.getElementById("results");
+
+    // --- Reading the sitemap -------------------------------------------------
+
+    // XML text -> { urls, sitemaps }
+    function parseSitemap(xml) {
+        const doc = new DOMParser().parseFromString(xml, "application/xml");
+        if (doc.querySelector("parsererror")) {
+            throw new Error("This is not valid XML.");
+        }
+        const locs = [];
+        for (const loc of doc.getElementsByTagName("loc")) {
+            locs.push(loc.textContent.trim());
+        }
+        if (doc.documentElement.localName === "sitemapindex") {
+            return { urls: [], sitemaps: locs };
+        }
+        return { urls: locs, sitemaps: [] };
+    }
+
+    async function download(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+        return response.text();
+    }
+
+    // Every page in the sitemap. For a sitemap index, read each sitemap in it.
+    async function allUrls(xml) {
+        const parsed = parseSitemap(xml);
+        let urls = parsed.urls;
+        for (const address of parsed.sitemaps) {
+            const inner = parseSitemap(await download(address));
+            urls = urls.concat(inner.urls);
+        }
+        return urls;
+    }
+
+    function showCount() {
+        try {
+            const parsed = parseSitemap(sitemapInput.value);
+            count.textContent = parsed.sitemaps.length > 0
+                ? "A sitemap index with " + parsed.sitemaps.length + " sitemaps."
+                : parsed.urls.length + " pages.";
+        } catch (error) {
+            count.textContent = sitemapInput.value.trim() === "" ? "" : error.message;
+        }
+    }
+
+    loadButton.addEventListener("click", async function () {
+        try {
+            sitemapInput.value = await download(sitemapUrl.value.trim());
+            showCount();
+        } catch (error) {
+            count.textContent = "Could not load the sitemap. Is the address right, and does the server allow CORS?";
+        }
+    });
+
+    sitemapInput.addEventListener("input", showCount);
+
+    // --- Searching a page, the same as in Url Search -------------------------
+
+    function pageText(html) {
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        doc.querySelectorAll("script, style, noscript, template").forEach(function (el) {
+            el.remove();
+        });
+        return doc.body.textContent.replace(/\s+/g, " ");
+    }
+
+    function findMatches(text, regex) {
+        const counts = {};
+        let total = 0;
+        for (const match of text.matchAll(regex)) {
+            counts[match[0]] = (counts[match[0]] || 0) + 1;
+            total++;
+        }
+        return { total: total, counts: counts };
+    }
+
+    function addResult(url) {
+        const li = document.createElement("li");
+        const status = document.createElement("span");
+        status.className = "status";
+        status.textContent = "waiting";
+        li.append(status, document.createTextNode(url));
+        resultsList.append(li);
+        return li;
+    }
+
+    function showMatches(li, found) {
+        li.classList.add(found.total > 0 ? "match" : "no-match");
+        li.querySelector(".status").textContent =
+            found.total === 0 ? "no match" : found.total + " matches";
+        for (const text in found.counts) {
+            const chip = document.createElement("span");
+            chip.className = "found";
+            chip.textContent = text + " ×" + found.counts[text];
+            li.append(document.createElement("br"), chip);
+        }
+    }
+
+    // --- The search ----------------------------------------------------------
+
+    async function search() {
+        let regex;
+        try {
+            regex = new RegExp(patternInput.value, "gi");
+        } catch (error) {
+            summary.textContent = "The regular expression is not valid: " + error.message;
+            return;
+        }
+        if (patternInput.value === "") {
+            summary.textContent = "Write a regular expression.";
+            return;
+        }
+
+        let urls;
+        try {
+            urls = await allUrls(sitemapInput.value);
+        } catch (error) {
+            summary.textContent = "Could not read the sitemap: " + error.message;
+            return;
+        }
+
+        startButton.disabled = true;
+        resultsList.textContent = "";
+        const rows = urls.map(addResult);
+        let withMatches = 0;
+
+        for (let i = 0; i < urls.length; i++) {
+            summary.textContent = "Searching " + (i + 1) + " of " + urls.length + "…";
+            rows[i].querySelector(".status").textContent = "searching…";
+            try {
+                const html = await download(urls[i]);
+                const found = findMatches(pageText(html), regex);
+                showMatches(rows[i], found);
+                if (found.total > 0) {
+                    withMatches++;
+                }
+            } catch (error) {
+                rows[i].classList.add("failed");
+                rows[i].querySelector(".status").textContent = "failed";
+            }
+        }
+
+        summary.textContent = "Searched " + urls.length + " pages, " + withMatches + " with matches.";
+        startButton.disabled = false;
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        search();
+    });
+  </script>
+</body>
+</html>
