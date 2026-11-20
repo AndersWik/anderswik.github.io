@@ -1,0 +1,46 @@
+/* Shared style for the reference tables: country codes and language codes. */
+
+.reference {
+  background-color: #fff;
+}
+
+/* ubuntu is the bold display font: headings and the intro line only. */
+.reference h2,
+.reference h3,
+.reference .text-center p {
+  font-family: ubuntu;
+}
+
+.reference h3 {
+  font-size: 1.4rem;
+}
+
+.reference pre {
+  background-color: #f6f8fa;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: .75rem 1rem;
+}
+
+/* The tables are wider than a phone; let them scroll sideways instead of being cut off. */
+.reference .table-wrap {
+  overflow-x: auto;
+}
+
+.reference .code {
+  font-family: monospace;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reference .flag {
+  font-size: 1.4em;
+  line-height: 1;
+}
+
+/* Header stays on screen while scrolling the long list. */
+.reference thead th {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+}

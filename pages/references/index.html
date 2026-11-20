@@ -1,0 +1,31 @@
+---
+layout: default
+title: References
+permalink: /references/
+nonav: true
+# Thumbnails live in /assets/images/references/<slug>.webp
+categories:
+  - title: References
+    items:
+      - { slug: ascii, name: ASCII Table }
+      - { slug: country-codes, name: Country Codes }
+      - { slug: language-codes, name: Language Codes }
+      - { slug: locale-codes, name: Locale Codes }
+---
+
+<section class="games references">
+  {% for category in page.categories %}
+  <h2 class="category-title">{{ category.title }}</h2>
+  <ul class="badges">
+    {% for item in category.items %}
+    <li>
+      <a class="badge-card" href="{{ '/references/' | append: item.slug | append: '/' | relative_url }}">
+        <img src="{{ '/assets/images/references/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
+        <span class="badge-name">{{ item.name }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+  <p class="mt-5"><a href="{{ '/man/' | relative_url }}">Man pages</a>: the manuals for the Linux commands in the notes</p>
+</section>

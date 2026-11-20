@@ -42,7 +42,7 @@
 - { slug: slot-machine, page: pages/games/slot-machine.html, emoji: "🎰" }
 - { slug: sudoku, page: pages/games/sudoku.html, emoji: "🔢" }
 - { slug: tic-tac-toe, page: pages/games/tic-tac-toe.html, emoji: "❌" }
-- { slug: ascii, page: pages/utils/ascii.html, name: ASCII table, emoji: "🔤", open: tab }
+- { slug: ascii, page: pages/references/ascii.html, name: ASCII table, emoji: "🔤", open: tab }
 - { slug: calculator, page: pages/utils/calculator.html, emoji: "🧮" }
 - { slug: checklist, page: pages/utils/checklist.html, emoji: "✅", description: "A simple checklist that remembers its items." }
 - { slug: colorhex, page: pages/utils/colorhex.html, emoji: "🎨", width: 560 }
