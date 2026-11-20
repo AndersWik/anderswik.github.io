@@ -1,0 +1,54 @@
+---
+layout: default
+title: Notes and scales
+permalink: /strudel/notes/
+chapter: "02"
+chapter_title: "Getting started"
+keywords: [strudel, note, notes, midi, pitch, octave, sharp, flat, chord, scale, n, instruments, piano, synth]
+---
+
+<div class="strudel container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Notes and scales</h1>
+  <p><code>note</code> plays melodies. It takes a pattern of notes, and <code>sound</code> chooses the instrument.</p>
+  <h2>Notes as letters</h2>
+  <p>Write notes with the letters <code>a</code> to <code>g</code>. Add <code>#</code> for sharp or <code>b</code> for flat.</p>
+  <pre><code class="language-javascript">note("c e g b").sound("piano")
+note("db eb gb ab bb").sound("piano")
+note("c# d# f# g# a#").sound("piano")</code></pre>
+  <p>A number after the letter is the octave. A higher number is a higher note.</p>
+  <pre><code class="language-javascript">note("c2 e3 g4 b5").sound("piano")</code></pre>
+  <h2>Notes as numbers</h2>
+  <p>Notes can also be numbers, the same numbers as in MIDI. <code>60</code> is middle C, and each step up is a half tone.</p>
+  <pre><code class="language-javascript">note("48 52 55 59").sound("piano")</code></pre>
+  <h2>Chords</h2>
+  <p>A comma plays notes at the same time, so a comma inside brackets is a chord.</p>
+  <pre><code class="language-javascript">note("48 67 63 [62, 58]").sound("piano")</code></pre>
+  <h2>Instruments</h2>
+  <p><code>sound</code> chooses the instrument, and it is a pattern too. The <code>gm_</code> sounds are General MIDI instruments.</p>
+  <pre><code class="language-javascript">note("&lt;36 34 41 39&gt;").sound("gm_acoustic_bass")
+note("60 &lt;63 62 65 63&gt;").sound("gm_xylophone")</code></pre>
+  <p>A comma plays two instruments at the same time:</p>
+  <pre><code class="language-javascript">note("48 67 63 [62, 58]").sound("piano, gm_electric_guitar_muted")</code></pre>
+  <p>There are also simple synthesizer sounds: <code>sine</code>, <code>square</code>, <code>triangle</code> and <code>sawtooth</code>.</p>
+  <pre><code class="language-javascript">note("c2 c3 c2 c3").sound("sawtooth")</code></pre>
+  <h2>Scales</h2>
+  <p>With <code>n</code> and <code>scale</code>, the numbers are steps in a scale instead of notes. <code>0</code> is the first note of the scale, <code>1</code> the second, and so on. It is hard to play a wrong note this way.</p>
+  <pre><code class="language-javascript">n("0 2 4 6").scale("C:minor").sound("piano")</code></pre>
+  <p>The scale is written as root note, colon, and the name of the scale, for example <code>C:major</code>, <code>A:minor</code> or <code>D:mixolydian</code>. The scale can be a pattern, so it can change over time:</p>
+  <pre><code class="language-javascript">setcpm(60)
+n("&lt;0 -3&gt;, 2 4 &lt;[6,8] [7,9]&gt;").scale("&lt;C:major D:mixolydian&gt;/4").sound("piano")</code></pre>
+  <h2>A bassline</h2>
+  <pre><code class="language-javascript">note("&lt;[c2 c3]*4 [bb1 bb2]*4 [f2 f3]*4 [eb2 eb3]*4&gt;")
+  .sound("gm_synth_bass_1")
+  .lpf(800)</code></pre>
+  <p>Each cycle plays one of the four parts, and each part plays the same note in two octaves, four times. <code>lpf</code> is a filter that makes the sound darker, see <a href="/strudel/effects/">Effects</a>.</p>
+  <h2>More about notes</h2>
+  <ul>
+    <li><a href="https://strudel.cc/workshop/first-notes/">First Notes</a> in the Strudel workshop</li>
+    <li><a href="https://strudel.cc/learn/tonal/">Tonal functions</a>: scales, chords and voicings</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

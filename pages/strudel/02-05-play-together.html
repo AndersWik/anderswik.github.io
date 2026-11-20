@@ -1,0 +1,44 @@
+---
+layout: default
+title: Play patterns together
+permalink: /strudel/play-together/
+chapter: "02"
+chapter_title: "Getting started"
+keywords: [strudel, patterns, together, layers, "$:", mute, song, arrangement]
+---
+
+<div class="strudel container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Play patterns together</h1>
+  <p>A song has several parts that play at the same time, like drums, bass and a melody. In Strudel, each part starts with <code>$:</code>. All the parts play together when you press <kbd>Ctrl</kbd> + <kbd>Enter</kbd>.</p>
+  <pre><code class="language-javascript">$: sound("bd sd")
+$: note("c eb g")</code></pre>
+  <h2>Mute a part</h2>
+  <p>Change <code>$:</code> to <code>_$:</code> to mute a part without removing it. Change it back to bring the part back.</p>
+  <pre><code class="language-javascript">$: sound("bd sd")
+_$: note("c eb g")</code></pre>
+  <h2>A small song</h2>
+  <p>Here the bassline, a melody and the drums from the other pages play together. Play it, and then mute and change the parts while it plays.</p>
+  <pre><code class="language-javascript">$: note("&lt;[c2 c3]*4 [bb1 bb2]*4 [f2 f3]*4 [eb2 eb3]*4&gt;")
+  .sound("gm_synth_bass_1").lpf(800)
+
+$: n(`&lt;
+[~ 0] 2 [0 2] [~ 2]
+[~ 0] 1 [0 1] [~ 1]
+[~ 0] 3 [0 3] [~ 3]
+[~ 0] 2 [0 2] [~ 2]
+&gt;*4`).scale("C4:minor")
+  .sound("gm_synth_strings_1")
+
+$: sound("bd*4, [~ &lt;sd cp&gt;]*2, [~ hh]*4")
+  .bank("RolandTR909")</code></pre>
+  <h2>Save your work</h2>
+  <p>The REPL keeps your code in the browser. To keep a pattern safe, copy the code to a file. The <strong>share</strong> button at the top makes a link with the code in it, so you can send a pattern to someone else.</p>
+  <h2>More about patterns</h2>
+  <ul>
+    <li><a href="https://strudel.cc/workshop/pattern-effects/">Pattern effects</a> in the Strudel workshop: change whole patterns, for example reverse them or add variations</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

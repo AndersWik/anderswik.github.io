@@ -1,0 +1,105 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Strudel: live coding music in the browser.
+#
+# This Vagrantfile makes an Ubuntu machine that runs your own copy of
+# Strudel. It installs Node.js and pnpm, downloads the Strudel source code
+# from https://codeberg.org/uzu/strudel and starts the Strudel web server as
+# a service.
+#
+#   $ vagrant up          # make and start the machine, the first time takes a while
+#   open http://localhost:4321/ in your browser
+#   $ vagrant halt        # stop the machine
+#
+# Use http://localhost:4321/, not the IP address of the machine. The browser
+# only lets Strudel use its audio engine on a secure page, and localhost
+# counts as secure.
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+  config.vm.hostname = "strudel"
+
+  # Strudel runs on port 4321 in the machine. host_ip makes the port only
+  # open on this computer, not on the network.
+  config.vm.network "forwarded_port", guest: 4321, host: 4321, host_ip: "127.0.0.1"
+
+  # Installing the packages and building Strudel needs some memory.
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "strudel"
+    vb.memory = 4096
+    vb.cpus = 2
+  end
+
+  # The Strudel source code is kept in the machine, in /home/vagrant/strudel.
+  # node_modules in a synced folder is slow and can break, so no synced
+  # folder is used.
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    echo "##############################"
+    echo "#### Update Ubuntu ###########"
+    echo "##############################"
+
+    apt-get update
+    apt-get upgrade -y
+    apt-get install -y ca-certificates curl git
+
+    echo "##############################"
+    echo "#### Install Node.js #########"
+    echo "##############################"
+
+    # Ubuntu's own Node.js is too old. Strudel needs Node.js 18 or newer,
+    # so install the current LTS version from NodeSource.
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    apt-get install -y nodejs
+    node --version
+
+    echo "##############################"
+    echo "#### Install pnpm ############"
+    echo "##############################"
+
+    npm install -g pnpm@10
+    pnpm --version
+
+    echo "##############################"
+    echo "#### Download Strudel ########"
+    echo "##############################"
+
+    if [ ! -d /home/vagrant/strudel ]; then
+      sudo -u vagrant git clone --depth 1 https://codeberg.org/uzu/strudel.git /home/vagrant/strudel
+    fi
+    cd /home/vagrant/strudel
+    sudo -u vagrant pnpm install
+
+    echo "##############################"
+    echo "#### Start Strudel ###########"
+    echo "##############################"
+
+    # A systemd service starts Strudel every time the machine starts.
+    cat > /etc/systemd/system/strudel.service << "SERVICE"
+[Unit]
+Description=Strudel live coding web server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=vagrant
+WorkingDirectory=/home/vagrant/strudel
+ExecStart=/usr/bin/pnpm dev
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
+    systemctl daemon-reload
+    systemctl enable strudel
+    systemctl restart strudel
+
+    echo "Strudel starts in a few seconds at http://localhost:4321/"
+  SHELL
+end

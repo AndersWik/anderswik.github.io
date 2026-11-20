@@ -1,0 +1,59 @@
+---
+layout: default
+title: First sounds
+permalink: /strudel/first-sounds/
+chapter: "02"
+chapter_title: "Getting started"
+keywords: [strudel, sound, s, drums, samples, bank, drum machine, tempo, setcpm, cpm, cycles]
+---
+
+<div class="strudel container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>First sounds</h1>
+  <p><code>sound</code> plays a sequence of sounds. Write the names of the sounds in a string, with spaces between them. <code>s</code> is a short name for <code>sound</code>.</p>
+  <pre><code class="language-javascript">sound("bd hh sd oh")
+s("bd hh sd oh")</code></pre>
+  <h2>Drum sounds</h2>
+  <p>The drum sounds have short names:</p>
+  <ul>
+    <li><code>bd</code> bass drum</li>
+    <li><code>sd</code> snare drum</li>
+    <li><code>rim</code> rimshot</li>
+    <li><code>cp</code> clap</li>
+    <li><code>hh</code> closed hi-hat</li>
+    <li><code>oh</code> open hi-hat</li>
+    <li><code>lt</code>, <code>mt</code>, <code>ht</code> low, middle and high tom</li>
+    <li><code>cr</code> crash and <code>rd</code> ride</li>
+  </ul>
+  <p>There are also other sounds, like <code>casio</code>, <code>jazz</code>, <code>metal</code> and <code>wind</code>. The <strong>sounds</strong> tab in the REPL lists them all, and you can click a name to hear it.</p>
+  <pre><code class="language-javascript">sound("casio")</code></pre>
+  <h2>Drum machines</h2>
+  <p><code>bank</code> chooses which drum machine the drum sounds come from.</p>
+  <pre><code class="language-javascript">sound("bd hh sd oh").bank("RolandTR909")</code></pre>
+  <p>Try <code>RolandTR808</code>, <code>RolandTR707</code> or <code>RolandTR505</code> too. The functions are joined with a dot, so you can add more after each other.</p>
+  <h2>Sample numbers</h2>
+  <p>Most sounds have several samples. Add <code>:</code> and a number to choose one. The first is <code>0</code>.</p>
+  <pre><code class="language-javascript">sound("casio:1")
+sound("jazz:0 jazz:1 jazz:4 jazz:3")</code></pre>
+  <p><code>n</code> gives the sample numbers as a pattern of their own, which is shorter:</p>
+  <pre><code class="language-javascript">n("0 1 4 3").sound("jazz")</code></pre>
+  <h2 id="tempo">Tempo</h2>
+  <p>All the steps in a pattern share one <strong>cycle</strong>. More steps means faster steps, not a longer pattern. The tempo is set in cycles per minute with <code>setcpm</code>. The default is 30, one cycle every 2 seconds.</p>
+  <pre><code class="language-javascript">setcpm(90/4)
+sound("bd hh sd hh")</code></pre>
+  <p><code>90/4</code> is a way to think in beats per minute: 90 beats per minute, with 4 beats in a cycle.</p>
+  <h2>Two classic beats</h2>
+  <p>A basic rock beat. The comma plays the two parts at the same time, see <a href="/strudel/mini-notation/#play-at-the-same-time">Mini-notation</a>.</p>
+  <pre><code class="language-javascript">setcpm(100/4)
+sound("[bd sd]*2, hh*8").bank("RolandTR505")</code></pre>
+  <p>A house beat. <code>-</code> is a rest, a step with no sound.</p>
+  <pre><code class="language-javascript">sound("bd*4, [- cp]*2, [- hh]*4").bank("RolandTR909")</code></pre>
+  <h2>More about sounds</h2>
+  <ul>
+    <li><a href="https://strudel.cc/workshop/first-sounds/">First Sounds</a> in the Strudel workshop</li>
+    <li><a href="https://strudel.cc/learn/samples/">Samples</a>: all the sounds, and how to load your own</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
