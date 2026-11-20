@@ -53,6 +53,7 @@
 - { slug: encode-url, page: pages/utils/encode-url.html, name: Url encode / decode, emoji: "🔁", label: URL }
 - { slug: page-search, page: pages/utils/page-search.html, emoji: "🔍", open: tab, all_urls: true, description: "Search many web pages, or every page in a sitemap, for a regular expression." }
 - { slug: pomodoro-timer, page: pages/utils/pomodoro-timer.html, emoji: "🍅", open: tab, description: "A Pomodoro timer: focus for 25 minutes, take a 5 minute break, repeat." }
+- { slug: px-em-converter, page: pages/utils/px-em-converter.html, emoji: "📏", description: "Convert pixels to em and rem, and back, from a base font size." }
 - { slug: unix-timestamp-convertor, page: pages/utils/unix-timestamp-convertor.html, name: Unix Timestamp Converter, emoji: "🕒" }
 - { slug: countdown, page: pages/other/countdown.html, emoji: "⏳", open: tab }
 - { slug: discgolf, page: pages/other/discgolf.html, name: Discgolf score card, emoji: "🥏" }

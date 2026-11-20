@@ -49,6 +49,7 @@
 - { slug: make-request, page: pages/utils/make-request.html, short_name: Request, emoji: "📨" }
 - { slug: page-search, page: pages/utils/page-search.html, short_name: Page Search, emoji: "🔍" }
 - { slug: pomodoro-timer, page: pages/utils/pomodoro-timer.html, short_name: Pomodoro, emoji: "🍅" }
+- { slug: px-em-converter, page: pages/utils/px-em-converter.html, short_name: PX to EM, emoji: "📏" }
 - { slug: unix-timestamp-convertor, page: pages/utils/unix-timestamp-convertor.html, name: Unix Timestamp Converter, short_name: Timestamp, emoji: "🕒" }
 
 - { slug: countdown, page: pages/other/countdown.html, short_name: Countdown, emoji: "⏳" }

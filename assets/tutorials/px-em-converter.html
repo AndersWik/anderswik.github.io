@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PX to EM Converter</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 0 16px;
+        text-align: center;
+    }
+
+    label {
+        display: block;
+        margin: 16px 0 4px;
+        font-weight: bold;
+    }
+
+    input {
+        width: 8em;
+        padding: 8px;
+        font-family: monospace;
+        font-size: 20px;
+        text-align: center;
+    }
+
+    .fields {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+    }
+
+    #css-line {
+        display: inline-block;
+        margin-top: 24px;
+        padding: 4px 10px;
+        background: #f3f3f3;
+        border-radius: 6px;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 32px;
+        border-collapse: collapse;
+        font-family: monospace;
+    }
+
+    td, th {
+        padding: 6px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    tbody tr {
+        cursor: pointer;
+    }
+
+    tbody tr:hover {
+        background: #f3f3f3;
+    }
+
+    tr.current {
+        background: #d1e7dd;
+        font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>PX to EM Converter</h1>
+
+  <label for="base">Base font size (px)</label>
+  <input type="number" id="base" value="16" min="1" step="any">
+
+  <div class="fields">
+    <div>
+      <label for="px">Pixels</label>
+      <input type="number" id="px" value="24" step="any">
+    </div>
+    <div>
+      <label for="em">EM</label>
+      <input type="number" id="em" step="any">
+    </div>
+  </div>
+
+  <code id="css-line"></code>
+  <button type="button" id="copy">Copy</button>
+
+  <table>
+    <thead>
+      <tr><th>Pixels</th><th>EM</th><th>Percent</th></tr>
+    </thead>
+    <tbody id="sizes"></tbody>
+  </table>
+
+  <script>
+    /*
+     * PX to EM Converter: em = px / base, px = em * base.
+     * Typing in one field updates the other.
+     */
+
+    const SIZES = [10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 64];
+
+    // --- Elements on the page ------------------------------------------------
+
+    const baseInput = document.getElementById("base");
+    const pxInput = document.getElementById("px");
+    const emInput = document.getElementById("em");
+    const cssLine = document.getElementById("css-line");
+    const copyButton = document.getElementById("copy");
+    const sizesBody = document.getElementById("sizes");
+
+    // --- Numbers -------------------------------------------------------------
+
+    // Round, and remove the zeros at the end: 1.5000 -> "1.5"
+    function format(number, decimals) {
+        return String(Number(number.toFixed(decimals)));
+    }
+
+    // The base font size. 16 if the field is empty or 0.
+    function base() {
+        const value = parseFloat(baseInput.value);
+        return value > 0 ? value : 16;
+    }
+
+    // --- Converting ----------------------------------------------------------
+
+    function fromPx() {
+        const px = parseFloat(pxInput.value);
+        emInput.value = isNaN(px) ? "" : format(px / base(), 4);
+        showCss();
+    }
+
+    function fromEm() {
+        const em = parseFloat(emInput.value);
+        pxInput.value = isNaN(em) ? "" : format(em * base(), 2);
+        showCss();
+    }
+
+    function showCss() {
+        const px = parseFloat(pxInput.value);
+        const em = parseFloat(emInput.value);
+        if (isNaN(px) || isNaN(em)) {
+            cssLine.textContent = "–";
+            return;
+        }
+        cssLine.textContent = "font-size: " + format(em, 4) + "rem; /* " + format(px, 2) + "px */";
+
+        // Mark the row in the table with the same size.
+        for (const row of sizesBody.rows) {
+            row.classList.toggle("current", Number(row.dataset.px) === px);
+        }
+    }
+
+    // --- The table -----------------------------------------------------------
+
+    function fillTable() {
+        sizesBody.textContent = "";
+        for (const px of SIZES) {
+            const row = document.createElement("tr");
+            row.dataset.px = px;
+            const texts = [px + "px", format(px / base(), 4) + "em", format(px / base() * 100, 2) + "%"];
+            for (const text of texts) {
+                const cell = document.createElement("td");
+                cell.textContent = text;
+                row.append(cell);
+            }
+            sizesBody.append(row);
+        }
+    }
+
+    // One listener for all the rows.
+    sizesBody.addEventListener("click", function (event) {
+        const row = event.target.closest("tr");
+        if (row) {
+            pxInput.value = row.dataset.px;
+            fromPx();
+        }
+    });
+
+    // --- The base font size --------------------------------------------------
+
+    function onBaseChange() {
+        localStorage.setItem("px-em-base", baseInput.value);
+        fillTable();
+        fromPx();
+    }
+
+    // --- Copy ----------------------------------------------------------------
+
+    copyButton.addEventListener("click", async function () {
+        await navigator.clipboard.writeText(cssLine.textContent);
+        copyButton.textContent = "Copied";
+        setTimeout(function () {
+            copyButton.textContent = "Copy";
+        }, 1500);
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    pxInput.addEventListener("input", fromPx);
+    emInput.addEventListener("input", fromEm);
+    baseInput.addEventListener("input", onBaseChange);
+
+    const saved = localStorage.getItem("px-em-base");
+    if (saved) {
+        baseInput.value = saved;
+    }
+    onBaseChange();
+  </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+.px-em-converter {
+  max-width: 760px !important;
+}
+
+.px-em-converter h2,
+.px-em-converter h3,
+.px-em-converter > .row p {
+  font-family: ubuntu;
+}
+
+/* Numbers are easier to compare in a fixed-width font. */
+.px-em-converter input,
+.px-em-converter .sizes td {
+  font-family: monospace;
+}
+
+/* Hide the up/down arrows of the number fields, they only take space. */
+.px-em-converter input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.px-em-converter input[type="number"]::-webkit-inner-spin-button,
+.px-em-converter input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.px-em-converter .swap-sign {
+  font-size: 1.8rem;
+  line-height: 48px;
+  color: #6c757d;
+}
+
+.px-em-converter .css-result code {
+  font-size: 1.05rem;
+  color: #212529;
+  background-color: #f6f8fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.px-em-converter .table-wrap {
+  overflow-x: auto;
+}
+
+.px-em-converter .sizes tbody tr {
+  cursor: pointer;
+}
+
+/* The row that matches the pixels in the converter. */
+.px-em-converter .sizes tbody tr.current td {
+  background-color: #d1e7dd;
+  font-weight: 700;
+}
+
+.px-em-converter .about {
+  font-weight: 400;
+}
