@@ -1,0 +1,205 @@
+.make-request {
+  max-width: 1140px !important;
+}
+
+.make-request p,
+.make-request h2,
+.make-request h3 {
+  font-family: ubuntu;
+}
+
+.make-request .method-select {
+  flex: 0 0 auto;
+  width: auto;
+  font-weight: 700;
+}
+
+.make-request .send-button {
+  min-width: 6.5em;
+}
+
+.make-request .code,
+.make-request .header-row input,
+.make-request #url {
+  font-family: monospace;
+}
+
+/* --- Header rows --------------------------------------------------------- */
+
+.make-request .header-row {
+  display: grid;
+  grid-template-columns: 2fr 3fr auto;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.make-request .header-row .note {
+  grid-column: 1 / -1;
+  margin: -2px 0 4px;
+  font-size: 0.8em;
+}
+
+@media (max-width: 480px) {
+  .make-request .header-row {
+    grid-template-columns: 1fr auto;
+  }
+  .make-request .header-row .header-value {
+    grid-column: 1;
+  }
+  .make-request .header-row .remove-header {
+    grid-row: 1;
+    grid-column: 2;
+  }
+}
+
+/* --- Response ------------------------------------------------------------ */
+
+.make-request #request-error {
+  white-space: pre-line; /* keep the blank lines between the reasons */
+}
+
+.make-request .badge {
+  font-size: 0.9em;
+}
+
+.make-request .url-line {
+  overflow-wrap: anywhere;
+}
+
+.make-request .response {
+  max-height: 60vh;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 0.85em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.make-request .response:empty::before {
+  content: "(empty)";
+  color: #6c757d;
+}
+
+.make-request .response-headers td {
+  font-family: monospace;
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+
+.make-request .response-headers td:first-child {
+  width: 35%;
+  font-weight: 700;
+}
+
+/* --- History and library ------------------------------------------------- */
+
+.make-request .saved-panel {
+  padding: 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: #fff;
+}
+
+@media (min-width: 992px) {
+  .make-request .saved-panel {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 16px);
+  }
+}
+
+.make-request .saved-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.make-request .saved-list li {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.make-request .saved-load {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 0.85em;
+}
+
+.make-request .saved-load:hover,
+.make-request .saved-action:hover {
+  background: #f3f4f6;
+}
+
+.make-request .saved-title {
+  display: block;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.make-request .saved-url {
+  display: block;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.make-request .saved-meta {
+  display: block;
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
+.make-request .saved-action {
+  flex: none;
+  width: 32px;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+  font-size: 1.1em;
+}
+
+.make-request .saved-empty {
+  margin: 10px 0 0;
+}
+
+.make-request .saved-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+/* Method labels, colored like most API tools. */
+.make-request .method {
+  display: inline-block;
+  min-width: 4.2em;
+  margin-right: 4px;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 0.95em;
+}
+
+.make-request .method-GET { color: #198754; }
+.make-request .method-POST { color: #c86400; }
+.make-request .method-PUT { color: #0d6efd; }
+.make-request .method-PATCH { color: #6f42c1; }
+.make-request .method-DELETE { color: #dc3545; }
+.make-request .method-HEAD,
+.make-request .method-OPTIONS { color: #6c757d; }
+
+.make-request .status-ok { color: #198754; }
+.make-request .status-redirect { color: #b07800; }
+.make-request .status-error { color: #dc3545; }

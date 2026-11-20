@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Make Request</title>
+
+  <!-- Makes this page an installable app, see _scripts/make-pwa.py. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
+  <!-- iPhone and iPad read these instead of the manifest. -->
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Make Request">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/assets/make-request/make-request.css">
+  <style>
+    /* Without the site header the games would touch the top of the screen. */
+    .game { padding-block: 16px; }
+  </style>
+</head>
+<body>
+<div class="make-request container-xl mt-3 mb-3 pt-5 pb-5">
+  <div class="row align-items-start text-center">
+    <div class="col">
+      <h2>Make Request</h2>
+      <p>Send an HTTP request and look at the response, like a small Postman.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info small" id="cors-note">
+    On a web page the browser only lets you read the response if the server allows it with
+    <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS</a>.
+    Most public APIs do. The <a href="/tutorials/make-request/#firefox-add-on">Firefox add-on</a> version can call any URL.
+  </div>
+
+  <div class="alert alert-warning small" id="permission-note" hidden>
+    The add-on needs permission to call other sites.
+    <button type="button" class="btn btn-sm btn-warning ms-2" id="permission-button">Allow all sites</button>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <form id="request-form" autocomplete="off" novalidate>
+        <div class="input-group input-group-lg">
+          <select class="form-select method-select" id="method" aria-label="HTTP method">
+            <option value="GET" selected>GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PATCH</option>
+            <option value="DELETE">DELETE</option>
+            <option value="HEAD">HEAD</option>
+            <option value="OPTIONS">OPTIONS</option>
+          </select>
+          <input type="url" class="form-control" id="url" placeholder="https://api.github.com/users/octocat" aria-label="URL" required spellcheck="false">
+          <button type="submit" class="btn btn-primary send-button" id="send">Send</button>
+          <button type="button" class="btn btn-outline-secondary" id="save" title="Save to library" aria-label="Save to library">&#9734;</button>
+        </div>
+        <p class="text-danger small mt-2 mb-0" id="form-error" hidden></p>
+
+        <div class="input-group mt-2" id="save-row" hidden>
+          <span class="input-group-text">Save as</span>
+          <input type="text" class="form-control" id="save-name" maxlength="100" aria-label="Name in the library">
+          <button type="button" class="btn btn-primary" id="save-confirm">Save</button>
+          <button type="button" class="btn btn-outline-secondary" id="save-cancel">Cancel</button>
+        </div>
+
+        <div class="mt-4">
+          <div class="d-flex align-items-center justify-content-between">
+            <h3 class="h5 mb-0">Headers</h3>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="add-header">+ Add header</button>
+          </div>
+          <div id="headers" class="mt-2"></div>
+          <p class="text-muted small mb-0" id="no-headers">No headers.</p>
+        </div>
+
+        <div class="mt-4" id="body-section" hidden>
+          <div class="d-flex align-items-center justify-content-between">
+            <h3 class="h5 mb-0">Body</h3>
+            <select class="form-select form-select-sm w-auto" id="body-type" aria-label="Body type">
+              <option value="json" selected>JSON</option>
+              <option value="text">Text</option>
+              <option value="form">Form (a=1&amp;b=2)</option>
+            </select>
+          </div>
+          <textarea class="form-control mt-2 code" id="body" rows="6" spellcheck="false" aria-label="Request body" placeholder='{ "name": "value" }'></textarea>
+        </div>
+      </form>
+
+      <div class="mt-5" id="response-section" hidden>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <h3 class="h5 mb-0 me-2">Response</h3>
+          <span class="badge" id="status"></span>
+          <span class="text-muted small" id="timing"></span>
+        </div>
+        <p class="text-muted small mt-1 mb-0 url-line" id="final-url" hidden></p>
+
+        <div class="btn-group btn-group-sm mt-3" role="group" aria-label="Show">
+          <button type="button" class="btn btn-outline-secondary active" id="show-body" aria-pressed="true">Body</button>
+          <button type="button" class="btn btn-outline-secondary" id="show-headers" aria-pressed="false">Headers <span id="header-count"></span></button>
+        </div>
+        <pre class="response mt-2" id="response-body"></pre>
+        <div id="response-headers-panel" hidden>
+          <table class="table table-sm response-headers mt-2 mb-1">
+            <tbody id="response-headers"></tbody>
+          </table>
+          <p class="text-muted small" id="exposed-note">On a web page you only see the headers the server lets the page read.</p>
+        </div>
+      </div>
+
+      <div class="alert alert-danger mt-5" id="request-error" hidden></div>
+    </div>
+
+    <aside class="col-lg-4">
+      <div class="saved-panel">
+        <div class="btn-group btn-group-sm w-100" role="group" aria-label="Saved requests">
+          <button type="button" class="btn btn-outline-secondary active" id="show-history" aria-pressed="true">History <span id="history-count"></span></button>
+          <button type="button" class="btn btn-outline-secondary" id="show-library" aria-pressed="false">Library <span id="library-count"></span></button>
+        </div>
+
+        <div id="history-panel">
+          <ul class="saved-list" id="history-list"></ul>
+          <p class="text-muted small saved-empty" id="history-empty">Requests you send show up here.</p>
+          <div class="saved-actions">
+            <button type="button" class="btn btn-sm btn-outline-danger" id="clear-history">Clear history</button>
+          </div>
+        </div>
+
+        <div id="library-panel" hidden>
+          <ul class="saved-list" id="library-list"></ul>
+          <p class="text-muted small saved-empty" id="library-empty">No saved requests yet. Press &#9734; next to Send, or &#9734; on a request in the history.</p>
+          <div class="saved-actions">
+            <button type="button" class="btn btn-sm btn-outline-primary" id="import">Import</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="export">Export</button>
+            <input type="file" id="import-file" accept=".json,application/json" hidden>
+          </div>
+        </div>
+
+        <p class="small mt-2 mb-0" id="saved-message" role="status"></p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="/assets/make-request/make-request.js"></script>
+<script>
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+</body>
+</html>

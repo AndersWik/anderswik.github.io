@@ -279,6 +279,14 @@ def build(app):
     if in_tab:
         # Firefox reads "scripts", Chrome and Edge read "service_worker".
         manifest["background"] = {"scripts": ["background.js"], "service_worker": "background.js"}
+    if app.get("all_urls"):
+        # Pages in an extension with permission for a site can fetch() from it
+        # without CORS. Firefox asks the user for it, and the page can ask
+        # again with permissions.request() if it was turned off.
+        manifest["host_permissions"] = ["<all_urls>"]
+        # The default policy also has upgrade-insecure-requests, which turns
+        # every http:// request into https://, so http APIs could not be called.
+        manifest["content_security_policy"] = {"extension_pages": "script-src 'self'; object-src 'self'"}
     manifest["browser_specific_settings"] = {
         "gecko": {
             "id": f"{slug}@{DOMAIN}",
@@ -295,7 +303,8 @@ def build(app):
         for path in files:
             archive.write(path, path.relative_to(folder))
 
-    print(f"{slug:26} {len(files):3} files  {'tab  ' if in_tab else 'popup'}  {name}")
+    print(f"{slug:26} {len(files):3} files  {'tab  ' if in_tab else 'popup'}  {name}"
+          + ("  (all sites)" if app.get("all_urls") else ""))
 
 
 def main():
