@@ -1,9 +1,9 @@
 /*
- * Url Search and Sitemap Search: search many web pages for a regular expression.
+ * Page Search: search many web pages for a regular expression.
  *
- * Both pages use this file. Url Search has a list of URLs (#url-list),
- * Sitemap Search reads the URLs from a sitemap (#sitemap and #sitemap-url).
- * The rest, the search and the results, is the same.
+ * The pages come from a list of URLs (#url-list), or from a sitemap
+ * (#sitemap, loaded from #sitemap-url or pasted). The "Pages from" switch
+ * picks which one. The rest, the search and the results, is the same.
  *
  * Pages can be loaded in two ways:
  *
@@ -26,9 +26,13 @@
   function $(id) { return document.getElementById(id); }
 
   var form = $("search-form");
-  var urlList = $("url-list");          // Url Search only
-  var sitemapInput = $("sitemap");      // Sitemap Search only
-  var sitemapUrl = $("sitemap-url");    // Sitemap Search only
+  var sourceList = $("source-list");    // the "Pages from" switch
+  var sourceSitemap = $("source-sitemap");
+  var listPanel = $("list-panel");
+  var sitemapPanel = $("sitemap-panel");
+  var urlList = $("url-list");
+  var sitemapInput = $("sitemap");
+  var sitemapUrl = $("sitemap-url");
   var loadSitemapButton = $("load-sitemap");
   var urlCount = $("url-count");
   var patternInput = $("pattern");
@@ -49,8 +53,7 @@
   var summary = $("summary");
   var loader = $("loader");
 
-  var isSitemap = sitemapInput !== null;
-  var STORAGE_KEY = isSitemap ? "sitemap-search-form" : "url-search-form";
+  var STORAGE_KEY = "page-search-form";
 
   // The extension API, or null on a normal web page.
   var ext = null;
@@ -67,10 +70,21 @@
 
   var SAVED_FIELDS = [urlList, sitemapInput, sitemapUrl, patternInput, flagsInput, searchIn, loadWith, delaySelect, limitSelect];
 
+  // true when the pages come from a sitemap.
+  function isSitemap() {
+    return sourceSitemap.checked;
+  }
+
+  function showSource() {
+    listPanel.hidden = isSitemap();
+    sitemapPanel.hidden = !isSitemap();
+    updateCount();
+  }
+
   function saveForm() {
-    var data = {};
+    var data = { source: isSitemap() ? "sitemap" : "list" };
     SAVED_FIELDS.forEach(function (field) {
-      if (field) data[field.id] = field.value;
+      data[field.id] = field.value;
     });
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -87,8 +101,9 @@
       data = null;
     }
     if (!data) return;
+    if (data.source === "sitemap") sourceSitemap.checked = true;
     SAVED_FIELDS.forEach(function (field) {
-      if (!field || typeof data[field.id] !== "string") return;
+      if (typeof data[field.id] !== "string") return;
       // A select only takes values it has an option for.
       if (field.tagName === "SELECT" && !field.querySelector('option[value="' + CSS.escape(data[field.id]) + '"]')) return;
       field.value = data[field.id];
@@ -159,7 +174,7 @@
 
   // Show how many pages there are, while typing.
   function updateCount() {
-    if (!isSitemap) {
+    if (!isSitemap()) {
       var list = parseUrlList(urlList.value);
       urlCount.textContent = list.urls.length === 0 ? "" :
         list.urls.length + (list.urls.length === 1 ? " page" : " pages") +
@@ -432,7 +447,7 @@
     var urls;
 
     try {
-      if (isSitemap) {
+      if (isSitemap()) {
         summary.textContent = "Reading the sitemap…";
         if (sitemapInput.value.trim() === "" && sitemapUrl.value.trim() !== "") {
           sitemapInput.value = await fetchText(new URL(sitemapUrl.value.trim(), location.href).href, signal);
@@ -444,7 +459,7 @@
         urls = parseUrlList(urlList.value).urls;
       }
     } catch (e) {
-      if (e.name !== "AbortError") showFormError(isSitemap ? "Could not read the sitemap: " + readError(e) : e.message);
+      if (e.name !== "AbortError") showFormError(isSitemap() ? "Could not read the sitemap: " + readError(e) : e.message);
       resultsSection.hidden = true;
       controller = null;
       setRunning(false);
@@ -452,7 +467,7 @@
     }
 
     if (urls.length === 0) {
-      showFormError(isSitemap ? "There are no pages in the sitemap." : "Write at least one URL.");
+      showFormError(isSitemap() ? "There are no pages in the sitemap." : "Write at least one URL.");
       resultsSection.hidden = true;
       controller = null;
       setRunning(false);
@@ -519,7 +534,7 @@
     var blob = new Blob([lines.join("\r\n") + "\r\n"], { type: "text/csv" });
     var link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = (isSitemap ? "sitemap-search" : "url-search") + "-results.csv";
+    link.download = "page-search-results.csv";
     document.body.append(link);
     link.click();
     link.remove();
@@ -540,18 +555,19 @@
   form.addEventListener("input", saveForm);
   form.addEventListener("change", saveForm);
 
-  (urlList || sitemapInput).addEventListener("input", updateCount);
+  urlList.addEventListener("input", updateCount);
+  sitemapInput.addEventListener("input", updateCount);
+  sourceList.addEventListener("change", showSource);
+  sourceSitemap.addEventListener("change", showSource);
 
-  if (loadSitemapButton) {
-    loadSitemapButton.addEventListener("click", loadSitemap);
-    sitemapUrl.addEventListener("keydown", function (event) {
-      // Enter in the address loads the sitemap instead of starting a search.
-      if (event.key === "Enter") {
-        event.preventDefault();
-        loadSitemap();
-      }
-    });
-  }
+  loadSitemapButton.addEventListener("click", loadSitemap);
+  sitemapUrl.addEventListener("keydown", function (event) {
+    // Enter in the address loads the sitemap instead of starting a search.
+    if (event.key === "Enter") {
+      event.preventDefault();
+      loadSitemap();
+    }
+  });
 
   loadWith.addEventListener("change", function () {
     delaySelect.disabled = loadWith.value !== "frame";
@@ -568,5 +584,5 @@
   if (ext) corsNote.hidden = true;
   loadForm();
   delaySelect.disabled = loadWith.value !== "frame";
-  updateCount();
+  showSource();
 })();

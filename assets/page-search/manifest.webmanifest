@@ -1,6 +1,6 @@
 {
-  "name": "Url Search",
-  "short_name": "Url Search",
+  "name": "Page Search",
+  "short_name": "Page Search",
   "id": "./app.html",
   "start_url": "./app.html",
   "scope": "./",

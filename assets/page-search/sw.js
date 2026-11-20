@@ -1,22 +1,22 @@
 /*
- * Service worker for Sitemap Search. Made by _scripts/make-pwa.py, don't edit by hand.
+ * Service worker for Page Search. Made by _scripts/make-pwa.py, don't edit by hand.
  *
  * On install it saves every file the app needs in a cache. After that the app
  * loads from the cache, so it works without a connection. The cache name is a
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "sitemap-search-c55ad85c89";
+const CACHE = "page-search-a871e30167";
 
 const FILES = [
-    "/assets/sitemap-search/app.html",
-    "/assets/sitemap-search/images/apple-touch-icon.png",
-    "/assets/sitemap-search/images/icon-192.png",
-    "/assets/sitemap-search/images/icon-512.png",
-    "/assets/sitemap-search/images/icon-maskable-512.png",
-    "/assets/sitemap-search/manifest.webmanifest",
-    "/assets/url-search/url-search.css",
-    "/assets/url-search/url-search.js",
+    "/assets/page-search/app.html",
+    "/assets/page-search/images/apple-touch-icon.png",
+    "/assets/page-search/images/icon-192.png",
+    "/assets/page-search/images/icon-512.png",
+    "/assets/page-search/images/icon-maskable-512.png",
+    "/assets/page-search/manifest.webmanifest",
+    "/assets/page-search/page-search.css",
+    "/assets/page-search/page-search.js",
     "/css/style.css",
     "/assets/fonts/Ubuntu/Ubuntu-Regular.ttf",
     "/assets/fonts/Ubuntu/Ubuntu-Medium.ttf",
@@ -39,7 +39,7 @@ self.addEventListener("activate", function (event) {
         caches.keys()
             .then(function (names) {
                 return Promise.all(names
-                    .filter(function (name) { return name.startsWith("sitemap-search-") && name !== CACHE; })
+                    .filter(function (name) { return name.startsWith("page-search-") && name !== CACHE; })
                     .map(function (name) { return caches.delete(name); }));
             })
             .then(function () { return self.clients.claim(); })

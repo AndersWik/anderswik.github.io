@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Url Search</title>
+  <title>Page Search</title>
   <style>
     body {
         font-family: sans-serif;
@@ -18,8 +18,14 @@
         font-weight: bold;
     }
 
+    label.choice {
+        display: inline;
+        margin-right: 16px;
+        font-weight: normal;
+    }
+
     textarea,
-    input {
+    input[type="text"] {
         width: 100%;
         box-sizing: border-box;
         padding: 8px;
@@ -27,10 +33,18 @@
         font-size: 15px;
     }
 
+    .row {
+        display: flex;
+        gap: 6px;
+    }
+
     button {
-        margin-top: 16px;
         padding: 8px 24px;
         font-size: 16px;
+    }
+
+    #start {
+        margin-top: 16px;
     }
 
     #results {
@@ -62,17 +76,38 @@
   </style>
 </head>
 <body>
-  <h1>Url Search</h1>
+  <h1>Page Search</h1>
 
   <form id="form">
-    <label for="url-list">Pages to search, one per line</label>
-    <textarea id="url-list" rows="5" spellcheck="false" placeholder="https://jsonplaceholder.typicode.com/posts/1"></textarea>
+    <p>
+      Pages from:
+      <label class="choice"><input type="radio" name="source" value="list" checked> a list of URLs</label>
+      <label class="choice"><input type="radio" name="source" value="sitemap"> a sitemap</label>
+    </p>
+
+    <div id="list-part">
+      <label for="url-list">Pages to search, one per line</label>
+      <textarea id="url-list" rows="5" spellcheck="false" placeholder="https://jsonplaceholder.typicode.com/posts/1"></textarea>
+    </div>
+
+    <div id="sitemap-part" hidden>
+      <label for="sitemap-url">Sitemap address</label>
+      <div class="row">
+        <input id="sitemap-url" type="text" spellcheck="false" placeholder="https://example.com/sitemap.xml">
+        <button type="button" id="load">Load</button>
+      </div>
+
+      <label for="sitemap">or paste the sitemap XML</label>
+      <textarea id="sitemap" rows="6" spellcheck="false"></textarea>
+      <p id="count"></p>
+    </div>
 
     <label for="pattern">Regular expression (ignores case)</label>
     <input id="pattern" type="text" spellcheck="false" placeholder="\bsunt\b">
 
-    <label><input type="checkbox" id="search-html" style="width: auto"> Search the HTML source, not the text</label>
+    <label class="choice"><input type="checkbox" id="search-html"> Search the HTML source, not the text</label>
 
+    <br>
     <button type="submit" id="start">Search</button>
   </form>
 
@@ -81,8 +116,8 @@
 
   <script>
     /*
-     * Url Search: download a list of pages and search each one for a
-     * regular expression.
+     * Page Search: download many pages and search each one for a regular
+     * expression. The pages come from a list of URLs or from a sitemap.
      *
      * fetch() can only read pages from other sites if they allow it with
      * CORS. Pages on the same site always work.
@@ -91,20 +126,37 @@
     // --- Elements on the page ------------------------------------------------
 
     const form = document.getElementById("form");
+    const listPart = document.getElementById("list-part");
+    const sitemapPart = document.getElementById("sitemap-part");
     const urlList = document.getElementById("url-list");
+    const sitemapUrl = document.getElementById("sitemap-url");
+    const loadButton = document.getElementById("load");
+    const sitemapInput = document.getElementById("sitemap");
+    const count = document.getElementById("count");
     const patternInput = document.getElementById("pattern");
     const searchHtml = document.getElementById("search-html");
     const startButton = document.getElementById("start");
     const summary = document.getElementById("summary");
     const resultsList = document.getElementById("results");
 
-    // --- Reading the input ---------------------------------------------------
+    // "list" or "sitemap"
+    function source() {
+        return form.elements.source.value;
+    }
 
-    // One URL per line -> a list. Empty lines and duplicates are skipped,
-    // and /path is read from this page's address.
-    function readUrls() {
+    // Show the part of the form for the chosen source.
+    form.addEventListener("change", function () {
+        listPart.hidden = source() !== "list";
+        sitemapPart.hidden = source() !== "sitemap";
+    });
+
+    // --- A list of URLs ------------------------------------------------------
+
+    // Text with one URL per line -> a list. Empty lines and duplicates are
+    // skipped, and /path is read from this page's address.
+    function readUrls(text) {
         const urls = [];
-        urlList.value.split(/\s+/).forEach(function (part) {
+        text.split(/\s+/).forEach(function (part) {
             if (part === "") {
                 return;
             }
@@ -119,6 +171,65 @@
         });
         return urls;
     }
+
+    // --- A sitemap -----------------------------------------------------------
+
+    // XML text -> { urls, sitemaps }
+    function parseSitemap(xml) {
+        const doc = new DOMParser().parseFromString(xml, "application/xml");
+        if (doc.querySelector("parsererror")) {
+            throw new Error("This is not valid XML.");
+        }
+        const locs = [];
+        for (const loc of doc.getElementsByTagName("loc")) {
+            locs.push(loc.textContent.trim());
+        }
+        if (doc.documentElement.localName === "sitemapindex") {
+            return { urls: [], sitemaps: locs };
+        }
+        return { urls: locs, sitemaps: [] };
+    }
+
+    async function download(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+        return response.text();
+    }
+
+    // Every page in the sitemap. For a sitemap index, read each sitemap in it.
+    async function sitemapUrls(xml) {
+        const parsed = parseSitemap(xml);
+        let urls = parsed.urls;
+        for (const address of parsed.sitemaps) {
+            const inner = parseSitemap(await download(address));
+            urls = urls.concat(inner.urls);
+        }
+        return urls;
+    }
+
+    function showCount() {
+        try {
+            const parsed = parseSitemap(sitemapInput.value);
+            count.textContent = parsed.sitemaps.length > 0
+                ? "A sitemap index with " + parsed.sitemaps.length + " sitemaps."
+                : parsed.urls.length + " pages.";
+        } catch (error) {
+            count.textContent = sitemapInput.value.trim() === "" ? "" : error.message;
+        }
+    }
+
+    loadButton.addEventListener("click", async function () {
+        try {
+            sitemapInput.value = await download(sitemapUrl.value.trim());
+            showCount();
+        } catch (error) {
+            count.textContent = "Could not load the sitemap. Is the address right, and does the server allow CORS?";
+        }
+    });
+
+    sitemapInput.addEventListener("input", showCount);
 
     // --- Loading and searching a page ----------------------------------------
 
@@ -143,8 +254,7 @@
     }
 
     async function searchPage(url, regex) {
-        const response = await fetch(url);
-        const html = await response.text();
+        const html = await download(url);
         const text = searchHtml.checked ? html : pageText(html);
         return findMatches(text, regex);
     }
@@ -173,10 +283,12 @@
         }
     }
 
-    function showFailed(li) {
+    function showFailed(li, error) {
         li.classList.add("failed");
         li.querySelector(".status").textContent = "failed";
-        li.title = "Blocked by CORS, or the server could not be reached";
+        li.title = error instanceof TypeError
+            ? "Blocked by CORS, or the server could not be reached"
+            : error.message;
     }
 
     // --- The search ----------------------------------------------------------
@@ -189,9 +301,20 @@
             summary.textContent = "The regular expression is not valid: " + error.message;
             return;
         }
-        const urls = readUrls();
-        if (urls.length === 0 || patternInput.value === "") {
-            summary.textContent = "Write some URLs and a regular expression.";
+        if (patternInput.value === "") {
+            summary.textContent = "Write a regular expression.";
+            return;
+        }
+
+        let urls;
+        try {
+            urls = source() === "list" ? readUrls(urlList.value) : await sitemapUrls(sitemapInput.value);
+        } catch (error) {
+            summary.textContent = "Could not read the sitemap: " + error.message;
+            return;
+        }
+        if (urls.length === 0) {
+            summary.textContent = "There are no pages to search.";
             return;
         }
 
@@ -211,7 +334,7 @@
                     withMatches++;
                 }
             } catch (error) {
-                showFailed(rows[i]);
+                showFailed(rows[i], error);
             }
         }
 

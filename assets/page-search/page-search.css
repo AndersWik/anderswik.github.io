@@ -1,25 +1,25 @@
-.url-search {
+.page-search {
   max-width: 900px !important;
 }
 
-.url-search p,
-.url-search h2,
-.url-search h3,
-.url-search label {
+.page-search p,
+.page-search h2,
+.page-search h3,
+.page-search label {
   font-family: ubuntu;
 }
 
-.url-search .code {
+.page-search .code {
   font-family: monospace;
 }
 
-.url-search .flags {
+.page-search .flags {
   flex: 0 0 4.5em;
 }
 
 /* The frame that loads pages in "Frame" mode: visible, so you can see
    what is being searched, but not in the way. */
-.url-search .loader {
+.page-search .loader {
   width: 100%;
   height: 360px;
   margin-top: 16px;
@@ -29,28 +29,28 @@
 
 /* --- Results ------------------------------------------------------------- */
 
-.url-search .results {
+.page-search .results {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.url-search .results > li {
+.page-search .results > li {
   padding: 8px 4px;
   border-bottom: 1px solid #eee;
 }
 
-.url-search .results.only-matches > li:not(.match) {
+.page-search .results.only-matches > li:not(.match) {
   display: none;
 }
 
-.url-search .result-head {
+.page-search .result-head {
   display: flex;
   gap: 10px;
   align-items: baseline;
 }
 
-.url-search .result-url {
+.page-search .result-url {
   flex: 1;
   min-width: 0;
   font-family: monospace;
@@ -58,24 +58,24 @@
   overflow-wrap: anywhere;
 }
 
-.url-search .result-status {
+.page-search .result-status {
   flex: none;
   font-size: 0.85em;
   font-weight: 700;
 }
 
-.url-search .results > li.match .result-status { color: #198754; }
-.url-search .results > li.no-match .result-status { color: #6c757d; }
-.url-search .results > li.failed .result-status { color: #dc3545; }
-.url-search .results > li.pending .result-status { color: #0d6efd; }
+.page-search .results > li.match .result-status { color: #198754; }
+.page-search .results > li.no-match .result-status { color: #6c757d; }
+.page-search .results > li.failed .result-status { color: #dc3545; }
+.page-search .results > li.pending .result-status { color: #0d6efd; }
 
-.url-search .result-detail {
+.page-search .result-detail {
   margin: 4px 0 0;
   color: #6c757d;
   font-size: 0.85em;
 }
 
-.url-search .result-matches {
+.page-search .result-matches {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
@@ -84,7 +84,7 @@
   list-style: none;
 }
 
-.url-search .result-matches li {
+.page-search .result-matches li {
   padding: 1px 8px;
   border: none;
   border-radius: 4px;
@@ -95,6 +95,6 @@
   overflow-wrap: anywhere;
 }
 
-.url-search .result-matches .times {
+.page-search .result-matches .times {
   color: #997404;
 }
