@@ -1,0 +1,51 @@
+---
+layout: default
+title: Popup
+permalink: /firefox-plugins/popup/
+chapter: "02"
+chapter_title: "Hello World"
+keywords: [firefox, extension, popup, action, default_popup, width, size, focus, storage, localstorage]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Popup</h1>
+  <p>A popup is the small window that opens under the toolbar button. It is a normal HTML page from the extension, set with <code>default_popup</code> in the manifest.</p>
+  <pre><code class="language-json">"action": {
+  "default_title": "Magic 8 Ball",
+  "default_popup": "index.html"
+}</code></pre>
+  <h2>Size</h2>
+  <p>A popup grows to fit its content, up to <strong>800 × 600 pixels</strong>. Anything bigger gets scroll bars. Set a width on <code>body</code>, or the popup may end up very narrow.</p>
+  <pre><code class="language-css">/* A popup is as big as its content, so give it a width. */
+body { width: 360px; }</code></pre>
+  <p>Our apps are made for phones, so most of them fit in 360 pixels. A few needed more:</p>
+  <ul>
+    <li><strong>Color Hex</strong> got <code>width: 560</code>, since its labels ran into each other.</li>
+    <li><strong>ASCII table</strong> has a wide table, so it opens in a tab instead.</li>
+    <li>The <strong>keyboard games</strong> draw on an 800 pixel wide canvas, too big for a popup, so they open in a tab too. See <a href="/firefox-plugins/open-in-tab/">Open in a tab</a>.</li>
+  </ul>
+  <h2>A popup closes when it loses focus</h2>
+  <p>Click anywhere outside the popup and it closes. The page is thrown away, with all its variables and timers. Next time it opens, it starts from the beginning.</p>
+  <ul>
+    <li>Short games, like the 8-ball or a coin flip, do not mind.</li>
+    <li>A timer, like the <strong>Egg Clock</strong> and <strong>Countdown</strong>, stops when the popup closes. Those open in a tab.</li>
+    <li>Anything worth keeping must be saved, see below.</li>
+  </ul>
+  <h2>Save the state</h2>
+  <p><code>localStorage</code> works in an extension page just like on a web page, and is kept between openings. The <a href="/other/discgolf/">Discgolf score card</a> already saves after every change, so a round survives the popup closing.</p>
+  <pre><code class="language-javascript">localStorage.setItem("discgolf-scorecard", JSON.stringify(state));</code></pre>
+  <p>Extensions also have their own <code>browser.storage.local</code>, which the background script can use too and which can sync between computers with <code>storage.sync</code>. It needs the <code>"storage"</code> permission.</p>
+  <pre><code class="language-javascript">await browser.storage.local.set({ clicks: 3 });
+const { clicks } = await browser.storage.local.get("clicks");</code></pre>
+  <h2>Links in a popup</h2>
+  <p>A normal link opens inside the tiny popup. To open a web page in a tab instead, add <code>target="_blank"</code>.</p>
+  <h2>More about popups</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/user_interface/Popups">Popups on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage">storage on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, popup, action, default_popup, width, size, focus, storage, localstorage</p>
+  {% include trail.html %}
+</div>

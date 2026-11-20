@@ -1,0 +1,611 @@
+---
+layout: default
+title: Code playground
+permalink: /tutorials/code-playground/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, iframe, srcdoc, sandbox, postMessage, template literal, blob, createObjectURL, localStorage, setTimeout, debounce, console, cdn, libraries]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Code playground</h1>
+  <p>We build a code playground, like a tiny CodePen. There are boxes for HTML, CSS and JavaScript, and one for extra tags in <code>&lt;head&gt;</code>, like libraries. The boxes are put into a template of a whole HTML page, which is shown in an <code>&lt;iframe&gt;</code> next to them. A drop down adds common libraries like Bootstrap and jQuery, and <code>console.log()</code> from your code shows up under the result.</p>
+  <p><a href="/assets/tutorials/code-playground.html">Open the finished code playground</a> · <a href="/utils/code-playground/">The full tool on this site</a></p>
+  <h2>The plan</h2>
+  <ul>
+    <li>Glue the boxes into one long string: a whole HTML page.</li>
+    <li>Show that string in an <code>&lt;iframe&gt;</code> with <code>srcdoc</code>.</li>
+    <li>Lock the iframe in with <code>sandbox</code>, so the code can't reach our page.</li>
+    <li>Add a small script first in the page that sends <code>console.log()</code> back to us with <code>postMessage()</code>.</li>
+  </ul>
+  <h2>Step 1: The page</h2>
+  <p>Start from the skeleton in <a href="/tutorials/utility-page/">Building a utility page</a>. Four text boxes on the left, the result and a console on the right:</p>
+  <pre><code class="language-html">&lt;div class="toolbar"&gt;
+  &lt;select id="library"&gt;
+    &lt;option value=""&gt;Add a library…&lt;/option&gt;
+  &lt;/select&gt;
+  &lt;button type="button" id="run"&gt;Run&lt;/button&gt;
+  &lt;label&gt;&lt;input type="checkbox" id="auto-run" checked&gt; Run as I type&lt;/label&gt;
+  &lt;button type="button" id="download"&gt;Download&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;div class="panes"&gt;
+  &lt;div&gt;
+    &lt;label for="head-code"&gt;Head&lt;/label&gt;
+    &lt;textarea id="head-code" rows="3" spellcheck="false"&gt;&lt;/textarea&gt;
+
+    &lt;label for="html-code"&gt;HTML&lt;/label&gt;
+    &lt;textarea id="html-code" rows="8" spellcheck="false"&gt;&lt;/textarea&gt;
+
+    &lt;label for="css-code"&gt;CSS&lt;/label&gt;
+    &lt;textarea id="css-code" rows="6" spellcheck="false"&gt;&lt;/textarea&gt;
+
+    &lt;label for="js-code"&gt;JavaScript&lt;/label&gt;
+    &lt;textarea id="js-code" rows="8" spellcheck="false"&gt;&lt;/textarea&gt;
+  &lt;/div&gt;
+
+  &lt;div&gt;
+    &lt;label&gt;Result&lt;/label&gt;
+    &lt;iframe id="preview" title="Result" sandbox="allow-scripts allow-modals allow-forms allow-popups"&gt;&lt;/iframe&gt;
+
+    &lt;label&gt;Console&lt;/label&gt;
+    &lt;ol id="console"&gt;&lt;/ol&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+  <p><code>spellcheck="false"</code> stops the browser from drawing red lines under every <code>getElementById</code>. The two columns are a grid, which turns into one column on a narrow screen:</p>
+  <pre><code class="language-css">.panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 800px) {
+    .panes {
+        grid-template-columns: 1fr;
+    }
+}
+
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: monospace;
+    tab-size: 2;
+    white-space: pre;
+}</code></pre>
+  <p><code>white-space: pre</code> stops long lines from wrapping, like in a code editor. The box gets a scroll bar instead.</p>
+  <h2>Step 2: A page from four boxes</h2>
+  <p>The result is just text: the start of an HTML page, then each box in its place. We build it as a list of lines and join them with <code>"\n"</code>.</p>
+  <pre><code class="language-javascript">function buildPage(code, forPreview) {
+    const lines = [
+        "&lt;!DOCTYPE html&gt;",
+        '&lt;html lang="en"&gt;',
+        "&lt;head&gt;",
+        '&lt;meta charset="utf-8"&gt;',
+        '&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;',
+        "&lt;title&gt;Playground&lt;/title&gt;"
+    ];
+    if (forPreview) {
+        lines.push(CONSOLE_CATCHER);         // see step 5
+    }
+    lines.push(code.head, "&lt;style&gt;", escapeEnd(code.css, "style"), "&lt;/style&gt;",
+               "&lt;/head&gt;", "&lt;body&gt;", code.html, "&lt;script&gt;");
+    const top = lines.join("\n") + "\n";
+
+    return {
+        text: top + escapeEnd(code.js, "script") + "\n&lt;\/script&gt;\n&lt;/body&gt;\n&lt;/html&gt;\n",
+        jsFirstLine: top.split("\n").length
+    };
+}</code></pre>
+  <p><code>jsFirstLine</code> is the line of the page where the JavaScript box starts. We need it in step 5 to tell which line an error is on.</p>
+  <h2>Step 3: The closing tag trap</h2>
+  <p>Say someone writes this in the JavaScript box:</p>
+  <pre><code class="language-javascript">console.log("&lt;/script&gt;");</code></pre>
+  <p>The browser reads HTML before it runs any JavaScript. When it sees <code>&lt;/script&gt;</code> it ends the script right there, in the middle of the string, and the rest of the code shows up as text on the page. The same goes for <code>&lt;/style&gt;</code> in CSS. A backslash before the slash fixes it: <code>&lt;\/script&gt;</code> is not a closing tag to HTML, and to JavaScript <code>"\/"</code> is just <code>"/"</code>.</p>
+  <pre><code class="language-javascript">// A closing script tag in the JavaScript would end the &lt;script&gt; early.
+function escapeEnd(code, tagName) {
+    return code.replace(new RegExp("&lt;/" + tagName, "gi"), "&lt;\\/" + tagName);
+}</code></pre>
+  <p>The same trap is in our own code. This page's script is inline too, so every <code>&lt;/script&gt;</code> inside it, like in <code>buildPage</code> above, is written <code>&lt;\/script&gt;</code>. Even a comment counts: while writing this tutorial, a comment with <code>&lt;/script&gt;</code> in it broke the whole page.</p>
+  <h2>Step 4: Show it in a sandboxed iframe</h2>
+  <p>An <code>&lt;iframe&gt;</code> shows a page inside our page. Its <code>srcdoc</code> takes the HTML as text, so we don't need a file or a server. Setting it loads the page again:</p>
+  <pre><code class="language-javascript">function run() {
+    clearTimeout(runTimer);
+    consoleList.replaceChildren();          // empty the console
+    const page = buildPage(readCode(), true);
+    jsFirstLine = page.jsFirstLine;
+    preview.srcdoc = page.text;
+}</code></pre>
+  <p>Without <code>sandbox</code>, code in the iframe would run as our site. It could read <code>parent.document</code>, or <code>localStorage</code> where other apps on the site keep their data. With <code>sandbox</code> the iframe is treated as a different site, and only what we list is allowed:</p>
+  <ul>
+    <li><code>allow-scripts</code> run JavaScript, which is the whole point.</li>
+    <li><code>allow-modals</code> <code>alert()</code>, <code>confirm()</code> and <code>prompt()</code>.</li>
+    <li><code>allow-forms</code> submit forms.</li>
+    <li><code>allow-popups</code> open links in a new tab.</li>
+  </ul>
+  <p>We leave out <code>allow-same-origin</code>. Together with <code>allow-scripts</code> it would let the code remove its own sandbox.</p>
+  <h2>Step 5: Catch console.log</h2>
+  <p>The iframe's <code>console.log()</code> goes to the browser's developer tools, which are hard to reach on a phone. So we put a small script first in the page. It wraps <code>console.log</code>, <code>warn</code> and <code>error</code>, and listens for errors, and sends everything to us with <code>postMessage()</code>:</p>
+  <pre><code class="language-javascript">const CONSOLE_CATCHER = `&lt;script&gt;
+(function () {
+  function show(value) {
+    if (typeof value === "string") return value;
+    if (value instanceof Error) return value.name + ": " + value.message;
+    try { return JSON.stringify(value); } catch (error) { return String(value); }
+  }
+  function send(type, values, line) {
+    parent.postMessage({ playground: true, type: type, text: values.map(show).join(" "), line: line }, "*");
+  }
+  ["log", "warn", "error"].forEach(function (type) {
+    const original = console[type];
+    console[type] = function () {
+      send(type, Array.from(arguments));
+      original.apply(console, arguments);
+    };
+  });
+  window.addEventListener("error", function (event) {
+    send("error", [event.message], event.lineno);
+  });
+})();
+&lt;\/script&gt;`;</code></pre>
+  <ul>
+    <li>A template literal, with backticks, can span many lines, which makes it easy to keep a script in a string.</li>
+    <li><code>JSON.stringify</code> turns objects and lists into text, so <code>console.log({ a: 1 })</code> shows <code>{"a":1}</code>.</li>
+    <li>The original <code>console.log</code> is still called, so the developer tools show it too.</li>
+    <li><code>"*"</code> means any receiver. A sandboxed page has no origin we could name.</li>
+  </ul>
+  <p>On our side, we only accept messages from our own iframe:</p>
+  <pre><code class="language-javascript">function receiveMessage(event) {
+    if (event.source !== preview.contentWindow || !event.data || !event.data.playground) {
+        return;
+    }
+    addConsoleLine(event.data.type, String(event.data.text), event.data.line);
+}
+
+window.addEventListener("message", receiveMessage);</code></pre>
+  <p>An error's <code>lineno</code> counts lines in the whole page. Take away the line where the JavaScript box starts, and it is the line in the box:</p>
+  <pre><code class="language-javascript">function addConsoleLine(type, text, line) {
+    const item = document.createElement("li");
+    item.className = type;
+    item.textContent = (line &gt;= jsFirstLine ? "Line " + (line - jsFirstLine + 1) + ": " : "") + text;
+    consoleList.appendChild(item);
+    consoleList.scrollTop = consoleList.scrollHeight;
+}</code></pre>
+  <p><code>textContent</code>, not <code>innerHTML</code>: a message like <code>"&lt;img src=x onerror=...&gt;"</code> must show as text, not become HTML on our page.</p>
+  <h2>Step 6: Run as you type</h2>
+  <p>Reloading the iframe on every key would flicker and run half written code. Instead we wait until the typing stops. Every key starts the timer again, so <code>run()</code> only happens 600 ms after the last key. This is called a <em>debounce</em>.</p>
+  <pre><code class="language-javascript">function runSoon() {
+    clearTimeout(runTimer);
+    if (autoRunBox.checked) {
+        runTimer = setTimeout(run, RUN_DELAY);
+    }
+}</code></pre>
+  <h2>Step 7: Libraries</h2>
+  <p>Each library is one or more tags for the head box. The versions are fixed in the address, so a new version can't suddenly break the code:</p>
+  <pre><code class="language-javascript">const LIBRARIES = [
+    { name: "Bootstrap 5.3", tags: [
+        '&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"&gt;',
+        '&lt;script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"&gt;&lt;\/script&gt;'] },
+    { name: "jQuery 3.7", tags: [
+        '&lt;script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"&gt;&lt;\/script&gt;'] }
+];</code></pre>
+  <p>The drop down is filled from the list. <code>new Option(text, value)</code> makes an <code>&lt;option&gt;</code>, and the value is the number in the list. When one is picked, its tags are added to the head box, unless they are already there:</p>
+  <pre><code class="language-javascript">function addLibrary() {
+    const library = LIBRARIES[Number(librarySelect.value)];
+    librarySelect.value = "";               // back to "Add a library…"
+    if (!library) {
+        return;
+    }
+    const newTags = library.tags.filter(function (tag) {
+        return !headCode.value.includes(tag);
+    });
+    if (newTags.length &gt; 0) {
+        const before = headCode.value.trimEnd();
+        headCode.value = (before ? before + "\n" : "") + newTags.join("\n");
+        changed();
+    }
+}</code></pre>
+  <h2>Step 8: Save and download</h2>
+  <p>All four boxes are saved in <code>localStorage</code> on every change, the same way as in the <a href="/tutorials/discgolf/">disc golf score card</a>. <strong>Download</strong> saves the page as a file, without the console catcher. A <code>Blob</code> is a file in memory, and <code>URL.createObjectURL()</code> gives it an address a link can point to:</p>
+  <pre><code class="language-javascript">function download() {
+    const blob = new Blob([buildPage(readCode(), false).text], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "playground.html";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}</code></pre>
+  <h2>Step 9: The Tab key</h2>
+  <p>In a text box, Tab moves to the next field. In a code box we want it to indent. <code>setRangeText()</code> replaces the selected text, or puts text at the cursor if nothing is selected:</p>
+  <pre><code class="language-javascript">function insertTab(event) {
+    if (event.key !== "Tab" || event.shiftKey) {
+        return;
+    }
+    event.preventDefault();
+    const box = event.target;
+    box.setRangeText("  ", box.selectionStart, box.selectionEnd, "end");
+    changed();
+}</code></pre>
+  <p>Now someone using only the keyboard can't Tab out of the box. The tool on this site lets <kbd>Esc</kbd> and then <kbd>Tab</kbd> leave the box.</p>
+  <h2>Step 10: Test it</h2>
+  <ul>
+    <li>Click the button in the example. "Hello!" shows in the console.</li>
+    <li>Write <code>console.log({ a: 1, list: [1, 2] })</code>. It shows as JSON.</li>
+    <li>Write <code>notDefined();</code> on line 3. The console says <em>Line 3: ReferenceError</em>.</li>
+    <li>Write <code>console.log("&lt;/script&gt;")</code>. It prints, and nothing breaks.</li>
+    <li>Add jQuery and write <code>$("h1").css("color", "red")</code>.</li>
+    <li>Reload the page. Your code is still there.</li>
+  </ul>
+  <h2>As an app</h2>
+  <p>The tool on this site is also a <a href="/pwa/">PWA</a>, so it can be installed and works offline. Libraries from a CDN still need the network the first time.</p>
+  <p>Unlike most apps on this site, it is not a <a href="/firefox-plugins/">Firefox extension</a>. Extension pages may not run inline scripts, and an iframe made with <code>srcdoc</code> gets the same rule, so nothing in the result would run. See <a href="/firefox-plugins/content-security-policy/">Content Security Policy</a>.</p>
+  <h2>The complete page</h2>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Code playground&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 16px;
+    }
+
+    .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .panes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 800px) {
+        .panes {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin: 12px 0 4px;
+    }
+
+    textarea {
+        width: 100%;
+        box-sizing: border-box;
+        font-family: monospace;
+        font-size: 14px;
+        tab-size: 2;
+        white-space: pre;
+        background: #1b1d21;
+        color: #e6e6e6;
+        padding: 8px;
+        border-radius: 6px;
+    }
+
+    iframe {
+        width: 100%;
+        height: 420px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+    #console {
+        list-style: none;
+        margin: 0;
+        padding: 8px;
+        min-height: 60px;
+        max-height: 200px;
+        overflow: auto;
+        background: #1b1d21;
+        color: #e6e6e6;
+        font-family: monospace;
+        border-radius: 6px;
+    }
+
+    #console .warn { color: #e8b455; }
+    #console .error { color: #ff8b8b; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Code playground&lt;/h1&gt;
+
+  &lt;div class="toolbar"&gt;
+    &lt;select id="library"&gt;
+      &lt;option value=""&gt;Add a library…&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;button type="button" id="run"&gt;Run&lt;/button&gt;
+    &lt;label&gt;&lt;input type="checkbox" id="auto-run" checked&gt; Run as I type&lt;/label&gt;
+    &lt;button type="button" id="download"&gt;Download&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;div class="panes"&gt;
+    &lt;div&gt;
+      &lt;label for="head-code"&gt;Head&lt;/label&gt;
+      &lt;textarea id="head-code" rows="3" spellcheck="false"&gt;&lt;/textarea&gt;
+
+      &lt;label for="html-code"&gt;HTML&lt;/label&gt;
+      &lt;textarea id="html-code" rows="8" spellcheck="false"&gt;&lt;/textarea&gt;
+
+      &lt;label for="css-code"&gt;CSS&lt;/label&gt;
+      &lt;textarea id="css-code" rows="6" spellcheck="false"&gt;&lt;/textarea&gt;
+
+      &lt;label for="js-code"&gt;JavaScript&lt;/label&gt;
+      &lt;textarea id="js-code" rows="8" spellcheck="false"&gt;&lt;/textarea&gt;
+    &lt;/div&gt;
+
+    &lt;div&gt;
+      &lt;label&gt;Result&lt;/label&gt;
+      &lt;iframe id="preview" title="Result" sandbox="allow-scripts allow-modals allow-forms allow-popups"&gt;&lt;/iframe&gt;
+
+      &lt;label&gt;Console&lt;/label&gt;
+      &lt;ol id="console"&gt;&lt;/ol&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Code playground: write HTML, CSS and JavaScript and see the result.
+     *
+     * The four boxes are put into a template of a whole HTML page, and the
+     * page is shown in a sandboxed &lt;iframe&gt; with srcdoc. A small script first
+     * in that page catches console.log() and errors and sends them here with
+     * postMessage().
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const headCode = document.getElementById("head-code");
+    const htmlCode = document.getElementById("html-code");
+    const cssCode = document.getElementById("css-code");
+    const jsCode = document.getElementById("js-code");
+    const codeBoxes = [headCode, htmlCode, cssCode, jsCode];
+
+    const librarySelect = document.getElementById("library");
+    const runButton = document.getElementById("run");
+    const autoRunBox = document.getElementById("auto-run");
+    const downloadButton = document.getElementById("download");
+    const preview = document.getElementById("preview");
+    const consoleList = document.getElementById("console");
+
+    // --- Data ----------------------------------------------------------------
+
+    const STORAGE_KEY = "tutorial-code-playground";
+    const RUN_DELAY = 600;
+
+    const LIBRARIES = [
+        { name: "Bootstrap 5.3", tags: [
+            '&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"&gt;',
+            '&lt;script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"&gt;&lt;\/script&gt;'] },
+        { name: "jQuery 3.7", tags: [
+            '&lt;script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"&gt;&lt;\/script&gt;'] },
+        { name: "Font Awesome 6.5", tags: [
+            '&lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"&gt;'] },
+        { name: "Chart.js 4.4", tags: [
+            '&lt;script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"&gt;&lt;\/script&gt;'] }
+    ];
+
+    const EXAMPLE = {
+        head: "",
+        html: '&lt;h1&gt;Hello, world!&lt;/h1&gt;\n&lt;button id="hello"&gt;Click me&lt;/button&gt;',
+        css: "body {\n  font-family: sans-serif;\n}\n\nh1 {\n  color: #e8b455;\n}",
+        js: 'document.getElementById("hello").addEventListener("click", function () {\n  console.log("Hello!");\n});'
+    };
+
+    // Put first in the result page. "&lt;\/script&gt;" has a backslash, or it would
+    // end the &lt;script&gt; this code is in.
+    const CONSOLE_CATCHER = `&lt;script&gt;
+    (function () {
+      function show(value) {
+        if (typeof value === "string") return value;
+        if (value instanceof Error) return value.name + ": " + value.message;
+        try { return JSON.stringify(value); } catch (error) { return String(value); }
+      }
+      function send(type, values, line) {
+        parent.postMessage({ playground: true, type: type, text: values.map(show).join(" "), line: line }, "*");
+      }
+      ["log", "warn", "error"].forEach(function (type) {
+        const original = console[type];
+        console[type] = function () {
+          send(type, Array.from(arguments));
+          original.apply(console, arguments);
+        };
+      });
+      window.addEventListener("error", function (event) {
+        send("error", [event.message], event.lineno);
+      });
+    })();
+    &lt;\/script&gt;`;
+
+    // --- State ---------------------------------------------------------------
+
+    let runTimer = null;
+    let jsFirstLine = 0;
+
+    // --- Building the page ---------------------------------------------------
+
+    function readCode() {
+        return { head: headCode.value, html: htmlCode.value, css: cssCode.value, js: jsCode.value };
+    }
+
+    // A closing script tag in the JavaScript would end the &lt;script&gt; early.
+    function escapeEnd(code, tagName) {
+        return code.replace(new RegExp("&lt;/" + tagName, "gi"), "&lt;\\/" + tagName);
+    }
+
+    function buildPage(code, forPreview) {
+        const lines = [
+            "&lt;!DOCTYPE html&gt;",
+            '&lt;html lang="en"&gt;',
+            "&lt;head&gt;",
+            '&lt;meta charset="utf-8"&gt;',
+            '&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;',
+            "&lt;title&gt;Playground&lt;/title&gt;"
+        ];
+        if (forPreview) {
+            lines.push(CONSOLE_CATCHER);
+        }
+        lines.push(code.head, "&lt;style&gt;", escapeEnd(code.css, "style"), "&lt;/style&gt;",
+                   "&lt;/head&gt;", "&lt;body&gt;", code.html, "&lt;script&gt;");
+        const top = lines.join("\n") + "\n";
+
+        return {
+            text: top + escapeEnd(code.js, "script") + "\n&lt;\/script&gt;\n&lt;/body&gt;\n&lt;/html&gt;\n",
+            jsFirstLine: top.split("\n").length
+        };
+    }
+
+    // --- Console -------------------------------------------------------------
+
+    function addConsoleLine(type, text, line) {
+        const item = document.createElement("li");
+        item.className = type;
+        item.textContent = (line &gt;= jsFirstLine ? "Line " + (line - jsFirstLine + 1) + ": " : "") + text;
+        consoleList.appendChild(item);
+        consoleList.scrollTop = consoleList.scrollHeight;
+    }
+
+    function receiveMessage(event) {
+        if (event.source !== preview.contentWindow || !event.data || !event.data.playground) {
+            return;
+        }
+        addConsoleLine(event.data.type, String(event.data.text), event.data.line);
+    }
+
+    // --- Running -------------------------------------------------------------
+
+    function run() {
+        clearTimeout(runTimer);
+        consoleList.replaceChildren();
+        const page = buildPage(readCode(), true);
+        jsFirstLine = page.jsFirstLine;
+        preview.srcdoc = page.text;
+    }
+
+    function runSoon() {
+        clearTimeout(runTimer);
+        if (autoRunBox.checked) {
+            runTimer = setTimeout(run, RUN_DELAY);
+        }
+    }
+
+    // --- Saving --------------------------------------------------------------
+
+    function save() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(readCode()));
+        } catch (error) {
+            // Not saved, but the playground still works.
+        }
+    }
+
+    function load() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (saved &amp;&amp; typeof saved.html === "string") {
+                return saved;
+            }
+        } catch (error) {
+            // Use the example.
+        }
+        return EXAMPLE;
+    }
+
+    function changed() {
+        save();
+        runSoon();
+    }
+
+    // --- Libraries and download ----------------------------------------------
+
+    function fillLibraryList() {
+        LIBRARIES.forEach(function (library, index) {
+            librarySelect.appendChild(new Option(library.name, String(index)));
+        });
+    }
+
+    function addLibrary() {
+        const library = LIBRARIES[Number(librarySelect.value)];
+        librarySelect.value = "";
+        if (!library) {
+            return;
+        }
+        const newTags = library.tags.filter(function (tag) {
+            return !headCode.value.includes(tag);
+        });
+        if (newTags.length &gt; 0) {
+            const before = headCode.value.trimEnd();
+            headCode.value = (before ? before + "\n" : "") + newTags.join("\n");
+            changed();
+        }
+    }
+
+    function download() {
+        const blob = new Blob([buildPage(readCode(), false).text], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "playground.html";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    // Tab adds two spaces instead of leaving the box.
+    function insertTab(event) {
+        if (event.key !== "Tab" || event.shiftKey) {
+            return;
+        }
+        event.preventDefault();
+        const box = event.target;
+        box.setRangeText("  ", box.selectionStart, box.selectionEnd, "end");
+        changed();
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    codeBoxes.forEach(function (box) {
+        box.addEventListener("input", changed);
+        box.addEventListener("keydown", insertTab);
+    });
+    librarySelect.addEventListener("change", addLibrary);
+    runButton.addEventListener("click", run);
+    downloadButton.addEventListener("click", download);
+    window.addEventListener("message", receiveMessage);
+
+    // --- Start ---------------------------------------------------------------
+
+    fillLibraryList();
+    const start = load();
+    headCode.value = start.head;
+    htmlCode.value = start.html;
+    cssCode.value = start.css;
+    jsCode.value = start.js;
+    run();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Browsers don't all count lines the same way. Make the page ask: put <code>&lt;script&gt;report()&lt;/script&gt;</code> just before the JavaScript box, and read the line from <code>new Error().stack</code>. The tool on this site does this.</li>
+    <li>Save the code in the address, like <code>#code=...</code>, so a link can share it. <code>encodeURIComponent()</code> and <code>JSON.stringify()</code> are enough for small examples.</li>
+    <li>Add a drop down of examples: a Bootstrap card, a canvas drawing, a jQuery click.</li>
+    <li>Let the user drag the line between the boxes and the result to make them wider.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,42 @@
+---
+layout: default
+title: SOAP
+permalink: /php/soap/
+chapter: "13"
+chapter_title: "Web services"
+keywords: [php, soap, web service, xml, wsdl, SoapClient, SoapServer, ext-soap]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>SOAP</h1>
+  <p>SOAP is an older standard for web services. The messages are XML documents sent with HTTP POST. A WSDL file describes which functions the service has and which types the parameters have, so a client can be generated from it. SOAP is still common in banks, government and large business systems.</p>
+  <p>PHP has a <code>SoapClient</code> to call SOAP services and a <code>SoapServer</code> to create them. They are in the <code>soap</code> extension.</p>
+  <pre><code class="language-bash">$ sudo apt-get install php-soap
+$ php -m | grep soap</code></pre>
+  <p>A SOAP request looks like this.</p>
+  <pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:Calculator"&gt;
+  &lt;SOAP-ENV:Body&gt;
+    &lt;ns1:add&gt;
+      &lt;a&gt;2&lt;/a&gt;
+      &lt;b&gt;3&lt;/b&gt;
+    &lt;/ns1:add&gt;
+  &lt;/SOAP-ENV:Body&gt;
+&lt;/SOAP-ENV:Envelope&gt;</code></pre>
+  <p>The next pages build a small calculator service.</p>
+  <ul>
+    <li><a href="/php/soap-server/">SOAP server</a> creates the service</li>
+    <li><a href="/php/soap-client/">SOAP client</a> calls it</li>
+    <li><a href="/php/soap-wsdl/">WSDL</a> describes it</li>
+  </ul>
+  <h2>More about soap</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/class.soapclient.php">SoapClient</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/class.soapserver.php">SoapServer</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/SOAP">SOAP</a> on Wikipedia</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

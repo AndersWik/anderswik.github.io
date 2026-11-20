@@ -1,6 +1,6 @@
 {
-  "name": "Base64 encode",
-  "short_name": "Base64 Enc",
+  "name": "Base64",
+  "short_name": "Base64",
   "id": "./app.html",
   "start_url": "./app.html",
   "scope": "./",

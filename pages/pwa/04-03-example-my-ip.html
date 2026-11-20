@@ -1,0 +1,67 @@
+---
+layout: default
+title: "Example: My IP"
+permalink: /pwa/example-my-ip/
+chapter: "04"
+chapter_title: "Port your app"
+keywords: [pwa, example, my ip, fetch, api, network, offline message, online, offline event]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Example: My IP</h1>
+  <p><a href="/other/myip/">My IP</a> shows your public IP address by asking the service <code>api.ipify.org</code>. The app itself, the page, CSS and JavaScript, can be cached like any other. The answer can not: it has to come from the network every time. This is how most real apps look, part offline and part online.</p>
+  <h2>The app's own files are cached</h2>
+  <p>The worker caches the files in the app folder, exactly like <a href="/pwa/example-coin-flip/">Coin Flip</a>. So the app opens instantly, also with no network.</p>
+  <h2>The API call is not</h2>
+  <p>The address <code>https://api.ipify.org?format=json</code> is not in the worker's list, so <code>caches.match()</code> finds nothing and the worker passes it on with <code>fetch()</code>. Offline, that fetch fails, and the page has to deal with it.</p>
+  <pre><code class="language-javascript">self.addEventListener("fetch", function (event) {
+    if (event.request.method !== "GET") return;
+
+    event.respondWith(
+        caches.match(event.request, { ignoreSearch: true }).then(function (cached) {
+            return cached || fetch(event.request);    // The API call ends up here
+        })
+    );
+});</code></pre>
+  <p>Note that <code>ignoreSearch: true</code> ignores everything after <code>?</code>. That is fine here since the API is never cached, but a cache-first worker for an API with values in the address would give the same answer for every value.</p>
+  <h2>Fail with a message</h2>
+  <p>The app was already written to handle errors, so it did not need changing. From <code>assets/myip/myip.js</code>:</p>
+  <pre><code class="language-javascript">async function showMyIp() {
+    ipText.textContent = "Loading...";
+
+    try {
+        const response = await fetch("https://api.ipify.org?format=json");
+
+        // fetch() only throws when there is no network. If the service
+        // answers with an error, like 503, we have to check that ourselves.
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+        const data = await response.json();
+        ipText.textContent = data.ip;
+    } catch (error) {
+        // No network, or the service is down.
+        ipText.textContent = "Could not get your IP";
+    }
+}</code></pre>
+  <p>When porting your own app, search for every <code>fetch(</code> and <code>XMLHttpRequest</code> and check that each one has a <code>catch</code> that shows something sensible.</p>
+  <h2>Try again when back online</h2>
+  <p>The browser fires an <code>online</code> event when the connection comes back. An app can use it to try again by itself:</p>
+  <pre><code class="language-javascript">window.addEventListener("online", showMyIp);
+
+if (!navigator.onLine) {
+    ipText.textContent = "You are offline";
+}</code></pre>
+  <p><code>navigator.onLine</code> being <code>true</code> only means there is a network, not that the internet or the service can be reached. Always handle errors from <code>fetch</code> too.</p>
+  <h2>Remember the last answer</h2>
+  <p>Some apps should show the last known data when offline, like a weather app showing yesterday's forecast. Save the answer in <code>localStorage</code>, see <a href="/pwa/saving-data/">Saving data</a>, or use a <a href="/pwa/caching/">network first</a> worker for the API.</p>
+  <h2>More about My IP</h2>
+  <ul>
+    <li><a href="https://github.com/rdegges/ipify-api">ipify-api</a>, the service the app uses</li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Navigator/onLine">navigator.onLine on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, example, my ip, fetch, api, network, offline message, online, offline event</p>
+  {% include trail.html %}
+</div>

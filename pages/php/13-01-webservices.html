@@ -1,0 +1,54 @@
+---
+layout: default
+title: Web services
+permalink: /php/webservices/
+chapter: "13"
+chapter_title: "Web services"
+keywords: [php, web services, api, rest, rpc, soap, debug requests, getallheaders, "php://input"]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Web services</h1>
+  <p>A web service is an application that other programs talk to over HTTP, instead of people with a browser. The common styles are <a href="/php/rest-api/">REST</a>, <a href="/php/rpc/">RPC</a> and <a href="/php/soap/">SOAP</a>.</p>
+  <h2>Debug requests</h2>
+  <p>When building a web service it helps to see exactly what the client sends. Call this file to save the headers, the parameters and the body of every request to <code>curl.txt</code>. It also sets a cookie, so you can see that the client sends it back on the next request.</p>
+  <p>Only use it while developing. Put the file outside of the public web folder, or remove it afterwards, since it saves everything that is sent, also passwords.</p>
+  <pre><code class="language-php">&lt;?php
+$value = rand (1 , 100);
+setcookie("CookieMonster", $value, time()+3600);
+
+$my_file = 'curl.txt';
+$handle = fopen($my_file, 'w') or die('Cannot open file:  '.$my_file);
+
+fwrite($handle, "============ HEADERS ============\n");
+
+foreach (getallheaders() as $name =&gt; $value) {
+    fwrite($handle, "$name: $value\n");
+}
+
+fwrite($handle, "============ REQUEST ============\n");
+
+$data = print_r($_REQUEST, true);
+fwrite($handle, $data);
+
+fwrite($handle, "============ BODY ============\n");
+
+$data = file_get_contents('php://input');
+fwrite($handle, $data);
+
+fwrite($handle, "\n============ END ============\n");
+
+fclose($handle);</code></pre>
+  <pre><code class="language-bash">$ php -S localhost:8000 debug.php
+$ curl -X POST -d "name=Anna" http://localhost:8000/
+$ cat curl.txt</code></pre>
+  <h2>More about web services</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/refs.webservice.php">Other services</a> in the PHP manual</li>
+    <li><a href="/php/curl/">cURL</a> for calling web services</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

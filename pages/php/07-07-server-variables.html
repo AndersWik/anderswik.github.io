@@ -1,0 +1,48 @@
+---
+layout: default
+title: Server variables
+permalink: /php/server-variables/
+chapter: "07"
+chapter_title: "Web pages"
+keywords: [php, server variables, request headers, response headers, apache_request_headers, getallheaders, headers_list, header]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Server variables</h1>
+  <p>Besides <code>$_SERVER</code> PHP has functions to read the headers of the request and the headers of the response.</p>
+  <h2>Request headers</h2>
+  <p><code>apache_request_headers</code> returns the headers the browser sent. Despite the name it also works with PHP-FPM and the built-in server. <code>getallheaders</code> is another name for the same function.</p>
+  <pre><code class="language-php">&lt;?php
+print_r(apache_request_headers());</code></pre>
+  <pre><code class="language-php">&lt;?php
+foreach (getallheaders() as $name =&gt; $value) {
+  echo htmlspecialchars("$name: $value") . "&lt;br&gt;";
+}</code></pre>
+  <h2>Response headers</h2>
+  <p><code>apache_response_headers</code> only works with Apache. <code>headers_list</code> works everywhere and returns the headers that will be sent.</p>
+  <pre><code class="language-php">&lt;?php
+print_r(apache_response_headers());</code></pre>
+  <pre><code class="language-php">&lt;?php
+header('Content-Type: text/plain; charset=utf-8');
+header('X-Example: Hello');
+
+print_r(headers_list());</code></pre>
+  <h2>Set headers</h2>
+  <p><code>header</code> adds a header to the response. All headers must be sent before any output. <code>headers_sent</code> tells if it is too late.</p>
+  <pre><code class="language-php">&lt;?php
+if (!headers_sent()) {
+  header('Content-Type: application/json');
+}
+echo json_encode(["ok" =&gt; true]);</code></pre>
+  <h2>More about server variables</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.server.php">$_SERVER</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.getallheaders.php">getallheaders</a></li>
+    <li><a href="https://www.php.net/manual/en/function.header.php">header</a></li>
+    <li><a href="/php/status-codes/">Status codes</a> in the HTTP chapter</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

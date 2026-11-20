@@ -1,0 +1,84 @@
+---
+layout: default
+title: Arithmetic operators
+permalink: /php/arithmetic-operators/
+chapter: "04"
+chapter_title: "Operators"
+keywords: [php, arithmetic, operators, plus, minus, multiply, divide, modulo, exponent, increment, decrement]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Arithmetic operators</h1>
+  <p>Arithmetic operators do math with numbers.</p>
+  <pre><code class="language-php">+
+-
+/
+*
+%
+**
+()</code></pre>
+  <h2>Examples</h2>
+  <p><code>%</code> (modulo) gives the remainder of a division. <code>**</code> raises to a power. Parentheses decide what is calculated first, otherwise <code>*</code> and <code>/</code> go before <code>+</code> and <code>-</code>.</p>
+  <pre><code class="language-php">&lt;?php
+echo 5 + 2;
+// Output: 7
+
+echo 5 - 2;
+// Output: 3
+
+echo 5 / 2;
+// Output: 2.5
+
+echo 5 * 2;
+// Output: 10
+
+echo 5 % 2;
+// Output: 1
+
+echo 5 ** 2;
+// Output: 25
+
+echo 2 + 3 * 4;
+// Output: 14
+
+echo (2 + 3) * 4;
+// Output: 20</code></pre>
+  <h2>Division by zero</h2>
+  <p>Dividing by zero throws a <code>DivisionByZeroError</code> since PHP 8.</p>
+  <pre><code class="language-php">&lt;?php
+echo 1 / 0;
+// Output: Fatal error: Uncaught DivisionByZeroError: Division by zero</code></pre>
+  <h2>Assignment operators</h2>
+  <pre><code class="language-php">&lt;?php
+$val = 10;
+
+$val += 5;  // $val = $val + 5
+$val -= 3;  // $val = $val - 3
+$val *= 2;  // $val = $val * 2
+$val /= 4;  // $val = $val / 4
+
+echo $val;
+// Output: 6</code></pre>
+  <h2>Increment and decrement</h2>
+  <p><code>++</code> adds one and <code>--</code> subtracts one. Before the variable it changes the value first, after the variable it returns the old value first.</p>
+  <pre><code class="language-php">&lt;?php
+$i = 5;
+
+echo $i++;
+// Output: 5
+
+echo $i;
+// Output: 6
+
+echo ++$i;
+// Output: 7</code></pre>
+  <h2>More about arithmetic operators</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.operators.arithmetic.php">Arithmetic operators</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.operators.precedence.php">Operator precedence</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

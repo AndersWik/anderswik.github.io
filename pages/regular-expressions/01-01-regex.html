@@ -1,0 +1,145 @@
+---
+layout: default
+title: Regular Expressions
+permalink: /regular-expressions/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [regular expressions, regex, regexp, pattern, flags, metacharacters, introduction]
+---
+
+<div class="regular-expressions container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Regular Expressions</h1>
+  <p>A regular expression is a pattern of characters. You use it to find text that agrees with the pattern. The regular expression reads the text from left to right.</p>
+  <p>Other names for a regular expression are <strong>regex</strong> and <strong>regexp</strong>.</p>
+  <h2>Test a regular expression</h2>
+  <p>You can test a regular expression in a text editor. To use a regular expression in Visual Studio Code, do these steps:</p>
+  <ol>
+    <li>Push Ctrl+F to open the search box.</li>
+    <li>Click the <code>.*</code> button in the search box.</li>
+    <li>Write the regular expression in the search box.</li>
+  </ol>
+  <p>The editor shows each match in the text.</p>
+  <p>The examples in these notes show all the matches in the text. The examples use the <code>g</code> flag (global). The highlighted text is a match:</p>
+  <p class="regex-example">This text is <mark>a match</mark>.</p>
+  <h2>Start and end</h2>
+  <pre><code class="language-text"># Start                 End
+# ▼                     ▼
+  /^[a-z]{3}-?[0-9]{3}$/i</code></pre>
+  <p>In JavaScript, a regular expression starts and ends with a slash (<code>/</code>). In many other tools, for example the search box in an editor, you write only the pattern. You do not write the slashes.</p>
+  <p>This regular expression finds a Swedish car registration number, for example <code>ABC-123</code> or <code>abc123</code>.</p>
+  <h2>Pattern</h2>
+  <pre><code class="language-text">#          Pattern
+#             ▼
+  /^[a-z]{3}-?[0-9]{3}$/i</code></pre>
+  <p>The pattern is the characters between the two slashes. The pattern in the example has these parts:</p>
+  <ul>
+    <li><code>^</code> The match must start at the start of the line.</li>
+    <li><code>[a-z]{3}</code> Three letters.</li>
+    <li><code>-?</code> Zero or one hyphen. The hyphen is optional.</li>
+    <li><code>[0-9]{3}</code> Three digits.</li>
+    <li><code>$</code> The match must stop at the end of the line.</li>
+  </ul>
+  <h2>Flags</h2>
+  <pre><code class="language-text">#                        Flags
+#                        ▼
+  /^[a-z]{3}-?[0-9]{3}$/i</code></pre>
+  <p>Flags come after the last slash. A flag changes how the regular expression finds matches. You can use more than one flag. For example, <code>/abc/gi</code> uses the flags <code>g</code> and <code>i</code>.</p>
+  <ul>
+    <li><code>g</code> Global. Find all the matches, not only the first match.</li>
+    <li><code>i</code> Ignore case. <code>[a-z]</code> also finds the letters <code>A</code> to <code>Z</code>. In the example, <code>ABC-123</code> is a match because of the <code>i</code> flag.</li>
+    <li><code>m</code> Multiline. <code>^</code> and <code>$</code> find the start and the end of each line, not only the start and the end of the text.</li>
+    <li><code>s</code> Dot all. The wildcard <code>.</code> also finds line breaks.</li>
+    <li><code>u</code> Unicode. The regular expression reads the text as Unicode characters. Use this flag for emoji and other special characters.</li>
+    <li><code>y</code> Sticky. The match must start at the position where the last match stopped.</li>
+  </ul>
+  <h2>Metacharacters</h2>
+  <p>A metacharacter is a character with a special function in a regular expression. Each metacharacter has a page in these notes.</p>
+  <ul>
+    <li><code>^</code> <a href="/regular-expressions/starts-and-ends-with/">Starts with</a></li>
+    <li><code>$</code> <a href="/regular-expressions/starts-and-ends-with/">Ends with</a></li>
+    <li><code>[]</code> <a href="/regular-expressions/character-class/">Character class</a></li>
+    <li><code>\</code> <a href="/regular-expressions/predefined-character-classes/">Escape and predefined character classes</a></li>
+    <li><code>.</code> <a href="/regular-expressions/wildcard/">Wildcard</a> (all characters, but not line breaks)</li>
+    <li><code>|</code> <a href="/regular-expressions/or/">Or</a></li>
+    <li><code>()</code> <a href="/regular-expressions/groups/">Groups</a></li>
+    <li><code>?</code> <code>*</code> <code>+</code> <a href="/regular-expressions/quantity/">Quantity</a> (zero or one, zero or more, one or more)</li>
+    <li><code>{}</code> <a href="/regular-expressions/quantifiers/">Quantifiers</a></li>
+  </ul>
+  <h3>Starts with</h3>
+  <p>When a pattern starts with <code>^</code>, the match must be at the start of the line.</p>
+  <pre><code class="language-regex">/^[ABC]/</code></pre>
+  <p class="regex-example"><mark>A</mark>BCDEFG</p>
+  <p>The text starts with <code>A</code>, so <code>A</code> is a match. <code>B</code> and <code>C</code> are not matches, because they are not at the start of the line.</p>
+  <p class="regex-example">DEFGABC</p>
+  <p>There is no match. The text does not start with <code>A</code>, <code>B</code> or <code>C</code>.</p>
+  <h3>Ends with</h3>
+  <p>When a pattern ends with <code>$</code>, the match must be at the end of the line.</p>
+  <pre><code class="language-regex">/[ABC]$/</code></pre>
+  <p class="regex-example">DEFGAB<mark>C</mark></p>
+  <p>The text ends with <code>C</code>, so <code>C</code> is a match.</p>
+  <p class="regex-example">ABCDEFG</p>
+  <p>There is no match. The text does not end with <code>A</code>, <code>B</code> or <code>C</code>.</p>
+  <h3>Wildcard</h3>
+  <p>The wildcard <code>.</code> finds all characters, also spaces and tabs. It does not find line breaks.</p>
+  <p>To find a real period (<code>.</code>), put a backslash (<code>\</code>) before it. This is an escape. Then the period is a usual character, not a wildcard.</p>
+  <pre><code class="language-regex">/\./</code></pre>
+  <p class="regex-example">ABC<mark>.</mark>DEF<mark>.</mark>GHI<mark>.</mark></p>
+  <p>The regular expression finds each period in the text.</p>
+  <h3>Escape and predefined character classes</h3>
+  <p>The backslash (<code>\</code>) has two functions:</p>
+  <ul>
+    <li>It changes a metacharacter into a usual character. For example, <code>\.</code> finds a period and <code>\?</code> finds a question mark.</li>
+    <li>It makes predefined character classes. Each class finds one type of character.</li>
+  </ul>
+  <p>The predefined character classes are:</p>
+  <ul>
+    <li><code>\d</code> Digit (<code>0-9</code>)</li>
+    <li><code>\D</code> Not a digit</li>
+    <li><code>\w</code> Word character (<code>a-z</code>, <code>A-Z</code>, <code>0-9</code> and <code>_</code>)</li>
+    <li><code>\W</code> Not a word character</li>
+    <li><code>\s</code> White space (space, tab and line break)</li>
+    <li><code>\S</code> Not white space</li>
+    <li><code>\b</code> Word boundary (the position between a word character and a character that is not a word character)</li>
+    <li><code>\B</code> Not a word boundary</li>
+  </ul>
+  <h3>Character classes</h3>
+  <p>Use brackets (<code>[]</code>) to make your own character class. The class finds one character that is in the brackets.</p>
+  <pre><code class="language-regex">/[ADG]/</code></pre>
+  <p class="regex-example"><mark>A</mark>BC<mark>D</mark>EF<mark>G</mark>HI</p>
+  <p>The regular expression finds <code>A</code>, <code>D</code> and <code>G</code>.</p>
+  <p>When <code>^</code> is the first character in the brackets, the class is inverted. The class then finds one character that is not in the brackets.</p>
+  <pre><code class="language-regex">/[^ADG]/</code></pre>
+  <p class="regex-example">A<mark>BC</mark>D<mark>EF</mark>G<mark>HI</mark></p>
+  <p>The regular expression finds <code>B</code>, <code>C</code>, <code>E</code>, <code>F</code>, <code>H</code> and <code>I</code>.</p>
+  <h3>Or</h3>
+  <p>The vertical bar (<code>|</code>) means "or". The regular expression finds the pattern on the left side or the pattern on the right side.</p>
+  <pre><code class="language-regex">/cat|dog/</code></pre>
+  <p class="regex-example">A <mark>cat</mark> and a <mark>dog</mark>.</p>
+  <h3>Quantity and quantifiers</h3>
+  <p>A quantity tells how many times the character before it can occur.</p>
+  <ul>
+    <li><code>?</code> Zero or one time</li>
+    <li><code>*</code> Zero or more times</li>
+    <li><code>+</code> One or more times</li>
+    <li><code>{3}</code> Exactly three times</li>
+    <li><code>{3,}</code> Three or more times</li>
+    <li><code>{3,5}</code> From three to five times</li>
+  </ul>
+  <pre><code class="language-regex">/[0-9]+/</code></pre>
+  <p class="regex-example">Room <mark>12</mark>, floor <mark>3</mark>.</p>
+  <p>The regular expression finds each group of one or more digits.</p>
+  <h3>Groups</h3>
+  <p>Parentheses (<code>()</code>) make a group. A group combines characters into one part of the pattern. A quantity after a group applies to all of the group.</p>
+  <pre><code class="language-regex">/(ha)+/</code></pre>
+  <p class="regex-example">He said <mark>haha</mark>.</p>
+  <p>The group <code>(ha)</code> occurs two times, so the match is <code>haha</code>.</p>
+  <h2>More about regular expressions</h2>
+  <ul>
+    <li><a href="/regular-expressions/links/">Links</a> to guides and references</li>
+    <li><a href="/utils/page-search/">Page Search</a>: search many web pages with a regular expression</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

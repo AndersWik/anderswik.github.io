@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hello PWA</title>
+  <!-- The manifest makes the page installable. See /pwa/manifest/ -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #f3f4f6;
+      color: #1b1d21;
+      text-align: center;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    #status { color: #555; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Hello, world!</h1>
+    <p>This page is a Progressive Web App.</p>
+    <p id="status">Checking the service worker...</p>
+  </main>
+
+  <script>
+    // Register the service worker, see /pwa/service-worker/
+    var statusText = document.getElementById("status");
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js")
+        .then(function () { statusText.textContent = "Ready to work offline."; })
+        .catch(function () { statusText.textContent = "The service worker could not start."; });
+    } else {
+      statusText.textContent = "This browser has no service workers.";
+    }
+  </script>
+</body>
+</html>

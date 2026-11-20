@@ -1,0 +1,124 @@
+---
+layout: default
+title: XML
+permalink: /php/xml/
+chapter: "11"
+chapter_title: "Files and formats"
+keywords: [php, xml, simplexml, domdocument, xpath, xmlreader, xmlwriter]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>XML</h1>
+  <p>PHP has several ways to work with XML. SimpleXML is the easiest for reading, DOMDocument can both read and change a document, and XMLReader and XMLWriter work with big files without loading them into memory.</p>
+  <p>The examples use this file, <code>books.xml</code>.</p>
+  <pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;books&gt;
+  &lt;book id="1"&gt;
+    &lt;title&gt;PHP&lt;/title&gt;
+    &lt;price&gt;200&lt;/price&gt;
+  &lt;/book&gt;
+  &lt;book id="2"&gt;
+    &lt;title&gt;MySQL&lt;/title&gt;
+    &lt;price&gt;150&lt;/price&gt;
+  &lt;/book&gt;
+&lt;/books&gt;</code></pre>
+  <h2>Simple XML</h2>
+  <p><code>simplexml_load_file</code> reads a file and <code>simplexml_load_string</code> reads a string. Elements are reached as properties and attributes as array keys.</p>
+  <pre><code class="language-php">&lt;?php
+$books = simplexml_load_file(__DIR__ . "/books.xml");
+
+foreach ($books-&gt;book as $book) {
+  echo $book["id"] . ": " . $book-&gt;title . " " . $book-&gt;price . "\n";
+}
+// Output: 1: PHP 200
+//         2: MySQL 150
+
+echo (int) $books-&gt;book[1]-&gt;price;
+// Output: 150</code></pre>
+  <p><code>xpath</code> finds elements with a query.</p>
+  <pre><code class="language-php">&lt;?php
+foreach ($books-&gt;xpath("//book[price &gt; 160]") as $book) {
+  echo $book-&gt;title;
+}
+// Output: PHP</code></pre>
+  <h2>The DOMDocument class</h2>
+  <p>DOMDocument builds and changes documents. Text added with <code>createTextNode</code> is escaped, so <code>&amp;</code> becomes <code>&amp;amp;</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$dom = new DOMDocument("1.0", "UTF-8");
+$dom-&gt;formatOutput = true;
+
+$books = $dom-&gt;createElement("books");
+$dom-&gt;appendChild($books);
+
+$book = $dom-&gt;createElement("book");
+$book-&gt;setAttribute("id", "1");
+$books-&gt;appendChild($book);
+
+$title = $dom-&gt;createElement("title");
+$title-&gt;appendChild($dom-&gt;createTextNode("PHP &amp; MySQL"));
+$book-&gt;appendChild($title);
+
+echo $dom-&gt;saveXML();</code></pre>
+  <pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;books&gt;
+  &lt;book id="1"&gt;
+    &lt;title&gt;PHP &amp;amp; MySQL&lt;/title&gt;
+  &lt;/book&gt;
+&lt;/books&gt;</code></pre>
+  <p>Reading works with <code>getElementsByTagName</code> or <code>DOMXPath</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$dom = new DOMDocument();
+$dom-&gt;load(__DIR__ . "/books.xml");
+
+foreach ($dom-&gt;getElementsByTagName("title") as $title) {
+  echo $title-&gt;textContent . "\n";
+}
+
+$xpath = new DOMXPath($dom);
+echo $xpath-&gt;query("//book[@id='2']/title")-&gt;item(0)-&gt;textContent;
+// Output: MySQL</code></pre>
+  <h2>XMLReader</h2>
+  <p>XMLReader reads one node at a time, so files of any size can be read.</p>
+  <pre><code class="language-php">&lt;?php
+$reader = new XMLReader();
+$reader-&gt;open(__DIR__ . "/books.xml");
+
+while ($reader-&gt;read()) {
+  if ($reader-&gt;nodeType === XMLReader::ELEMENT &amp;&amp; $reader-&gt;name === "title") {
+    echo $reader-&gt;readString() . "\n";
+  }
+}
+$reader-&gt;close();
+// Output: PHP
+//         MySQL</code></pre>
+  <h2>XMLWriter</h2>
+  <p>XMLWriter writes XML piece by piece. <code>writeElement</code> escapes the text.</p>
+  <pre><code class="language-php">&lt;?php
+$writer = new XMLWriter();
+$writer-&gt;openMemory();
+$writer-&gt;setIndent(true);
+$writer-&gt;startDocument("1.0", "UTF-8");
+
+$writer-&gt;startElement("books");
+$writer-&gt;startElement("book");
+$writer-&gt;writeAttribute("id", "1");
+$writer-&gt;writeElement("title", "PHP &amp; MySQL");
+$writer-&gt;endElement();
+$writer-&gt;endElement();
+
+$writer-&gt;endDocument();
+echo $writer-&gt;outputMemory();</code></pre>
+  <h2>Security</h2>
+  <p>XML from others can contain external entities that read files from the server (XXE). Since PHP 8 they are not loaded by default. Do not pass the flag <code>LIBXML_NOENT</code> when reading XML you do not trust.</p>
+  <h2>More about xml</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/book.simplexml.php">SimpleXML</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/class.domdocument.php">DOMDocument</a></li>
+    <li><a href="https://www.php.net/manual/en/book.xmlreader.php">XMLReader</a></li>
+    <li><a href="https://www.php.net/manual/en/book.xmlwriter.php">XMLWriter</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,69 @@
+---
+layout: default
+title: Quantity
+permalink: /regular-expressions/quantity/
+chapter: "03"
+chapter_title: "Combine and repeat"
+keywords: [regular expressions, regex, quantity, greedy, lazy, not greedy, optional, zero or one, zero or more, one or more, "?", "*", "+"]
+---
+
+<div class="regular-expressions container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>? * + Quantity</h1>
+  <p>A quantity tells how many times the character before it can occur.</p>
+  <ul>
+    <li><code>?</code> Zero or one time</li>
+    <li><code>*</code> Zero or more times</li>
+    <li><code>+</code> One or more times</li>
+  </ul>
+  <h2>Greedy and not greedy</h2>
+  <p>Usually, a quantity is greedy. A greedy quantity finds as many characters as possible.</p>
+  <p>Put a question mark (<code>?</code>) after a quantity to make it not greedy. A quantity that is not greedy finds as few characters as possible.</p>
+  <h2>? Zero or one</h2>
+  <p><code>?</code> finds the character before it zero times or one time. Use it for a character that is optional.</p>
+  <p>Greedy:</p>
+  <pre><code class="language-regex">/^[0-9]?/</code></pre>
+  <p class="regex-example"><mark>1</mark>23: This text starts and ends 123</p>
+  <p>The greedy <code>?</code> finds one digit if possible. The match is <code>1</code>.</p>
+  <p>Not greedy:</p>
+  <pre><code class="language-regex">/^[0-9]??/</code></pre>
+  <p class="regex-example">123: This text starts and ends 123</p>
+  <p>The <code>?</code> that is not greedy finds zero digits if possible. The match is empty, so the example shows no highlighted text.</p>
+  <h2>* Zero or more</h2>
+  <p><code>*</code> finds the character before it zero or more times.</p>
+  <p>Greedy:</p>
+  <pre><code class="language-regex">/^[0-9]*/</code></pre>
+  <p class="regex-example"><mark>123</mark>: This text starts and ends 123</p>
+  <p>The greedy <code>*</code> finds all the digits at the start of the line. The match is <code>123</code>.</p>
+  <p>Not greedy:</p>
+  <pre><code class="language-regex">/^[0-9]*?/</code></pre>
+  <p class="regex-example">123: This text starts and ends 123</p>
+  <p>The <code>*</code> that is not greedy finds zero digits if possible. The match is empty.</p>
+  <h2>+ One or more</h2>
+  <p><code>+</code> finds the character before it one or more times.</p>
+  <p>Greedy:</p>
+  <pre><code class="language-regex">/^[0-9]+/</code></pre>
+  <p class="regex-example"><mark>123</mark>: This text starts and ends 123</p>
+  <p>The greedy <code>+</code> finds all the digits at the start of the line. The match is <code>123</code>.</p>
+  <p>Not greedy:</p>
+  <pre><code class="language-regex">/^[0-9]+?/</code></pre>
+  <p class="regex-example"><mark>1</mark>23: This text starts and ends 123</p>
+  <p>The <code>+</code> that is not greedy finds as few digits as possible. It must find one digit, so the match is <code>1</code>.</p>
+  <h2>When to use a quantity that is not greedy</h2>
+  <p>A quantity that is not greedy is usually followed by more of the pattern. The quantity then stops at the first position where the remaining pattern agrees.</p>
+  <p>Greedy:</p>
+  <pre><code class="language-regex">/&lt;.+&gt;/</code></pre>
+  <p class="regex-example"><mark>&lt;b&gt;bold&lt;/b&gt;</mark></p>
+  <p>The greedy <code>.+</code> finds as many characters as possible. The match continues to the last <code>&gt;</code> in the line.</p>
+  <p>Not greedy:</p>
+  <pre><code class="language-regex">/&lt;.+?&gt;/</code></pre>
+  <p class="regex-example"><mark>&lt;b&gt;</mark>bold<mark>&lt;/b&gt;</mark></p>
+  <p>The <code>.+?</code> that is not greedy stops at the first <code>&gt;</code>. Each HTML tag is a separate match.</p>
+  <h2>More about quantity</h2>
+  <ul>
+    <li>To give an exact number of times, use braces. See <a href="/regular-expressions/quantifiers/">Quantifiers</a>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

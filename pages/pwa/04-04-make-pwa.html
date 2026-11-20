@@ -1,0 +1,79 @@
+---
+layout: default
+title: Many apps at once
+permalink: /pwa/make-pwa/
+chapter: "04"
+chapter_title: "Port your app"
+keywords: [pwa, make-pwa.py, script, python, automate, generate, pwa.yml, jekyll, many apps]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Many apps at once</h1>
+  <p>Doing the steps in <a href="/pwa/example-coin-flip/">Coin Flip</a> by hand for 30 apps would be slow, and every time a game changed its <code>app.html</code> and file list would have to be updated too. Instead this site has a Python script, <code>_scripts/make-pwa.py</code>, that makes everything from a list.</p>
+  <h2>The list</h2>
+  <p><code>_data/pwa.yml</code> has one line for every app. Jekyll reads the same file to show the <em>Install as an app</em> links.</p>
+  <pre><code class="language-bash">#   slug        folder in assets/ (and the app's id)
+#   page        the page the app is made from
+#   name        full name (default: the page title)
+#   short_name  name under the icon on a home screen, max about 12 characters
+#   emoji       icon picture
+#   label       optional short text under the emoji, for apps with the same emoji
+
+- { slug: coin-flip, page: pages/games/coin-flip.html, short_name: Coin Flip, emoji: "🪙" }
+- { slug: calculator, page: pages/utils/calculator.html, short_name: Calculator, emoji: "🧮" }
+- { slug: reversi-ai, page: pages/games/reversi-ai.html, short_name: Reversi AI, emoji: "🌗", label: AI }</code></pre>
+  <h2>Run it</h2>
+  <pre><code class="language-bash">$ sudo apt install python3-yaml python3-pil fonts-noto-color-emoji
+$ python3 _scripts/make-pwa.py              # All apps
+$ python3 _scripts/make-pwa.py coin-flip    # Only some apps
+coin-flip                   16 files  Coin Flip</code></pre>
+  <p>Run it again after changing a page, any file in an app's folder or the list. Then build and deploy the site as usual.</p>
+  <h2>What it does for every app</h2>
+  <ol>
+    <li><strong>Reads the page.</strong> Splits the Jekyll page into front matter and HTML. The <code>css</code> and <code>js</code> lists in the front matter say which files the app needs.</li>
+    <li><strong>Cleans the HTML.</strong> Removes the link to the tutorial and <code>{% raw %}{{ site.baseurl }}{% endraw %}</code>. If any other Liquid tag is left it stops with an error, since it can not run Jekyll.</li>
+    <li><strong>Draws the icons</strong> from the emoji, see <a href="/pwa/icons/">Icons</a>.</li>
+    <li><strong>Writes app.html</strong> with the head, the cleaned HTML, the scripts and the service worker registration. Bootstrap's JavaScript is only added if the HTML uses it, like an accordion.</li>
+    <li><strong>Writes manifest.webmanifest.</strong></li>
+    <li><strong>Writes sw.js</strong> with every file in the app's folder, the page's CSS and JavaScript, and the site files every app uses. It checks that each file exists, so a typo is found now and not when a user is offline.</li>
+  </ol>
+  <h2>Reading the front matter</h2>
+  <pre><code class="language-python">def read_page(path):
+    """Return the front matter (a dict) and the HTML after it."""
+    text = path.read_text(encoding="utf-8")
+    match = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.S)
+    if not match:
+        sys.exit(f"{path}: no front matter")
+    return yaml.safe_load(match.group(1)) or {}, match.group(2)</code></pre>
+  <h2>Finding the files to cache</h2>
+  <pre><code class="language-python">local = sorted(
+    "/" + str(path.relative_to(ROOT))
+    for path in folder.rglob("*")
+    if path.is_file() and path.name not in SKIP_FILES
+)
+for href in css + js + SITE_FILES:
+    if href not in local:
+        local.append(href)
+for href in local:
+    if not (ROOT / href.lstrip("/")).is_file():
+        sys.exit(f"{slug}: {href} does not exist")</code></pre>
+  <p>The same list is hashed to make the cache name, so a new version is picked up by itself, see <a href="/pwa/updates/">Updates</a>.</p>
+  <h2>Add a new app</h2>
+  <ol>
+    <li>Make sure the app works on a phone without a keyboard, and that all its files are listed in the page's front matter or are in its folder in <code>assets/</code>.</li>
+    <li>Add a line to <code>_data/pwa.yml</code> with a slug that matches its folder, and pick an emoji.</li>
+    <li>Run <code>python3 _scripts/make-pwa.py &lt;slug&gt;</code>.</li>
+    <li>Open <code>/assets/&lt;slug&gt;/app.html</code> on localhost, install it and test it offline, see <a href="/pwa/devtools/">DevTools</a>.</li>
+  </ol>
+  <h2>Why not a plugin?</h2>
+  <p>There are Jekyll plugins and tools like Workbox that make service workers. GitHub Pages only runs a few approved plugins, and a small script that you can read in one sitting is easier to understand than a tool. For a bigger app built with a bundler like Vite, <a href="https://vite-pwa-org.netlify.app/">vite-plugin-pwa</a> does the same job.</p>
+  <h2>More about the script</h2>
+  <ul>
+    <li>The source is <code>_scripts/make-pwa.py</code> in this site's repository</li>
+    <li><a href="https://developer.chrome.com/docs/workbox">Workbox</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, make-pwa.py, script, python, automate, generate, pwa.yml, jekyll, many apps</p>
+  {% include trail.html %}
+</div>

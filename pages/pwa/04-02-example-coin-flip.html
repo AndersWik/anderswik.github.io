@@ -1,0 +1,125 @@
+---
+layout: default
+title: "Example: Coin Flip"
+permalink: /pwa/example-coin-flip/
+chapter: "04"
+chapter_title: "Port your app"
+keywords: [pwa, example, coin flip, game, port, app.html, jekyll, front matter]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Example: Coin Flip</h1>
+  <p><a href="/games/coin-flip/">Coin Flip</a> is one of the simplest games on this site: one page, one CSS file, one JavaScript file and two pictures. No network and nothing to save. Here is how it went from a page on the site to an app you can <a href="/assets/coin-flip/app.html">install</a>.</p>
+  <h2>Before: a page on the site</h2>
+  <p>The game is a Jekyll page, <code>pages/games/coin-flip.html</code>. The front matter at the top lists its CSS and JavaScript, and the layout adds the site's header, footer and Bootstrap around it.</p>
+  <pre><code class="language-html">{% raw %}---
+layout: game
+title: Coin Flip
+permalink: /games/coin-flip/
+css:
+  - /assets/coin-flip/coin-flip.css
+js:
+  - /assets/coin-flip/coin-flip.js
+---
+&lt;div class="container"&gt;
+  &lt;h1&gt;Coin Flip&lt;/h1&gt;
+  &lt;div class="result" id="resultCoinHeads"&gt;
+    &lt;img src="{{ site.baseurl }}/assets/coin-flip/images/head.svg" alt="Front of bitcoin coin" /&gt;
+  &lt;/div&gt;
+  ...
+  &lt;button type="button" id="flipCoinBtn"&gt;Flip Coin!&lt;/button&gt;
+&lt;/div&gt;
+&lt;p class="text-center mt-4"&gt;&lt;a href="/tutorials/coin-flip/"&gt;How to build this game&lt;/a&gt;&lt;/p&gt;{% endraw %}</code></pre>
+  <h2>After: assets/coin-flip/</h2>
+  <pre><code class="language-bash">assets/coin-flip/
+├── app.html                  # New: the game without the site around it
+├── manifest.webmanifest      # New
+├── sw.js                     # New
+├── coin-flip.css
+├── coin-flip.js
+└── images/
+    ├── favicon.ico
+    ├── favicon.svg
+    ├── head.svg
+    ├── tails.svg
+    ├── icon-192.png          # New
+    ├── icon-512.png          # New
+    ├── icon-maskable-512.png # New
+    └── apple-touch-icon.png  # New</code></pre>
+  <p>The game's own files, <code>coin-flip.js</code> and <code>coin-flip.css</code>, were not changed at all.</p>
+  <h2>app.html</h2>
+  <p>The same HTML as the page, with these changes:</p>
+  <ul>
+    <li>A full <code>&lt;head&gt;</code> with the manifest, theme color and icons, since there is no layout to add one.</li>
+    <li>The stylesheets from the front matter, plus Bootstrap and the site's <code>style.css</code> that the layout used to add.</li>
+    <li><code>{% raw %}{{ site.baseurl }}{% endraw %}</code> removed, so the paths are plain.</li>
+    <li>The link to the tutorial removed, it leads out of the app.</li>
+    <li>A little padding at the top, since there is no header any more.</li>
+    <li>The script tags from the front matter, and the service worker registration, at the end.</li>
+  </ul>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Coin Flip&lt;/title&gt;
+
+  &lt;link rel="manifest" href="manifest.webmanifest"&gt;
+  &lt;meta name="theme-color" content="#1b1d21"&gt;
+  &lt;link rel="icon" href="images/icon-192.png" type="image/png"&gt;
+  &lt;link rel="apple-touch-icon" href="images/apple-touch-icon.png"&gt;
+  &lt;meta name="apple-mobile-web-app-title" content="Coin Flip"&gt;
+
+  &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"&gt;
+  &lt;link rel="stylesheet" href="/css/style.css"&gt;
+  &lt;link rel="stylesheet" href="/assets/coin-flip/coin-flip.css"&gt;
+  &lt;style&gt;
+    .game { padding-block: 16px; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="game"&gt;
+&lt;div class="container"&gt;
+  &lt;h1&gt;Coin Flip&lt;/h1&gt;
+  &lt;div class="result" id="resultCoinHeads"&gt;
+    &lt;img src="/assets/coin-flip/images/head.svg" alt="Front of bitcoin coin" /&gt;
+  &lt;/div&gt;
+  ...
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script src="/assets/coin-flip/coin-flip.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>sw.js</h2>
+  <p>The same worker as in <a href="/pwa/service-worker/">Service worker</a>, with the game's files in the list:</p>
+  <pre><code class="language-javascript">const FILES = [
+    "/assets/coin-flip/app.html",
+    "/assets/coin-flip/coin-flip.css",
+    "/assets/coin-flip/coin-flip.js",
+    "/assets/coin-flip/images/head.svg",
+    "/assets/coin-flip/images/tails.svg",
+    "/assets/coin-flip/images/icon-192.png",
+    "/assets/coin-flip/manifest.webmanifest",
+    "/css/style.css",
+    "/assets/fonts/Ubuntu/Ubuntu-Regular.ttf",
+    "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+];</code></pre>
+  <h2>The link from the site</h2>
+  <p>Last, the game's page needs to tell people they can install it. On this site that is one line in <code>_data/pwa.yml</code>, which also makes the <em>Install as an app</em> link show up below the game, see <a href="/pwa/install/">Install</a>.</p>
+  <pre><code class="language-bash">- { slug: coin-flip, page: pages/games/coin-flip.html, short_name: Coin Flip, emoji: "🪙" }</code></pre>
+  <h2>More about Coin Flip</h2>
+  <ul>
+    <li><a href="/tutorials/coin-flip/">How to build the Coin Flip game</a></li>
+    <li>All of these files are made by one script, see <a href="/pwa/make-pwa/">Many apps at once</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, example, coin flip, game, port, app.html, jekyll, front matter</p>
+  {% include trail.html %}
+</div>

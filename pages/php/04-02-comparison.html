@@ -1,0 +1,163 @@
+---
+layout: default
+title: Comparison operators
+permalink: /php/comparison-operators/
+chapter: "04"
+chapter_title: "Operators"
+keywords: [php, comparison, operators, equals, identical, not equals, less than, greater than, spaceship, null coalescing]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Comparison operators</h1>
+  <p>Comparison operators compare two values and return <code>true</code> or <code>false</code>.</p>
+  <h2>Loose equals</h2>
+  <p><code>==</code> compares the values after converting them to the same type. <code>0</code> and <code>false</code> are equal.</p>
+  <pre><code class="language-php">&lt;?php
+if (0 == false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering the If.</code></pre>
+  <h2>Strict equals</h2>
+  <p><code>===</code> also compares the type. <code>0</code> is an integer and <code>false</code> is a boolean, so they are not identical. Prefer <code>===</code>, it avoids many surprises.</p>
+  <pre><code class="language-php">&lt;?php
+if (0 === false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering else.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (0 === 0) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering the If.</code></pre>
+  <h2>Loose not equals</h2>
+  <pre><code class="language-php">&lt;?php
+if (0 != false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering else.</code></pre>
+  <h2>Strict not equals</h2>
+  <pre><code class="language-php">&lt;?php
+if (0 !== false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (false !== false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering else.</code></pre>
+  <h2>Loose not equals with <></h2>
+  <p><code>&lt;&gt;</code> is the same as <code>!=</code>.</p>
+  <pre><code class="language-php">&lt;?php
+if (0 &lt;&gt; false) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering else.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (0 &lt;&gt; 1) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering the If.</code></pre>
+  <h2>Less than</h2>
+  <pre><code class="language-php">&lt;?php
+if (0 &lt; 1) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (1 &lt; 0) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering else.</code></pre>
+  <h2>Less than or equals</h2>
+  <pre><code class="language-php">&lt;?php
+if (1 &lt;= 1) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (1 &lt;= 0) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering else.</code></pre>
+  <h2>More than</h2>
+  <pre><code class="language-php">&lt;?php
+if (1 &gt; 0) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (1 &gt; 1) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering else.</code></pre>
+  <h2>More than or equals</h2>
+  <pre><code class="language-php">&lt;?php
+if (1 &gt;= 0) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering the If.</code></pre>
+  <pre><code class="language-php">&lt;?php
+if (0 &gt;= 1) {
+  echo "Entering the If.";
+} else {
+  echo "Entering else.";
+}
+// Output: Entering else.</code></pre>
+  <h2>Spaceship</h2>
+  <p><code>&lt;=&gt;</code> returns <code>-1</code> if the left value is smaller, <code>0</code> if they are equal and <code>1</code> if the left value is bigger. It is mostly used when sorting.</p>
+  <pre><code class="language-php">&lt;?php
+echo 1 &lt;=&gt; 2;
+// Output: -1
+
+echo 2 &lt;=&gt; 2;
+// Output: 0
+
+echo 3 &lt;=&gt; 2;
+// Output: 1</code></pre>
+  <h2>Null coalescing</h2>
+  <p><code>??</code> returns the left value if it exists and is not null, otherwise the right value. It does not give a warning for missing variables or keys.</p>
+  <pre><code class="language-php">&lt;?php
+$name = $_GET["name"] ?? "Guest";
+echo $name;
+// Output: Guest</code></pre>
+  <h2>More about comparison operators</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.operators.comparison.php">Comparison operators</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/types.comparisons.php">Type comparison tables</a> shows the result of <code>==</code> and <code>===</code> for different types</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

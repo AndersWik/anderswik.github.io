@@ -1,0 +1,53 @@
+---
+layout: default
+title: web-ext
+permalink: /firefox-plugins/web-ext/
+chapter: "04"
+chapter_title: "Testing"
+keywords: [firefox, extension, web-ext, run, lint, build, sign, android, node, npm, command line]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>web-ext</h1>
+  <p><code>web-ext</code> is Mozilla's command line tool for extensions. It does the same things as <code>about:debugging</code> and addons.mozilla.org, but from the terminal.</p>
+  <h2>Install</h2>
+  <pre><code class="language-bash">$ sudo apt install nodejs npm
+$ npm install --global web-ext
+$ web-ext --version</code></pre>
+  <p>Or run it once without installing, with <code>npx web-ext ...</code>. Every command below is run in the extension's folder, or given <code>--source-dir</code>.</p>
+  <h2>Run</h2>
+  <p>Starts a new Firefox with a clean profile and the extension loaded. When a file changes, the extension is reloaded by itself.</p>
+  <pre><code class="language-bash">$ cd _extensions/8-ball
+$ web-ext run
+$ web-ext run --firefox=firefoxdeveloperedition       # Another Firefox
+$ web-ext run --start-url about:debugging             # Open a page at start</code></pre>
+  <p>With <code>make-extension.py</code> the folder is replaced on every build, so run the script and <code>web-ext run</code> picks up the new files.</p>
+  <h2>Lint</h2>
+  <p>Checks the extension the same way addons.mozilla.org does when you upload: a broken manifest, missing files, unsafe code, inline scripts. Run it before every upload.</p>
+  <pre><code class="language-bash">$ web-ext lint
+Validation Summary:
+errors          0
+notices         0
+warnings        0</code></pre>
+  <h2>Build</h2>
+  <p>Makes the zip for upload into <code>web-ext-artifacts/</code>. Our script already makes <code>_extensions/&lt;slug&gt;.zip</code>, so this is only needed for extensions made by hand.</p>
+  <pre><code class="language-bash">$ web-ext build</code></pre>
+  <h2>Sign</h2>
+  <p>Uploads the extension to addons.mozilla.org for signing and downloads the signed <code>.xpi</code>. It needs API keys from <a href="https://addons.mozilla.org/developers/addon/api/key/">addons.mozilla.org, Manage API Keys</a>. See <a href="/firefox-plugins/signing/">Signing</a>.</p>
+  <pre><code class="language-bash">$ web-ext sign --channel=unlisted --api-key=$AMO_JWT_ISSUER --api-secret=$AMO_JWT_SECRET</code></pre>
+  <p>Keep the keys out of git. Put them in environment variables, not in a file in the repository.</p>
+  <h2>Firefox for Android</h2>
+  <p>Turn on USB debugging on the phone, connect it, and in Firefox for Android turn on <em>Settings</em>, <em>Remote debugging via USB</em>. Then:</p>
+  <pre><code class="language-bash">$ sudo apt install adb
+$ adb devices                                           # Find the device id
+$ web-ext run --target=firefox-android --android-device=&lt;id&gt;</code></pre>
+  <h2>More about web-ext</h2>
+  <ul>
+    <li><a href="https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/">Getting started with web-ext</a></li>
+    <li><a href="https://extensionworkshop.com/documentation/develop/web-ext-command-reference/">web-ext command reference</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, web-ext, run, lint, build, sign, android, node, npm, command line</p>
+  {% include trail.html %}
+</div>

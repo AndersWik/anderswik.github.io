@@ -1,0 +1,34 @@
+---
+layout: default
+title: Wildcard
+permalink: /regular-expressions/wildcard/
+chapter: "02"
+chapter_title: "Characters"
+keywords: [regular expressions, regex, wildcard, dot, period, any character, "."]
+---
+
+<div class="regular-expressions container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>. Wildcard</h1>
+  <p>The period (<code>.</code>) is a wildcard. It finds one character of any type, also spaces and tabs. It does not find a line break (<code>\n</code>).</p>
+  <pre><code class="language-regex">/./</code></pre>
+  <p class="regex-example"><mark>1: This text starts and ends 1</mark></p>
+  <p>The wildcard finds each character in the line. Each character is a separate match.</p>
+  <h2>A wildcard in a pattern</h2>
+  <p>Use the wildcard when a character can change.</p>
+  <pre><code class="language-regex">/t.xt/</code></pre>
+  <p class="regex-example"><mark>text</mark>, <mark>tixt</mark>, <mark>t xt</mark>, txt</p>
+  <p>The pattern finds "t", one character of any type, and then "xt". "txt" is not a match, because the wildcard must find one character.</p>
+  <h2>A period, not a wildcard</h2>
+  <p>To find a real period, put a backslash (<code>\</code>) before it.</p>
+  <pre><code class="language-regex">/\./</code></pre>
+  <p class="regex-example">www<mark>.</mark>example<mark>.</mark>com</p>
+  <h2>More about wildcards</h2>
+  <ul>
+    <li>Use the <code>s</code> flag to make the wildcard also find line breaks. See <a href="/regular-expressions/introduction/#flags">Flags</a>.</li>
+    <li><code>.*</code> finds all the characters to the end of the line. See <a href="/regular-expressions/quantity/">Quantity</a>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

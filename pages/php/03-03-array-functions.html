@@ -1,0 +1,108 @@
+---
+layout: default
+title: Array functions
+permalink: /php/array-functions/
+chapter: "03"
+chapter_title: "Arrays"
+keywords: [php, array functions, explode, implode, array_filter, array_map, array_column, in_array, array_keys, array_merge, usort]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Array functions</h1>
+  <p>PHP has many functions that work on arrays. These are some of the most useful.</p>
+  <h2>Explode</h2>
+  <p><code>explode</code> splits a string into an array.</p>
+  <pre><code class="language-php">&lt;?php
+$val = explode(",", "red,green,blue");
+print_r($val);
+// Output: Array ( [0] =&gt; red [1] =&gt; green [2] =&gt; blue )</code></pre>
+  <h2>Implode</h2>
+  <p><code>implode</code> joins the values of an array into a string.</p>
+  <pre><code class="language-php">&lt;?php
+echo implode(", ", ["red", "green", "blue"]);
+// Output: red, green, blue</code></pre>
+  <h2>Array filter</h2>
+  <p><code>array_filter</code> keeps the values where the function returns true. The keys are kept, so use <code>array_values</code> to number them from <code>0</code> again.</p>
+  <pre><code class="language-php">&lt;?php
+$numbers = [1, 2, 3, 4];
+
+$even = array_filter($numbers, function ($n) {
+  return $n % 2 == 0;
+});
+print_r($even);
+// Output: Array ( [1] =&gt; 2 [3] =&gt; 4 )
+
+print_r(array_values($even));
+// Output: Array ( [0] =&gt; 2 [1] =&gt; 4 )</code></pre>
+  <p>Without a function <code>array_filter</code> removes all values that are false, like <code>""</code>, <code>0</code> and <code>null</code>.</p>
+  <pre><code class="language-php">&lt;?php
+print_r(array_filter(["a", "", null, "b"]));
+// Output: Array ( [0] =&gt; a [3] =&gt; b )</code></pre>
+  <h2>Array Map</h2>
+  <p><code>array_map</code> runs a function on every value and returns a new array with the results. Here written with a short <a href="/php/anonymous-functions/">arrow function</a>.</p>
+  <pre><code class="language-php">&lt;?php
+$numbers = [1, 2, 3];
+
+$doubled = array_map(fn($n) =&gt; $n * 2, $numbers);
+print_r($doubled);
+// Output: Array ( [0] =&gt; 2 [1] =&gt; 4 [2] =&gt; 6 )</code></pre>
+  <h2>Array column</h2>
+  <p><code>array_column</code> picks one column from a list of rows. A third parameter chooses which column to use as keys.</p>
+  <pre><code class="language-php">&lt;?php
+$users = [
+  ["id" =&gt; 1, "name" =&gt; "Anna"],
+  ["id" =&gt; 2, "name" =&gt; "Bo"],
+];
+
+print_r(array_column($users, "name"));
+// Output: Array ( [0] =&gt; Anna [1] =&gt; Bo )
+
+print_r(array_column($users, "name", "id"));
+// Output: Array ( [1] =&gt; Anna [2] =&gt; Bo )</code></pre>
+  <h2>Search</h2>
+  <pre><code class="language-php">&lt;?php
+$colors = ["red", "green", "blue"];
+
+var_dump(in_array("green", $colors, true));
+// Output: bool(true)
+
+var_dump(array_search("blue", $colors, true));
+// Output: int(2)
+
+var_dump(array_key_exists(1, $colors));
+// Output: bool(true)</code></pre>
+  <p>Give <code>true</code> as the last parameter to <code>in_array</code> and <code>array_search</code> so the types are compared too. Without it <code>in_array("abc", [0])</code> is true in old versions of PHP.</p>
+  <h2>Keys, values and merge</h2>
+  <pre><code class="language-php">&lt;?php
+$val = ["a" =&gt; 1, "b" =&gt; 2];
+
+print_r(array_keys($val));
+// Output: Array ( [0] =&gt; a [1] =&gt; b )
+
+print_r(array_values($val));
+// Output: Array ( [0] =&gt; 1 [1] =&gt; 2 )
+
+print_r(array_merge($val, ["c" =&gt; 3]));
+// Output: Array ( [a] =&gt; 1 [b] =&gt; 2 [c] =&gt; 3 )</code></pre>
+  <h2>Sort</h2>
+  <p><code>sort</code> sorts the values, <code>rsort</code> in reverse, <code>asort</code> keeps the keys and <code>ksort</code> sorts by key. <code>usort</code> sorts with your own function. The <code>&lt;=&gt;</code> operator returns <code>-1</code>, <code>0</code> or <code>1</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$users = [
+  ["name" =&gt; "Bo", "age" =&gt; 40],
+  ["name" =&gt; "Anna", "age" =&gt; 30],
+];
+
+usort($users, fn($a, $b) =&gt; $a["age"] &lt;=&gt; $b["age"]);
+
+echo $users[0]["name"];
+// Output: Anna</code></pre>
+  <h2>More about array functions</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/ref.array.php">Array functions</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/array.sorting.php">Sorting arrays</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

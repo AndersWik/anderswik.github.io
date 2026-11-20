@@ -1,0 +1,97 @@
+.code-playground {
+  max-width: 1400px;
+}
+
+.code-playground .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.code-playground .pane-title {
+  display: block;
+  font-weight: 500;
+  margin: 12px 0 4px;
+}
+
+.code-playground .pane-title .text-muted {
+  font-weight: 400;
+  font-size: 0.875rem;
+}
+
+/* Dark boxes like the code blocks in the tutorials. */
+.code-playground textarea.code {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #1b1d21;
+  color: #e6e6e6;
+  caret-color: #e8b455;
+  scrollbar-color: #555 #1b1d21;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+  resize: vertical;
+}
+
+.code-playground textarea.code:focus {
+  outline: 2px solid #e8b455;
+  outline-offset: 1px;
+}
+
+.code-playground .hint {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 4px;
+}
+
+.code-playground #preview {
+  display: block;
+  width: 100%;
+  height: 520px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.code-playground .console {
+  list-style: none;
+  margin: 0;
+  padding: 8px 12px;
+  min-height: 80px;
+  max-height: 220px;
+  overflow: auto;
+  border-radius: 8px;
+  background-color: #1b1d21;
+  color: #e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+}
+
+.code-playground .console li {
+  padding: 2px 0;
+  border-bottom: 1px solid #2c2f35;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.code-playground .console .warn {
+  color: #e8b455;
+}
+
+.code-playground .console .error {
+  color: #ff8b8b;
+}
+
+.code-playground .console .where {
+  color: #7f8b99;
+}

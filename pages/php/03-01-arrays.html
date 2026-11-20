@@ -1,0 +1,215 @@
+---
+layout: default
+title: Arrays
+permalink: /php/arrays/
+chapter: "03"
+chapter_title: "Arrays"
+keywords: [php, array, associative array, keys, short syntax, append, unset, count, sort, array operators]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Arrays</h1>
+  <p>A array can store multiple values in one variable. Every value has a key. If we do not give the keys PHP numbers them from <code>0</code>.</p>
+  <h2>Without keys</h2>
+  <pre><code class="language-php">&lt;?php
+$val = array( "one", "two" );
+
+echo $val[0];
+// Outputs: one
+
+echo $val[1];
+// Outputs: two</code></pre>
+  <h2>Associative Arrays (With keys)</h2>
+  <p>The key of the array must be an Integer or String. Floats and booleans will be cast to an Integer. Strings that contain a whole number, like <code>"8"</code>, are also cast to an Integer.</p>
+  <pre><code class="language-php">&lt;?php
+$val = array(
+    "one" =&gt; "1",
+    "two" =&gt; "2"
+);
+
+echo $val["one"];
+// Outputs: 1
+
+echo $val["two"];
+// Outputs: 2</code></pre>
+  <h2>Short style without keys</h2>
+  <p>Short style only works with PHP 5.4 and above. It is the most common way to write arrays today.</p>
+  <pre><code class="language-php">&lt;?php
+$val = [ "one", "two" ];
+
+echo $val[0];
+// Outputs: one
+
+echo $val[1];
+// Outputs: two</code></pre>
+  <h2>Short style Associative Arrays (with keys)</h2>
+  <pre><code class="language-php">&lt;?php
+$val = [
+    "one" =&gt; "1",
+    "two" =&gt; "2"
+];
+
+echo $val["one"];
+// Outputs: 1
+
+echo $val["two"];
+// Outputs: 2</code></pre>
+  <h2>Array key casting</h2>
+  <p>If the key of the array are of the type float it will be cast to an Integer. The decimals will be removed and all keys below will be stored as <code>8</code>. Each new value overwrites the one before, so only <code>"c"</code> is left. Since PHP 8.1 this also gives a deprecation notice, because the decimals are lost.</p>
+  <p>We can see this if we <code>var_dump</code> the array. The array only contains one key and that is eight.</p>
+  <pre><code class="language-php">&lt;?php
+$val = array(
+  8.7 =&gt; "a",
+  8.8 =&gt; "b",
+  8.9 =&gt; "c"
+);
+
+echo $val[8.7];
+// Outputs: c
+
+echo $val[8.8];
+// Outputs: c
+
+echo $val[8.9];
+// Outputs: c
+
+echo $val[8];
+// Outputs: c
+
+var_dump($val);
+// Outputs: array(1) { [8]=&gt; string(1) "c" }</code></pre>
+  <p>If the keys of the array are of the type boolean it will be cast to an Integer. True will be stored as 1 and false as 0.</p>
+  <pre><code class="language-php">&lt;?php
+$val = array(
+  true =&gt; "a",
+  false =&gt; "b"
+);
+
+echo $val[1];
+// Outputs: a
+
+echo $val[true];
+// Outputs: a
+
+echo $val[0];
+// Outputs: b
+
+echo $val[false];
+// Outputs: b</code></pre>
+  <p>If the key of the array are null it will be stored as <code>""</code>. Newer versions of PHP warn about null keys, so use <code>""</code> directly.</p>
+  <pre><code class="language-php">&lt;?php
+$val = array(
+  null =&gt; "a"
+);
+
+echo $val[null];
+// Outputs: a
+
+echo $val[""];
+// Outputs: a</code></pre>
+  <h2>Appending value to an array</h2>
+  <p>Appending value to an array without key. The new value gets the next free number as key.</p>
+  <pre><code class="language-php">&lt;?php
+$val = array( );
+
+$val[] = "false";
+$val[] = "true";
+
+print_r( $val );
+// Outputs: Array ( [0] =&gt; false [1] =&gt; true )</code></pre>
+  <p>Appending value to an array with key.</p>
+  <pre><code class="language-php">&lt;?php
+$val = array( );
+
+$val["false"] = "0";
+$val["true"] = "1";
+
+print_r( $val );
+// Outputs: Array ( [false] =&gt; 0 [true] =&gt; 1 )</code></pre>
+  <h2>Check if a key exists</h2>
+  <p>Reading a key that does not exist gives a warning. Check first with <code>isset</code>, or use <code>??</code> to give a default value.</p>
+  <pre><code class="language-php">&lt;?php
+$val = ["one" =&gt; "1"];
+
+var_dump(isset($val["two"]));
+// Outputs: bool(false)
+
+echo $val["two"] ?? "default";
+// Outputs: default</code></pre>
+  <h2>Removing value from an array</h2>
+  <p>With unset we can remove a single value from the array or we can remove the entire array.</p>
+  <pre><code class="language-php">&lt;?php
+$val = array(
+   "true" =&gt; "1",
+   "false" =&gt; "0"
+);
+
+unset($val["false"]);
+var_dump($val);
+// Outputs: array(1) { ["true"]=&gt; string(1) "1" }
+
+unset($val);
+var_dump($val);
+// Outputs: Warning: Undefined variable $val
+// Outputs: NULL</code></pre>
+  <h2>Array Operators</h2>
+  <ul>
+    <li><code>+</code> union, adds the keys from the right array that are missing in the left</li>
+    <li><code>==</code> true if both arrays have the same key and value pairs</li>
+    <li><code>===</code> true if both arrays have the same key and value pairs in the same order and of the same types</li>
+    <li><code>!=</code> not equal</li>
+    <li><code>!==</code> not identical</li>
+    <li><code>&lt;&gt;</code> not equal, same as <code>!=</code></li>
+  </ul>
+  <pre><code class="language-php">&lt;?php
+$a = ["a" =&gt; 1, "b" =&gt; 2];
+$b = ["b" =&gt; 3, "c" =&gt; 4];
+
+print_r($a + $b);
+// Outputs: Array ( [a] =&gt; 1 [b] =&gt; 2 [c] =&gt; 4 )
+
+var_dump(["1", 2] == [1, 2]);
+// Outputs: bool(true)
+
+var_dump(["1", 2] === [1, 2]);
+// Outputs: bool(false)
+
+var_dump(["1", 2] != [1, 2]);
+// Outputs: bool(false)
+
+var_dump(["1", 2] !== [1, 2]);
+// Outputs: bool(true)
+
+var_dump(["1", 2] &lt;&gt; [1, 2]);
+// Outputs: bool(false)</code></pre>
+  <h2>Methods</h2>
+  <ul>
+    <li><code>count();</code> returns the number of values</li>
+    <li><code>sort();</code> sorts the array, the array itself is changed</li>
+    <li><code>print_r();</code> prints the array in a readable way</li>
+    <li><code>var_dump();</code> prints the array with types</li>
+  </ul>
+  <pre><code class="language-php">&lt;?php
+$val = [3, 1, 2];
+
+echo count($val);
+// Outputs: 3
+
+sort($val);
+print_r($val);
+// Outputs: Array ( [0] =&gt; 1 [1] =&gt; 2 [2] =&gt; 3 )
+
+var_dump($val);
+// Outputs: array(3) { [0]=&gt; int(1) [1]=&gt; int(2) [2]=&gt; int(3) }</code></pre>
+  <h2>More about arrays</h2>
+  <ul>
+    <li><a href="/php/multidimensional-arrays/">Multidimensional arrays</a> on the next page</li>
+    <li><a href="/php/array-functions/">Array functions</a></li>
+    <li><a href="https://www.php.net/manual/en/language.types.array.php">Arrays</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.operators.array.php">Array operators</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,77 @@
+---
+layout: default
+title: Sessions
+permalink: /php/sessions/
+chapter: "07"
+chapter_title: "Web pages"
+keywords: [php, sessions, session_start, "$_SESSION", session_regenerate_id, session_destroy, csrf, login]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Sessions</h1>
+  <p>A session stores data on the server between requests. The browser only gets a cookie with a random session id. Sessions are used for things like logins and shopping carts.</p>
+  <h2>Start a session</h2>
+  <p><code>session_start</code> must be called before any output, on every page that uses the session.</p>
+  <pre><code class="language-php">&lt;?php
+session_start();
+
+$_SESSION['visits'] = ($_SESSION['visits'] ?? 0) + 1;
+
+echo "You have visited this page " . $_SESSION['visits'] . " times";</code></pre>
+  <h2>Safe cookie settings</h2>
+  <pre><code class="language-php">&lt;?php
+session_start([
+  'cookie_httponly' =&gt; true,
+  'cookie_secure' =&gt; true,      // Only over HTTPS, set to false when testing on http://localhost
+  'cookie_samesite' =&gt; 'Lax',
+  'use_strict_mode' =&gt; true,
+]);</code></pre>
+  <h2>Log in</h2>
+  <p>Give the visitor a new session id when they log in. Otherwise an attacker who knows the old id can use it.</p>
+  <pre><code class="language-php">&lt;?php
+session_start();
+
+// After the password has been checked with password_verify()
+session_regenerate_id(true);
+$_SESSION['user_id'] = $userId;</code></pre>
+  <h2>Log out</h2>
+  <pre><code class="language-php">&lt;?php
+session_start();
+
+$_SESSION = [];
+session_destroy();
+setcookie(session_name(), '', time() - 3600, '/');</code></pre>
+  <h2>CSRF token</h2>
+  <p>A random token in the session protects forms against cross site request forgery. Another site can not read the token, so it can not send a valid form. <code>hash_equals</code> compares the strings in constant time.</p>
+  <pre><code class="language-php">&lt;?php
+session_start();
+
+if (empty($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $token = $_POST['csrf_token'] ?? '';
+
+  if (!is_string($token) || !hash_equals($_SESSION['csrf_token'], $token)) {
+    http_response_code(403);
+    exit('Invalid form, reload the page and try again.');
+  }
+  // Handle the form
+}
+?&gt;
+&lt;form method="post"&gt;
+  &lt;input type="hidden" name="csrf_token" value="&lt;?php echo htmlspecialchars($_SESSION['csrf_token']); ?&gt;"&gt;
+  &lt;input type="submit" value="Send"&gt;
+&lt;/form&gt;</code></pre>
+  <h2>More about sessions</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/book.session.php">Sessions</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/features.session.security.management.php">Session security</a></li>
+    <li><a href="https://www.php.net/manual/en/function.password-hash.php">password_hash</a> and <a href="https://www.php.net/manual/en/function.password-verify.php">password_verify</a> for storing passwords</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

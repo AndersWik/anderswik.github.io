@@ -1,0 +1,141 @@
+---
+layout: default
+title: Inheritance
+permalink: /php/inheritance/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, inheritance, extends, parent, override, "__CLASS__", "parent::__construct", final]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Inheritance</h1>
+  <p>A class can inherit from another class with <code>extends</code>. The child class gets all public and protected functions and variables of the parent class, and can add its own or override them.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+  function whoAmI() {
+    return "I am ".__CLASS__;
+  }
+
+
+}
+
+class Bar extends Foo {
+
+}
+
+$bar = new Bar();
+echo $bar-&gt;whoAmI();
+// Output: I am Foo
+?&gt;</code></pre>
+  <p><code>__CLASS__</code> is the name of the class where the code is written, so it is <code>Foo</code> even when called on a <code>Bar</code>.</p>
+  <h2>Override</h2>
+  <p>If the child class has a function with the same name, it replaces the function from the parent.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+  function whoAmI() {
+    return "I am ".__CLASS__;
+  }
+
+
+}
+
+class Bar extends Foo {
+
+  function whoAmI() {
+    return "I am ".__CLASS__;
+  }
+
+}
+
+$bar = new Bar();
+echo $bar-&gt;whoAmI();
+// Output: I am Bar</code></pre>
+  <h2>Parent</h2>
+  <p>It is not possible to call the overridden parent class function from a variable that have a child instance. We can call the parent function from within the child class using the <code>parent</code> keyword.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+  function whoAmI() {
+    return "I am ".__CLASS__;
+  }
+
+
+}
+
+class Bar extends Foo {
+
+  function whoAmI() {
+    return "I am ".__CLASS__;
+  }
+
+  function whoIsMyParent() {
+    return parent::whoAmI();
+  }
+
+}
+
+$bar = new Bar();
+echo $bar-&gt;whoIsMyParent();
+// Output: I am Foo</code></pre>
+  <h2>Parent constructor</h2>
+  <p>The parent construct is not called by default when the child has its own constructor.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+  function __construct() {
+
+    echo "I am Foo";
+  }
+}
+
+class Bar extends Foo {
+
+  function __construct() {
+
+    echo "I am Bar";
+  }
+}
+
+$bar = new Bar();
+// Output: I am Bar</code></pre>
+  <p>If we want the parent construct to be called we need to do it from the child constructor.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+  function __construct() {
+
+    echo "I am Foo";
+  }
+}
+
+class Bar extends Foo {
+
+  function __construct() {
+    parent::__construct();
+    echo "I am Bar";
+  }
+}
+
+$bar = new Bar();
+// Output: I am FooI am Bar</code></pre>
+  <h2>Final</h2>
+  <p>A <code>final</code> class can not be extended and a <code>final</code> function can not be overridden.</p>
+  <pre><code class="language-php">&lt;?php
+final class Foo {
+}
+
+class Bar extends Foo {
+}
+// Output: Fatal error: Class Bar cannot extend final class Foo</code></pre>
+  <h2>More about inheritance</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.oop5.inheritance.php">Inheritance</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.final.php">Final keyword</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

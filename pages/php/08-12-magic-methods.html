@@ -1,0 +1,123 @@
+---
+layout: default
+title: Magic methods
+permalink: /php/magic-methods/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, magic methods, "__construct", "__toString", "__get", "__set", "__call", "__invoke", "__clone"]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Magic methods</h1>
+  <p>Magic methods start with two underscores. PHP calls them automatically when something happens to the object, like when it is created, printed or a missing function is called.</p>
+  <pre><code class="language-php">&lt;?php
+__construct()
+__destruct()
+__call()
+__callStatic()
+__get()
+__set()
+__isset()
+__unset()
+__sleep()
+__wakeup()
+__serialize()
+__unserialize()
+__toString()
+__invoke()
+__set_state()
+__clone()
+__debugInfo()
+__autoload() // Removed in PHP 8, use spl_autoload_register()</code></pre>
+  <h2>__toString</h2>
+  <p>Called when the object is used as a string.</p>
+  <pre><code class="language-php">&lt;?php
+class Money {
+
+  public function __construct(private int $cents) {
+  }
+
+  public function __toString(): string {
+    return number_format($this-&gt;cents / 100, 2) . " kr";
+  }
+}
+
+echo new Money(1250);
+// Output: 12.50 kr</code></pre>
+  <h2>__get and __set</h2>
+  <p>Called when reading or writing a variable that does not exist or is not visible.</p>
+  <pre><code class="language-php">&lt;?php
+class Config {
+
+  private array $data = [];
+
+  public function __get(string $name) {
+    return $this-&gt;data[$name] ?? null;
+  }
+
+  public function __set(string $name, $value): void {
+    $this-&gt;data[$name] = $value;
+  }
+}
+
+$config = new Config();
+$config-&gt;debug = true;
+var_dump($config-&gt;debug);
+// Output: bool(true)</code></pre>
+  <h2>__call</h2>
+  <p>Called when a function that does not exist is called on the object. <code>__callStatic</code> does the same for static calls.</p>
+  <pre><code class="language-php">&lt;?php
+class Greeter {
+
+  public function __call(string $name, array $arguments) {
+    return "You called $name with " . implode(", ", $arguments);
+  }
+}
+
+echo (new Greeter())-&gt;hello("Anna", "Bo");
+// Output: You called hello with Anna, Bo</code></pre>
+  <h2>__invoke</h2>
+  <p>Called when the object is used like a function.</p>
+  <pre><code class="language-php">&lt;?php
+class Multiplier {
+
+  public function __construct(private int $factor) {
+  }
+
+  public function __invoke(int $n): int {
+    return $n * $this-&gt;factor;
+  }
+}
+
+$double = new Multiplier(2);
+echo $double(5);
+// Output: 10</code></pre>
+  <h2>__clone</h2>
+  <p><code>clone</code> makes a copy of an object. <code>__clone</code> runs on the copy, for example to also copy objects inside it.</p>
+  <pre><code class="language-php">&lt;?php
+class Order {
+
+  public function __construct(public DateTime $date) {
+  }
+
+  public function __clone() {
+    $this-&gt;date = clone $this-&gt;date;
+  }
+}
+
+$a = new Order(new DateTime("2024-01-01"));
+$b = clone $a;
+$b-&gt;date-&gt;modify("+1 day");
+
+echo $a-&gt;date-&gt;format("Y-m-d");
+// Output: 2024-01-01</code></pre>
+  <h2>More about magic methods</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.oop5.magic.php">Magic methods</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.overloading.php">Overloading</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

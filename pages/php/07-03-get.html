@@ -1,0 +1,63 @@
+---
+layout: default
+title: Get
+permalink: /php/get/
+chapter: "07"
+chapter_title: "Web pages"
+keywords: [php, get, "$_GET", query string, url parameters, filter_input, http_build_query, urlencode]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Get</h1>
+  <p><code>$_GET</code> contains the parameters in the query string, the part of the URL after <code>?</code>. For the URL <code>page.php?id=5&amp;sort=name</code> it contains <code>id</code> and <code>sort</code>. A form with <code>method="get"</code> also sends its values this way.</p>
+  <p>GET should only be used to read data, like searching or showing a page. It should never change anything, because links are followed by browsers, search engines and link previews. Use <a href="/php/post/">POST</a> to create, change or delete.</p>
+  <h2>Read a parameter</h2>
+  <p>All values in <code>$_GET</code> are strings, or arrays if the URL is written like <code>id[]=1</code>. Use <code>??</code> to give a default when the parameter is missing.</p>
+  <pre><code class="language-php">&lt;?php
+// page.php?name=Anna
+$name = $_GET['name'] ?? 'Guest';
+
+echo "Hello " . htmlspecialchars($name);
+// Output: Hello Anna</code></pre>
+  <h2>Validate a parameter</h2>
+  <p><code>filter_input</code> reads and validates in one step. It returns <code>false</code> if the value is not valid and <code>null</code> if it is missing.</p>
+  <pre><code class="language-php">&lt;?php
+// page.php?id=5
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+if (!$id) {
+  http_response_code(400);
+  exit("Invalid id");
+}
+
+echo $id;
+// Output: 5</code></pre>
+  <h2>Build a URL</h2>
+  <p><code>http_build_query</code> builds a query string and encodes the values, so spaces and <code>&amp;</code> in a value do not break the URL. Use <code>urlencode</code> for a single value.</p>
+  <pre><code class="language-php">&lt;?php
+$url = "search.php?" . http_build_query(["q" =&gt; "fish &amp; chips", "page" =&gt; 2]);
+echo $url;
+// Output: search.php?q=fish+%26+chips&amp;page=2
+
+echo '&lt;a href="' . htmlspecialchars($url) . '"&gt;Next page&lt;/a&gt;';</code></pre>
+  <h2>A search form</h2>
+  <pre><code class="language-php">&lt;?php $q = $_GET['q'] ?? ''; ?&gt;
+&lt;form action="search.php" method="get"&gt;
+  &lt;input type="search" name="q" value="&lt;?php echo htmlspecialchars($q); ?&gt;"&gt;
+  &lt;input type="submit" value="Search"&gt;
+&lt;/form&gt;
+&lt;?php if ($q !== ''): ?&gt;
+  &lt;p&gt;You searched for &lt;?php echo htmlspecialchars($q); ?&gt;&lt;/p&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <h2>More about get</h2>
+  <ul>
+    <li>To send a GET request from PHP to another server, see <a href="/php/http-get/">GET</a> in the HTTP chapter</li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.get.php">$_GET</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.filter-input.php">filter_input</a></li>
+    <li><a href="https://www.php.net/manual/en/function.http-build-query.php">http_build_query</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

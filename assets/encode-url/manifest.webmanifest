@@ -1,5 +1,5 @@
 {
-  "name": "URL encode",
+  "name": "Url encode / decode",
   "short_name": "URL Encode",
   "id": "./app.html",
   "start_url": "./app.html",

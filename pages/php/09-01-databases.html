@@ -1,0 +1,51 @@
+---
+layout: default
+title: Databases
+permalink: /php/databases/
+chapter: "09"
+chapter_title: "Databases"
+keywords: [php, databases, mysql, mariadb, sqlite, nosql, mongodb, pdo, phpunit]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Databases</h1>
+  <p>Most web applications store their data in a database. PHP talks to SQL databases through PDO (PHP Data Objects), which works the same way for MySQL, SQLite, PostgreSQL and others. Only the connection string changes.</p>
+  <h2>Mysql</h2>
+  <p>MySQL and MariaDB are database servers. They are the most common choice for PHP sites. The extension is called <code>pdo_mysql</code>. Read more in <a href="/php/mysql/">MySQL</a> and in the <a href="/mysql/">MySQL notes</a>.</p>
+  <pre><code class="language-bash">$ sudo apt-get install php-mysql</code></pre>
+  <pre><code class="language-php">&lt;?php
+$pdo = new PDO("mysql:host=localhost;dbname=mydb;charset=utf8mb4", "myuser", "mypassword");</code></pre>
+  <h2>Sqlite</h2>
+  <p>SQLite stores the whole database in one file and needs no server. It is great for small sites, tests and tools. The file must be stored outside of the public web folder.</p>
+  <pre><code class="language-bash">$ sudo apt-get install php-sqlite3</code></pre>
+  <pre><code class="language-php">&lt;?php
+$pdo = new PDO("sqlite:" . __DIR__ . "/data/app.sqlite");</code></pre>
+  <h2>Nosql</h2>
+  <p>NoSQL databases do not use tables and SQL. They store documents, key and value pairs or graphs. Redis is a fast key and value store, often used for caches and sessions.</p>
+  <h2>MongoDb</h2>
+  <p>MongoDB stores JSON like documents. It is used from PHP with the <code>mongodb</code> extension and the <code>mongodb/mongodb</code> library installed with Composer.</p>
+  <pre><code class="language-bash">$ sudo pecl install mongodb
+$ composer require mongodb/mongodb</code></pre>
+  <pre><code class="language-php">&lt;?php
+require __DIR__ . '/vendor/autoload.php';
+
+$client = new MongoDB\Client("mongodb://localhost:27017");
+$collection = $client-&gt;mydb-&gt;users;
+
+$collection-&gt;insertOne(["name" =&gt; "Anna", "age" =&gt; 30]);
+$user = $collection-&gt;findOne(["name" =&gt; "Anna"]);</code></pre>
+  <h2>PhpUnit</h2>
+  <p>Code that uses the database can be tested with <a href="https://phpunit.de/">PHPUnit</a>. Since PDO works the same for many databases, the tests can use a SQLite database in memory that is created again for every test.</p>
+  <pre><code class="language-php">&lt;?php
+$pdo = new PDO("sqlite::memory:");</code></pre>
+  <h2>More about databases</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/book.pdo.php">PDO</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/pdo.drivers.php">PDO drivers</a></li>
+    <li><a href="https://www.mongodb.com/docs/php-library/current/">MongoDB PHP library</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

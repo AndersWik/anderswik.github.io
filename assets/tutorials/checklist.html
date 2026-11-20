@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checklist</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .card {
+        max-width: 320px;
+        min-height: 260px;
+        margin: 0 auto;
+        padding: 16px;
+        border: 1px solid #e3e3e8;
+        border-radius: 14px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .label {
+        margin: 0 0 8px;
+        color: #6b6878;
+        font-size: 14px;
+    }
+
+    #add {
+        align-self: flex-start;
+        padding: 6px 18px;
+        border: none;
+        border-radius: 999px;
+        background: #2e9e5b;
+        color: #fff;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #new-item {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 7px 12px;
+        border: 2px solid #2e9e5b;
+        border-radius: 999px;
+        font-size: 15px;
+        outline: none;
+    }
+
+    #items {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0;
+    }
+
+    #items li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 4px;
+        border-bottom: 1px solid #f0eff3;
+    }
+
+    #items label {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+
+    #items input {
+        accent-color: #2e9e5b;
+    }
+
+    #items li.done span {
+        color: #6b6878;
+        text-decoration: line-through;
+    }
+
+    .delete {
+        border: none;
+        background: transparent;
+        color: #6b6878;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    #empty {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b6878;
+    }
+
+    #footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: auto;
+        padding-top: 10px;
+        color: #6b6878;
+        font-size: 13px;
+    }
+
+    #clear {
+        border: none;
+        background: transparent;
+        color: #2e9e5b;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <h1>Checklist</h1>
+
+  <div class="card">
+    <p class="label">Checklist</p>
+
+    <button type="button" id="add">+ Add an item</button>
+
+    <form id="form" hidden>
+      <input type="text" id="new-item" maxlength="200" placeholder="What needs doing?" aria-label="New item" autocomplete="off">
+    </form>
+
+    <ul id="items"></ul>
+
+    <p id="empty">Nothing here yet</p>
+
+    <div id="footer" hidden>
+      <span id="count"></span>
+      <button type="button" id="clear">Clear done</button>
+    </div>
+  </div>
+
+  <script>
+    /*
+     * A checklist that remembers its items.
+     *
+     * State:
+     *   items   a list of items, e.g. [{ text: "Buy milk", done: false }]
+     *
+     * Every change saves the list to localStorage and draws it again,
+     * so the list is still there after a reload.
+     */
+
+    const STORAGE_KEY = "checklist-items";
+
+    // --- State ---------------------------------------------------------------
+
+    let items = load();
+
+    // --- Elements on the page ------------------------------------------------
+
+    const addButton = document.getElementById("add");
+    const form = document.getElementById("form");
+    const input = document.getElementById("new-item");
+    const list = document.getElementById("items");
+    const empty = document.getElementById("empty");
+    const footer = document.getElementById("footer");
+    const count = document.getElementById("count");
+    const clearButton = document.getElementById("clear");
+
+    // --- Saving --------------------------------------------------------------
+
+    // localStorage only stores text, so the list is turned into JSON text.
+    function save() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    // Read the saved list. Nothing saved yet, or broken text, gives [].
+    function load() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            return Array.isArray(saved) ? saved : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    // Make the <li> for one item.
+    function makeItem(item, index) {
+        const li = document.createElement("li");
+        if (item.done) {
+            li.classList.add("done");
+        }
+
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = item.done;
+        box.addEventListener("change", function () { toggle(index); });
+
+        // textContent, not innerHTML, so "<b>" typed by the user stays text.
+        const text = document.createElement("span");
+        text.textContent = item.text;
+
+        const label = document.createElement("label");
+        label.append(box, text);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "delete";
+        deleteButton.textContent = "×";
+        deleteButton.setAttribute("aria-label", "Delete " + item.text);
+        deleteButton.addEventListener("click", function () { remove(index); });
+
+        li.append(label, deleteButton);
+        return li;
+    }
+
+    // The "Nothing here yet" text shows when the list is empty and nobody types.
+    function showEmpty() {
+        empty.hidden = items.length > 0 || !form.hidden;
+    }
+
+    // Draw the whole list from the state.
+    function render() {
+        list.textContent = "";   // remove the old items
+        items.forEach(function (item, index) {
+            list.append(makeItem(item, index));
+        });
+
+        const done = items.filter(function (item) { return item.done; }).length;
+        count.textContent = done + " of " + items.length + " done";
+        clearButton.disabled = done === 0;
+        footer.hidden = items.length === 0;
+        showEmpty();
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function add(text) {
+        items.push({ text: text, done: false });
+        save();
+        render();
+    }
+
+    function toggle(index) {
+        items[index].done = !items[index].done;
+        save();
+        render();
+    }
+
+    function remove(index) {
+        items.splice(index, 1);   // remove 1 item at index
+        save();
+        render();
+    }
+
+    function clearDone() {
+        items = items.filter(function (item) { return !item.done; });
+        save();
+        render();
+    }
+
+    function openForm() {
+        addButton.hidden = true;
+        form.hidden = false;
+        input.focus();
+        showEmpty();
+    }
+
+    function closeForm() {
+        input.value = "";
+        form.hidden = true;
+        addButton.hidden = false;
+        showEmpty();
+    }
+
+    // --- Connect the buttons -------------------------------------------------
+
+    addButton.addEventListener("click", openForm);
+
+    // Enter in the text field submits the form.
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();   // don't reload the page
+        const text = input.value.trim();
+        if (text !== "") {
+            add(text);
+            input.value = "";     // ready for the next item
+        }
+    });
+
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeForm();
+        }
+    });
+
+    // Clicking somewhere else with an empty field closes it.
+    input.addEventListener("blur", function () {
+        if (input.value.trim() === "") {
+            closeForm();
+        }
+    });
+
+    clearButton.addEventListener("click", clearDone);
+
+    render();
+  </script>
+</body>
+</html>

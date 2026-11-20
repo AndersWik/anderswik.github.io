@@ -1,0 +1,117 @@
+---
+layout: default
+title: Port the 8-ball
+permalink: /firefox-plugins/port-8-ball/
+chapter: "03"
+chapter_title: "Port the 8-ball"
+keywords: [firefox, extension, port, 8-ball, magic 8 ball, game, javascript app, bootstrap, paths, step by step]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Port the 8-ball</h1>
+  <p>The <a href="/games/8-ball/">Magic 8 Ball</a> is a good first app to port: one form, one picture and a random answer. No network, nothing to save, no keyboard. Here it is turned into an extension by hand, step by step. Later the script does all of this, see <a href="/firefox-plugins/make-extension/">Many apps at once</a>.</p>
+  <h2>What we start with</h2>
+  <p>The game is a Jekyll page, <code>pages/games/8-ball.html</code>, with its files in <code>assets/8-ball/</code>. The layout adds the site's header, footer and Bootstrap around it.</p>
+  <pre><code class="language-html">{% raw %}---
+layout: game
+title: 8-Ball
+permalink: /games/8-ball/
+nonav: true
+css:
+  - /assets/8-ball/8-ball.css
+js:
+  - /assets/8-ball/8-ball.js
+---
+&lt;div class="container"&gt;
+  &lt;h1&gt;Magic 8 Ball&lt;/h1&gt;
+  &lt;img id="eightball" src="{{ site.baseurl }}/assets/8-ball/images/eightball.svg" alt="A magic 8 ball" /&gt;
+  &lt;form id="ask-form" autocomplete="off"&gt;
+    &lt;input type="text" id="question" placeholder="Ask your question..." aria-label="Your question" /&gt;
+    &lt;button type="submit"&gt;Shake the Ball&lt;/button&gt;
+  &lt;/form&gt;
+  &lt;div id="result" aria-live="polite"&gt;&lt;/div&gt;
+&lt;/div&gt;{% endraw %}</code></pre>
+  <h2>1. Check the JavaScript</h2>
+  <p>Open <code>assets/8-ball/8-ball.js</code> and look for things an extension does not allow, see <a href="/firefox-plugins/content-security-policy/">Content Security Policy</a>:</p>
+  <ul>
+    <li>No <code>eval()</code> or <code>new Function()</code>.</li>
+    <li>No <code>onclick="..."</code> in the HTML. The game uses <code>addEventListener</code>. ✓</li>
+    <li>No scripts loaded from other sites.</li>
+  </ul>
+  <pre><code class="language-javascript">// A form lets the user press Enter as well as click the button.
+form.addEventListener("submit", shake);</code></pre>
+  <p>The 8-ball passes, so <code>8-ball.js</code> and <code>8-ball.css</code> are used as they are.</p>
+  <h2>2. Make the folder</h2>
+  <p>Copy the game's files into a new folder. Keep the same paths as on the site, then <code>/assets/8-ball/8-ball.js</code> works without any change, since <code>/</code> in an extension means the top of the extension's own folder.</p>
+  <pre><code class="language-bash">$ mkdir -p 8-ball-extension/assets/8-ball/images 8-ball-extension/css
+$ cp assets/8-ball/8-ball.{css,js} 8-ball-extension/assets/8-ball/
+$ cp assets/8-ball/images/eightball.svg 8-ball-extension/assets/8-ball/images/
+$ cp css/style.css 8-ball-extension/css/
+$ cp -r assets/fonts 8-ball-extension/assets/        # style.css loads the Ubuntu font</code></pre>
+  <h2>3. Bootstrap</h2>
+  <p>The site loads Bootstrap from a CDN. An extension must have all its code and styles in the zip, so download it into the folder.</p>
+  <pre><code class="language-bash">$ mkdir 8-ball-extension/vendor
+$ wget -P 8-ball-extension/vendor https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css</code></pre>
+  <h2>4. The page</h2>
+  <p>Write <code>index.html</code>: a full head that the layout used to give, the game's HTML with <code>{% raw %}{{ site.baseurl }}{% endraw %}</code> removed, and the scripts at the end. No service worker and no inline script.</p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Magic 8 Ball&lt;/title&gt;
+  &lt;link rel="stylesheet" href="/vendor/bootstrap.min.css"&gt;
+  &lt;link rel="stylesheet" href="/css/style.css"&gt;
+  &lt;link rel="stylesheet" href="/assets/8-ball/8-ball.css"&gt;
+  &lt;style&gt;
+    .game { padding-block: 16px; }
+    /* A popup is as big as its content, so give it a width. */
+    body { width: 360px; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="game"&gt;
+&lt;div class="container"&gt;
+  &lt;h1&gt;Magic 8 Ball&lt;/h1&gt;
+  &lt;img id="eightball" src="/assets/8-ball/images/eightball.svg" alt="A magic 8 ball" /&gt;
+  &lt;form id="ask-form" autocomplete="off"&gt;
+    &lt;input type="text" id="question" placeholder="Ask your question..." aria-label="Your question" /&gt;
+    &lt;button type="submit"&gt;Shake the Ball&lt;/button&gt;
+  &lt;/form&gt;
+  &lt;div id="result" aria-live="polite"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script src="/assets/8-ball/8-ball.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <p>An inline <code>&lt;style&gt;</code> is fine, only scripts are blocked.</p>
+  <h2>5. Icons</h2>
+  <p>Add <code>icons/icon-16.png</code>, <code>-32</code>, <code>-48</code>, <code>-96</code> and <code>-128</code>, see <a href="/firefox-plugins/icons/">Icons</a>.</p>
+  <h2>6. The manifest</h2>
+  <p>The same as in <a href="/firefox-plugins/hello-world/">Hello World</a>, with the 8-ball's name, id and <code>"default_popup": "index.html"</code>. The full file is in <a href="/firefox-plugins/manifest/">Manifest</a>.</p>
+  <h2>The finished folder</h2>
+  <pre><code class="language-bash">8-ball-extension/
+├── manifest.json
+├── index.html
+├── assets/
+│   ├── 8-ball/
+│   │   ├── 8-ball.css
+│   │   ├── 8-ball.js
+│   │   └── images/eightball.svg
+│   └── fonts/Ubuntu/...
+├── css/style.css
+├── vendor/bootstrap.min.css
+└── icons/icon-16.png ... icon-128.png</code></pre>
+  <h2>7. Test it</h2>
+  <p>Load <code>manifest.json</code> in <code>about:debugging</code>, see <a href="/firefox-plugins/temporary-add-on/">Temporary add-on</a>. Ask a question and shake the ball.</p>
+  <h2>More about porting</h2>
+  <ul>
+    <li><a href="/tutorials/8-ball/">How to build the Magic 8 Ball game</a></li>
+    <li>The same game as a PWA, see <a href="/pwa/port/">Port your app</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, port, 8-ball, magic 8 ball, game, javascript app, bootstrap, paths, step by step</p>
+  {% include trail.html %}
+</div>

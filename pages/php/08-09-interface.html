@@ -1,0 +1,81 @@
+---
+layout: default
+title: Interfaces
+permalink: /php/interface/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, interface, implements, instanceof, contract, oop]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Interfaces</h1>
+  <p>An interface lists functions that a class must have, without any code. It is a contract: every class that implements the interface promises to have those functions. Code that uses the interface does not need to know which class it gets.</p>
+  <pre><code class="language-php">&lt;?php
+interface Logger {
+  public function log(string $message): void;
+}
+
+class EchoLogger implements Logger {
+
+  public function log(string $message): void {
+    echo $message . PHP_EOL;
+  }
+}
+
+class FileLogger implements Logger {
+
+  public function __construct(private string $path) {
+  }
+
+  public function log(string $message): void {
+    file_put_contents($this-&gt;path, $message . PHP_EOL, FILE_APPEND | LOCK_EX);
+  }
+}
+
+function process(Logger $logger): void {
+  $logger-&gt;log("Processing");
+}
+
+process(new EchoLogger());
+// Output: Processing
+
+process(new FileLogger(__DIR__ . "/app.log"));
+// Writes Processing to app.log</code></pre>
+  <h2>More than one interface</h2>
+  <p>A class can implement many interfaces, separated with commas. An interface can also have constants.</p>
+  <pre><code class="language-php">&lt;?php
+interface HasName {
+  const PREFIX = "Name: ";
+  public function getName(): string;
+}
+
+interface HasAge {
+  public function getAge(): int;
+}
+
+class Person implements HasName, HasAge {
+
+  public function getName(): string {
+    return self::PREFIX . "Anna";
+  }
+
+  public function getAge(): int {
+    return 30;
+  }
+}</code></pre>
+  <h2>instanceof</h2>
+  <p><code>instanceof</code> checks if an object is of a class or implements an interface.</p>
+  <pre><code class="language-php">&lt;?php
+$person = new Person();
+
+var_dump($person instanceof HasAge);
+// Output: bool(true)</code></pre>
+  <h2>More about interfaces</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.oop5.interfaces.php">Object interfaces</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

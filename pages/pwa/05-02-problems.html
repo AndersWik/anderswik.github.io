@@ -1,0 +1,51 @@
+---
+layout: default
+title: Common problems
+permalink: /pwa/problems/
+chapter: "05"
+chapter_title: "Testing"
+keywords: [pwa, problems, troubleshooting, not installable, old version, offline broken, scope, addall failed, error]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Common problems</h1>
+  <p>The same few problems come up again and again. Start with <a href="/pwa/devtools/">DevTools</a>, <em>Application</em>, which shows most of them.</p>
+  <h2>No install button</h2>
+  <ul>
+    <li>The page is not on HTTPS or <code>localhost</code>. An address like <code>http://192.168.56.35:4000</code> does not count.</li>
+    <li>The manifest link is missing, or the manifest is not valid JSON. A comma after the last item is enough to break it.</li>
+    <li>An icon is missing or the wrong size. The browser downloads the icons and checks them.</li>
+    <li>The app is already installed. Check <code>chrome://apps</code>.</li>
+    <li>It is Safari or Firefox, which never show the button. See <a href="/pwa/install/">Install</a>.</li>
+  </ul>
+  <h2>The worker does not install</h2>
+  <p>If one single file in <code>cache.addAll()</code> fails, the whole install fails. The console shows an error like this:</p>
+  <pre><code class="language-bash">Uncaught (in promise) TypeError: Failed to execute 'addAll' on 'Cache': Request failed</code></pre>
+  <p>Open the <em>Network</em> tab and look for a red request with 404. Usually a path with a typo, or a file that was renamed. This is why <code>make-pwa.py</code> checks that every file exists before it writes <code>sw.js</code>.</p>
+  <h2>I changed a file but see the old one</h2>
+  <p>That is the cache doing its job. The cache name in <code>sw.js</code> has to change for the new version to load, see <a href="/pwa/updates/">Updates</a>. While working, tick <em>Update on reload</em> in DevTools. On this site, run <code>make-pwa.py</code> again after every change.</p>
+  <h2>It works online but breaks offline</h2>
+  <p>A file the app needs is not in the cache. Tick <em>Offline</em> in DevTools, reload, and look for failed requests in the <em>Network</em> tab. Common ones:</p>
+  <ul>
+    <li>A picture or sound loaded by JavaScript later, not in the HTML.</li>
+    <li>A font loaded by a stylesheet, like the Ubuntu fonts in this site's <code>style.css</code>.</li>
+    <li>A file from a CDN that was not in the list.</li>
+  </ul>
+  <h2>The worker does not control the page</h2>
+  <p><code>navigator.serviceWorker.controller</code> is <code>null</code> in the console. Either the page is outside the worker's scope, see <a href="/pwa/service-worker/">Service worker</a>, or it is the first visit: the page that registers a worker is not controlled by it until reload, unless the worker calls <code>clients.claim()</code>.</p>
+  <h2>A link opens in the browser</h2>
+  <p>The link leads out of the app's <code>scope</code>. That is often what you want, for example a link back to the site. If not, widen the scope in the manifest, see <a href="/pwa/manifest/">Manifest</a>.</p>
+  <h2>Hard reload does not help</h2>
+  <p><code>Ctrl+Shift+R</code> skips the service worker for that one load, but the next normal load uses it again. Use <em>Clear site data</em> to really start over.</p>
+  <h2>The data is gone on iPhone</h2>
+  <p>An installed app on iPhone has its own storage, apart from Safari. See <a href="/pwa/saving-data/">Saving data</a>.</p>
+  <h2>More about problems</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps">Progressive web apps on MDN</a></li>
+    <li><a href="https://web.dev/learn/pwa">Learn PWA on web.dev</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, problems, troubleshooting, not installable, old version, offline broken, scope, addall failed, error</p>
+  {% include trail.html %}
+</div>

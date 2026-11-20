@@ -1,0 +1,73 @@
+---
+layout: default
+title: CSV
+permalink: /php/csv/
+chapter: "11"
+chapter_title: "Files and formats"
+keywords: [php, csv, fgetcsv, fputcsv, str_getcsv, comma separated values, excel, array_combine]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>CSV</h1>
+  <p>CSV, comma separated values, is a text format for tables. Every line is a row and the values are separated with commas. Values that contain a comma or a quote are written in quotes. PHP handles the quoting with <code>fputcsv</code> and <code>fgetcsv</code>, so never build CSV lines by hand.</p>
+  <p>The last three parameters are the separator, the quote character and the escape character. Since PHP 8.4 leaving out the escape character gives a deprecation notice. <code>''</code> turns the old escape character off, which gives standard CSV.</p>
+  <h2>Write CSV</h2>
+  <pre><code class="language-php">&lt;?php
+$users = [
+  ["id", "name", "email"],
+  [1, "Anna", "anna@example.com"],
+  [2, "Bo, Jr", "bo@example.com"],
+];
+
+$file = fopen(__DIR__ . "/users.csv", "w");
+foreach ($users as $row) {
+  fputcsv($file, $row, ",", "\"", "");
+}
+fclose($file);</code></pre>
+  <pre><code class="language-bash">id,name,email
+1,Anna,anna@example.com
+2,"Bo, Jr",bo@example.com</code></pre>
+  <h2>Read CSV</h2>
+  <p>The first row is used as keys with <code>array_combine</code>. An empty line is read as <code>[null]</code> and is skipped.</p>
+  <pre><code class="language-php">&lt;?php
+$file = fopen(__DIR__ . "/users.csv", "r");
+$header = fgetcsv($file, null, ",", "\"", "");
+
+while (($row = fgetcsv($file, null, ",", "\"", "")) !== false) {
+  if ($row === [null]) {
+    continue;
+  }
+  $user = array_combine($header, $row);
+  echo $user["name"] . "\n";
+}
+fclose($file);
+// Output: Anna
+//         Bo, Jr</code></pre>
+  <h2>Parse a CSV string</h2>
+  <pre><code class="language-php">&lt;?php
+print_r(str_getcsv('1,"Bo, Jr",bo@example.com', ",", "\"", ""));
+// Output: Array ( [0] =&gt; 1 [1] =&gt; Bo, Jr [2] =&gt; bo@example.com )</code></pre>
+  <h2>Download as CSV</h2>
+  <p>Send headers so the browser saves the file instead of showing it. <code>php://output</code> writes straight to the response.</p>
+  <pre><code class="language-php">&lt;?php
+header("Content-Type: text/csv; charset=utf-8");
+header('Content-Disposition: attachment; filename="users.csv"');
+
+$output = fopen("php://output", "w");
+foreach ($users as $row) {
+  fputcsv($output, $row, ",", "\"", "");
+}
+fclose($output);</code></pre>
+  <p>A value from a visitor that starts with <code>=</code>, <code>+</code>, <code>-</code> or <code>@</code> can be run as a formula when the file is opened in a spreadsheet. Put a <code>'</code> in front of such values if the file will be opened in Excel.</p>
+  <h2>More about csv</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.fgetcsv.php">fgetcsv</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.fputcsv.php">fputcsv</a></li>
+    <li><a href="https://www.php.net/manual/en/function.str-getcsv.php">str_getcsv</a></li>
+    <li><a href="https://owasp.org/www-community/attacks/CSV_Injection">CSV injection</a> at OWASP</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

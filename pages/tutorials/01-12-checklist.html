@@ -1,0 +1,522 @@
+---
+layout: default
+title: Checklist
+permalink: /tutorials/checklist/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, checklist, todo, list, localStorage, JSON, JSON.stringify, JSON.parse, createElement, textContent, innerHTML, form, submit, preventDefault, blur, splice, filter]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Checklist</h1>
+  <p>We build a checklist: add items, tick them off, delete them, and clear the ones that are done. The list is saved in the browser, so it is still there when you come back.</p>
+  <p>The new ideas are saving data with <code>localStorage</code>, and building the list from the state with <code>createElement</code>.</p>
+  <p><a href="/assets/tutorials/checklist.html">Open the finished page</a></p>
+  <h2>The state</h2>
+  <p>The whole checklist is one list of objects:</p>
+  <pre><code class="language-javascript">let items = [
+    { text: "Buy milk", done: true },
+    { text: "Water the plants", done: false }
+];</code></pre>
+  <p>Like the <a href="/tutorials/calculator/">calculator</a>, every action changes the state and then one function, <code>render()</code>, draws the page from it. Here every action also saves the state.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>checklist.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
+  <pre><code class="language-html">&lt;h1&gt;Checklist&lt;/h1&gt;
+
+&lt;div class="card"&gt;
+  &lt;p class="label"&gt;Checklist&lt;/p&gt;
+
+  &lt;button type="button" id="add"&gt;+ Add an item&lt;/button&gt;
+
+  &lt;form id="form" hidden&gt;
+    &lt;input type="text" id="new-item" maxlength="200" placeholder="What needs doing?" aria-label="New item" autocomplete="off"&gt;
+  &lt;/form&gt;
+
+  &lt;ul id="items"&gt;&lt;/ul&gt;
+
+  &lt;p id="empty"&gt;Nothing here yet&lt;/p&gt;
+
+  &lt;div id="footer" hidden&gt;
+    &lt;span id="count"&gt;&lt;/span&gt;
+    &lt;button type="button" id="clear"&gt;Clear done&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+  <p>The <code>&lt;ul&gt;</code> starts empty. JavaScript fills it. The <code>hidden</code> attribute hides an element, and in JavaScript <code>element.hidden = true</code> or <code>false</code> hides or shows it. We add <code>[hidden] { display: none !important; }</code> to the CSS, so that a <code>display: flex</code> rule can't make a hidden element show up again.</p>
+  <p>The text field is inside a <code>&lt;form&gt;</code>. Then pressing Enter in it <em>submits</em> the form, and we don't have to listen for the Enter key ourselves.</p>
+  <h2>Step 2: Save and load</h2>
+  <p><code>localStorage</code> keeps text in the browser, also after a reload or a restart. It belongs to the site, so other sites can't read it. It can only store text, so we turn the list into JSON text first:</p>
+  <pre><code class="language-javascript">const STORAGE_KEY = "checklist-items";
+
+function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+}
+
+function load() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return Array.isArray(saved) ? saved : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+let items = load();</code></pre>
+  <p><code>JSON.stringify</code> turns the list into text like <code>[{"text":"Buy milk","done":true}]</code>, and <code>JSON.parse</code> turns it back. The first time, nothing is saved and <code>getItem</code> gives <code>null</code>. <code>JSON.parse(null)</code> is <code>null</code>, which is not an array, so we start with <code>[]</code>. If the saved text is broken, <code>JSON.parse</code> throws an error, and <code>try</code> / <code>catch</code> gives an empty list then too, instead of a page that doesn't work.</p>
+  <h2>Step 3: Build one item</h2>
+  <p>Each item becomes an <code>&lt;li&gt;</code> with a checkbox, the text and a delete button. <code>document.createElement</code> makes a new element, and <code>append</code> puts elements inside another:</p>
+  <pre><code class="language-javascript">function makeItem(item, index) {
+    const li = document.createElement("li");
+    if (item.done) {
+        li.classList.add("done");
+    }
+
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = item.done;
+    box.addEventListener("change", function () { toggle(index); });
+
+    const text = document.createElement("span");
+    text.textContent = item.text;
+
+    const label = document.createElement("label");
+    label.append(box, text);
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "delete";
+    deleteButton.textContent = "×";
+    deleteButton.setAttribute("aria-label", "Delete " + item.text);
+    deleteButton.addEventListener("click", function () { remove(index); });
+
+    li.append(label, deleteButton);
+    return li;
+}</code></pre>
+  <p>The checkbox is inside the <code>&lt;label&gt;</code>, so a click on the text ticks the box too.</p>
+  <p><strong>Why <code>textContent</code> and not <code>innerHTML</code>?</strong> It would be shorter to write <code>li.innerHTML = "&lt;span&gt;" + item.text + "&lt;/span&gt;"</code>. But then a user who types <code>&lt;b&gt;today&lt;/b&gt;</code> gets bold text, and worse, <code>&lt;img src=x onerror=alert(1)&gt;</code> would run code. <code>textContent</code> always shows the text exactly as typed. Use it whenever you show text that a user wrote.</p>
+  <h2>Step 4: Draw the list</h2>
+  <pre><code class="language-javascript">function render() {
+    list.textContent = "";   // remove the old items
+    items.forEach(function (item, index) {
+        list.append(makeItem(item, index));
+    });
+
+    const done = items.filter(function (item) { return item.done; }).length;
+    count.textContent = done + " of " + items.length + " done";
+    clearButton.disabled = done === 0;
+    footer.hidden = items.length === 0;
+    showEmpty();
+}
+
+function showEmpty() {
+    empty.hidden = items.length &gt; 0 || !form.hidden;
+}</code></pre>
+  <p>Setting <code>textContent</code> to <code>""</code> removes everything inside the list. Then we build it again from the state. Building the whole list every time is simple and fast enough for a list of a few hundred items.</p>
+  <p><code>filter</code> makes a new list with only the items where the function returns <code>true</code>, so <code>.length</code> of it is the number of items that are done.</p>
+  <h2>Step 5: The actions</h2>
+  <pre><code class="language-javascript">function add(text) {
+    items.push({ text: text, done: false });
+    save();
+    render();
+}
+
+function toggle(index) {
+    items[index].done = !items[index].done;
+    save();
+    render();
+}
+
+function remove(index) {
+    items.splice(index, 1);   // remove 1 item at index
+    save();
+    render();
+}
+
+function clearDone() {
+    items = items.filter(function (item) { return !item.done; });
+    save();
+    render();
+}</code></pre>
+  <p>Every action is the same three steps: change the state, save, draw. <code>!</code> turns <code>true</code> into <code>false</code> and back.</p>
+  <h2>Step 6: The text field</h2>
+  <p>"Add an item" hides itself and shows the text field. Enter adds the item and keeps the field open for the next one. Escape closes it:</p>
+  <pre><code class="language-javascript">function openForm() {
+    addButton.hidden = true;
+    form.hidden = false;
+    input.focus();
+    showEmpty();
+}
+
+function closeForm() {
+    input.value = "";
+    form.hidden = true;
+    addButton.hidden = false;
+    showEmpty();
+}
+
+addButton.addEventListener("click", openForm);
+
+form.addEventListener("submit", function (event) {
+    event.preventDefault();   // don't reload the page
+    const text = input.value.trim();
+    if (text !== "") {
+        add(text);
+        input.value = "";
+    }
+});
+
+input.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        closeForm();
+    }
+});
+
+input.addEventListener("blur", function () {
+    if (input.value.trim() === "") {
+        closeForm();
+    }
+});</code></pre>
+  <p>A form normally sends its data to a server and loads a new page. <code>event.preventDefault()</code> stops that. <code>trim()</code> removes spaces at the start and end, so an item of only spaces is not added.</p>
+  <p><code>blur</code> happens when the field loses focus, for example when you click somewhere else. Then an empty field closes by itself.</p>
+  <p><strong>A bug to avoid.</strong> Notice that <code>openForm</code> and <code>closeForm</code> call <code>showEmpty()</code> and not <code>render()</code>. Say the field is open and empty, and you click a checkbox. The browser first sends <code>blur</code> to the field, and only then the click to the checkbox. If <code>closeForm</code> called <code>render()</code>, the list would be rebuilt in between, the checkbox you pressed would be replaced by a new one, and the click would be lost. So only change what you need to.</p>
+  <h2>Step 7: Test it</h2>
+  <ul>
+    <li>Add three items with Enter. Reload the page. They are still there.</li>
+    <li>Tick one. It is crossed out and the footer says <code>1 of 3 done</code>. Press "Clear done" and it is gone.</li>
+    <li>Add an item called <code>&lt;b&gt;bold&lt;/b&gt;</code>. It shows the tags as text, not bold.</li>
+    <li>Press "Add an item" and then a checkbox right away. The field closes and the box is ticked.</li>
+    <li>Delete every item. "Nothing here yet" comes back.</li>
+    <li>Open the developer tools, Application (or Storage) tab, Local Storage. You can see the saved JSON.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>checklist.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Checklist&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .card {
+        max-width: 320px;
+        min-height: 260px;
+        margin: 0 auto;
+        padding: 16px;
+        border: 1px solid #e3e3e8;
+        border-radius: 14px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .label {
+        margin: 0 0 8px;
+        color: #6b6878;
+        font-size: 14px;
+    }
+
+    #add {
+        align-self: flex-start;
+        padding: 6px 18px;
+        border: none;
+        border-radius: 999px;
+        background: #2e9e5b;
+        color: #fff;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #new-item {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 7px 12px;
+        border: 2px solid #2e9e5b;
+        border-radius: 999px;
+        font-size: 15px;
+        outline: none;
+    }
+
+    #items {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0;
+    }
+
+    #items li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 4px;
+        border-bottom: 1px solid #f0eff3;
+    }
+
+    #items label {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+
+    #items input {
+        accent-color: #2e9e5b;
+    }
+
+    #items li.done span {
+        color: #6b6878;
+        text-decoration: line-through;
+    }
+
+    .delete {
+        border: none;
+        background: transparent;
+        color: #6b6878;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    #empty {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b6878;
+    }
+
+    #footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: auto;
+        padding-top: 10px;
+        color: #6b6878;
+        font-size: 13px;
+    }
+
+    #clear {
+        border: none;
+        background: transparent;
+        color: #2e9e5b;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Checklist&lt;/h1&gt;
+
+  &lt;div class="card"&gt;
+    &lt;p class="label"&gt;Checklist&lt;/p&gt;
+
+    &lt;button type="button" id="add"&gt;+ Add an item&lt;/button&gt;
+
+    &lt;form id="form" hidden&gt;
+      &lt;input type="text" id="new-item" maxlength="200" placeholder="What needs doing?" aria-label="New item" autocomplete="off"&gt;
+    &lt;/form&gt;
+
+    &lt;ul id="items"&gt;&lt;/ul&gt;
+
+    &lt;p id="empty"&gt;Nothing here yet&lt;/p&gt;
+
+    &lt;div id="footer" hidden&gt;
+      &lt;span id="count"&gt;&lt;/span&gt;
+      &lt;button type="button" id="clear"&gt;Clear done&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * A checklist that remembers its items.
+     *
+     * State:
+     *   items   a list of items, e.g. [{ text: "Buy milk", done: false }]
+     *
+     * Every change saves the list to localStorage and draws it again,
+     * so the list is still there after a reload.
+     */
+
+    const STORAGE_KEY = "checklist-items";
+
+    // --- State ---------------------------------------------------------------
+
+    let items = load();
+
+    // --- Elements on the page ------------------------------------------------
+
+    const addButton = document.getElementById("add");
+    const form = document.getElementById("form");
+    const input = document.getElementById("new-item");
+    const list = document.getElementById("items");
+    const empty = document.getElementById("empty");
+    const footer = document.getElementById("footer");
+    const count = document.getElementById("count");
+    const clearButton = document.getElementById("clear");
+
+    // --- Saving --------------------------------------------------------------
+
+    // localStorage only stores text, so the list is turned into JSON text.
+    function save() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    // Read the saved list. Nothing saved yet, or broken text, gives [].
+    function load() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            return Array.isArray(saved) ? saved : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    // Make the &lt;li&gt; for one item.
+    function makeItem(item, index) {
+        const li = document.createElement("li");
+        if (item.done) {
+            li.classList.add("done");
+        }
+
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = item.done;
+        box.addEventListener("change", function () { toggle(index); });
+
+        // textContent, not innerHTML, so "&lt;b&gt;" typed by the user stays text.
+        const text = document.createElement("span");
+        text.textContent = item.text;
+
+        const label = document.createElement("label");
+        label.append(box, text);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "delete";
+        deleteButton.textContent = "×";
+        deleteButton.setAttribute("aria-label", "Delete " + item.text);
+        deleteButton.addEventListener("click", function () { remove(index); });
+
+        li.append(label, deleteButton);
+        return li;
+    }
+
+    // The "Nothing here yet" text shows when the list is empty and nobody types.
+    function showEmpty() {
+        empty.hidden = items.length &gt; 0 || !form.hidden;
+    }
+
+    // Draw the whole list from the state.
+    function render() {
+        list.textContent = "";   // remove the old items
+        items.forEach(function (item, index) {
+            list.append(makeItem(item, index));
+        });
+
+        const done = items.filter(function (item) { return item.done; }).length;
+        count.textContent = done + " of " + items.length + " done";
+        clearButton.disabled = done === 0;
+        footer.hidden = items.length === 0;
+        showEmpty();
+    }
+
+    // --- Actions -------------------------------------------------------------
+
+    function add(text) {
+        items.push({ text: text, done: false });
+        save();
+        render();
+    }
+
+    function toggle(index) {
+        items[index].done = !items[index].done;
+        save();
+        render();
+    }
+
+    function remove(index) {
+        items.splice(index, 1);   // remove 1 item at index
+        save();
+        render();
+    }
+
+    function clearDone() {
+        items = items.filter(function (item) { return !item.done; });
+        save();
+        render();
+    }
+
+    function openForm() {
+        addButton.hidden = true;
+        form.hidden = false;
+        input.focus();
+        showEmpty();
+    }
+
+    function closeForm() {
+        input.value = "";
+        form.hidden = true;
+        addButton.hidden = false;
+        showEmpty();
+    }
+
+    // --- Connect the buttons -------------------------------------------------
+
+    addButton.addEventListener("click", openForm);
+
+    // Enter in the text field submits the form.
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();   // don't reload the page
+        const text = input.value.trim();
+        if (text !== "") {
+            add(text);
+            input.value = "";     // ready for the next item
+        }
+    });
+
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeForm();
+        }
+    });
+
+    // Clicking somewhere else with an empty field closes it.
+    input.addEventListener("blur", function () {
+        if (input.value.trim() === "") {
+            closeForm();
+        }
+    });
+
+    clearButton.addEventListener("click", clearDone);
+
+    render();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Double-click an item to edit its text.</li>
+    <li>Drag items to change their order with the <code>draggable</code> attribute.</li>
+    <li>Keep more than one list, each saved under its own key.</li>
+  </ul>
+  <h2>More about the checklist</h2>
+  <ul>
+    <li><a href="/utils/checklist/">The checklist on this site</a></li>
+    <li>Make it an app you can install: <a href="/pwa/make-pwa/">Many apps at once</a></li>
+    <li>Make it a Firefox add-on: <a href="/firefox-plugins/make-extension/">Make an extension</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

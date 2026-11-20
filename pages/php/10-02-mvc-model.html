@@ -1,0 +1,86 @@
+---
+layout: default
+title: MVC model
+permalink: /php/mvc-model/
+chapter: "10"
+chapter_title: "MVC"
+keywords: [php, mvc, model, model view controller, pdo, sqlite, database]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>MVC model</h1>
+  <p>MVC, Model View Controller, splits an application into three parts.</p>
+  <ul>
+    <li>The <strong>Model</strong> handles the data and the rules for it, usually by talking to a database</li>
+    <li>The <strong>View</strong> shows the data, usually as HTML</li>
+    <li>The <strong>Controller</strong> takes the request, asks the model for data and gives it to a view</li>
+  </ul>
+  <p>Each part can then be changed without touching the others. These pages build a small application for notes. It uses the <a href="/php/routers/">router</a> from the previous page and SQLite, so no database server is needed.</p>
+  <pre><code class="language-bash">notes/
+  data/
+  public/
+    index.php
+  src/
+    NoteController.php
+    NoteModel.php
+    Router.php
+    view.php
+  views/
+    layout.php
+    notes/
+      index.php
+      show.php</code></pre>
+  <h2>The model</h2>
+  <p>The model is the only class that knows about the database. It uses <a href="/php/mysql/">prepared statements</a> for every value. Creating the table in the constructor keeps the example short, a larger application would use migrations.</p>
+  <pre><code class="language-php">&lt;?php
+// src/NoteModel.php
+class NoteModel {
+
+  public function __construct(private PDO $pdo) {
+    $this-&gt;pdo-&gt;exec('CREATE TABLE IF NOT EXISTS notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL
+    )');
+  }
+
+  public function all(): array {
+    return $this-&gt;pdo-&gt;query('SELECT id, title FROM notes ORDER BY id DESC')-&gt;fetchAll();
+  }
+
+  public function find(int $id): ?array {
+    $stmt = $this-&gt;pdo-&gt;prepare('SELECT id, title, body FROM notes WHERE id = :id');
+    $stmt-&gt;execute(['id' =&gt; $id]);
+    $note = $stmt-&gt;fetch();
+
+    return $note === false ? null : $note;
+  }
+
+  public function create(string $title, string $body): int {
+    $stmt = $this-&gt;pdo-&gt;prepare('INSERT INTO notes (title, body) VALUES (:title, :body)');
+    $stmt-&gt;execute(['title' =&gt; $title, 'body' =&gt; $body]);
+
+    return (int) $this-&gt;pdo-&gt;lastInsertId();
+  }
+}</code></pre>
+  <h2>Use the model</h2>
+  <pre><code class="language-php">&lt;?php
+$pdo = new PDO('sqlite:' . __DIR__ . '/../data/notes.sqlite', null, null, [
+  PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION,
+  PDO::ATTR_DEFAULT_FETCH_MODE =&gt; PDO::FETCH_ASSOC,
+]);
+
+$notes = new NoteModel($pdo);
+$id = $notes-&gt;create('First note', 'Hello');
+print_r($notes-&gt;find($id));
+// Output: Array ( [id] =&gt; 1 [title] =&gt; First note [body] =&gt; Hello )</code></pre>
+  <h2>More about mvc model</h2>
+  <ul>
+    <li><a href="/php/mvc-view/">MVC view</a> on the next page</li>
+    <li><a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">Model view controller</a> on Wikipedia</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

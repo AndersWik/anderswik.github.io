@@ -1,0 +1,60 @@
+---
+layout: default
+title: Post
+permalink: /php/post/
+chapter: "07"
+chapter_title: "Web pages"
+keywords: [php, post, "$_POST", form, request method, redirect, post redirect get, csrf]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Post</h1>
+  <p><code>$_POST</code> contains the values from a form sent with <code>method="post"</code>. The values are sent in the body of the request and not in the URL. Use POST for everything that creates, changes or deletes something.</p>
+  <h2>Check the request method</h2>
+  <pre><code class="language-php">&lt;?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $message = trim($_POST['message'] ?? '');
+  // Validate and save the message
+}</code></pre>
+  <h2>Post, Redirect, Get</h2>
+  <p>If the page shows the result directly after a POST, reloading the page sends the form again. Redirect to a normal page after the form is handled instead. This is called Post/Redirect/Get.</p>
+  <pre><code class="language-php">&lt;?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $message = trim($_POST['message'] ?? '');
+
+  if ($message !== '' &amp;&amp; mb_strlen($message) &lt;= 500) {
+    file_put_contents(__DIR__ . '/messages.txt', $message . "\n", FILE_APPEND | LOCK_EX);
+    header('Location: post.php?saved=1', true, 303);
+    exit;
+  }
+  $error = "Write a message of at most 500 characters.";
+}
+?&gt;
+&lt;html&gt;
+ &lt;body&gt;
+  &lt;?php if (isset($_GET['saved'])): ?&gt;
+    &lt;p&gt;Thank you, the message is saved.&lt;/p&gt;
+  &lt;?php endif; ?&gt;
+  &lt;?php if (isset($error)): ?&gt;
+    &lt;p&gt;&lt;?php echo htmlspecialchars($error); ?&gt;&lt;/p&gt;
+  &lt;?php endif; ?&gt;
+  &lt;form action="post.php" method="post"&gt;
+    &lt;textarea name="message"&gt;&lt;/textarea&gt;
+    &lt;input type="submit" value="Send"&gt;
+  &lt;/form&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <p><code>303 See Other</code> tells the browser to follow the redirect with a GET request. Always call <code>exit</code> after a redirect, otherwise the rest of the script still runs.</p>
+  <h2>Cross site request forgery</h2>
+  <p>Another site can make the browser of a logged in visitor send a POST to your site. Protect forms that change data with a secret token stored in the <a href="/php/sessions/">session</a>, and check it when the form is sent.</p>
+  <h2>More about post</h2>
+  <ul>
+    <li>To send a POST request from PHP to another server, see <a href="/php/http-post/">POST</a> in the HTTP chapter</li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.post.php">$_POST</a> in the PHP manual</li>
+    <li><a href="https://en.wikipedia.org/wiki/Post/Redirect/Get">Post/Redirect/Get</a> on Wikipedia</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

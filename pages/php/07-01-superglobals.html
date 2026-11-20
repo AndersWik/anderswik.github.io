@@ -1,0 +1,132 @@
+---
+layout: default
+title: Superglobals
+permalink: /php/superglobals/
+chapter: "07"
+chapter_title: "Web pages"
+keywords: [php, superglobals, "$GLOBALS", "$_SERVER", "$_GET", "$_POST", "$_FILES", "$_COOKIE", "$_SESSION", "$_REQUEST", "$_ENV", getenv]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Superglobals</h1>
+  <p>Superglobals are arrays that PHP fills in for every request. They are available everywhere in the code, also inside functions and classes.</p>
+  <p>Everything in <code>$_GET</code>, <code>$_POST</code>, <code>$_COOKIE</code>, <code>$_FILES</code>, <code>$_REQUEST</code> and the <code>HTTP_</code> values in <code>$_SERVER</code> is sent by the visitor. It can contain anything, so always validate it before using it and escape it with <code>htmlspecialchars</code> before printing it.</p>
+  <h2>Global Variables</h2>
+  <p><code>$GLOBALS</code> contains all global variables. Since PHP 8.1 it is read only as a whole, but single values can still be changed.</p>
+  <pre><code class="language-php">&lt;?php
+print_r($GLOBALS);
+?&gt;</code></pre>
+  <ul>
+    <li><code>$_GET</code></li>
+    <li><code>$_POST</code></li>
+    <li><code>$_COOKIE</code></li>
+    <li><code>$_FILES</code></li>
+    <li><code>$GLOBALS</code> (Self)</li>
+  </ul>
+  <h2>Server Variables</h2>
+  <p><code>$_SERVER</code> has information about the server and the current request.</p>
+  <pre><code class="language-php">&lt;?php
+print_r($_SERVER);
+?&gt;</code></pre>
+  <ul>
+    <li><code>$_SERVER['DOCUMENT_ROOT']</code> the root folder of the web site</li>
+    <li><code>$_SERVER['REMOTE_ADDR']</code> the IP address of the visitor</li>
+    <li><code>$_SERVER['REMOTE_PORT']</code> the port the visitor uses</li>
+    <li><code>$_SERVER['SERVER_SOFTWARE']</code> the name of the web server</li>
+    <li><code>$_SERVER['SERVER_PROTOCOL']</code> for example <code>HTTP/1.1</code></li>
+    <li><code>$_SERVER['SERVER_NAME']</code> the name of the server</li>
+    <li><code>$_SERVER['SERVER_PORT']</code> for example <code>80</code> or <code>443</code></li>
+    <li><code>$_SERVER['REQUEST_URI']</code> the path and query string, for example <code>/page.php?id=1</code></li>
+    <li><code>$_SERVER['REQUEST_METHOD']</code> for example <code>GET</code> or <code>POST</code></li>
+    <li><code>$_SERVER['SCRIPT_NAME']</code> the path of the current script</li>
+    <li><code>$_SERVER['SCRIPT_FILENAME']</code> the full path of the current script on disk</li>
+    <li><code>$_SERVER['PHP_SELF']</code> the path of the script, can contain extra text from the visitor, escape it before printing</li>
+    <li><code>$_SERVER['HTTP_HOST']</code> the host name the visitor asked for, sent by the visitor</li>
+    <li><code>$_SERVER['HTTP_UPGRADE_INSECURE_REQUESTS']</code></li>
+    <li><code>$_SERVER['HTTP_ACCEPT']</code> which content types the browser accepts</li>
+    <li><code>$_SERVER['HTTP_USER_AGENT']</code> the name of the browser, sent by the visitor</li>
+    <li><code>$_SERVER['HTTP_ACCEPT_LANGUAGE']</code> which languages the visitor prefers</li>
+    <li><code>$_SERVER['HTTP_ACCEPT_ENCODING']</code></li>
+    <li><code>$_SERVER['HTTP_CONNECTION']</code></li>
+    <li><code>$_SERVER['REQUEST_TIME_FLOAT']</code> when the request started, with microseconds</li>
+    <li><code>$_SERVER['REQUEST_TIME']</code> when the request started, as a Unix timestamp</li>
+    <li><code>$_SERVER['argv']</code> the arguments to a <a href="/php/command-line/">command line</a> script</li>
+    <li><code>$_SERVER['argc']</code> the number of arguments</li>
+  </ul>
+  <h2>Get</h2>
+  <p><code>$_GET</code> contains the parameters in the query string of the URL. Read more in <a href="/php/get/">Get</a>.</p>
+  <pre><code class="language-php">&lt;?php
+print_r($_GET);
+?&gt;</code></pre>
+  <h2>Post Variables</h2>
+  <p><code>$_POST</code> contains the values from a form sent with the POST method. Read more in <a href="/php/post/">Post</a>.</p>
+  <pre><code class="language-php">&lt;?php
+print_r($_POST);
+?&gt;</code></pre>
+  <h2>Files Variables</h2>
+  <p><code>$_FILES</code> contains information about files uploaded with a form.</p>
+  <pre><code class="language-php">&lt;?php
+print_r($_FILES);
+?&gt;</code></pre>
+  <h2>Cookie Variables</h2>
+  <p><code>$_COOKIE</code> contains the cookies sent by the browser. Read more in <a href="/php/cookies/">Cookies</a>.</p>
+  <pre><code class="language-php">&lt;?php
+print_r($_COOKIE);
+?&gt;</code></pre>
+  <h2>Session Variables</h2>
+  <p><code>$_SESSION</code> contains the values stored in the session. It is only available after <code>session_start()</code>. Read more in <a href="/php/sessions/">Sessions</a>.</p>
+  <pre><code class="language-php">&lt;?php
+session_start();
+print_r($_SESSION);
+?&gt;</code></pre>
+  <h2>Request Variables</h2>
+  <p><code>$_REQUEST</code> contains <code>$_GET</code>, <code>$_POST</code> and <code>$_COOKIE</code> together. It is better to use the one you expect, so it is clear where the value comes from.</p>
+  <pre><code class="language-php">&lt;?php
+print_r($_REQUEST);
+?&gt;</code></pre>
+  <h2>Environment Variables</h2>
+  <p><code>$_ENV</code> contains the environment variables. It is often empty, because the <code>variables_order</code> setting in <code>php.ini</code> leaves it out. <code>getenv</code> always works.</p>
+  <pre><code class="language-php">&lt;?php
+print_r($_ENV);
+echo getenv('HOME');
+?&gt;</code></pre>
+  <p>These are some of the variables on macOS.</p>
+  <ul>
+    <li><code>$_ENV['TERM_PROGRAM']</code></li>
+    <li><code>$_ENV['SHELL']</code></li>
+    <li><code>$_ENV['TERM']</code></li>
+    <li><code>$_ENV['TMPDIR']</code></li>
+    <li><code>$_ENV['TERM_PROGRAM_VERSION']</code></li>
+    <li><code>$_ENV['TERM_SESSION_ID']</code></li>
+    <li><code>$_ENV['USER']</code></li>
+    <li><code>$_ENV['SSH_AUTH_SOCK']</code></li>
+    <li><code>$_ENV['PATH']</code></li>
+    <li><code>$_ENV['PWD']</code></li>
+    <li><code>$_ENV['LANG']</code></li>
+    <li><code>$_ENV['XPC_FLAGS']</code></li>
+    <li><code>$_ENV['XPC_SERVICE_NAME']</code></li>
+    <li><code>$_ENV['SHLVL']</code></li>
+    <li><code>$_ENV['HOME']</code></li>
+    <li><code>$_ENV['LOGNAME']</code></li>
+    <li><code>$_ENV['SECURITYSESSIONID']</code></li>
+    <li><code>$_ENV['OLDPWD']</code></li>
+    <li><code>$_ENV['__CF_USER_TEXT_ENCODING']</code></li>
+  </ul>
+  <h2>More about superglobals</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.variables.superglobals.php">Superglobals</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.globals.php">$GLOBALS</a></li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.server.php">$_SERVER</a></li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.get.php">$_GET</a></li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.post.php">$_POST</a></li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.files.php">$_FILES</a></li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.cookies.php">$_COOKIE</a></li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.session.php">$_SESSION</a></li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.request.php">$_REQUEST</a></li>
+    <li><a href="https://www.php.net/manual/en/reserved.variables.environment.php">$_ENV</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,277 @@
+---
+layout: default
+title: "Project: Tiny URL"
+permalink: /php/project-tinyurl/
+chapter: "15"
+chapter_title: "Projects"
+keywords: [php, project, tutorial, tiny url, url shortener, short link, redirect, sqlite, pdo, csrf, random_int]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Project: Tiny URL</h1>
+  <p>A URL shortener turns a long address into a short one, like <code>http://localhost:8000/k3Hq9Tz</code>. When someone opens the short link the server redirects them to the long address. In this tutorial we build the simplest version that is still safe and correct, in one PHP file with a SQLite database.</p>
+  <h2>What it does</h2>
+  <ul>
+    <li><code>GET /</code> shows a form where you paste a long URL</li>
+    <li><code>POST /</code> checks the URL, saves it with a random code and redirects to a page that shows the short link</li>
+    <li><code>GET /k3Hq9Tz</code> redirects to the saved URL, or shows <code>404</code> if the code does not exist</li>
+  </ul>
+  <h2>What makes it safe</h2>
+  <ul>
+    <li>Only <code>http://</code> and <code>https://</code> URLs are accepted. Without this check someone could save a <code>javascript:</code> link</li>
+    <li>All database queries use prepared statements</li>
+    <li>Everything printed on the pages is escaped with <code>htmlspecialchars</code></li>
+    <li>The form is protected with a CSRF token, so other sites can not create links in the name of your visitors</li>
+    <li>The codes are made with <code>random_int</code>, which is safe for things that must not be guessed</li>
+    <li>The address of the site is a setting, it is not taken from the <code>Host</code> header, which the visitor controls</li>
+    <li>After the form is sent the browser is redirected, so reloading the page does not create another link</li>
+    <li>The database is stored outside of the public folder</li>
+  </ul>
+  <h2>Folder structure</h2>
+  <pre><code class="language-bash">tinyurl/
+  data/
+  public/
+    index.php</code></pre>
+  <pre><code class="language-bash">$ mkdir -p tinyurl/data tinyurl/public
+$ cd tinyurl</code></pre>
+  <p>All code goes into <code>public/index.php</code>. Each step below adds to the end of the file, the <code>&lt;?php</code> line is only written once at the top.</p>
+  <h2>Step 1: Settings</h2>
+  <p><code>BASE_URL</code> is the address of the site, without a slash at the end. Change it when the site goes public. The alphabet leaves out characters that are easy to mix up, like <code>l</code>, <code>1</code>, <code>O</code> and <code>0</code>. 56 characters and 7 places give more than a trillion codes.</p>
+  <pre><code class="language-php">&lt;?php
+// public/index.php
+declare(strict_types=1);
+
+const BASE_URL = 'http://localhost:8000';
+const DB_FILE = __DIR__ . '/../data/tinyurl.sqlite';
+const CODE_ALPHABET = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const CODE_LENGTH = 7;
+const CODE_PATTERN = '/^[a-zA-Z0-9]{7}$/';</code></pre>
+  <h2>Step 2: The database</h2>
+  <p><code>code</code> is the primary key, so the database itself makes sure that no two links get the same code. <code>static</code> keeps the connection, so it is only opened once per request.</p>
+  <pre><code class="language-php">&lt;?php
+function db(): PDO
+{
+    static $pdo = null;
+
+    if ($pdo === null) {
+        $pdo = new PDO('sqlite:' . DB_FILE, null, null, [
+            PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION,
+        ]);
+        $pdo-&gt;exec('CREATE TABLE IF NOT EXISTS links (
+            code TEXT PRIMARY KEY,
+            url TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )');
+    }
+
+    return $pdo;
+}</code></pre>
+  <h2>Step 3: Helpers for HTML and the CSRF token</h2>
+  <p><code>e</code> escapes text for HTML. <code>render</code> sends a whole page with a status code and some security headers. The Content Security Policy forbids all scripts, so even if something was missed, injected JavaScript would not run.</p>
+  <p>The session is only started when the form is used, so people who just follow a short link do not get a cookie.</p>
+  <pre><code class="language-php">&lt;?php
+function e(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function render(string $body, int $status = 200): void
+{
+    http_response_code($status);
+    header('Content-Type: text/html; charset=utf-8');
+    header("Content-Security-Policy: default-src 'none'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: no-referrer');
+
+    echo '&lt;!doctype html&gt;&lt;html lang="en"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;'
+        . '&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;'
+        . '&lt;title&gt;Tiny URL&lt;/title&gt;&lt;/head&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;';
+}
+
+function csrfToken(): string
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start([
+            'cookie_httponly' =&gt; true,
+            'cookie_secure' =&gt; str_starts_with(BASE_URL, 'https://'),
+            'cookie_samesite' =&gt; 'Lax',
+            'use_strict_mode' =&gt; true,
+        ]);
+    }
+
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+
+    return $_SESSION['csrf_token'];
+}</code></pre>
+  <h2>Step 4: Validate, create and find links</h2>
+  <p><code>validUrl</code> accepts at most 2048 characters, a valid URL according to <code>filter_var</code>, the schemes <code>http</code> and <code>https</code>, and not links to the shortener itself, which could create redirect loops.</p>
+  <p><code>createLink</code> tries a new random code if the code already exists. The database answers SQLSTATE <code>23000</code> when the primary key is taken. Any other error is thrown on.</p>
+  <pre><code class="language-php">&lt;?php
+function validUrl(string $url): bool
+{
+    if ($url === '' || strlen($url) &gt; 2048 || filter_var($url, FILTER_VALIDATE_URL) === false) {
+        return false;
+    }
+
+    $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+    $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+    $ownHost = strtolower((string) parse_url(BASE_URL, PHP_URL_HOST));
+
+    return in_array($scheme, ['http', 'https'], true) &amp;&amp; $host !== $ownHost;
+}
+
+function randomCode(): string
+{
+    $code = '';
+    $max = strlen(CODE_ALPHABET) - 1;
+
+    for ($i = 0; $i &lt; CODE_LENGTH; $i++) {
+        $code .= CODE_ALPHABET[random_int(0, $max)];
+    }
+
+    return $code;
+}
+
+function createLink(string $url): string
+{
+    $stmt = db()-&gt;prepare('INSERT INTO links (code, url, created_at) VALUES (:code, :url, :created_at)');
+
+    for ($attempt = 0; $attempt &lt; 5; $attempt++) {
+        $code = randomCode();
+        try {
+            $stmt-&gt;execute([
+                'code' =&gt; $code,
+                'url' =&gt; $url,
+                'created_at' =&gt; gmdate('Y-m-d H:i:s'),
+            ]);
+            return $code;
+        } catch (PDOException $e) {
+            if (($e-&gt;errorInfo[0] ?? '') !== '23000') {
+                throw $e;
+            }
+        }
+    }
+
+    throw new RuntimeException('Could not create a unique code');
+}
+
+function findUrl(string $code): ?string
+{
+    $stmt = db()-&gt;prepare('SELECT url FROM links WHERE code = :code');
+    $stmt-&gt;execute(['code' =&gt; $code]);
+    $url = $stmt-&gt;fetchColumn();
+
+    return $url === false ? null : $url;
+}</code></pre>
+  <h2>Step 5: The pages</h2>
+  <p>The form keeps what the visitor typed if there was an error, escaped like everything else.</p>
+  <pre><code class="language-php">&lt;?php
+function formHtml(string $error = '', string $value = ''): string
+{
+    $html = '&lt;h1&gt;Tiny URL&lt;/h1&gt;';
+
+    if ($error !== '') {
+        $html .= '&lt;p&gt;&lt;strong&gt;' . e($error) . '&lt;/strong&gt;&lt;/p&gt;';
+    }
+
+    return $html
+        . '&lt;form method="post" action="/"&gt;'
+        . '&lt;input type="hidden" name="csrf_token" value="' . e(csrfToken()) . '"&gt;'
+        . '&lt;p&gt;&lt;label&gt;Long URL&lt;br&gt;'
+        . '&lt;input type="url" name="url" value="' . e($value) . '" required maxlength="2048" size="50"&gt;'
+        . '&lt;/label&gt;&lt;/p&gt;'
+        . '&lt;p&gt;&lt;button&gt;Shorten&lt;/button&gt;&lt;/p&gt;'
+        . '&lt;/form&gt;';
+}
+
+function resultHtml(string $code, string $url): string
+{
+    $short = BASE_URL . '/' . $code;
+
+    return '&lt;h1&gt;Your short link&lt;/h1&gt;'
+        . '&lt;p&gt;&lt;a href="' . e($short) . '"&gt;' . e($short) . '&lt;/a&gt;&lt;/p&gt;'
+        . '&lt;p&gt;It goes to ' . e($url) . '&lt;/p&gt;'
+        . '&lt;p&gt;&lt;a href="/"&gt;Shorten another link&lt;/a&gt;&lt;/p&gt;';
+}
+
+function handleCreate(): void
+{
+    $token = $_POST['csrf_token'] ?? '';
+    if (!is_string($token) || !hash_equals(csrfToken(), $token)) {
+        render(formHtml('The form has expired. Please try again.'), 403);
+        return;
+    }
+
+    $url = is_string($_POST['url'] ?? null) ? trim($_POST['url']) : '';
+    if (!validUrl($url)) {
+        render(formHtml('Enter a full address that starts with http:// or https://.', $url), 422);
+        return;
+    }
+
+    $code = createLink($url);
+    header('Location: /?created=' . $code, true, 303);
+}</code></pre>
+  <h2>Step 6: Routing</h2>
+  <p>The path decides what to do. The code in a short link must match <code>CODE_PATTERN</code> before it is looked up. The redirect uses <code>302 Found</code> and not <code>301</code>, since browsers remember a <code>301</code> forever, and then the link can never be changed or removed.</p>
+  <p>Errors are logged, and the visitor only sees a general message.</p>
+  <pre><code class="language-php">&lt;?php
+$method = $_SERVER['REQUEST_METHOD'];
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if (!is_string($path)) {
+    $path = '/';
+}
+
+try {
+    if ($path === '/' &amp;&amp; $method === 'GET') {
+        $created = $_GET['created'] ?? '';
+        $url = is_string($created) &amp;&amp; preg_match(CODE_PATTERN, $created) === 1 ? findUrl($created) : null;
+        render($url !== null ? resultHtml($created, $url) : formHtml());
+    } elseif ($path === '/' &amp;&amp; $method === 'POST') {
+        handleCreate();
+    } elseif (($method === 'GET' || $method === 'HEAD') &amp;&amp; preg_match('#^/([a-zA-Z0-9]{7})$#', $path, $matches) === 1) {
+        $url = findUrl($matches[1]);
+        if ($url === null) {
+            render('&lt;h1&gt;Link not found&lt;/h1&gt;', 404);
+        } else {
+            header('Location: ' . $url, true, 302);
+        }
+    } else {
+        render('&lt;h1&gt;Page not found&lt;/h1&gt;', 404);
+    }
+} catch (Throwable $e) {
+    error_log('Tiny URL: ' . $e-&gt;getMessage());
+    render('&lt;h1&gt;Something went wrong&lt;/h1&gt;', 500);
+}</code></pre>
+  <h2>Step 7: Run it</h2>
+  <p>The last argument sends every request to <code>index.php</code>, which works as the <a href="/php/routers/">router</a>.</p>
+  <pre><code class="language-bash">$ php -S localhost:8000 -t public public/index.php</code></pre>
+  <p>Open <code>http://localhost:8000</code>, paste a URL and open the short link. Check the redirect with curl.</p>
+  <pre><code class="language-bash">$ curl -i http://localhost:8000/k3Hq9Tz
+HTTP/1.1 302 Found
+Location: https://www.anderswik.se/</code></pre>
+  <h2>Before going public</h2>
+  <ul>
+    <li>Set <code>BASE_URL</code> to the real address and use HTTPS</li>
+    <li>Point the web server to the <code>public</code> folder, so <code>data</code> can not be downloaded</li>
+    <li>Turn off <code>display_errors</code> in <code>php.ini</code></li>
+    <li>Open services are used to hide links to phishing and malware. Limit how many links an IP address can create, or require a login</li>
+  </ul>
+  <h2>Next steps</h2>
+  <ul>
+    <li>Count clicks with a <code>clicks INTEGER NOT NULL DEFAULT 0</code> column and <code>UPDATE links SET clicks = clicks + 1 WHERE code = :code</code></li>
+    <li>Let the visitor choose their own code, validated with the same pattern</li>
+    <li>Move the code into classes with the <a href="/php/mvc-model/">MVC</a> structure</li>
+  </ul>
+  <h2>More about tiny url</h2>
+  <ul>
+    <li><a href="/php/sessions/">Sessions</a>, <a href="/php/status-codes/">Status codes</a> and <a href="/php/mysql/">MySQL</a> cover the parts used here</li>
+    <li><a href="https://www.php.net/manual/en/function.random-int.php">random_int</a> in the PHP manual</li>
+    <li><a href="https://en.wikipedia.org/wiki/URL_shortening">URL shortening</a> on Wikipedia</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

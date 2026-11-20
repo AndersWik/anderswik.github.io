@@ -1,0 +1,58 @@
+---
+layout: default
+title: Updates
+permalink: /pwa/updates/
+chapter: "03"
+chapter_title: "Offline"
+keywords: [pwa, update, new version, cache name, hash, skipwaiting, clients.claim, activate, old cache]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Updates</h1>
+  <p>With a cache first worker the app never asks the network for its files, so how does a new version get out? The answer is <code>sw.js</code> itself. The browser always checks the worker file against the server when the app opens. If even one byte is different, the new worker is installed.</p>
+  <h2>Change the cache name</h2>
+  <p>Changing <code>app.js</code> alone is not enough: <code>sw.js</code> is the same, so nothing happens. Give each version its own cache name. Then <code>sw.js</code> changes, the new worker installs and saves the new files in a new cache.</p>
+  <pre><code class="language-javascript">const CACHE = "hello-v1";   // Change to "hello-v2" when any file changes</code></pre>
+  <p>It is easy to forget to bump a version by hand. Our script uses a hash of all the app's files as the name instead, so it changes by itself when any file does:</p>
+  <pre><code class="language-python">digest = hashlib.sha1()
+for href in local:
+    digest.update(href.encode())
+    digest.update((ROOT / href.lstrip("/")).read_bytes())
+
+cache = f"{slug}-{digest.hexdigest()[:10]}"     # e.g. calculator-2a1a0259dc</code></pre>
+  <h2>Delete the old cache</h2>
+  <p>When the new worker activates, the old cache is no longer needed. Delete every cache that starts with the app's name but is not the current one. The name prefix matters on a site with many apps: the calculator must not delete the caches of the other apps.</p>
+  <pre><code class="language-javascript">self.addEventListener("activate", function (event) {
+    event.waitUntil(
+        caches.keys().then(function (names) {
+            return Promise.all(names
+                .filter(function (name) { return name.startsWith("calculator-") &amp;&amp; name !== CACHE; })
+                .map(function (name) { return caches.delete(name); }));
+        })
+    );
+});</code></pre>
+  <h2>Waiting</h2>
+  <p>By default a new worker waits until every window of the app is closed, so the old and new version never run at the same time. For a phone app that is rarely closed, that can take days.</p>
+  <ul>
+    <li><code>self.skipWaiting()</code> in <code>install</code> lets the new worker activate at once.</li>
+    <li><code>self.clients.claim()</code> in <code>activate</code> makes it take over the open windows too.</li>
+  </ul>
+  <p>Our apps use both. The page that is already open keeps its old files, and the next time the app is opened it gets the new version. That is safe for small apps where the page is loaded in one go.</p>
+  <h2>Tell the user</h2>
+  <p>A bigger app may want to show "A new version is ready, reload?". The page can listen for a new worker taking over:</p>
+  <pre><code class="language-javascript">navigator.serviceWorker.addEventListener("controllerchange", function () {
+    document.getElementById("update-banner").hidden = false;
+});</code></pre>
+  <h2>The worker file and HTTP cache</h2>
+  <p>Browsers skip the normal HTTP cache when they check <code>sw.js</code>, so a new worker is found at once. The files the worker saves with <code>cache.addAll()</code> do go through the HTTP cache though. GitHub Pages lets browsers keep files for 10 minutes, so right after a deploy a new worker may save an old copy of a file. Wait a few minutes after deploying before you test, or fetch the files with <code>{ cache: "reload" }</code>:</p>
+  <pre><code class="language-javascript">cache.addAll(FILES.map(function (file) { return new Request(file, { cache: "reload" }); }));</code></pre>
+  <h2>More about updates</h2>
+  <ul>
+    <li><a href="https://web.dev/articles/service-worker-lifecycle#updates">Updating the service worker on web.dev</a></li>
+    <li>See <a href="/pwa/devtools/">DevTools</a> for how to force an update while testing</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, update, new version, cache name, hash, skipwaiting, clients.claim, activate, old cache</p>
+  {% include trail.html %}
+</div>

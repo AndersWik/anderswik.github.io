@@ -1,0 +1,40 @@
+---
+layout: default
+title: Firefox extensions
+permalink: /firefox-plugins/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [firefox, extension, add-on, plugin, webextensions, manifest v3, introduction, toolbar]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Firefox extensions</h1>
+  <p>A Firefox extension, or add-on, is a small program that runs inside the browser. It can add a button to the toolbar, change web pages, or open its own pages. Like a web page it is written in HTML, CSS and JavaScript, and it is packed as a zip file with a <code>manifest.json</code> that tells Firefox what it is.</p>
+  <h2>Plugin, add-on or extension?</h2>
+  <p>The words get mixed up. <em>Plugins</em> used to be programs like Flash and Java that the browser loaded from the computer, and Firefox removed support for them in 2021. Today Firefox calls everything you install from addons.mozilla.org an <em>add-on</em>, and the kind you build with JavaScript an <em>extension</em>. These notes use "extension".</p>
+  <h2>WebExtensions</h2>
+  <p>Firefox, Chrome, Edge and Safari all use nearly the same system for extensions, called WebExtensions. An extension built for Firefox usually loads in Chrome and Edge with no or few changes. Firefox has the API under the name <code>browser</code>, Chrome calls it <code>chrome</code>, and Firefox accepts both.</p>
+  <h2>Manifest V3</h2>
+  <p>The manifest has a version number, <code>"manifest_version": 3</code>. Version 3 is the current one. It is stricter than version 2: an extension may not run code from other sites, may not use inline scripts or <code>eval()</code>, and all its code has to be in the zip, so it can be reviewed. See <a href="/firefox-plugins/content-security-policy/">Content Security Policy</a>.</p>
+  <h2>What an extension can do</h2>
+  <ul>
+    <li><strong>A toolbar button</strong> that opens a small popup window. This is what our games use.</li>
+    <li><strong>Its own pages</strong>, opened in a tab, like an options page or a bigger app.</li>
+    <li><strong>Background scripts</strong> that react to events, like a click on the toolbar button.</li>
+    <li><strong>Content scripts</strong> that run inside web pages and can read or change them.</li>
+    <li><strong>Browser APIs</strong> for tabs, bookmarks, downloads, storage and much more, each behind a permission the user has to accept.</li>
+  </ul>
+  <h2>Extensions from this site</h2>
+  <p>Every game and app on this site can be built as an extension with one script, see <a href="/firefox-plugins/make-extension/">Many apps at once</a>. These notes start with a Hello World button and then port the <a href="/games/8-ball/">Magic 8 Ball</a> by hand, step by step, so you can see what the script does.</p>
+  <h2>Extension or PWA?</h2>
+  <p>A <a href="/pwa/">Progressive Web App</a> is the same app installed from a web page. It works on phones and needs no review, but it can only do what a web page can. An extension lives in the browser's toolbar, can use the browser APIs, works on desktop Firefox and Firefox for Android, and has to be signed by Mozilla.</p>
+  <h2>More about extensions</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions">Browser extensions on MDN</a></li>
+    <li><a href="https://extensionworkshop.com/">Firefox Extension Workshop</a>, Mozilla's guide to building and publishing</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, add-on, plugin, webextensions, manifest v3, introduction, toolbar</p>
+  {% include trail.html %}
+</div>

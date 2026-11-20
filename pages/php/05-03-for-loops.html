@@ -1,0 +1,96 @@
+---
+layout: default
+title: For loops
+permalink: /php/for-loops/
+chapter: "05"
+chapter_title: "Control structures"
+keywords: [php, for, foreach, loop, break, continue, template syntax, endfor, endforeach]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>For loops</h1>
+  <p>Loops run the same code many times. <code>for</code> is used when we know how many times, <code>foreach</code> to go through every value in an array.</p>
+  <h2>For</h2>
+  <p>A <code>for</code> loop has three parts: a start value, a condition that is checked before every round and a step that runs after every round.</p>
+  <pre><code class="language-php">&lt;?php
+$array = array("one", "two", "three", "four");
+
+for ($i = 0; $i &lt; count($array); $i++) {
+
+  echo $array[$i]." ";
+}
+// Output: one two three four</code></pre>
+  <h3>Template syntax</h3>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;For&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+   &lt;?php $array = array("one", "two", "three", "four"); ?&gt;
+   &lt;?php for ($i = 0; $i &lt; count($array); $i++): ?&gt;
+     &lt;p&gt;&lt;?php echo $array[$i]; ?&gt;&lt;/p&gt;
+   &lt;?php endfor; ?&gt;
+   &lt;?php // Output: one two three four ?&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Foreach</h2>
+  <pre><code class="language-php">&lt;?php
+$array = array("one", "two", "three", "four");
+
+foreach ($array as $value) {
+
+  echo $value." ";
+}
+// Output: one two three four</code></pre>
+  <p><code>foreach</code> can also give the key of every value.</p>
+  <pre><code class="language-php">&lt;?php
+$array = array("one" =&gt; "Option One",
+            "two" =&gt; "Option Two",
+            "three" =&gt; "Option Three",
+            "four" =&gt; "Option Four");
+
+foreach ($array as $num =&gt; $value) {
+
+  echo $num." : ".$value."\n";
+}
+// Output: one : Option One
+//         two : Option Two
+//         three : Option Three
+//         four : Option Four</code></pre>
+  <h3>Template syntax</h3>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;For&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+   &lt;?php $array = array("one", "two", "three", "four"); ?&gt;
+   &lt;?php foreach ($array as $value): ?&gt;
+     &lt;p&gt;&lt;?php echo $value; ?&gt;&lt;/p&gt;
+   &lt;?php endforeach; ?&gt;
+   &lt;?php // Output: one two three four ?&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Break and continue</h2>
+  <p><code>break</code> stops the loop. <code>continue</code> skips the rest of the current round and goes to the next.</p>
+  <pre><code class="language-php">&lt;?php
+for ($i = 1; $i &lt;= 10; $i++) {
+  if ($i == 3) {
+    continue;
+  }
+  if ($i == 6) {
+    break;
+  }
+  echo $i . " ";
+}
+// Output: 1 2 4 5</code></pre>
+  <h2>More about for loops</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/control-structures.for.php">for</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/control-structures.foreach.php">foreach</a></li>
+    <li><a href="https://www.php.net/manual/en/control-structures.alternative-syntax.php">Alternative syntax</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

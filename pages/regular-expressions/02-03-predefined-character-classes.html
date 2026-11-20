@@ -1,0 +1,64 @@
+---
+layout: default
+title: Predefined character classes
+permalink: /regular-expressions/predefined-character-classes/
+chapter: "02"
+chapter_title: "Characters"
+keywords: [regular expressions, regex, predefined character class, backslash, digit, word, white space, word boundary, "\\d", "\\w", "\\s", "\\b"]
+---
+
+<div class="regular-expressions container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>\ Predefined character classes</h1>
+  <p>A predefined character class is a short form of a usual character class. It starts with a backslash (<code>\</code>). The uppercase letter is the opposite of the lowercase letter. For example, <code>\D</code> finds all the characters that <code>\d</code> does not find.</p>
+  <h2>\d Digit</h2>
+  <p><code>\d</code> finds one digit (<code>0-9</code>). It is the same as <code>[0-9]</code>.</p>
+  <pre><code class="language-regex">/\d/</code></pre>
+  <p class="regex-example"><mark>1</mark>: This text starts and ends <mark>1</mark></p>
+  <p>The regular expression finds the two digits.</p>
+  <h2>\D Not a digit</h2>
+  <p><code>\D</code> finds one character that is not a digit. It is the same as <code>[^0-9]</code>.</p>
+  <pre><code class="language-regex">/\D/</code></pre>
+  <p class="regex-example">1<mark>: This text starts and ends </mark>1</p>
+  <p>The regular expression finds all the letters, the spaces and the colon (<code>:</code>).</p>
+  <h2>\w Word character</h2>
+  <p><code>\w</code> finds one word character. A word character is a letter (<code>a-z</code> or <code>A-Z</code>), a digit (<code>0-9</code>) or an underscore (<code>_</code>). It is the same as <code>[a-zA-Z0-9_]</code>.</p>
+  <pre><code class="language-regex">/\w/</code></pre>
+  <p class="regex-example"><mark>1</mark>: <mark>This</mark> <mark>text</mark> <mark>starts</mark> <mark>and</mark> <mark>ends</mark> <mark>1</mark></p>
+  <p>The regular expression finds all the letters and digits. Each character is a separate match. The spaces and the colon are not matches.</p>
+  <p><code>\w</code> does not find letters such as <code>å</code>, <code>ä</code> and <code>ö</code>.</p>
+  <h2>\W Not a word character</h2>
+  <p><code>\W</code> finds one character that is not a word character. It is the same as <code>[^a-zA-Z0-9_]</code>.</p>
+  <pre><code class="language-regex">/\W/</code></pre>
+  <p class="regex-example">1<mark>: </mark>This<mark> </mark>text<mark> </mark>starts<mark> </mark>and<mark> </mark>ends<mark> </mark>1</p>
+  <p>The regular expression finds the colon and the spaces.</p>
+  <h2>\s White space</h2>
+  <p><code>\s</code> finds one white space character: a space, a tab or a line break.</p>
+  <pre><code class="language-regex">/\s/</code></pre>
+  <p class="regex-example">1:<mark> </mark>This<mark> </mark>text<mark> </mark>starts<mark> </mark>and<mark> </mark>ends<mark> </mark>1</p>
+  <p>The regular expression finds the spaces between the words.</p>
+  <h2>\S Not white space</h2>
+  <p><code>\S</code> finds one character that is not white space.</p>
+  <pre><code class="language-regex">/\S/</code></pre>
+  <p class="regex-example"><mark>1:</mark> <mark>This</mark> <mark>text</mark> <mark>starts</mark> <mark>and</mark> <mark>ends</mark> <mark>1</mark></p>
+  <p>The regular expression finds all the characters, but not the spaces.</p>
+  <h2>\b Word boundary</h2>
+  <p><code>\b</code> does not find a character. It finds a position. A word boundary is a position between a word character and a character that is not a word character. The start and the end of the line are also word boundaries.</p>
+  <p>Use <code>\b</code> to find a character at the start or at the end of a word.</p>
+  <pre><code class="language-regex">/\bs/</code></pre>
+  <p class="regex-example">1: This text <mark>s</mark>tarts and ends 1</p>
+  <p>The regular expression finds an <code>s</code> at the start of a word. Only "starts" starts with an <code>s</code>.</p>
+  <h2>\B Not a word boundary</h2>
+  <p><code>\B</code> finds a position that is not a word boundary. The position is in a word, between two word characters.</p>
+  <pre><code class="language-regex">/\Bs/</code></pre>
+  <p class="regex-example">1: Thi<mark>s</mark> text start<mark>s</mark> and end<mark>s</mark> 1</p>
+  <p>The regular expression finds an <code>s</code> that is not at the start of a word. The first <code>s</code> in "starts" is not a match, because it is at the start of the word.</p>
+  <h2>More about predefined character classes</h2>
+  <ul>
+    <li>Make your own classes with brackets. See <a href="/regular-expressions/character-class/">Character class</a>.</li>
+    <li>To find a backslash, write two backslashes: <code>\\</code>.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

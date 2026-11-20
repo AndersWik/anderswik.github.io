@@ -1,0 +1,143 @@
+---
+layout: default
+title: REST API
+permalink: /php/rest-api/
+chapter: "13"
+chapter_title: "Web services"
+keywords: [php, rest, api, json, crud, get, post, patch, delete, status codes, sqlite, pdo]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>REST API</h1>
+  <p>REST is a way to design web services around resources. Each resource has a URL, like <code>/todos/5</code>, and the <a href="/php/http/">HTTP method</a> says what to do with it. The data is usually sent as <a href="/php/json/">JSON</a>, and the <a href="/php/status-codes/">status code</a> tells how it went.</p>
+  <ul>
+    <li><code>GET /todos</code> lists all todos</li>
+    <li><code>POST /todos</code> creates a todo</li>
+    <li><code>GET /todos/5</code> reads one todo</li>
+    <li><code>PATCH /todos/5</code> changes a todo</li>
+    <li><code>DELETE /todos/5</code> deletes a todo</li>
+  </ul>
+  <h2>The API</h2>
+  <p>The whole API is one file. It stores the todos in SQLite, uses prepared statements for all values and validates the JSON it gets.</p>
+  <pre><code class="language-php">&lt;?php
+// public/api.php
+declare(strict_types=1);
+
+header('Content-Type: application/json; charset=utf-8');
+
+function respond(int $status, mixed $data = null): never {
+    http_response_code($status);
+    if ($data !== null) {
+        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+    exit;
+}
+
+function jsonBody(): array {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($data)) {
+        respond(400, ['error' =&gt; 'The body must be a JSON object']);
+    }
+    return $data;
+}
+
+$pdo = new PDO('sqlite:' . __DIR__ . '/../data/todos.sqlite', null, null, [
+    PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE =&gt; PDO::FETCH_ASSOC,
+]);
+$pdo-&gt;exec('CREATE TABLE IF NOT EXISTS todos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    done INTEGER NOT NULL DEFAULT 0
+)');
+
+$method = $_SERVER['REQUEST_METHOD'];
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+
+if ($path === '/todos') {
+    if ($method === 'GET') {
+        respond(200, $pdo-&gt;query('SELECT id, title, done FROM todos ORDER BY id')-&gt;fetchAll());
+    }
+
+    if ($method === 'POST') {
+        $input = jsonBody();
+        $title = is_string($input['title'] ?? null) ? trim($input['title']) : '';
+
+        if ($title === '' || mb_strlen($title) &gt; 200) {
+            respond(422, ['error' =&gt; 'title is required and can be at most 200 characters']);
+        }
+
+        $stmt = $pdo-&gt;prepare('INSERT INTO todos (title) VALUES (:title)');
+        $stmt-&gt;execute(['title' =&gt; $title]);
+        $id = (int) $pdo-&gt;lastInsertId();
+
+        header('Location: /todos/' . $id);
+        respond(201, ['id' =&gt; $id, 'title' =&gt; $title, 'done' =&gt; 0]);
+    }
+
+    header('Allow: GET, POST');
+    respond(405, ['error' =&gt; 'Method not allowed']);
+}
+
+if (preg_match('#^/todos/(\d+)$#', $path, $matches)) {
+    $stmt = $pdo-&gt;prepare('SELECT id, title, done FROM todos WHERE id = :id');
+    $stmt-&gt;execute(['id' =&gt; (int) $matches[1]]);
+    $todo = $stmt-&gt;fetch();
+
+    if ($todo === false) {
+        respond(404, ['error' =&gt; 'Todo not found']);
+    }
+
+    if ($method === 'GET') {
+        respond(200, $todo);
+    }
+
+    if ($method === 'PATCH') {
+        $input = jsonBody();
+        if (!is_bool($input['done'] ?? null)) {
+            respond(422, ['error' =&gt; 'done must be true or false']);
+        }
+
+        $stmt = $pdo-&gt;prepare('UPDATE todos SET done = :done WHERE id = :id');
+        $stmt-&gt;execute(['done' =&gt; (int) $input['done'], 'id' =&gt; $todo['id']]);
+        $todo['done'] = (int) $input['done'];
+        respond(200, $todo);
+    }
+
+    if ($method === 'DELETE') {
+        $stmt = $pdo-&gt;prepare('DELETE FROM todos WHERE id = :id');
+        $stmt-&gt;execute(['id' =&gt; $todo['id']]);
+        respond(204);
+    }
+
+    header('Allow: GET, PATCH, DELETE');
+    respond(405, ['error' =&gt; 'Method not allowed']);
+}
+
+respond(404, ['error' =&gt; 'Not found']);</code></pre>
+  <p><code>never</code> as return type means the function never returns, it always ends the script. It needs PHP 8.1.</p>
+  <h2>Run and test</h2>
+  <pre><code class="language-bash">$ mkdir data
+$ php -S localhost:8000 -t public public/api.php</code></pre>
+  <pre><code class="language-bash">$ curl -i http://localhost:8000/todos
+$ curl -i -X POST -H "Content-Type: application/json" -d '{"title":"Buy milk"}' http://localhost:8000/todos
+$ curl -i -X PATCH -H "Content-Type: application/json" -d '{"done":true}' http://localhost:8000/todos/1
+$ curl -i -X DELETE http://localhost:8000/todos/1</code></pre>
+  <h2>Before going public</h2>
+  <ul>
+    <li>Require authentication, for example a secret API token in the <code>Authorization</code> header that is compared with <code>hash_equals</code></li>
+    <li>Always use HTTPS</li>
+    <li>Limit how many requests a client can make</li>
+    <li>Log errors and return a general <code>500</code> message without details</li>
+  </ul>
+  <h2>More about rest api</h2>
+  <ul>
+    <li><a href="/php/custom-requests/">Custom requests</a> and <a href="/php/crud/">CRUD</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/REST">REST</a> on Wikipedia</li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status">HTTP response status codes</a> at MDN</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

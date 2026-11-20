@@ -1,18 +1,20 @@
 /*
- * Service worker for URL encode. Made by _scripts/make-pwa.py, don't edit by hand.
+ * Service worker for Url encode / decode. Made by _scripts/make-pwa.py, don't edit by hand.
  *
  * On install it saves every file the app needs in a cache. After that the app
  * loads from the cache, so it works without a connection. The cache name is a
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "encode-url-6816f8d433";
+const CACHE = "encode-url-7946832c35";
 
 const FILES = [
     "/assets/encode-url/app.html",
     "/assets/encode-url/encode-url.css",
     "/assets/encode-url/encode-url.js",
     "/assets/encode-url/images/apple-touch-icon.png",
+    "/assets/encode-url/images/decode-url.svg",
+    "/assets/encode-url/images/favicon.svg",
     "/assets/encode-url/images/icon-192.png",
     "/assets/encode-url/images/icon-512.png",
     "/assets/encode-url/images/icon-maskable-512.png",

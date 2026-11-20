@@ -1,0 +1,149 @@
+---
+layout: default
+title: Anonymous functions
+permalink: /php/anonymous-functions/
+chapter: "06"
+chapter_title: "Functions"
+keywords: [php, anonymous functions, closures, callback, use, arrow functions, fn]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Anonymous functions</h1>
+  <p>We can store an anonymous function in a variable. A difference when defining a anonymous function is we need to add a semicolon (;) after the closing curly brackets. When we call the function we use the variable name followed by <code>()</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$anonymous = function() {
+
+  return "hello";
+};
+
+echo $anonymous();
+// Output: hello</code></pre>
+  <p>Anonymous functions can have parameters and a return value like a normal function.</p>
+  <pre><code class="language-php">&lt;?php
+$parameter1 = 20;
+$parameter2 = 30;
+
+$anonymous = function($par1, $par2) {
+
+  return $par1 + $par2;
+};
+
+echo $anonymous($parameter1, $parameter2);
+// Output: 50</code></pre>
+  <h2>Function as a parameter</h2>
+  <p>We can use an anonymous function as a parameter for our normal function. A function that is passed on like this is called a callback.</p>
+  <pre><code class="language-php">&lt;?php
+$parameter1 = 20;
+$parameter2 = 20;
+
+$anonymous = function($par1, $par2) {
+
+  return $par1 + $par2;
+};
+
+function printMe($par1, $par2, $par3) {
+
+  echo $par3($par1, $par2);
+}
+
+printMe($parameter1, $parameter2, $anonymous );
+// Output: 40</code></pre>
+  <p>We can also use an anonymous function as a parameter for another anonymous function.</p>
+  <pre><code class="language-php">&lt;?php
+$parameter1 = 30;
+$parameter2 = 30;
+
+$anonymous1 = function($par1, $par2) {
+
+  return $par1 + $par2;
+};
+
+$anonymous2 = function($par1, $par2, $par3) {
+
+  echo $par3($par1, $par2);
+};
+
+$anonymous2($parameter1, $parameter2, $anonymous1 );
+// Output: 60</code></pre>
+  <p>This allow us to dynamically change what function to be used depending on another value. Here the result is either <code>50</code> or <code>600</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$parameter1 = 20;
+$parameter2 = 30;
+$parameter3 = null;
+
+$anonymous1 = function($par1, $par2) {
+
+  return $par1 + $par2;
+};
+
+$anonymous2 = function($par1, $par2) {
+
+  return $par1 * $par2;
+};
+
+$anonymous3 = function($par1, $par2, $par3) {
+
+  echo $par3($par1, $par2);
+};
+
+$randomInt = rand(1,10);
+
+if($randomInt &lt;= 5) {
+
+  $parameter3 = $anonymous1;
+
+} else {
+
+  $parameter3 = $anonymous2;
+}
+
+$anonymous3($parameter1, $parameter2, $parameter3);</code></pre>
+  <p>We do not need to store a anonymous function in a variable before passing it to another function. We can create the function in the parameter list.</p>
+  <pre><code class="language-php">&lt;?php
+$parameter1 = 20;
+$parameter2 = 30;
+
+function printString($par1, $par2, $par) {
+
+  echo $par($par1, $par2);
+}
+
+printString($parameter1, $parameter2, function($par1, $par2){
+
+  return $par1 + $par2;
+});
+
+// Output: 50</code></pre>
+  <h2>Use</h2>
+  <p>An anonymous function can not see variables from outside. <code>use</code> copies them into the function when it is created.</p>
+  <pre><code class="language-php">&lt;?php
+$greeting = "Hello";
+
+$greet = function($name) use ($greeting) {
+  return "$greeting $name";
+};
+
+echo $greet("Anna");
+// Output: Hello Anna</code></pre>
+  <h2>Arrow functions</h2>
+  <p>PHP 7.4 added arrow functions with <code>fn</code>. They can only contain one expression, which is returned, and they see the outside variables without <code>use</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$factor = 3;
+
+$multiply = fn($n) =&gt; $n * $factor;
+
+echo $multiply(5);
+// Output: 15
+
+print_r(array_map(fn($n) =&gt; $n * $factor, [1, 2, 3]));
+// Output: Array ( [0] =&gt; 3 [1] =&gt; 6 [2] =&gt; 9 )</code></pre>
+  <h2>More about anonymous functions</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/functions.anonymous.php">Anonymous functions</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/functions.arrow.php">Arrow functions</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

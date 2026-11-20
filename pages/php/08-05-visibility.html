@@ -1,0 +1,262 @@
+---
+layout: default
+title: Visibility
+permalink: /php/visibility/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, visibility, public, protected, private, encapsulation, properties, "$this", parent, self]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Visibility</h1>
+  <h2>Visibility of attributes</h2>
+  <p>We can set the visibility on variables and functions.</p>
+  <ul>
+    <li><strong>Public</strong> can be used from everywhere</li>
+    <li><strong>Protected</strong> can be used from the class itself and from classes that extend it</li>
+    <li><strong>Private</strong> can only be used from the class itself</li>
+  </ul>
+  <h3>From instance</h3>
+  <p>We create a class and make a instance of it.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	public $memberPublic = "Public";
+	protected $memberProtected = "Protected";
+	private $memberPrivate = "Private";
+}
+
+$foo = new Foo();</code></pre>
+  <p>We can see that only the public variable is accessible when calling the members from an instance variable.</p>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Public:
+echo $foo-&gt;memberPublic;
+// Output: Public
+// 2: Foo Protected:
+echo $foo-&gt;memberProtected;
+// Output: Fatal error: Uncaught Error: Cannot access protected property Foo::$memberProtected
+// 3: Foo Private:
+echo $foo-&gt;memberPrivate;
+// Output: Fatal error: Uncaught Error: Cannot access private property Foo::$memberPrivate</code></pre>
+  <p>The same applies to classes that inherit the variables, only public variables can be accessed. The private variable of <code>Foo</code> does not exist at all as seen from outside of <code>Foo</code>, so it gives a warning instead of an error.</p>
+  <pre><code class="language-php">&lt;?php
+class Bar extends Foo {
+
+}
+
+$extendsFoo = new Bar();</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Public:
+echo $extendsFoo-&gt;memberPublic;
+// Output: Public
+// 2: Foo Protected:
+echo $extendsFoo-&gt;memberProtected;
+// Output: Fatal error: Uncaught Error: Cannot access protected property Bar::$memberProtected
+// 3: Foo Private:
+echo $extendsFoo-&gt;memberPrivate;
+// Output: Warning: Undefined property: Bar::$memberPrivate</code></pre>
+  <h3>From within class</h3>
+  <p>To access the non public variables we need to call them from within the class. We can do this if we create functions in the class that return the variables. We make all the functions public. This to enable us to access them from an instance of the class.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	public $memberPublic = "Public";
+	protected $memberProtected = "Protected";
+	private $memberPrivate = "Private";
+
+	function getPub() {
+		return $this-&gt;memberPublic;
+	}
+
+	function getPro() {
+		return $this-&gt;memberProtected;
+	}
+
+	function getPriv() {
+		return $this-&gt;memberPrivate;
+	}
+
+}
+
+$foo = new Foo();</code></pre>
+  <p>Now we can get all the values.</p>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Public:
+echo $foo-&gt;getPub();
+// Output: Public
+// 2: Foo Protected:
+echo $foo-&gt;getPro();
+// Output: Protected
+// 3: Foo Private:
+echo $foo-&gt;getPriv();
+// Output: Private</code></pre>
+  <h3>From extended class</h3>
+  <p>We have the same Foo class as before. We make another class and extend the foo class. Then we make an instance of our new class. We can call all our functions from the instance since they are all public. The call to the variables all happen in the context of the extended class.</p>
+  <pre><code class="language-php">&lt;?php
+class Bar extends Foo {
+
+	function getPub() {
+		return $this-&gt;memberPublic;
+	}
+
+	function getPro() {
+		return $this-&gt;memberProtected;
+	}
+
+	function getPriv() {
+		return $this-&gt;memberPrivate;
+	}
+
+}
+
+$extendsFoo = new Bar();</code></pre>
+  <p>From the extended class we can access both the public and protected variable. We can not access the variable that is private.</p>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Extends Public:
+echo $extendsFoo-&gt;getPub();
+// Output: Public
+// 2: Foo Extends Protected:
+echo $extendsFoo-&gt;getPro();
+// Output: Protected
+// 3: Foo Extends Private:
+echo $extendsFoo-&gt;getPriv();
+// Output: Warning: Undefined property: Bar::$memberPrivate</code></pre>
+  <h3>Using Parent Self This</h3>
+  <p>Variables that are not static belong to the object, and <code>$this-&gt;</code> is the only way to reach them. <code>parent::</code> and <code>self::</code> can not be used for them, they are used for functions, <a href="/php/visibility-static/">static variables</a> and <a href="/php/visibility-constant/">constants</a>. What we can do is call the function of the parent with <code>parent::</code> and see which value it gets.</p>
+  <p>In our child class we can overshadow the variable in the base class.</p>
+  <h4>Public</h4>
+  <p>The child declares the public variable again with a new value. An object only has one public variable with that name, so all three functions return the value from <code>Bar</code>, even the function that is written in <code>Foo</code>.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	public $memberPublic = "Foo Public";
+
+	function getPub() {
+		return $this-&gt;memberPublic;
+	}
+
+}
+
+class Bar extends Foo {
+
+	public $memberPublic = "Bar Public";
+
+	function getPubParent() {
+		return parent::getPub();
+	}
+
+	function getPubSelf() {
+		return self::getPub();
+	}
+
+	function getPubThis() {
+		return $this-&gt;memberPublic;
+	}
+
+}
+
+$extendsFoo = new Bar();</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Extends Parent:
+echo $extendsFoo-&gt;getPubParent();
+// Output: Bar Public
+// 2: Foo Extends Self:
+echo $extendsFoo-&gt;getPubSelf();
+// Output: Bar Public
+// 3: Foo Extends This:
+echo $extendsFoo-&gt;getPubThis();
+// Output: Bar Public</code></pre>
+  <h4>Protected</h4>
+  <p>Protected works the same way as public. The child replaces the value.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	protected $memberProtected = "Foo Protected";
+
+	function getPro() {
+		return $this-&gt;memberProtected;
+	}
+
+}
+
+class Bar extends Foo {
+
+	protected $memberProtected = "Bar Protected";
+
+	function getProParent() {
+		return parent::getPro();
+	}
+
+	function getProSelf() {
+		return self::getPro();
+	}
+
+	function getProThis() {
+		return $this-&gt;memberProtected;
+	}
+
+}
+
+$extendsFoo = new Bar();</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Extends Parent:
+echo $extendsFoo-&gt;getProParent();
+// Output: Bar Protected
+// 2: Foo Extends Self:
+echo $extendsFoo-&gt;getProSelf();
+// Output: Bar Protected
+// 3: Foo Extends This:
+echo $extendsFoo-&gt;getProThis();
+// Output: Bar Protected</code></pre>
+  <h4>Private</h4>
+  <p>Private is different. <code>Foo</code> and <code>Bar</code> each get their own private variable, even though they have the same name. The function written in <code>Foo</code> sees the variable from <code>Foo</code>, and the function written in <code>Bar</code> sees the one from <code>Bar</code>. <code>self::getPri()</code> finds the function in <code>Foo</code>, so it also returns the value from <code>Foo</code>.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	private $memberPrivate = "Foo Private";
+
+	function getPri() {
+		return $this-&gt;memberPrivate;
+	}
+
+}
+
+class Bar extends Foo {
+
+	private $memberPrivate = "Bar Private";
+
+	function getPriParent() {
+		return parent::getPri();
+	}
+
+	function getPriSelf() {
+		return self::getPri();
+	}
+
+	function getPriThis() {
+		return $this-&gt;memberPrivate;
+	}
+
+}
+
+$extendsFoo = new Bar();</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Extends Parent:
+echo $extendsFoo-&gt;getPriParent();
+// Output: Foo Private
+// 2: Foo Extends Self:
+echo $extendsFoo-&gt;getPriSelf();
+// Output: Foo Private
+// 3: Foo Extends This:
+echo $extendsFoo-&gt;getPriThis();
+// Output: Bar Private</code></pre>
+  <h2>More about visibility</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.oop5.visibility.php">Visibility</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.properties.php">Properties</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

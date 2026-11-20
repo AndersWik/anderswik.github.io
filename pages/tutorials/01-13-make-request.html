@@ -1,0 +1,473 @@
+---
+layout: default
+title: Make Request
+permalink: /tutorials/make-request/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, fetch, http, request, response, api, rest, postman, cors, preflight, options, headers, json, async, await, AbortController, firefox, extension, host_permissions, history, library, localStorage, import, export, Blob, download, file input, file.text]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Make Request</h1>
+  <p>We build a small Postman: pick a method, write a URL, add headers and a body, press Send, and see the status, the time, the headers and the body that come back.</p>
+  <p>The new ideas are <code>fetch()</code> with all its options, <code>async</code> / <code>await</code>, and <strong>CORS</strong>: the rule that decides which servers a web page may talk to.</p>
+  <p><a href="/assets/tutorials/make-request.html">Open the finished page</a></p>
+  <p>Read <a href="/tutorials/my-ip/">My IP</a> first. It is a first, simpler <code>fetch()</code>.</p>
+  <h2>CORS: what a web page may not do</h2>
+  <p>Postman is a program on your computer, and it can call any server. A web page can't. Say you are logged in to your bank, and open some other site. If that site's JavaScript could fetch your bank's pages, it would be sent with your bank's cookies, and it could read your account. So browsers have the <strong>same-origin policy</strong>: a page may only read responses from its own site.</p>
+  <p><strong>CORS</strong> (Cross-Origin Resource Sharing) is how a server says that other sites are welcome. It answers with a header:</p>
+  <pre><code class="language-plaintext">Access-Control-Allow-Origin: *</code></pre>
+  <p>Without that header the browser still gets the response, but it doesn't give it to your JavaScript. <code>fetch()</code> fails instead. Most public APIs, like GitHub's and <code>jsonplaceholder.typicode.com</code>, send the header. Most normal websites don't.</p>
+  <p>Some requests are checked <em>before</em> they are sent. A PUT, PATCH or DELETE, a JSON body, or a header like <code>Authorization</code>, makes the browser first send an <code>OPTIONS</code> request, called a <strong>preflight</strong>, that asks the server if it is OK. If the server doesn't say yes, the real request is never sent.</p>
+  <p>A few things a web page can never do, whatever the server says:</p>
+  <ul>
+    <li>Set some headers, like <code>Cookie</code>, <code>Host</code>, <code>Origin</code> and <code>Referer</code>. The browser sets them itself and quietly drops yours.</li>
+    <li>Use the methods <code>CONNECT</code> and <code>TRACE</code>.</li>
+    <li>Call <code>http://</code> from a page on <code>https://</code> (mixed content), except <code>localhost</code>.</li>
+    <li>Read every response header. Only a few simple ones, unless the server lists more in <code>Access-Control-Expose-Headers</code>.</li>
+  </ul>
+  <p>So our tool works with any API that allows CORS, and with your own server on <code>localhost</code> if you turn CORS on there. For everything else, see <a href="#firefox-add-on">the Firefox add-on</a> at the end.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>make-request.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. To keep it short, the headers are a text area with one <code>Name: value</code> per line. The <a href="/utils/make-request/">version on this site</a> has a row with two fields for every header instead.</p>
+  <pre><code class="language-html">&lt;h1&gt;Make Request&lt;/h1&gt;
+
+&lt;form id="form"&gt;
+  &lt;div class="request"&gt;
+    &lt;select id="method" aria-label="HTTP method"&gt;
+      &lt;option&gt;GET&lt;/option&gt;
+      &lt;option&gt;POST&lt;/option&gt;
+      &lt;option&gt;PUT&lt;/option&gt;
+      &lt;option&gt;PATCH&lt;/option&gt;
+      &lt;option&gt;DELETE&lt;/option&gt;
+      &lt;option&gt;HEAD&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;input id="url" type="text" placeholder="https://api.github.com/users/octocat" aria-label="URL" spellcheck="false"&gt;
+    &lt;button type="submit" id="send"&gt;Send&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;h2&gt;Headers&lt;/h2&gt;
+  &lt;textarea id="headers" rows="3" spellcheck="false" placeholder="Accept: application/json" aria-label="Headers, one per line"&gt;&lt;/textarea&gt;
+
+  &lt;h2&gt;Body&lt;/h2&gt;
+  &lt;textarea id="body" rows="5" spellcheck="false" placeholder='{ "name": "value" }' aria-label="Body"&gt;&lt;/textarea&gt;
+&lt;/form&gt;
+
+&lt;p id="error" hidden&gt;&lt;/p&gt;
+
+&lt;div id="response" hidden&gt;
+  &lt;h2&gt;Response &lt;span class="status" id="status"&gt;&lt;/span&gt; &lt;small id="time"&gt;&lt;/small&gt;&lt;/h2&gt;
+  &lt;h3&gt;Body&lt;/h3&gt;
+  &lt;pre id="response-body"&gt;&lt;/pre&gt;
+  &lt;h3&gt;Headers&lt;/h3&gt;
+  &lt;pre id="response-headers"&gt;&lt;/pre&gt;
+&lt;/div&gt;</code></pre>
+  <p>An <code>&lt;option&gt;</code> without a <code>value</code> uses its text as the value. The method list has no <code>CONNECT</code> or <code>TRACE</code>, since <code>fetch()</code> refuses them anyway. The Send button is a <code>type="submit"</code> inside a form, so Enter in the URL field sends too.</p>
+  <h2>Step 2: The headers</h2>
+  <p><code>fetch()</code> takes headers as a <code>Headers</code> object. We split the text area into lines, and every line at its first <code>:</code>. Only the first, because a value can have <code>:</code> in it, like <code>Authorization: Basic a:b</code>:</p>
+  <pre><code class="language-javascript">function readHeaders() {
+    const headers = new Headers();
+    headersInput.value.split("\n").forEach(function (line) {
+        const colon = line.indexOf(":");
+        if (colon &gt; 0) {
+            headers.append(line.slice(0, colon).trim(), line.slice(colon + 1).trim());
+        }
+    });
+    return headers;
+}</code></pre>
+  <p><code>colon &gt; 0</code> skips empty lines and lines without a name. <code>Headers</code> doesn't care about upper and lower case, so <code>headers.has("content-type")</code> finds <code>Content-Type</code> too.</p>
+  <h2>Step 3: Send it</h2>
+  <pre><code class="language-javascript">async function send() {
+    errorText.hidden = true;
+    const method = methodSelect.value;
+    const options = { method: method, headers: readHeaders() };
+
+    if (method !== "GET" &amp;&amp; method !== "HEAD" &amp;&amp; bodyInput.value !== "") {
+        options.body = bodyInput.value;
+        if (!options.headers.has("Content-Type")) {
+            options.headers.set("Content-Type", "application/json");
+        }
+    }
+
+    sendButton.disabled = true;
+    const started = performance.now();
+
+    try {
+        const response = await fetch(urlInput.value.trim(), options);
+        const text = await response.text();
+        const ms = Math.round(performance.now() - started);
+        showResponse(response, text, ms);
+    } catch (error) {
+        showError("The request failed: " + error.message);
+    } finally {
+        sendButton.disabled = false;
+    }
+}</code></pre>
+  <p><code>fetch()</code> doesn't wait for the server. It gives back a <strong>promise</strong>, a value that arrives later. Inside a function marked <code>async</code>, <code>await</code> pauses the function until the value has arrived, without freezing the page. That lets us write the steps in order, like normal code. The response comes in two parts: <code>await fetch()</code> waits for the status and headers, and <code>await response.text()</code> waits for the whole body.</p>
+  <p>GET and HEAD can't have a body, <code>fetch()</code> throws an error if you give them one. When there is a body and no <code>Content-Type</code>, we say it is JSON, since that is what most APIs want.</p>
+  <p><code>performance.now()</code> is a clock in milliseconds that is made for measuring, so the time includes downloading the body.</p>
+  <p><code>finally</code> runs whether it worked or not, so the button always comes back.</p>
+  <h2>Step 4: Errors are not what you think</h2>
+  <p><code>fetch()</code> only throws when there is no response to read: a wrong address, no network, or a CORS block. A <strong>404 or 500 is not an error</strong> to <code>fetch()</code>. The server answered, so you get a normal response with <code>response.status</code> 404, and <code>response.ok</code> false. That is what we want in this tool: show every status.</p>
+  <p>When it does throw, the browser doesn't tell the page why. A CORS block and a typo give the same vague <code>TypeError</code>, on purpose, so a page can't use errors to find out things about other servers. The reason is only written in the browser console. So the best we can do is list the likely reasons:</p>
+  <pre><code class="language-javascript">showError("The request failed: " + error.message + "\n\n" +
+    "If the address is right, the server probably doesn't allow CORS. " +
+    "The browser console (F12) has the exact reason.");</code></pre>
+  <p>Don't try <code>mode: "no-cors"</code>. It sends the request, but gives you an "opaque" response: status 0, no headers, an empty body. It is only useful when you don't need the answer.</p>
+  <h2>Step 5: Show the response</h2>
+  <pre><code class="language-javascript">function showResponse(response, text, ms) {
+    statusText.textContent = response.status + " " + response.statusText;
+    statusText.className = "status " +
+        (response.status &gt;= 400 ? "error" : response.status &gt;= 300 ? "redirect" : "ok");
+    timeText.textContent = ms + " ms";
+    responseBody.textContent = prettyBody(text);
+
+    let headerLines = "";
+    response.headers.forEach(function (value, name) {
+        headerLines += name + ": " + value + "\n";
+    });
+    responseHeaders.textContent = headerLines;
+
+    responseBox.hidden = false;
+}
+
+function prettyBody(text) {
+    try {
+        return JSON.stringify(JSON.parse(text), null, 2);
+    } catch (error) {
+        return text;
+    }
+}</code></pre>
+  <p>JSON from an API is usually one long line. <code>JSON.parse</code> reads it, and <code>JSON.stringify</code> with <code>2</code> as the third argument writes it again with two spaces of indent. If the body isn't JSON, <code>JSON.parse</code> throws and we show the text as it is. We use <code>textContent</code>, since the body comes from another server and could be HTML that we must not run.</p>
+  <p>The finished page puts it all inside <code>send()</code>. The version on this site also has a Cancel button, using an <code>AbortController</code>:</p>
+  <pre><code class="language-javascript">const controller = new AbortController();
+fetch(url, { signal: controller.signal });
+// later, on Cancel:
+controller.abort();   // fetch() throws an error with the name "AbortError"</code></pre>
+  <h2>Step 6: Test it</h2>
+  <ul>
+    <li>GET <code>https://jsonplaceholder.typicode.com/users/1</code> gives <code>200</code> and pretty JSON.</li>
+    <li>POST to <code>https://jsonplaceholder.typicode.com/posts</code> with the body <code>{"title": "Hello"}</code> gives <code>201</code> and the post back with an <code>id</code>.</li>
+    <li>GET <code>https://jsonplaceholder.typicode.com/nothing</code> gives <code>404</code>, as a response and not an error.</li>
+    <li>GET <code>https://example.com/</code> fails, since example.com doesn't allow CORS. Open the console (F12) to see the browser say so.</li>
+    <li>Add the header <code>Cookie: a=b</code> and look at the request in the Network tab of the developer tools. It is not there.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>make-request.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Make Request&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .request {
+        display: flex;
+        gap: 6px;
+    }
+
+    #url {
+        flex: 1;
+        min-width: 0;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+        font-size: 16px;
+        padding: 8px;
+    }
+
+    textarea,
+    #url,
+    pre {
+        font-family: monospace;
+    }
+
+    textarea {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        color: #fff;
+        font-weight: bold;
+    }
+
+    .ok    { background: #198754; }
+    .redirect { background: #c98a00; }
+    .error { background: #dc3545; }
+
+    pre {
+        max-height: 400px;
+        overflow: auto;
+        padding: 12px;
+        background: #f6f6f6;
+        border: 1px solid #ddd;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    #error {
+        color: #b02a37;
+        white-space: pre-line;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Make Request&lt;/h1&gt;
+
+  &lt;form id="form"&gt;
+    &lt;div class="request"&gt;
+      &lt;select id="method" aria-label="HTTP method"&gt;
+        &lt;option&gt;GET&lt;/option&gt;
+        &lt;option&gt;POST&lt;/option&gt;
+        &lt;option&gt;PUT&lt;/option&gt;
+        &lt;option&gt;PATCH&lt;/option&gt;
+        &lt;option&gt;DELETE&lt;/option&gt;
+        &lt;option&gt;HEAD&lt;/option&gt;
+      &lt;/select&gt;
+      &lt;input id="url" type="text" placeholder="https://api.github.com/users/octocat" aria-label="URL" spellcheck="false"&gt;
+      &lt;button type="submit" id="send"&gt;Send&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;h2&gt;Headers&lt;/h2&gt;
+    &lt;textarea id="headers" rows="3" spellcheck="false" placeholder="Accept: application/json" aria-label="Headers, one per line"&gt;&lt;/textarea&gt;
+
+    &lt;h2&gt;Body&lt;/h2&gt;
+    &lt;textarea id="body" rows="5" spellcheck="false" placeholder='{ "name": "value" }' aria-label="Body"&gt;&lt;/textarea&gt;
+  &lt;/form&gt;
+
+  &lt;p id="error" hidden&gt;&lt;/p&gt;
+
+  &lt;div id="response" hidden&gt;
+    &lt;h2&gt;Response &lt;span class="status" id="status"&gt;&lt;/span&gt; &lt;small id="time"&gt;&lt;/small&gt;&lt;/h2&gt;
+    &lt;h3&gt;Body&lt;/h3&gt;
+    &lt;pre id="response-body"&gt;&lt;/pre&gt;
+    &lt;h3&gt;Headers&lt;/h3&gt;
+    &lt;pre id="response-headers"&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Make Request: send an HTTP request with fetch() and show the response.
+     *
+     * The browser's CORS rules apply: the response can only be read if the
+     * server sends an Access-Control-Allow-Origin header that allows this page.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const form = document.getElementById("form");
+    const methodSelect = document.getElementById("method");
+    const urlInput = document.getElementById("url");
+    const headersInput = document.getElementById("headers");
+    const bodyInput = document.getElementById("body");
+    const sendButton = document.getElementById("send");
+    const errorText = document.getElementById("error");
+    const responseBox = document.getElementById("response");
+    const statusText = document.getElementById("status");
+    const timeText = document.getElementById("time");
+    const responseBody = document.getElementById("response-body");
+    const responseHeaders = document.getElementById("response-headers");
+
+    // --- Helpers -------------------------------------------------------------
+
+    // "Accept: application/json" on each line -&gt; a Headers object.
+    // Split on the first ":" only, values can have ":" in them too.
+    function readHeaders() {
+        const headers = new Headers();
+        headersInput.value.split("\n").forEach(function (line) {
+            const colon = line.indexOf(":");
+            if (colon &gt; 0) {
+                headers.append(line.slice(0, colon).trim(), line.slice(colon + 1).trim());
+            }
+        });
+        return headers;
+    }
+
+    // Pretty-print JSON, leave everything else as it is.
+    function prettyBody(text) {
+        try {
+            return JSON.stringify(JSON.parse(text), null, 2);
+        } catch (error) {
+            return text;
+        }
+    }
+
+    function showError(message) {
+        errorText.textContent = message;
+        errorText.hidden = false;
+        responseBox.hidden = true;
+    }
+
+    // --- Sending -------------------------------------------------------------
+
+    async function send() {
+        errorText.hidden = true;
+        const method = methodSelect.value;
+        const options = { method: method, headers: readHeaders() };
+
+        // GET and HEAD can't have a body, fetch() throws if they get one.
+        if (method !== "GET" &amp;&amp; method !== "HEAD" &amp;&amp; bodyInput.value !== "") {
+            options.body = bodyInput.value;
+            if (!options.headers.has("Content-Type")) {
+                options.headers.set("Content-Type", "application/json");
+            }
+        }
+
+        sendButton.disabled = true;
+        const started = performance.now();
+
+        try {
+            const response = await fetch(urlInput.value.trim(), options);
+            const text = await response.text();
+            const ms = Math.round(performance.now() - started);
+
+            statusText.textContent = response.status + " " + response.statusText;
+            statusText.className = "status " +
+                (response.status &gt;= 400 ? "error" : response.status &gt;= 300 ? "redirect" : "ok");
+            timeText.textContent = ms + " ms";
+            responseBody.textContent = prettyBody(text);
+
+            let headerLines = "";
+            response.headers.forEach(function (value, name) {
+                headerLines += name + ": " + value + "\n";
+            });
+            responseHeaders.textContent = headerLines;
+
+            responseBox.hidden = false;
+        } catch (error) {
+            // A wrong address, no network and a CORS block all end up here,
+            // and the browser doesn't tell the page which one it was.
+            showError("The request failed: " + error.message + "\n\n" +
+                "If the address is right, the server probably doesn't allow CORS. " +
+                "The browser console (F12) has the exact reason.");
+        } finally {
+            sendButton.disabled = false;
+        }
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        send();
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2 id="firefox-add-on">Calling any URL: a Firefox add-on</h2>
+  <p>Browser extensions play by different rules. A page inside an extension that has <strong>host permission</strong> for a site can fetch from it and read the response, CORS or not. The user agrees to that when they install the add-on. So the same page, made into an add-on, works like Postman.</p>
+  <p>The manifest asks for permission for every site with <code>&lt;all_urls&gt;</code>:</p>
+  <pre><code class="language-javascript">{
+  "manifest_version": 3,
+  "name": "Make Request",
+  "version": "1.0",
+  "host_permissions": ["&lt;all_urls&gt;"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}</code></pre>
+  <p>The <code>content_security_policy</code> line is there because the default policy for extension pages also has <code>upgrade-insecure-requests</code>, which turns every <code>http://</code> request into <code>https://</code>. Without the line, you couldn't call an http API.</p>
+  <p>The user can turn the permission off in the add-on's settings, so the page checks, and shows a button that asks for it again. <code>permissions.request()</code> has to be called right from a click, or Firefox says no:</p>
+  <pre><code class="language-javascript">const ALL_SITES = { origins: ["&lt;all_urls&gt;"] };
+
+browser.permissions.contains(ALL_SITES).then(function (granted) {
+    permissionNote.hidden = granted;
+});
+
+permissionButton.addEventListener("click", function () {
+    browser.permissions.request(ALL_SITES).then(function (granted) {
+        permissionNote.hidden = granted;
+    });
+});</code></pre>
+  <p>Some headers, like <code>Host</code> and <code>Content-Length</code>, are still set by the browser in an add-on.</p>
+  <p>On this site, the add-on is made by <code>_scripts/make-extension.py</code> from the same page as the website. The line in <code>_data/extensions.yml</code> has <code>all_urls: true</code>, which adds the two settings above. See <a href="/firefox-plugins/make-extension/">Make an extension</a> for how the rest works.</p>
+  <h2 id="history-and-library">History and a library</h2>
+  <p>The <a href="/utils/make-request/">version on this site</a> also remembers what you did. It keeps every request as a plain object, so the form, the history, the library and the exported file all use the same shape:</p>
+  <pre><code class="language-javascript">{ method: "POST", url: "https://...", headers: [{ name: "Accept", value: "application/json" }],
+  bodyType: "json", body: "{...}" }</code></pre>
+  <p>Two functions turn the form into such an object and back, <code>currentRequest()</code> and <code>applyRequest(request)</code>. Then loading a request from the history, from the library or from the last visit is all the same call.</p>
+  <h3>History</h3>
+  <p>Every request that is sent goes first in a list, with the status and time it got. <code>unshift</code> adds to the start of a list, and <code>slice(0, 50)</code> keeps the newest 50, so <code>localStorage</code> doesn't fill up:</p>
+  <pre><code class="language-javascript">function addToHistory(request, status, ms) {
+    history.unshift({ ...request, status: status, ms: ms, at: Date.now() });
+    history = history.slice(0, 50);
+    localStorage.setItem("make-request-history", JSON.stringify(history));
+    renderHistory();
+}</code></pre>
+  <p><code>{ ...request, status: status }</code> makes a new object with everything from <code>request</code>, plus <code>status</code>. Failed and cancelled requests go in the history too, with the status <code>"error"</code> or <code>"cancelled"</code>.</p>
+  <h3>Library</h3>
+  <p>The library is a list of requests with a name. The name is the key: saving with a name that is already there replaces that request, so you can change a request and save it again. <code>findIndex</code> gives the position of the first item that matches, or <code>-1</code>:</p>
+  <pre><code class="language-javascript">function putInLibrary(name, request) {
+    const entry = { ...request, name: name };
+    const index = library.findIndex(function (l) {
+        return l.name.toLowerCase() === name.toLowerCase();
+    });
+    if (index === -1) {
+        library.push(entry);
+    } else {
+        library[index] = entry;
+    }
+}</code></pre>
+  <h3>Export: make a file to download</h3>
+  <p>A web page can't write files on your computer, but it can offer one for download. A <code>Blob</code> is a piece of data in memory. <code>URL.createObjectURL</code> gives it an address, and a link with the <code>download</code> attribute saves what it points to as a file instead of opening it:</p>
+  <pre><code class="language-javascript">function exportLibrary() {
+    const data = { type: "make-request-library", version: 1, requests: library };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "make-request-library.json";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+}</code></pre>
+  <p><code>revokeObjectURL</code> frees the memory again. The <code>type</code> and <code>version</code> fields say what the file is, so a later version of the tool can read old files.</p>
+  <h3>Import: read a file the user picks</h3>
+  <p>An <code>&lt;input type="file"&gt;</code> lets the user pick a file. We hide it and click it from a normal button, which looks nicer. <code>file.text()</code> reads the file and gives back a promise with its text:</p>
+  <pre><code class="language-javascript">&lt;button type="button" id="import"&gt;Import&lt;/button&gt;
+&lt;input type="file" id="import-file" accept=".json,application/json" hidden&gt;
+
+importButton.addEventListener("click", function () { importFile.click(); });
+
+importFile.addEventListener("change", function () {
+    const file = importFile.files[0];
+    importFile.value = "";   // so the same file can be picked again
+    file.text().then(function (text) {
+        const data = JSON.parse(text);
+        data.requests.forEach(function (item) {
+            const request = cleanRequest(item);
+            if (request) {
+                putInLibrary(item.name, request);
+            }
+        });
+        saveLibrary();
+    });
+});</code></pre>
+  <p><strong>Never trust a file.</strong> It may come from someone else, be from an old version, or not be ours at all. <code>cleanRequest</code> checks every field and gives back <code>null</code> for anything it can't use: a method that isn't in the list, a URL that isn't text, headers that aren't a list. The site version also puts <code>JSON.parse</code> in a <code>try</code>, and tells you how many requests were added, updated and skipped. And the names and URLs are shown with <code>textContent</code>, so a file with HTML in it can't run code on the page.</p>
+  <h2>Try this</h2>
+  <ul>
+    <li>Search the history and the library with a text field above the lists.</li>
+    <li>Add a field for query parameters, and build the URL with <code>new URL()</code> and <code>url.searchParams.set()</code>.</li>
+    <li>Show images: if the <code>Content-Type</code> starts with <code>image/</code>, use <code>response.blob()</code> and <code>URL.createObjectURL()</code>.</li>
+  </ul>
+  <h2>More about Make Request</h2>
+  <ul>
+    <li><a href="/utils/make-request/">Make Request on this site</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

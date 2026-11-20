@@ -1,0 +1,75 @@
+---
+layout: default
+title: Saving data
+permalink: /pwa/saving-data/
+chapter: "03"
+chapter_title: "Offline"
+keywords: [pwa, localstorage, indexeddb, storage, save, persist, offline data, json]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Saving data</h1>
+  <p>The service worker saves the app's files. The user's data, like scores, settings or a list, has to be saved by the app itself. On a phone the app is often closed by the system in the background, so anything not saved is lost.</p>
+  <h2>localStorage</h2>
+  <p>The simplest store. It keeps text under a key, also after the app is closed. Turn objects into text with <code>JSON.stringify</code> and back with <code>JSON.parse</code>. It holds a few megabytes, which is plenty for most small apps.</p>
+  <pre><code class="language-javascript">localStorage.setItem("settings", JSON.stringify({ sound: true }));
+
+const settings = JSON.parse(localStorage.getItem("settings"));   // null if nothing saved</code></pre>
+  <h2>Our disc golf score card</h2>
+  <p>The <a href="/other/discgolf/">Discgolf score card</a> saves the whole round after every change, so a game survives the phone locking or the app being closed. This is from <code>assets/discgolf/discgolf.js</code>:</p>
+  <pre><code class="language-javascript">// localStorage keeps text in the browser, also after a reload. It can be
+// turned off (private windows), so every use is inside try/catch.
+function saveState() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+        // Not saved, but the app still works until the page is closed.
+    }
+}
+
+function loadState() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        // Only use it if it looks like our state, not something old or broken.
+        if (saved &amp;&amp; Array.isArray(saved.players) &amp;&amp; Array.isArray(saved.scores)) {
+            return saved;
+        }
+    } catch (error) {
+        // Fall through and start fresh.
+    }
+    return newState();
+}
+
+// Call this after every change to the state.
+function changed() {
+    saveState();
+    render();
+}</code></pre>
+  <ul>
+    <li>Every access is inside <code>try</code>, since storage can be full or turned off.</li>
+    <li>Saved data is checked before use. An older version of the app may have saved something in another shape.</li>
+    <li>One <code>changed()</code> function both saves and redraws, so no change is forgotten.</li>
+  </ul>
+  <h2>Where the data lives</h2>
+  <p>Storage belongs to the <em>origin</em>, the scheme, host and port such as <code>https://www.anderswik.se</code>. All apps on this site share one <code>localStorage</code>, so give each app its own key, like <code>"discgolf-scorecard"</code>.</p>
+  <p>On iPhone, an installed app gets its own storage, apart from Safari. Data saved while using the page in Safari is not there in the installed app.</p>
+  <h2>IndexedDB</h2>
+  <p>For more data, many records or files like pictures, use IndexedDB. It is a real database in the browser, and unlike <code>localStorage</code> it can also be used from the service worker. Its own API is clumsy, so most people use a small wrapper like <a href="https://github.com/jakearchibald/idb">idb</a>.</p>
+  <h2>Ask to keep the data</h2>
+  <p>When the disk is almost full, the browser may delete stored data from sites. An app can ask to be left alone:</p>
+  <pre><code class="language-javascript">if (navigator.storage &amp;&amp; navigator.storage.persist) {
+    navigator.storage.persist().then(function (granted) {
+        console.log(granted ? "Data will be kept" : "Data may be deleted");
+    });
+}</code></pre>
+  <h2>More about saving data</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage">localStorage on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB">Using IndexedDB on MDN</a></li>
+    <li><a href="https://web.dev/articles/storage-for-the-web">Storage for the web on web.dev</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, localstorage, indexeddb, storage, save, persist, offline data, json</p>
+  {% include trail.html %}
+</div>

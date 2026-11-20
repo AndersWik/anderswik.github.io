@@ -1,0 +1,105 @@
+---
+layout: default
+title: MySQL
+permalink: /php/mysql/
+chapter: "09"
+chapter_title: "Databases"
+keywords: [php, mysql, pdo, sql, prepare, execute, fetch, fetchAll, prepared statements, sql injection, transactions, lastInsertId]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>MySQL</h1>
+  <p>PDO connects to MySQL with a DSN, a string that has the host, the database name and the character set, and a user name and password.</p>
+  <h2>Connect and select</h2>
+  <p>The example connects, runs a select and prints all rows as objects.</p>
+  <pre><code class="language-php">&lt;?php
+try {
+
+  $pdo = new PDO("mysql:host=localhost;dbname=laracast","root","root");
+
+} catch(PDOException $e) {
+
+  die($e-&gt;getMessage());
+}
+
+$query = $pdo-&gt;prepare('select * from mytable');
+$query-&gt;execute();
+
+//var_dump($query-&gt;fetchAll());
+
+var_dump($query-&gt;fetchAll(PDO::FETCH_OBJ));</code></pre>
+  <p><code>fetchAll()</code> returns every row as an array, <code>fetchAll(PDO::FETCH_OBJ)</code> as objects. Do not connect as <code>root</code> in a real application. Create a user that only has access to the database it needs, see <a href="/mysql/">MySQL users</a>.</p>
+  <h2>A better connection</h2>
+  <p><code>charset=utf8mb4</code> makes sure all characters, also emojis, are stored correctly. The options make PDO throw exceptions on errors, return rows as associative arrays and use real prepared statements. Keep the password in a config file outside of the web folder, or in an environment variable.</p>
+  <pre><code class="language-php">&lt;?php
+$pdo = new PDO(
+  "mysql:host=localhost;dbname=mydb;charset=utf8mb4",
+  "myuser",
+  getenv("DB_PASSWORD"),
+  [
+    PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE =&gt; PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES =&gt; false,
+  ]
+);</code></pre>
+  <h2>Prepared statements</h2>
+  <p>Never put values from a user directly into the SQL string. A value like <code>1 OR 1=1</code> would change the query. This is called SQL injection. Use placeholders instead and pass the values to <code>execute</code>. The database then always treats them as values.</p>
+  <pre><code class="language-php">&lt;?php
+// Wrong, open for SQL injection
+$pdo-&gt;query("SELECT * FROM users WHERE id = " . $_GET['id']);
+
+// Right
+$stmt = $pdo-&gt;prepare("SELECT * FROM users WHERE id = :id");
+$stmt-&gt;execute(["id" =&gt; $_GET['id'] ?? 0]);
+$user = $stmt-&gt;fetch();
+
+if ($user === false) {
+  echo "No user found";
+}</code></pre>
+  <p><code>?</code> can be used as placeholders too, then the values are given in order.</p>
+  <pre><code class="language-php">&lt;?php
+$stmt = $pdo-&gt;prepare("SELECT * FROM users WHERE age &gt; ? AND city = ?");
+$stmt-&gt;execute([18, "Stockholm"]);
+
+foreach ($stmt as $row) {
+  echo htmlspecialchars($row["name"]) . "&lt;br&gt;";
+}</code></pre>
+  <p>Placeholders only work for values. Table and column names can not be placeholders, so choose them from a fixed list in the code.</p>
+  <h2>Insert, update and delete</h2>
+  <pre><code class="language-php">&lt;?php
+$stmt = $pdo-&gt;prepare("INSERT INTO users (name, email) VALUES (:name, :email)");
+$stmt-&gt;execute(["name" =&gt; "Anna", "email" =&gt; "anna@example.com"]);
+$id = $pdo-&gt;lastInsertId();
+
+$stmt = $pdo-&gt;prepare("UPDATE users SET name = :name WHERE id = :id");
+$stmt-&gt;execute(["name" =&gt; "Anna Svensson", "id" =&gt; $id]);
+echo $stmt-&gt;rowCount();
+// Output: 1
+
+$stmt = $pdo-&gt;prepare("DELETE FROM users WHERE id = :id");
+$stmt-&gt;execute(["id" =&gt; $id]);</code></pre>
+  <h2>Transactions</h2>
+  <p>A transaction makes several queries succeed or fail together. If something fails, <code>rollBack</code> undoes everything since <code>beginTransaction</code>.</p>
+  <pre><code class="language-php">&lt;?php
+try {
+  $pdo-&gt;beginTransaction();
+
+  $pdo-&gt;prepare("UPDATE accounts SET balance = balance - 100 WHERE id = 1")-&gt;execute();
+  $pdo-&gt;prepare("UPDATE accounts SET balance = balance + 100 WHERE id = 2")-&gt;execute();
+
+  $pdo-&gt;commit();
+} catch (Throwable $e) {
+  $pdo-&gt;rollBack();
+  throw $e;
+}</code></pre>
+  <h2>More about mysql</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/book.pdo.php">PDO</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/pdo.prepared-statements.php">Prepared statements</a></li>
+    <li><a href="/mysql/">MySQL notes</a> on this site</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

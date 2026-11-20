@@ -1,0 +1,62 @@
+---
+layout: default
+title: DevTools
+permalink: /pwa/devtools/
+chapter: "05"
+chapter_title: "Testing"
+keywords: [pwa, devtools, chrome, application tab, lighthouse, offline, unregister, clear storage, debug, test]
+---
+
+<div class="pwa container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>DevTools</h1>
+  <p>Chrome and Edge have a panel just for PWAs. Open the app, press <code>F12</code> and go to the <em>Application</em> tab.</p>
+  <h2>Manifest</h2>
+  <p><em>Application</em>, <em>Manifest</em> shows the name, colors and icons the browser read from the manifest. Problems that stop the app from being installed are listed at the top under <em>Installability</em>, like a missing 512 pixel icon.</p>
+  <h2>Service workers</h2>
+  <p><em>Application</em>, <em>Service workers</em> shows the worker for the page and its state: activated, waiting or redundant.</p>
+  <ul>
+    <li><strong>Offline</strong> cuts the network for the app, the quickest way to test it offline.</li>
+    <li><strong>Update on reload</strong> installs the newest <code>sw.js</code> on every reload. Turn this on while you work on the app, or you will keep seeing the cached version.</li>
+    <li><strong>Unregister</strong> removes the worker.</li>
+    <li><strong>Bypass for network</strong> lets requests skip the worker.</li>
+  </ul>
+  <h2>Cache storage</h2>
+  <p><em>Application</em>, <em>Cache storage</em> lists every cache, like <code>coin-flip-6f1e…</code>, and the files in it. Check that every file the app needs is there. Right click a cache to delete it.</p>
+  <h2>Start over</h2>
+  <p><em>Application</em>, <em>Storage</em>, <em>Clear site data</em> removes the worker, the caches and <code>localStorage</code> in one go. The next load is like a first visit.</p>
+  <h2>Test it like a user</h2>
+  <ol>
+    <li>Clear site data and reload, so the worker installs from scratch.</li>
+    <li>Check <em>Cache storage</em>: are all files there?</li>
+    <li>Tick <em>Offline</em> and reload. Use every part of the app: every button, picture and sound.</li>
+    <li>Install the app and open it from its icon. Check the name, icon and colors.</li>
+    <li>Change a file, rebuild, and open the app again. Does the new version show up? See <a href="/pwa/updates/">Updates</a>.</li>
+  </ol>
+  <h2>Lighthouse</h2>
+  <p>The <em>Lighthouse</em> tab runs a report on the page, with scores for speed, accessibility and best practices. It points out things like a missing theme color or viewport tag.</p>
+  <h2>From the console</h2>
+  <p>The console can also look at the worker and the caches:</p>
+  <pre><code class="language-javascript">// Which worker controls this page?
+navigator.serviceWorker.controller
+
+// List all caches
+await caches.keys()
+
+// Remove all workers for the site
+(await navigator.serviceWorker.getRegistrations()).forEach(r =&gt; r.unregister())</code></pre>
+  <h2>Other browsers</h2>
+  <ul>
+    <li><strong>Firefox</strong> <code>about:debugging#/runtime/this-firefox</code> lists all service workers, and DevTools has <em>Application</em>, <em>Manifest</em>.</li>
+    <li><strong>Android Chrome</strong> connect the phone with USB and open <code>chrome://inspect</code> on the computer to use DevTools on the phone.</li>
+    <li><strong>iPhone Safari</strong> turn on <em>Web Inspector</em> under <em>Settings</em>, <em>Safari</em>, <em>Advanced</em>, connect to a Mac and use Safari's <em>Develop</em> menu.</li>
+  </ul>
+  <h2>More about DevTools</h2>
+  <ul>
+    <li><a href="https://developer.chrome.com/docs/devtools/progressive-web-apps">Debug Progressive Web Apps in Chrome DevTools</a></li>
+    <li><code>chrome://serviceworker-internals</code> shows every worker Chrome knows about</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>pwa, devtools, chrome, application tab, lighthouse, offline, unregister, clear storage, debug, test</p>
+  {% include trail.html %}
+</div>

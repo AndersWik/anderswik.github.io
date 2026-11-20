@@ -1,0 +1,58 @@
+---
+layout: default
+title: Code Playground
+permalink: /utils/code-playground/
+nonav: true
+css:
+  - /assets/code-playground/code-playground.css
+js:
+  - /assets/code-playground/code-playground.js
+---
+
+<div class="code-playground container-fluid mt-3 mb-3 pt-5 pb-5">
+  <h2 class="text-center">Code Playground</h2>
+  <p class="text-center text-muted">Write HTML, CSS and JavaScript and see the result at once. Your code is saved in this browser.</p>
+
+  <div class="toolbar">
+    <label for="library" class="visually-hidden">Add a library</label>
+    <select id="library" class="form-select w-auto">
+      <option value="">Add a library…</option>
+    </select>
+    <button class="btn btn-secondary" type="button" id="run">Run</button>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="auto-run" checked>
+      <label class="form-check-label" for="auto-run">Run as I type</label>
+    </div>
+    <button class="btn btn-outline-secondary" type="button" id="download">Download</button>
+    <button class="btn btn-outline-secondary" type="button" id="reset">Reset</button>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-6">
+      <label class="pane-title" for="head-code">Head <span class="text-muted">libraries and other tags for &lt;head&gt;</span></label>
+      <textarea class="code" id="head-code" rows="3" spellcheck="false" autocomplete="off"></textarea>
+
+      <label class="pane-title" for="html-code">HTML</label>
+      <textarea class="code" id="html-code" rows="8" spellcheck="false" autocomplete="off"></textarea>
+
+      <label class="pane-title" for="css-code">CSS</label>
+      <textarea class="code" id="css-code" rows="7" spellcheck="false" autocomplete="off"></textarea>
+
+      <label class="pane-title" for="js-code">JavaScript</label>
+      <textarea class="code" id="js-code" rows="9" spellcheck="false" autocomplete="off"></textarea>
+      <p class="hint">Tab adds two spaces. Press Esc and then Tab to leave a box.</p>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <p class="pane-title">Result</p>
+      <iframe id="preview" title="Result" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe>
+
+      <p class="pane-title">
+        Console
+        <button class="btn btn-sm btn-link" type="button" id="clear-console">Clear</button>
+      </p>
+      <ol class="console" id="console" aria-live="polite"></ol>
+    </div>
+  </div>
+  <p class="mt-5 text-center"><a href="/tutorials/code-playground/">How to build this tool</a></p>
+</div>

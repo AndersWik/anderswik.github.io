@@ -1,0 +1,66 @@
+---
+layout: default
+title: Variable scope
+permalink: /php/variable-scope/
+chapter: "06"
+chapter_title: "Functions"
+keywords: [php, scope, variable scope, global, local, superglobals, static variable, "$GLOBALS"]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Variable scope</h1>
+  <p>The scope of a variable is the part of the code where it can be used.</p>
+  <h2>Super Globals</h2>
+  <p>Superglobals like <code>$_GET</code>, <code>$_POST</code> and <code>$_SERVER</code> are available everywhere, also inside functions and classes. Read more in <a href="/php/superglobals/">Superglobals</a>.</p>
+  <pre><code class="language-php">&lt;?php
+function method() {
+  return $_SERVER['REQUEST_METHOD'];
+}</code></pre>
+  <h2>Globals</h2>
+  <p>A variable created outside of a function is global. It can not be used inside a function unless we use the <code>global</code> keyword or the <code>$GLOBALS</code> array.</p>
+  <pre><code class="language-php">&lt;?php
+$counter = 1;
+
+function show() {
+  global $counter;
+  echo $counter;
+  echo $GLOBALS['counter'];
+}
+
+show();
+// Output: 11</code></pre>
+  <h2>Local</h2>
+  <p>A variable created inside a function is local. It only exists while the function runs and can not be used outside.</p>
+  <pre><code class="language-php">&lt;?php
+function create() {
+  $local = "Only in here";
+  echo $local;
+}
+
+create();
+// Output: Only in here
+
+echo $local;
+// Output: Warning: Undefined variable $local</code></pre>
+  <h2>Static</h2>
+  <p>A <code>static</code> variable in a function keeps its value between calls.</p>
+  <pre><code class="language-php">&lt;?php
+function countCalls() {
+  static $count = 0;
+  $count++;
+  return $count;
+}
+
+echo countCalls();
+// Output: 1
+echo countCalls();
+// Output: 2</code></pre>
+  <h2>More about scope</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.variables.scope.php">Variable scope</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -3,20 +3,26 @@ layout: default
 title: Utils
 permalink: /utils/
 nonav: true
-# Thumbnails live in /assets/images/games/utils/<slug>.webp
+# Thumbnails live in /assets/images/utils/<slug>.webp
 categories:
   - title: Utils
     items:
       - { slug: ascii, name: Ascii }
+      - { slug: encode-base64, name: Base64 }
       - { slug: calculator, name: Calculator }
+      - { slug: checklist, name: Checklist }
+      - { slug: code-playground, name: Code Playground }
       - { slug: colorhex, name: Colorhex }
       - { slug: crontab, name: Crontab }
       - { slug: data-conversion, name: Data Conversion }
-      - { slug: decode-base64, name: Decode base64 }
-      - { slug: decode-url, name: Decode Url }
-      - { slug: encode-base64, name: Encode Base64 }
-      - { slug: encode-url, name: Encode Url }
+      - { slug: git-playground, name: Git Playground }
+      - { slug: linux-playground, name: Linux Playground }
+      - { slug: make-request, name: Make Request }
+      - { slug: mysql-playground, name: MySQL Playground }
+      - { slug: page-search, name: Page Search }
+      - { slug: pomodoro-timer, name: Pomodoro Timer }
       - { slug: unix-timestamp-convertor, name: Unix Timestamp Convertor }
+      - { slug: encode-url, name: Url encode / decode }
       - { slug: vagrant, name: Vagrant }
 ---
 
@@ -27,7 +33,7 @@ categories:
     {% for item in category.items %}
     <li>
       <a class="badge-card" href="{{ '/utils/' | append: item.slug | append: '/' | relative_url }}">
-        <img src="{{ '/assets/images/games/utils/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
+        <img src="{{ '/assets/images/utils/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
         <span class="badge-name">{{ item.name }}</span>
       </a>
     </li>

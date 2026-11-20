@@ -1,0 +1,154 @@
+---
+layout: default
+title: "Project: Tracking pixel"
+permalink: /php/project-tracking-pixel/
+chapter: "15"
+chapter_title: "Projects"
+keywords: [php, project, tutorial, tracking pixel, web beacon, gif, email open tracking, sqlite, pdo, analytics]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Project: Tracking pixel</h1>
+  <p>A tracking pixel is a tiny transparent image. When a web page or an email shows the image, the browser asks your server for it, and the server counts the visit. This is how newsletters count how many have opened them. In this tutorial we build the simplest version that is still safe: one PHP file that returns the image and saves the hit, and one command line script that shows the numbers.</p>
+  <h2>What it does</h2>
+  <ul>
+    <li><code>pixel.php?c=newsletter-2024-05</code> returns a 1x1 transparent GIF and saves one hit for the campaign <code>newsletter-2024-05</code></li>
+    <li><code>report.php</code> is run in the terminal and lists the number of hits for every campaign</li>
+  </ul>
+  <h2>What makes it safe</h2>
+  <ul>
+    <li>The campaign name is checked against a strict pattern before it is used</li>
+    <li>The database query uses a prepared statement, so it is safe from SQL injection</li>
+    <li>The database is stored outside of the public folder, so nobody can download it</li>
+    <li>No personal data, like IP address, is stored</li>
+    <li>The report is a command line script and is not reachable from the web</li>
+    <li>The image is always returned, even if the database fails, so a broken page or email is never shown</li>
+  </ul>
+  <h2>Folder structure</h2>
+  <p><code>public</code> is the only folder the web server shows. Everything else is out of reach for visitors.</p>
+  <pre><code class="language-bash">tracker/
+  data/
+  db.php
+  report.php
+  public/
+    pixel.php</code></pre>
+  <pre><code class="language-bash">$ mkdir -p tracker/data tracker/public
+$ cd tracker</code></pre>
+  <p>You need PHP with the SQLite driver for PDO. Check that <code>pdo_sqlite</code> is in the list.</p>
+  <pre><code class="language-bash">$ php -m | grep -i sqlite</code></pre>
+  <h2>Step 1: The database</h2>
+  <p><code>db.php</code> opens the SQLite database and creates the table the first time. The table has a campaign name and the time of the hit, in UTC.</p>
+  <pre><code class="language-php">&lt;?php
+// db.php
+declare(strict_types=1);
+
+function db(): PDO
+{
+    $pdo = new PDO('sqlite:' . __DIR__ . '/data/tracker.sqlite', null, null, [
+        PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE =&gt; PDO::FETCH_ASSOC,
+    ]);
+
+    $pdo-&gt;exec('CREATE TABLE IF NOT EXISTS hits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        campaign TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )');
+
+    return $pdo;
+}</code></pre>
+  <h2>Step 2: The pixel</h2>
+  <p>The campaign name comes from the URL, so it can be anything. It must be a string of 1 to 40 lower case letters, numbers and dashes. <code>is_string</code> is needed since <code>?c[]=x</code> would make it an array. A hit with an invalid name is ignored, but the image is still returned.</p>
+  <p>The image is the smallest valid transparent GIF, 43 bytes, stored as base64. The cache headers make the browser ask for it again every time, otherwise only the first view would be counted.</p>
+  <pre><code class="language-php">&lt;?php
+// public/pixel.php
+declare(strict_types=1);
+
+require __DIR__ . '/../db.php';
+
+$campaign = $_GET['c'] ?? '';
+
+if (is_string($campaign) &amp;&amp; preg_match('/^[a-z0-9-]{1,40}$/', $campaign) === 1) {
+    try {
+        $stmt = db()-&gt;prepare('INSERT INTO hits (campaign, created_at) VALUES (:campaign, :created_at)');
+        $stmt-&gt;execute([
+            'campaign' =&gt; $campaign,
+            'created_at' =&gt; gmdate('Y-m-d H:i:s'),
+        ]);
+    } catch (PDOException $e) {
+        error_log('Tracking pixel: ' . $e-&gt;getMessage());
+    }
+}
+
+$gif = base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
+
+header('Content-Type: image/gif');
+header('Content-Length: ' . strlen($gif));
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Expires: 0');
+echo $gif;</code></pre>
+  <h2>Step 3: Try it</h2>
+  <p>Start the built-in server with <code>public</code> as the web root and ask for the pixel with curl.</p>
+  <pre><code class="language-bash">$ php -S localhost:8000 -t public</code></pre>
+  <pre><code class="language-bash">$ curl -i "http://localhost:8000/pixel.php?c=newsletter-2024-05"
+HTTP/1.1 200 OK
+Content-Type: image/gif
+Content-Length: 43
+Cache-Control: no-store, no-cache, must-revalidate, max-age=0</code></pre>
+  <h2>Step 4: The report</h2>
+  <p>The report counts the hits per campaign. It refuses to run from a web server, so it stays safe even if someone by mistake copies it into <code>public</code>.</p>
+  <pre><code class="language-php">&lt;?php
+// report.php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
+require __DIR__ . '/db.php';
+
+$rows = db()-&gt;query(
+    'SELECT campaign, COUNT(*) AS hits, MAX(created_at) AS last_hit
+     FROM hits
+     GROUP BY campaign
+     ORDER BY hits DESC'
+)-&gt;fetchAll();
+
+if ($rows === []) {
+    echo "No hits yet\n";
+    exit;
+}
+
+printf("%-40s %8s  %s\n", 'Campaign', 'Hits', 'Last hit (UTC)');
+foreach ($rows as $row) {
+    printf("%-40s %8d  %s\n", $row['campaign'], $row['hits'], $row['last_hit']);
+}</code></pre>
+  <pre><code class="language-bash">$ php report.php
+Campaign                                     Hits  Last hit (UTC)
+newsletter-2024-05                              1  2024-05-14 08:12:45</code></pre>
+  <h2>Step 5: Use the pixel</h2>
+  <p>Add the image to the HTML of the email or page. The empty <code>alt</code> makes screen readers skip it.</p>
+  <pre><code class="language-html">&lt;img src="https://example.com/pixel.php?c=newsletter-2024-05" width="1" height="1" alt=""&gt;</code></pre>
+  <h2>Things to know</h2>
+  <ul>
+    <li>Many email programs block images or load them through a proxy in advance, so the number is an estimate and not an exact count</li>
+    <li>Tracking people may need their consent, for example under GDPR in the EU. Tell your readers what you count in your privacy policy</li>
+    <li>Use HTTPS in production, an <code>http://</code> image is blocked on <code>https://</code> pages</li>
+  </ul>
+  <h2>Next steps</h2>
+  <ul>
+    <li>Count unique opens by adding a random id per recipient to the URL, like <code>?c=newsletter&amp;r=3f9a</code>, and validate it the same way</li>
+    <li>Remove old hits with a scheduled job, <code>DELETE FROM hits WHERE created_at &lt; :date</code></li>
+    <li>Show the report on a web page behind a login, and escape every value with <code>htmlspecialchars</code></li>
+  </ul>
+  <h2>More about the tracking pixel</h2>
+  <ul>
+    <li><a href="/php/files/">Files</a>, <a href="/php/mysql/">MySQL</a> and <a href="/php/command-line/">Command line</a> cover the parts used here</li>
+    <li><a href="https://en.wikipedia.org/wiki/Web_beacon">Web beacon</a> on Wikipedia</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,97 @@
+---
+layout: default
+title: Float
+permalink: /php/float/
+chapter: "02"
+chapter_title: "Variables"
+keywords: [php, float, double, decimal, is_float, cast, round, constant]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Float</h1>
+  <p>A Float value is a number with decimals. <code>gettype</code> calls it <code>double</code> for historical reasons.</p>
+  <pre><code class="language-php">&lt;?php
+$val = 1.234;
+
+echo gettype( $val );
+// Output: double
+
+echo is_float( $val );
+// Output: 1</code></pre>
+  <h2>Casting</h2>
+  <p>We can cast other variables to floats. We can cast a boolean to a float.</p>
+  <pre><code class="language-php">&lt;?php
+$variable = true;
+var_dump( (float) $variable );
+// Output: float(1)
+
+$variable = false;
+var_dump( (float) $variable );
+// Output: float(0)</code></pre>
+  <p>We can also cast a integer to a float.</p>
+  <pre><code class="language-php">&lt;?php
+$variable = -1;
+var_dump( (float) $variable );
+// Output: float(-1)
+
+$variable = 0;
+var_dump( (float) $variable );
+// Output: float(0)
+
+$variable = 1;
+var_dump( (float) $variable );
+// Output: float(1)</code></pre>
+  <p>We can also cast a string to a float.</p>
+  <pre><code class="language-php">&lt;?php
+$variable = "-1.5";
+var_dump( (float) $variable );
+// Output: float(-1.5)
+
+$variable = "-1";
+var_dump( (float) $variable );
+// Output: float(-1)
+
+$variable = "0";
+var_dump( (float) $variable );
+// Output: float(0)
+
+$variable = "1";
+var_dump( (float) $variable );
+// Output: float(1)
+
+$variable = "1.5";
+var_dump( (float) $variable );
+// Output: float(1.5)
+
+$variable = "Some string";
+var_dump( (float) $variable );
+// Output: float(0)</code></pre>
+  <h2>Precision</h2>
+  <p>Floats are stored in binary and can not hold every decimal number exactly. Never compare floats with <code>==</code>, and never use floats for money. Store money as an integer number of cents instead.</p>
+  <pre><code class="language-php">&lt;?php
+var_dump(0.1 + 0.2 == 0.3);
+// Output: bool(false)
+
+echo round(3.14159, 2);
+// Output: 3.14</code></pre>
+  <h2>Defining Constants</h2>
+  <h3>Float Constant</h3>
+  <pre><code class="language-php">&lt;?php
+define("FLOATCONSTANT", 123.55);
+
+echo gettype( FLOATCONSTANT );
+//Outputs: double
+
+echo FLOATCONSTANT;
+//Outputs: 123.55</code></pre>
+  <h2>More about float</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.types.float.php">Floats</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.types.numeric-strings.php">String conversion to numbers</a></li>
+    <li><a href="https://www.php.net/manual/en/function.round.php">round</a>, <a href="https://www.php.net/manual/en/function.floor.php">floor</a> and <a href="https://www.php.net/manual/en/function.ceil.php">ceil</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

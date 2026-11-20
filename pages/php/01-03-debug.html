@@ -1,0 +1,76 @@
+---
+layout: default
+title: Debug
+permalink: /php/debug/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [php, debug, print_r, var_dump, var_export, die, exit, error_reporting, display_errors, error_log]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Debug</h1>
+  <p>When something does not work it helps to look at what the variables actually contain. PHP has a few functions for that.</p>
+  <h2>print_r</h2>
+  <p><code>print_r</code> prints a value in a way that is easy to read. It is good for arrays. With <code>true</code> as the second parameter it returns the text instead of printing it.</p>
+  <pre><code class="language-php">&lt;?php
+$val = array("one" =&gt; 1, "two" =&gt; 2);
+
+print_r($val);
+// Output: Array ( [one] =&gt; 1 [two] =&gt; 2 )
+
+$text = print_r($val, true);</code></pre>
+  <h2>var_dump</h2>
+  <p><code>var_dump</code> also shows the type and length of every value. That makes it the best choice when the difference between <code>0</code>, <code>"0"</code>, <code>false</code> and <code>null</code> matters.</p>
+  <pre><code class="language-php">&lt;?php
+$val = array("one" =&gt; 1, "two" =&gt; "2", "three" =&gt; false);
+
+var_dump($val);
+// Output: array(3) { ["one"]=&gt; int(1) ["two"]=&gt; string(1) "2" ["three"]=&gt; bool(false) }</code></pre>
+  <p>In a browser the output is easier to read inside <code>&lt;pre&gt;</code> tags.</p>
+  <pre><code class="language-php">&lt;?php
+echo "&lt;pre&gt;";
+var_dump($val);
+echo "&lt;/pre&gt;";</code></pre>
+  <h2>var_export</h2>
+  <p><code>var_export</code> prints the value as valid PHP code.</p>
+  <pre><code class="language-php">&lt;?php
+var_export(array(1, 2));
+// Output: array ( 0 =&gt; 1, 1 =&gt; 2, )</code></pre>
+  <h2>die();</h2>
+  <p><code>die()</code> stops the script. It can take a message that is printed before stopping. It is handy to stop right after printing a value.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "Debug me";
+var_dump($val);
+die();
+echo "This line is never run";</code></pre>
+  <pre><code class="language-php">&lt;?php
+die("Stopped here");
+// Output: Stopped here</code></pre>
+  <h2>exit;</h2>
+  <p><code>exit</code> is the same as <code>die</code>. Given an integer it is used as the exit status of a command line script, where <code>0</code> means success.</p>
+  <pre><code class="language-php">&lt;?php
+exit;</code></pre>
+  <pre><code class="language-php">&lt;?php
+exit(1);</code></pre>
+  <h2>Show errors</h2>
+  <p>Errors are often hidden on servers. While developing, turn them on at the top of the script. Never show errors to visitors on a public server, they can reveal paths and passwords. Log them instead.</p>
+  <pre><code class="language-php">&lt;?php
+error_reporting(E_ALL);
+ini_set('display_errors', '1');</code></pre>
+  <h2>Log errors</h2>
+  <p><code>error_log</code> writes a message to the error log of the server, or to the terminal when running the built-in server.</p>
+  <pre><code class="language-php">&lt;?php
+error_log("Something happened");</code></pre>
+  <h2>More about debug</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/function.print-r.php">print_r</a></li>
+    <li><a href="https://www.php.net/manual/en/function.var-dump.php">var_dump</a></li>
+    <li><a href="https://www.php.net/manual/en/function.exit.php">exit</a></li>
+    <li><a href="https://www.php.net/manual/en/function.error-reporting.php">error_reporting</a></li>
+    <li><a href="https://xdebug.org/">Xdebug</a> is a debugger that lets you step through the code line by line</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

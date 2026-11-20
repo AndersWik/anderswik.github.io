@@ -1,0 +1,50 @@
+---
+layout: default
+title: Tools
+permalink: /firefox-plugins/tools/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [firefox, extension, tools, web-ext, node, npm, about:debugging, developer edition, nightly, editor]
+---
+
+<div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tools</h1>
+  <p>All you really need is Firefox and a text editor. A few more tools make the work faster.</p>
+  <h2>Firefox</h2>
+  <p>Normal Firefox is enough to build and test, using a temporary add-on, see <a href="/firefox-plugins/temporary-add-on/">Temporary add-on</a>. Check which version you have:</p>
+  <pre><code class="language-bash">$ firefox --version
+Mozilla Firefox 160.0</code></pre>
+  <p><strong>Firefox Developer Edition</strong> and <strong>Nightly</strong> can also install extensions that are not signed, see <a href="/firefox-plugins/developer-edition/">Developer Edition</a>.</p>
+  <h2>about:debugging</h2>
+  <p>Type <code>about:debugging#/runtime/this-firefox</code> in the address bar. This page loads extensions from a folder, reloads them, and opens DevTools for them. It is where you will spend most of the testing time.</p>
+  <h2>web-ext</h2>
+  <p><code>web-ext</code> is Mozilla's command line tool for extensions. It starts a clean Firefox with the extension loaded and reloads it when a file changes, checks the extension for problems, builds the zip and sends it for signing. It needs Node.js.</p>
+  <pre><code class="language-bash">$ sudo apt install nodejs npm
+$ npm install --global web-ext
+$ web-ext --version</code></pre>
+  <p>Or run it without installing, with <code>npx web-ext</code>. Read more in <a href="/firefox-plugins/web-ext/">web-ext</a>.</p>
+  <h2>Icons</h2>
+  <p>An extension needs PNG icons in a few small sizes. Any image editor works. The icons for this site's extensions are drawn from an emoji by Python and Pillow, the same way as the <a href="/pwa/icons/">PWA icons</a>.</p>
+  <pre><code class="language-bash">$ sudo apt install python3-yaml python3-pil fonts-noto-color-emoji</code></pre>
+  <h2>Folder layout</h2>
+  <p>An extension is a folder with <code>manifest.json</code> at the top. The rest can be laid out any way you like.</p>
+  <pre><code class="language-bash">hello-world/
+├── manifest.json     # Required, always at the top
+├── popup.html
+├── popup.css
+├── popup.js
+└── icons/
+    ├── icon-16.png
+    ├── icon-32.png
+    ├── icon-48.png
+    └── icon-96.png</code></pre>
+  <h2>More about tools</h2>
+  <ul>
+    <li><a href="https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/">Getting started with web-ext</a></li>
+    <li><a href="https://www.mozilla.org/firefox/developer/">Firefox Developer Edition</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>firefox, extension, tools, web-ext, node, npm, about:debugging, developer edition, nightly, editor</p>
+  {% include trail.html %}
+</div>

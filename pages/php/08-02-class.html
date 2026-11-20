@@ -1,0 +1,166 @@
+---
+layout: default
+title: Classes
+permalink: /php/class/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, class, new, instance, object, property, method, "$this", static, self, const]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Classes</h1>
+  <p>A class can be created with the class keyword followed by a name and brackets. The PHP class name starts with a letter or underscore. The rest of the name can be letters, underscores or numbers. The name can not be a PHP <a href="https://www.php.net/manual/en/reserved.php">reserved word</a>.</p>
+  <p>To create an instance of the class use the <code>new</code> keyword followed by the class name and <code>()</code>. We can store an instance of the class in a variable.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+}
+
+$foo = new Foo();</code></pre>
+  <p>To create an instance of the class with a variable, the variable needs to contain the class name. Use the <code>new</code> keyword followed by the variable name and <code>()</code>.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+}
+
+$name = "Foo";
+$foo = new $name();</code></pre>
+  <h2>Class with function</h2>
+  <p>We can add functions to classes. To use these functions we need an instance of the class.</p>
+  <p>To call a function in the class first create an instance of the class and save it to a variable. Use the variable with the instance followed by <code>-&gt;</code> and then the functions name.</p>
+  <pre><code class="language-php">&lt;?php
+// Class with function
+class Foo {
+
+  function getText() {
+
+    return "Foo";
+  }
+
+}
+
+$foo = new Foo();
+echo $foo-&gt;getText();
+// Output: Foo</code></pre>
+  <h2>Class with instance variable</h2>
+  <p>An instance variable is unique to every instance. To access a class variable use the keyword <code>this</code> followed by the <code>-&gt;</code> and the variable name. Note that the <code>$</code> is omitted from the variable name.</p>
+  <p>A variable that is created with the <code>var</code> keyword will get the default visibility public. We can also give the variable a visibility (<code>public</code>, <code>protected</code>, <code>private</code>), which is the modern way to write it.</p>
+  <p>To access an instance variable create an instance of the class.</p>
+  <p>We can call the instance variable directly. Use the variable with the instance followed by <code>-&gt;</code> and then the instance variables name. Note the <code>$</code> is omitted from the variable name. This only works if the variable is public.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+ var $variable = "Class Variable";
+
+ function getVariable() {
+
+  return $this-&gt;variable;
+ }
+
+ function setVariable($value) {
+
+  $this-&gt;variable = $value;
+ }
+
+}
+
+$foo = new Foo();
+echo $foo-&gt;variable;
+// Output: Class Variable</code></pre>
+  <p>To set a class variable from within the class we use the keyword <code>this</code> followed by the <code>-&gt;</code> and the variable name. Note the <code>$</code> is omitted from the variable name.</p>
+  <p>When changing the value of a class variable from an instance the value only changes for that instance of the class.</p>
+  <pre><code class="language-php">&lt;?php
+$one = new Foo();
+echo $one-&gt;getVariable();
+// Output: Class Variable
+
+$two = new Foo();
+echo $two-&gt;getVariable();
+// Output: Class Variable
+
+$two-&gt;setVariable("Set class variable");
+
+echo $one-&gt;getVariable();
+// Output: Class Variable
+echo $two-&gt;getVariable();
+// Output: Set class variable</code></pre>
+  <p>First create instances one and two of class foo. Get and print the value of the class variable from instance one and two. They are the same. Then set the value of the class variable on instance two. Get the value of the class variable from instance one and two again. They are now different. Changing the value on one instance does not change it on other instances.</p>
+  <h2>Class with static variable</h2>
+  <p>A static variable is shared with all instances. Use the <code>static</code> keyword for static variables. To call a static variable we do not need an instance of the class. Use the full class name followed with <code>::</code> and the variable name.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+ static $staticVariable = "Static Variable";
+}
+
+echo Foo::$staticVariable;
+// Output: Static Variable</code></pre>
+  <p>A static function is also shared with all instances. Use the <code>static</code> keyword for static functions. To call a static function we do not need an instance of the class. Use the full class name followed with <code>::</code> and the function name.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+ public static function getStaticText() {
+   return "Static Text";
+ }
+
+}
+
+echo Foo::getStaticText();
+// Output: Static Text</code></pre>
+  <p>To get a static variable from inside the class use <code>self::</code> followed by the variable name. To set a static variable use <code>self::</code> followed by the variable name.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+ static $staticVariable = "Static Variable";
+
+ function getStatic() {
+
+  return self::$staticVariable;
+ }
+
+ function setStatic($value) {
+
+  self::$staticVariable = $value;
+ }
+
+}
+
+echo Foo::$staticVariable;
+//Output: Static Variable</code></pre>
+  <p>When changing the value of a static variable from an instance the value changes for all instances of the class.</p>
+  <p>Get the value of the static variable from instance one. Create instance two of class foo. Set the value of the static variable from instance two. Get and print the value of the static variable from instance one. Our changes to instance two are visible from instance one.</p>
+  <pre><code class="language-php">&lt;?php
+$one = new Foo();
+echo $one-&gt;getStatic();
+//Output: Static Variable
+
+$two = new Foo();
+$two-&gt;setStatic("Set static variable");
+echo $one-&gt;getStatic();
+//Output: Set static variable</code></pre>
+  <h2>Class with constant</h2>
+  <p>A constant variable is shared with all instances. The value can not be changed. Use the <code>const</code> keyword for constant variables. To call a constant variable use <code>self::</code> followed by the variable name. To call a constant variable we do not need an instance of the class. Use the full class name followed with <code>::</code> and the variable name.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+ const CONSTANT = "Constant";
+
+ function getConstant() {
+  return self::CONSTANT;
+ }
+
+}
+
+echo Foo::CONSTANT;
+// Output: Constant</code></pre>
+  <h2>More about classes</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.oop5.php">Classes and objects</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.properties.php">Properties</a></li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.static.php">Static keyword</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

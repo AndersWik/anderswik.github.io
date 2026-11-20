@@ -3,3 +3,7 @@ _site
 .DS_Store
 .jekyll-cache
 .vagrant
+# Made by _scripts/make-extension.py, run it to build them again.
+_extensions/*
+!_extensions/hello-world/
+!_extensions/vendor/

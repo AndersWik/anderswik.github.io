@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Make Request</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    .request {
+        display: flex;
+        gap: 6px;
+    }
+
+    #url {
+        flex: 1;
+        min-width: 0;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+        font-size: 16px;
+        padding: 8px;
+    }
+
+    textarea,
+    #url,
+    pre {
+        font-family: monospace;
+    }
+
+    textarea {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        color: #fff;
+        font-weight: bold;
+    }
+
+    .ok    { background: #198754; }
+    .redirect { background: #c98a00; }
+    .error { background: #dc3545; }
+
+    pre {
+        max-height: 400px;
+        overflow: auto;
+        padding: 12px;
+        background: #f6f6f6;
+        border: 1px solid #ddd;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    #error {
+        color: #b02a37;
+        white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <h1>Make Request</h1>
+
+  <form id="form">
+    <div class="request">
+      <select id="method" aria-label="HTTP method">
+        <option>GET</option>
+        <option>POST</option>
+        <option>PUT</option>
+        <option>PATCH</option>
+        <option>DELETE</option>
+        <option>HEAD</option>
+      </select>
+      <input id="url" type="text" placeholder="https://api.github.com/users/octocat" aria-label="URL" spellcheck="false">
+      <button type="submit" id="send">Send</button>
+    </div>
+
+    <h2>Headers</h2>
+    <textarea id="headers" rows="3" spellcheck="false" placeholder="Accept: application/json" aria-label="Headers, one per line"></textarea>
+
+    <h2>Body</h2>
+    <textarea id="body" rows="5" spellcheck="false" placeholder='{ "name": "value" }' aria-label="Body"></textarea>
+  </form>
+
+  <p id="error" hidden></p>
+
+  <div id="response" hidden>
+    <h2>Response <span class="status" id="status"></span> <small id="time"></small></h2>
+    <h3>Body</h3>
+    <pre id="response-body"></pre>
+    <h3>Headers</h3>
+    <pre id="response-headers"></pre>
+  </div>
+
+  <script>
+    /*
+     * Make Request: send an HTTP request with fetch() and show the response.
+     *
+     * The browser's CORS rules apply: the response can only be read if the
+     * server sends an Access-Control-Allow-Origin header that allows this page.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const form = document.getElementById("form");
+    const methodSelect = document.getElementById("method");
+    const urlInput = document.getElementById("url");
+    const headersInput = document.getElementById("headers");
+    const bodyInput = document.getElementById("body");
+    const sendButton = document.getElementById("send");
+    const errorText = document.getElementById("error");
+    const responseBox = document.getElementById("response");
+    const statusText = document.getElementById("status");
+    const timeText = document.getElementById("time");
+    const responseBody = document.getElementById("response-body");
+    const responseHeaders = document.getElementById("response-headers");
+
+    // --- Helpers -------------------------------------------------------------
+
+    // "Accept: application/json" on each line -> a Headers object.
+    // Split on the first ":" only, values can have ":" in them too.
+    function readHeaders() {
+        const headers = new Headers();
+        headersInput.value.split("\n").forEach(function (line) {
+            const colon = line.indexOf(":");
+            if (colon > 0) {
+                headers.append(line.slice(0, colon).trim(), line.slice(colon + 1).trim());
+            }
+        });
+        return headers;
+    }
+
+    // Pretty-print JSON, leave everything else as it is.
+    function prettyBody(text) {
+        try {
+            return JSON.stringify(JSON.parse(text), null, 2);
+        } catch (error) {
+            return text;
+        }
+    }
+
+    function showError(message) {
+        errorText.textContent = message;
+        errorText.hidden = false;
+        responseBox.hidden = true;
+    }
+
+    // --- Sending -------------------------------------------------------------
+
+    async function send() {
+        errorText.hidden = true;
+        const method = methodSelect.value;
+        const options = { method: method, headers: readHeaders() };
+
+        // GET and HEAD can't have a body, fetch() throws if they get one.
+        if (method !== "GET" && method !== "HEAD" && bodyInput.value !== "") {
+            options.body = bodyInput.value;
+            if (!options.headers.has("Content-Type")) {
+                options.headers.set("Content-Type", "application/json");
+            }
+        }
+
+        sendButton.disabled = true;
+        const started = performance.now();
+
+        try {
+            const response = await fetch(urlInput.value.trim(), options);
+            const text = await response.text();
+            const ms = Math.round(performance.now() - started);
+
+            statusText.textContent = response.status + " " + response.statusText;
+            statusText.className = "status " +
+                (response.status >= 400 ? "error" : response.status >= 300 ? "redirect" : "ok");
+            timeText.textContent = ms + " ms";
+            responseBody.textContent = prettyBody(text);
+
+            let headerLines = "";
+            response.headers.forEach(function (value, name) {
+                headerLines += name + ": " + value + "\n";
+            });
+            responseHeaders.textContent = headerLines;
+
+            responseBox.hidden = false;
+        } catch (error) {
+            // A wrong address, no network and a CORS block all end up here,
+            // and the browser doesn't tell the page which one it was.
+            showError("The request failed: " + error.message + "\n\n" +
+                "If the address is right, the server probably doesn't allow CORS. " +
+                "The browser console (F12) has the exact reason.");
+        } finally {
+            sendButton.disabled = false;
+        }
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        send();
+    });
+  </script>
+</body>
+</html>

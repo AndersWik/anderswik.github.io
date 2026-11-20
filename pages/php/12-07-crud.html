@@ -1,0 +1,115 @@
+---
+layout: default
+title: CRUD
+permalink: /php/crud/
+chapter: "12"
+chapter_title: "HTTP"
+keywords: [php, crud, create, read, update, delete, get, post, put, status codes, rest]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>CRUD</h1>
+  <p>CRUD (Create, Read, Update and Delete) are the four things an application does with data. In HTTP each of them has a method.</p>
+  <ul>
+    <li>POST (Create)</li>
+    <li>GET (Read)</li>
+    <li>PUT (Create/Update)</li>
+    <li>DELETE (Delete)</li>
+  </ul>
+  <h2>Get (Read)</h2>
+  <h3>200 OK</h3>
+  <p>For a get request we use 200 for an accepted request.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(200);
+echo json_encode($user);</code></pre>
+  <h2>Post (Create)</h2>
+  <h3>201 Created</h3>
+  <p>For a post we use 201 when a new record is created. The <code>Location</code> header has the address of the new record.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(201);
+header("Location: /users/" . $id);</code></pre>
+  <h2>Put (Create/Update)</h2>
+  <h3>200 OK</h3>
+  <p>For a put we use 200 for an accepted request that updates a existing record.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(200);
+echo json_encode($user);</code></pre>
+  <h3>201 Created</h3>
+  <p>For a put we use 201 for an accepted request that creates a new record.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(201);
+header("Location: /users/" . $id);</code></pre>
+  <h3>202 Accepted</h3>
+  <p>For a put we use 202 for an accepted request that have not been done processing yet. When processing is finished it might be disallowed.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(202);</code></pre>
+  <h3>204 No Content</h3>
+  <p>For a put we use 204 for an accepted request that updates a record but do not return any content.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(204);</code></pre>
+  <h2>Delete (Delete)</h2>
+  <h3>200 OK</h3>
+  <p>For a delete we use 200 for an accepted request that deletes an existing record.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(200);
+echo json_encode(["deleted" =&gt; $id]);</code></pre>
+  <h3>202 Accepted</h3>
+  <p>For delete we use 202 for an accepted request that have not been done processing yet. When processing is finished it might be disallowed.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(202);</code></pre>
+  <h3>204 No Content</h3>
+  <p>For delete we use 204 for an accepted request that deletes a record but do not return any content.</p>
+  <pre><code class="language-php">&lt;?php
+http_response_code(204);</code></pre>
+  <h2>Implementation</h2>
+  <h2>Client</h2>
+  <pre><code class="language-php">&lt;?php
+$ch = curl_init("http://localhost:8888/");
+
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+
+curl_setopt_array($ch, array(
+    CURLOPT_HTTPHEADER  =&gt; array('Bazinga: !!!'),
+    CURLOPT_RETURNTRANSFER  =&gt; 1,
+    CURLOPT_VERBOSE     =&gt; 1
+));
+
+$content = curl_exec($ch);
+
+curl_close($ch);
+
+echo $content;</code></pre>
+  <h2>Server</h2>
+  <pre><code class="language-php">&lt;?php
+switch ($_SERVER['REQUEST_METHOD']) {
+  case 'GET':
+    $content = "I am in get";
+    break;
+  case 'POST':
+    http_response_code(201);
+    $content = "I am in post";
+    break;
+  case 'PUT':
+    $content = "I am in put";
+    break;
+  case 'DELETE':
+    $content = "I am in delete";
+    break;
+  default:
+    http_response_code(405);
+    $content = "What is ".htmlspecialchars($_SERVER['REQUEST_METHOD']);
+    break;
+}
+
+echo $content;</code></pre>
+  <p>A complete example with a database is in <a href="/php/rest-api/">REST API</a>.</p>
+  <h2>More about crud</h2>
+  <ul>
+    <li><a href="https://www.rfc-editor.org/rfc/rfc9110#name-method-definitions">Method definitions</a> in RFC 9110</li>
+    <li><a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">Create, read, update and delete</a> on Wikipedia</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

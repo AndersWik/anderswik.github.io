@@ -1,0 +1,107 @@
+---
+layout: default
+title: cURL
+permalink: /php/curl/
+chapter: "12"
+chapter_title: "HTTP"
+keywords: [php, curl, curl_init, curl_setopt, curl_exec, curl_getinfo, CURLOPT_RETURNTRANSFER, post, cookies, timeout]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>cURL</h1>
+  <p>cURL (Client URL Library) is the most used way to send HTTP requests from PHP. It supports all methods, headers, cookies, timeouts and file uploads. It needs the <code>curl</code> extension.</p>
+  <pre><code class="language-bash">$ sudo apt-get install php-curl</code></pre>
+  <h2>Get</h2>
+  <p>Init curl and fetch page. This will print the returned value. By default cUrl will use "GET" for the request.</p>
+  <pre><code class="language-php">&lt;?php
+$url = "https://www.anderswik.se";
+$curl = curl_init($url);
+curl_exec($curl);</code></pre>
+  <p>To stop curl from printing the value we can use curl_setopt. Now <code>curl_exec</code> returns the body instead.</p>
+  <pre><code class="language-php">&lt;?php
+$url = "https://www.anderswik.se";
+$curl = curl_init($url);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+$result = curl_exec($curl);</code></pre>
+  <h2>Status code</h2>
+  <p>With curl_getinfo we can get status code.</p>
+  <pre><code class="language-php">&lt;?php
+$url = "https://www.anderswik.se";
+$curl = curl_init($url);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+curl_exec($curl);
+$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+echo $httpCode;
+// Output: 200</code></pre>
+  <h2>Errors and timeouts</h2>
+  <p><code>curl_exec</code> returns <code>false</code> if the request failed, for example when the server can not be reached. <code>curl_error</code> tells why. Without a timeout PHP can wait for a very long time. Never turn off <code>CURLOPT_SSL_VERIFYPEER</code>, then anyone between you and the server can read and change the traffic.</p>
+  <pre><code class="language-php">&lt;?php
+$curl = curl_init("https://www.anderswik.se");
+curl_setopt_array($curl, [
+  CURLOPT_RETURNTRANSFER =&gt; true,
+  CURLOPT_CONNECTTIMEOUT =&gt; 5,
+  CURLOPT_TIMEOUT =&gt; 10,
+  CURLOPT_FOLLOWLOCATION =&gt; true,
+  CURLOPT_MAXREDIRS =&gt; 5,
+]);
+
+$result = curl_exec($curl);
+
+if ($result === false) {
+  echo "Request failed: " . curl_error($curl);
+}</code></pre>
+  <h2>Get and Post</h2>
+  <p>By default cUrl use "GET" for requests. We can also specify "GET" if we set "POST" to false.</p>
+  <p>Tell cURL that we want to send a GET request.</p>
+  <pre><code class="language-php">&lt;?php
+curl_setopt($curl, CURLOPT_POST, 0);</code></pre>
+  <p>Tell cURL that we want to send a POST request. An array in <code>CURLOPT_POSTFIELDS</code> is sent as <code>multipart/form-data</code>, a string from <code>http_build_query</code> as a normal form.</p>
+  <pre><code class="language-php">&lt;?php
+$url = "https://www.anderswik.se";
+$data = http_build_query(["name" =&gt; "Anna", "age" =&gt; 30]);
+$curl = curl_init($url);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($curl, CURLOPT_POST, 1);
+curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+$result = curl_exec($curl);</code></pre>
+  <h2>Custom request</h2>
+  <p>Tell cURL that we want to send a custom request. Read more in <a href="/php/custom-requests/">Custom requests</a>.</p>
+  <pre><code class="language-php">&lt;?php
+$url = "https://www.anderswik.se";
+$data = json_encode(["id" =&gt; 5]);
+$curl = curl_init($url);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+$result = curl_exec($curl);</code></pre>
+  <h2>Headers</h2>
+  <pre><code class="language-php">&lt;?php
+curl_setopt($curl, CURLOPT_HTTPHEADER, [
+  "Content-Type: application/json",
+  "Accept: application/json",
+]);</code></pre>
+  <h2>Cookies</h2>
+  <p>Receive and send cookies. The cookie jar is a file where curl saves the cookies it gets, and the cookie file is read before the request. Use the same file for both to keep a login between requests.</p>
+  <pre><code class="language-php">&lt;?php
+$url = "https://www.anderswik.se";
+$cookies = "cookies.txt";
+$curl = curl_init($url);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+// Write cookies to file
+curl_setopt($curl, CURLOPT_COOKIEJAR, $cookies);
+// Read cookies from file
+curl_setopt($curl, CURLOPT_COOKIEFILE, $cookies);
+$result = curl_exec($curl);</code></pre>
+  <h2>Close</h2>
+  <p>Since PHP 8.0 the handle is closed automatically when the variable is no longer used. <code>curl_close</code> has no effect and is deprecated since PHP 8.5, so it can be left out. Use <code>unset($curl)</code> to close it early.</p>
+  <h2>More about curl</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/book.curl.php">cURL</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/function.curl-setopt.php">curl_setopt</a> lists all options</li>
+    <li><a href="/linux/curl/">curl on the command line</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

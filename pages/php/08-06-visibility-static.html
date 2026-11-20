@@ -1,0 +1,226 @@
+---
+layout: default
+title: Visibility static
+permalink: /php/visibility-static/
+chapter: "08"
+chapter_title: "Object oriented PHP"
+keywords: [php, visibility, static, public, protected, private, self, parent, "static::", late static binding]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Visibility static</h1>
+  <h2>Visibility static attributes</h2>
+  <h3>Static from within class</h3>
+  <p>The same rules apply to static members. From within the class all members are accessible.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	public static $memberPublic = "Public";
+	protected static $memberProtected = "Protected";
+	private static $memberPrivate = "Private";
+
+	function getPub() {
+		return self::$memberPublic;
+	}
+
+	function getPro() {
+		return self::$memberProtected;
+	}
+
+	function getPriv() {
+		return self::$memberPrivate;
+	}
+}
+
+$foo = new Foo();</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Public:
+echo $foo-&gt;getPub();
+// Output: Public
+// 2: Foo Protected:
+echo $foo-&gt;getPro();
+// Output: Protected
+// 3: Foo Private:
+echo $foo-&gt;getPriv();
+// Output: Private</code></pre>
+  <h3>Static from extended class</h3>
+  <p>We create another class and let it extend the foo class.</p>
+  <pre><code class="language-php">&lt;?php
+class Bar extends Foo {
+
+	function getPub() {
+		return self::$memberPublic;
+	}
+
+	function getPro() {
+		return self::$memberProtected;
+	}
+
+	function getPriv() {
+		return self::$memberPrivate;
+	}
+}
+
+$extendsFoo = new Bar();</code></pre>
+  <p>Once again it is the same, we can access the public and protected variable from the extended class and not the private variable.</p>
+  <pre><code class="language-php">&lt;?php
+// 1: Foo Extends Public:
+echo $extendsFoo-&gt;getPub();
+// Output: Public
+// 2: Foo Extends Protected:
+echo $extendsFoo-&gt;getPro();
+// Output: Protected
+// 3: Foo Extends Private:
+echo $extendsFoo-&gt;getPriv();
+// Output: Fatal error: Uncaught Error: Cannot access private property Bar::$memberPrivate</code></pre>
+  <h3>Static functions</h3>
+  <p>Static functions follow the same rules. Only the public function can be called from outside of the class.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	public static function pub() {
+		return "Public";
+	}
+
+	protected static function pro() {
+		return "Protected";
+	}
+
+	private static function pri() {
+		return "Private";
+	}
+
+	public static function all() {
+		return self::pub() . " " . self::pro() . " " . self::pri();
+	}
+}</code></pre>
+  <pre><code class="language-php">&lt;?php
+echo Foo::pub();
+// Output: Public
+echo Foo::pro();
+// Output: Fatal error: Uncaught Error: Call to protected method Foo::pro() from global scope
+echo Foo::pri();
+// Output: Fatal error: Uncaught Error: Call to private method Foo::pri() from global scope
+echo Foo::all();
+// Output: Public Protected Private</code></pre>
+  <h3>Using Parent Self This</h3>
+  <p><code>$this</code> is the object, and static variables do not belong to an object. Instead there are three ways to point at a class. <code>self::</code> is the class where the code is written. <code>parent::</code> is the parent of that class. <code>static::</code> is the class that was actually called, which is called late static binding.</p>
+  <h4>Public</h4>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	public static $memberPublic = "Foo";
+
+	public static function getPub() {
+		return self::$memberPublic;
+	}
+
+	public static function getPubStatic() {
+		return static::$memberPublic;
+	}
+}
+
+class Bar extends Foo {
+
+	public static $memberPublic = "Bar";
+
+	public static function getPubParent() {
+		return parent::$memberPublic;
+	}
+
+	public static function getPubSelf() {
+		return self::$memberPublic;
+	}
+}</code></pre>
+  <p><code>getPub</code> is written in <code>Foo</code>, so <code>self::</code> is <code>Foo</code> even when it is called as <code>Bar::getPub()</code>. <code>static::</code> follows the class that was called.</p>
+  <pre><code class="language-php">&lt;?php
+// 1: Bar Parent:
+echo Bar::getPubParent();
+// Output: Foo
+// 2: Bar Self:
+echo Bar::getPubSelf();
+// Output: Bar
+// 3: Foo Self called on Bar:
+echo Bar::getPub();
+// Output: Foo
+// 4: Foo Static called on Bar:
+echo Bar::getPubStatic();
+// Output: Bar</code></pre>
+  <h4>Protected</h4>
+  <p>Protected static variables work the same way from inside the classes, but can not be read from outside.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	protected static $memberProtected = "Foo";
+
+	public static function getProStatic() {
+		return static::$memberProtected;
+	}
+}
+
+class Bar extends Foo {
+
+	protected static $memberProtected = "Bar";
+
+	public static function getProParent() {
+		return parent::$memberProtected;
+	}
+
+	public static function getProSelf() {
+		return self::$memberProtected;
+	}
+}</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Bar Parent:
+echo Bar::getProParent();
+// Output: Foo
+// 2: Bar Self:
+echo Bar::getProSelf();
+// Output: Bar
+// 3: Foo Static called on Bar:
+echo Bar::getProStatic();
+// Output: Bar
+// 4: From outside:
+echo Bar::$memberProtected;
+// Output: Fatal error: Uncaught Error: Cannot access protected property Bar::$memberProtected</code></pre>
+  <h4>Private</h4>
+  <p>A private static variable is only visible in the class that declares it. Each class has its own.</p>
+  <pre><code class="language-php">&lt;?php
+class Foo {
+
+	private static $memberPrivate = "Foo";
+
+	public static function getPri() {
+		return self::$memberPrivate;
+	}
+}
+
+class Bar extends Foo {
+
+	private static $memberPrivate = "Bar";
+
+	public static function getPriParent() {
+		return parent::getPri();
+	}
+
+	public static function getPriSelf() {
+		return self::$memberPrivate;
+	}
+}</code></pre>
+  <pre><code class="language-php">&lt;?php
+// 1: Bar Parent:
+echo Bar::getPriParent();
+// Output: Foo
+// 2: Bar Self:
+echo Bar::getPriSelf();
+// Output: Bar</code></pre>
+  <h2>More about static visibility</h2>
+  <ul>
+    <li><a href="https://www.php.net/manual/en/language.oop5.static.php">Static keyword</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.late-static-bindings.php">Late static bindings</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

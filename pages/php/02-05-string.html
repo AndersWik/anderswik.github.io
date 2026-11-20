@@ -1,0 +1,149 @@
+---
+layout: default
+title: String
+permalink: /php/string/
+chapter: "02"
+chapter_title: "Variables"
+keywords: [php, string, single quotes, double quotes, heredoc, nowdoc, concatenation, interpolation]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>String</h1>
+  <p>A String is a text value. Can be defined in four different ways.</p>
+  <ul>
+    <li>Single Quotes</li>
+    <li>Double Quotes</li>
+    <li>Heredoc syntax</li>
+    <li>Nowdoc syntax</li>
+  </ul>
+  <h2>Double Quotes</h2>
+  <p>Creating a String using double quotes.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "ABCDEF";
+
+echo gettype ( $val );
+// Output: string
+
+echo is_string ( $val );
+// Output: 1</code></pre>
+  <p>If we create the string with double quotes we can add variables and the value will be added.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "ABCDEF";
+
+echo "$val";
+// Outputs: ABCDEF</code></pre>
+  <p>If the string continues after the variable name there must be white space between the variable name and the characters. If there are no whitespace the variable need to be enclosed with <code>{}</code>. The older form <code>${}</code> still works but is deprecated since PHP 8.2.</p>
+  <pre><code class="language-php">&lt;?php
+$val = "ABCDEF";
+
+echo "$valG";
+// Outputs: Warning: Undefined variable $valG
+
+echo "{$val}G";
+// Outputs: ABCDEFG
+
+echo "${val}G";
+// Outputs: ABCDEFG (Deprecated since PHP 8.2)</code></pre>
+  <p>Double quotes also understand escape sequences like <code>\n</code> for a new line, <code>\t</code> for a tab and <code>\"</code> for a quote.</p>
+  <pre><code class="language-php">&lt;?php
+echo "Line 1\nLine 2";</code></pre>
+  <h2>Single Quotes</h2>
+  <p>Creating a String using single quotes. With single quotes the variable name and not the variable value will be printed. Only <code>\'</code> and <code>\\</code> are escaped.</p>
+  <pre><code class="language-php">&lt;?php
+$val = 'ABCDEF';
+
+echo gettype ( $val );
+//Outputs: string
+
+echo '$val';
+//Outputs: $val</code></pre>
+  <h2>Heredoc syntax</h2>
+  <p>We can also create strings with Heredoc syntax. This can be used when creating strings that covers multiple lines.</p>
+  <pre><code class="language-php">&lt;?php
+$val = &lt;&lt;&lt;EOT
+ABCDEF
+EOT;
+
+echo gettype( $val );
+//Outputs: string
+
+echo $val;
+//Outputs: ABCDEF</code></pre>
+  <p>Heredoc syntax works like double quotes and variable values will be inserted when a variable name is used.</p>
+  <pre><code class="language-php">&lt;?php
+$val = 'ABCDEF';
+
+echo gettype( $val );
+//Outputs: string
+
+echo &lt;&lt;&lt;EOT
+ABCDEF $val {$val}
+EOT;
+//Outputs: ABCDEF ABCDEF ABCDEF</code></pre>
+  <h2>Nowdoc syntax</h2>
+  <p>Nowdoc syntax can also be used when creating strings that covers multiple lines. The name is written in single quotes.</p>
+  <pre><code class="language-php">&lt;?php
+$val = &lt;&lt;&lt;'EOT'
+ABCDEF
+EOT;
+
+echo gettype( $val );
+//Outputs: string
+
+echo $val;
+//Outputs: ABCDEF</code></pre>
+  <p>Nowdoc syntax works like single quotes and variable values will not be inserted when a variable name is used.</p>
+  <pre><code class="language-php">&lt;?php
+$val = 'ABCDEF';
+
+echo gettype( $val );
+//Outputs: string
+
+echo &lt;&lt;&lt;'EOT'
+ABCDEF $val ${val}
+EOT;
+//Outputs: ABCDEF $val ${val}</code></pre>
+  <h2>String concatenation</h2>
+  <p>Strings are joined with the <code>.</code> operator. <code>.=</code> adds to the end of an existing string.</p>
+  <pre><code class="language-php">&lt;?php
+$string1 = "String 1";
+$string2 = "String 2";
+
+echo $string1 . $string2;
+// Outputs: String 1String 2
+
+echo $string1 . "String 2";
+// Outputs: String 1String 2
+
+echo $string1 . 'String 2';
+// Outputs: String 1String 2
+
+echo "String 1" . "String 2";
+// Outputs: String 1String 2
+
+echo "String 1" . 'String 2';
+// Outputs: String 1String 2
+
+$string1 .= " and more";
+echo $string1;
+// Outputs: String 1 and more</code></pre>
+  <h2>Defining Constants</h2>
+  <h3>String Constant</h3>
+  <pre><code class="language-php">&lt;?php
+define("STRINGCONSTANT", "Some String");
+
+echo gettype( STRINGCONSTANT );
+//Outputs: string
+
+echo STRINGCONSTANT;
+//Outputs: Some String</code></pre>
+  <h2>More about string</h2>
+  <ul>
+    <li><a href="/php/string-functions/">String functions</a> on the next page</li>
+    <li><a href="https://www.php.net/manual/en/language.types.string.php">Strings</a> in the PHP manual</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

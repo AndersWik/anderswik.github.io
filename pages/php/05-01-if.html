@@ -1,0 +1,106 @@
+---
+layout: default
+title: If statements
+permalink: /php/if/
+chapter: "05"
+chapter_title: "Control structures"
+keywords: [php, if, else, elseif, conditional, template syntax, alternative syntax, endif]
+---
+
+<div class="php container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>If statements</h1>
+  <p>If statements can be written with normal syntax or alternative syntax (template syntax). The first way would be the preferred syntax for code in a class. The alternative syntax is appropriate for template files, where PHP is mixed with HTML.</p>
+  <h2>If</h2>
+  <p>The code inside the curly braces only runs if the condition is <code>true</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$val = true;
+
+if ($val) {
+ echo "Value equals true.";
+}
+// Outputs: Value equals true.
+
+if ($val == true) {
+ echo "Value equals true.";
+}
+// Outputs: Value equals true.</code></pre>
+  <h3>Template syntax</h3>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;If&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+   &lt;?php $val = true; ?&gt;
+   &lt;?php if ($val == true): ?&gt;
+     &lt;p&gt;Value equals true.&lt;/p&gt;
+   &lt;?php endif; ?&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>If else</h2>
+  <p>In an <code>if</code> with an <code>else</code> the <code>else</code> will only run if the <code>if</code> is <code>false</code>. Since <code>$val</code> is <code>true</code> the <code>if</code> in the code below will run and not the <code>else</code>.</p>
+  <pre><code class="language-php">&lt;?php
+$val = true;
+
+if ($val == true) {
+ echo "First value equals true.";
+} else {
+ echo "First values equals false.";
+}
+// Outputs: First value equals true.</code></pre>
+  <h3>Template syntax</h3>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;If and else&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+   &lt;?php $val = true; ?&gt;
+   &lt;?php if ($val == true): ?&gt;
+     &lt;p&gt;First value equals true.&lt;/p&gt;
+   &lt;?php else: ?&gt;
+     &lt;p&gt;First values equals false.&lt;/p&gt;
+   &lt;?php endif; ?&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Elseif</h2>
+  <p>In an <code>if</code> with an <code>elseif</code> only the first true statement will be executed. Since the <code>if</code> in the code below is <code>true</code> the <code>elseif</code> will not run. If <code>$val1</code> were <code>false</code> it would.</p>
+  <pre><code class="language-php">&lt;?php
+$val1 = true;
+$val2 = true;
+
+if ($val1 == true) {
+ echo "First value equals true.";
+} elseif ($val2== true) {
+ echo "Other value equals too true.";
+} else {
+ echo "Both values equals false.";
+}
+// Outputs: First value equals true.</code></pre>
+  <h3>Template syntax</h3>
+  <pre><code class="language-php">&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;If, elseif and else&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+   &lt;?php $val1 = true; ?&gt;
+   &lt;?php $val2 = true; ?&gt;
+   &lt;?php if ($val1 == true): ?&gt;
+     First value equals true.
+   &lt;?php elseif ($val2== true): ?&gt;
+     Other value equals too true.
+   &lt;?php else: ?&gt;
+     Both values equals false.
+   &lt;?php endif; ?&gt;
+ &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>More about if statements</h2>
+  <ul>
+    <li><a href="/php/comparison-operators/">Comparison operators</a> and <a href="/php/logical-operators/">logical operators</a> are used to build the conditions</li>
+    <li><a href="https://www.php.net/manual/en/control-structures.if.php">if</a> in the PHP manual</li>
+    <li><a href="https://www.php.net/manual/en/control-structures.elseif.php">elseif</a></li>
+    <li><a href="https://www.php.net/manual/en/control-structures.alternative-syntax.php">Alternative syntax</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

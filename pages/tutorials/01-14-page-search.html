@@ -1,0 +1,602 @@
+---
+layout: default
+title: Page Search
+permalink: /tutorials/page-search/
+chapter: "01"
+chapter_title: "JavaScript utilities"
+keywords: [javascript, regex, regular expression, RegExp, matchAll, search, fetch, DOMParser, textContent, sitemap, sitemap.xml, sitemapindex, xml, application/xml, parsererror, radio button, cors, iframe, same-origin, contentDocument, async, await, for loop, csv]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Page Search</h1>
+  <p>We build a tool that searches many web pages at once. You give it a regular expression and a list of pages, and it downloads every page and shows what it found on each one. The list you can write yourself, or read from the site's <strong>sitemap</strong>. It is handy for checking your own site: which pages still link to an old address, which ones mention a product, where an email address is written.</p>
+  <p>The new ideas are <code>matchAll</code> to find every match, <code>DOMParser</code> to get the text out of HTML and to read XML, and running <code>await</code> in a loop, one page at a time.</p>
+  <p><a href="/assets/tutorials/page-search.html">Open the finished page</a></p>
+  <p>Read <a href="/tutorials/make-request/">Make Request</a> first. It explains <code>fetch()</code> and CORS.</p>
+  <h2>Which pages can we read?</h2>
+  <p>The same rule as in Make Request: <code>fetch()</code> can read every page on the same site as our tool, but pages on other sites only if the server allows it with CORS. Most websites don't. So the tool is best for searching your own site, and APIs that allow CORS. The <a href="#firefox-add-on">Firefox add-on</a> version can read any page.</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>page-search.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. Two radio buttons choose where the pages come from, and each choice has its own part of the form:</p>
+  <pre><code class="language-html">&lt;form id="form"&gt;
+  &lt;p&gt;
+    Pages from:
+    &lt;label&gt;&lt;input type="radio" name="source" value="list" checked&gt; a list of URLs&lt;/label&gt;
+    &lt;label&gt;&lt;input type="radio" name="source" value="sitemap"&gt; a sitemap&lt;/label&gt;
+  &lt;/p&gt;
+
+  &lt;div id="list-part"&gt;
+    &lt;label for="url-list"&gt;Pages to search, one per line&lt;/label&gt;
+    &lt;textarea id="url-list" rows="5" spellcheck="false"&gt;&lt;/textarea&gt;
+  &lt;/div&gt;
+
+  &lt;div id="sitemap-part" hidden&gt;
+    &lt;label for="sitemap-url"&gt;Sitemap address&lt;/label&gt;
+    &lt;input id="sitemap-url" type="text" spellcheck="false"&gt;
+    &lt;button type="button" id="load"&gt;Load&lt;/button&gt;
+
+    &lt;label for="sitemap"&gt;or paste the sitemap XML&lt;/label&gt;
+    &lt;textarea id="sitemap" rows="6" spellcheck="false"&gt;&lt;/textarea&gt;
+    &lt;p id="count"&gt;&lt;/p&gt;
+  &lt;/div&gt;
+
+  &lt;label for="pattern"&gt;Regular expression (ignores case)&lt;/label&gt;
+  &lt;input id="pattern" type="text" spellcheck="false" placeholder="\bsunt\b"&gt;
+
+  &lt;label&gt;&lt;input type="checkbox" id="search-html"&gt; Search the HTML source, not the text&lt;/label&gt;
+
+  &lt;button type="submit" id="start"&gt;Search&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;p id="summary"&gt;&lt;/p&gt;
+&lt;ul id="results"&gt;&lt;/ul&gt;</code></pre>
+  <p>Radio buttons with the same <code>name</code> belong together: checking one unchecks the others. The <code>hidden</code> attribute hides the sitemap part to begin with.</p>
+  <p>Load has <code>type="button"</code>. A button inside a form is a submit button if you don't say otherwise, and then Load would start the search.</p>
+  <h2>Step 2: Switch between the two</h2>
+  <pre><code class="language-javascript">function source() {
+    return form.elements.source.value;
+}
+
+form.addEventListener("change", function () {
+    listPart.hidden = source() !== "list";
+    sitemapPart.hidden = source() !== "sitemap";
+});</code></pre>
+  <p><code>form.elements.source</code> is the group of radio buttons named <code>source</code>, and its <code>value</code> is the value of the one that is checked. The <code>change</code> event bubbles up from every field to the form, so one listener on the form is enough. Setting <code>hidden</code> to <code>true</code> or <code>false</code> hides or shows an element.</p>
+  <h2>Step 3: Read a list of URLs</h2>
+  <pre><code class="language-javascript">function readUrls(text) {
+    const urls = [];
+    text.split(/\s+/).forEach(function (part) {
+        if (part === "") {
+            return;
+        }
+        try {
+            const url = new URL(part, location.href).href;
+            if (!urls.includes(url)) {
+                urls.push(url);
+            }
+        } catch (error) {
+            // Not a URL, skip it.
+        }
+    });
+    return urls;
+}</code></pre>
+  <p><code>split(/\s+/)</code> splits on any run of spaces, tabs and newlines, so one per line, or several on a line, both work. <code>new URL(part, location.href)</code> reads the address, and the second argument is the base for addresses without a site: <code>/utils/</code> becomes <code>https://www.anderswik.se/utils/</code>. It throws an error if the text can't be an address, and then we skip it. <code>includes</code> stops the same page from being searched twice.</p>
+  <h2>Step 4: What is a sitemap?</h2>
+  <p>Most sites already have a list of their pages: the sitemap. It is there so search engines can find every page. It is usually at <code>/sitemap.xml</code>, and the address is often written in <code>/robots.txt</code>. It is XML, a format that looks like HTML but where you make up the tag names yourself:</p>
+  <pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://example.com/&lt;/loc&gt;
+    &lt;lastmod&gt;2026-11-01&lt;/lastmod&gt;
+  &lt;/url&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://example.com/about/&lt;/loc&gt;
+  &lt;/url&gt;
+&lt;/urlset&gt;</code></pre>
+  <p>Every page is a <code>&lt;loc&gt;</code> (location) inside a <code>&lt;url&gt;</code>. A sitemap may only have 50,000 pages, so a big site has a <strong>sitemap index</strong> instead: a list of sitemaps, with the same <code>&lt;loc&gt;</code> tag:</p>
+  <pre><code class="language-xml">&lt;sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"&gt;
+  &lt;sitemap&gt;&lt;loc&gt;https://example.com/sitemap-pages.xml&lt;/loc&gt;&lt;/sitemap&gt;
+  &lt;sitemap&gt;&lt;loc&gt;https://example.com/sitemap-posts.xml&lt;/loc&gt;&lt;/sitemap&gt;
+&lt;/sitemapindex&gt;</code></pre>
+  <h2>Step 5: Read the sitemap</h2>
+  <p><code>DOMParser</code> turns text into a document, the same kind of object as <code>document</code>. With <code>"application/xml"</code> it reads XML:</p>
+  <pre><code class="language-javascript">function parseSitemap(xml) {
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    if (doc.querySelector("parsererror")) {
+        throw new Error("This is not valid XML.");
+    }
+    const locs = [];
+    for (const loc of doc.getElementsByTagName("loc")) {
+        locs.push(loc.textContent.trim());
+    }
+    if (doc.documentElement.localName === "sitemapindex") {
+        return { urls: [], sitemaps: locs };
+    }
+    return { urls: locs, sitemaps: [] };
+}</code></pre>
+  <p>HTML is forgiving: the browser fixes a missing end tag and carries on. XML is strict, one mistake and the whole file is wrong. <code>parseFromString</code> doesn't throw an error then. It gives back a document with a <code>&lt;parsererror&gt;</code> element that describes the problem, so that is what we look for.</p>
+  <p><code>getElementsByTagName("loc")</code> finds every <code>&lt;loc&gt;</code>, wherever it is. <code>documentElement</code> is the outermost element, so its name tells if this is a <code>urlset</code> or a <code>sitemapindex</code>. We use <code>localName</code>, the name without a namespace prefix, since some sitemaps write <code>&lt;sm:sitemapindex&gt;</code>.</p>
+  <p>To read an index, we download each sitemap in it and add its pages:</p>
+  <pre><code class="language-javascript">async function download(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+    }
+    return response.text();
+}
+
+async function sitemapUrls(xml) {
+    const parsed = parseSitemap(xml);
+    let urls = parsed.urls;
+    for (const address of parsed.sitemaps) {
+        const inner = parseSitemap(await download(address));
+        urls = urls.concat(inner.urls);
+    }
+    return urls;
+}</code></pre>
+  <p>For a normal sitemap, the loop does nothing and we get the pages. <code>concat</code> joins two lists into a new one.</p>
+  <p>Remember that a 404 is not an error to <code>fetch()</code>, see <a href="/tutorials/make-request/">Make Request</a>. Without the <code>response.ok</code> check, a missing sitemap would give us the text of a "Not found" page, which is not valid XML, and a confusing message. We use <code>download</code> for the pages too, so a missing page shows as failed.</p>
+  <p>The sitemap is downloaded with <code>fetch()</code>, so CORS applies to it as well: the sitemap of your own site works, other sites' sitemaps only if they allow it. You can always open a sitemap in the browser, copy it, and paste it into the text area. The pages in it still have to be readable, of course.</p>
+  <h2>Step 6: Text, not HTML</h2>
+  <p>A search for <code>class</code> in the HTML of a page finds hundreds of <code>class="..."</code> attributes. Usually you want to search what the page <em>says</em>. <code>DOMParser</code> with <code>"text/html"</code> reads HTML, without showing it or running its scripts:</p>
+  <pre><code class="language-javascript">function pageText(html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    doc.querySelectorAll("script, style, noscript, template").forEach(function (el) {
+        el.remove();
+    });
+    return doc.body.textContent.replace(/\s+/g, " ");
+}</code></pre>
+  <p><code>textContent</code> is all the text inside an element, without tags. But it includes the code inside <code>&lt;script&gt;</code> and <code>&lt;style&gt;</code>, so we remove those first. HTML is full of line breaks and indentation, so <code>replace(/\s+/g, " ")</code> turns every run of white space into one space. Then <code>Hello&lt;br&gt;\n    world</code> can be found with <code>Hello world</code>.</p>
+  <p>The checkbox lets you search the raw HTML too, to find things like a link to an old address in an <code>href</code>.</p>
+  <h2>Step 7: Find every match</h2>
+  <pre><code class="language-javascript">const regex = new RegExp(patternInput.value, "gi");
+
+function findMatches(text, regex) {
+    const counts = {};
+    let total = 0;
+    for (const match of text.matchAll(regex)) {
+        counts[match[0]] = (counts[match[0]] || 0) + 1;
+        total++;
+    }
+    return { total: total, counts: counts };
+}</code></pre>
+  <p><code>new RegExp(text, flags)</code> makes a regular expression from text that the user typed. It throws an error if the text is not a valid expression, like <code>(abc</code>, so <code>search()</code> puts it in a <code>try</code>. The flag <code>i</code> ignores upper and lower case, and <code>g</code> means "global": find every match, not only the first.</p>
+  <p><code>matchAll</code> needs the <code>g</code> flag, and gives every match one after the other. <code>match[0]</code> is the text that matched. We count each different text, so the result can say "Test ×3, test ×1" instead of a long list.</p>
+  <p>Why <code>matchAll</code> and not a loop with <code>regex.exec()</code>? A pattern like <code>a*</code> can match zero characters. An <code>exec</code> loop then finds the same empty match at the same place forever, and the page freezes. <code>matchAll</code> moves on by itself.</p>
+  <h2>Step 8: One page at a time</h2>
+  <p>First we get the list of pages, from the text area or from the sitemap. Reading a sitemap can fail, so it goes in a <code>try</code>:</p>
+  <pre><code class="language-javascript">let urls;
+try {
+    urls = source() === "list" ? readUrls(urlList.value) : await sitemapUrls(sitemapInput.value);
+} catch (error) {
+    summary.textContent = "Could not read the sitemap: " + error.message;
+    return;
+}</code></pre>
+  <p>From here on it doesn't matter where the list came from:</p>
+  <pre><code class="language-javascript">async function searchPage(url, regex) {
+    const html = await download(url);
+    const text = searchHtml.checked ? html : pageText(html);
+    return findMatches(text, regex);
+}
+
+for (let i = 0; i &lt; urls.length; i++) {
+    summary.textContent = "Searching " + (i + 1) + " of " + urls.length + "…";
+    try {
+        const found = await searchPage(urls[i], regex);
+        showMatches(rows[i], found);
+    } catch (error) {
+        showFailed(rows[i], error);
+    }
+}</code></pre>
+  <p><code>await</code> inside a <code>for</code> loop waits for each page before it starts the next. That is slower than downloading all of them at once, but kind to the server: a hundred requests at the same moment can look like an attack, and get you blocked.</p>
+  <p>The <code>try</code> is inside the loop, so one page that fails doesn't stop the rest. The list of results is made before the loop, with "waiting" on every page, so you can see how far it has come.</p>
+  <h2>Step 9: Test it</h2>
+  <ul>
+    <li>Search <code>https://jsonplaceholder.typicode.com/posts/1</code> and <code>https://jsonplaceholder.typicode.com/posts/2</code> for <code>\bsunt\b</code>. That API allows CORS, so it works from anywhere.</li>
+    <li>Add <code>https://example.com/</code>. It fails, since example.com doesn't allow CORS.</li>
+    <li>Switch to sitemap, paste this, and search for <code>\bsunt\b</code> again. It finds the same matches:
+      <pre><code class="language-xml">&lt;urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"&gt;
+  &lt;url&gt;&lt;loc&gt;https://jsonplaceholder.typicode.com/posts/1&lt;/loc&gt;&lt;/url&gt;
+  &lt;url&gt;&lt;loc&gt;https://jsonplaceholder.typicode.com/posts/2&lt;/loc&gt;&lt;/url&gt;
+&lt;/urlset&gt;</code></pre></li>
+    <li>Remove the last <code>&gt;</code>. The count says it is not valid XML.</li>
+    <li>Put the finished page on a web server with some other pages, a sitemap index and two sitemaps, and load the index. Both sitemaps are read.</li>
+    <li>Search for <code>(abc</code>. You get an error message, not a broken page.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>page-search.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Page Search&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    label {
+        display: block;
+        margin: 16px 0 4px;
+        font-weight: bold;
+    }
+
+    label.choice {
+        display: inline;
+        margin-right: 16px;
+        font-weight: normal;
+    }
+
+    textarea,
+    input[type="text"] {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        font-family: monospace;
+        font-size: 15px;
+    }
+
+    .row {
+        display: flex;
+        gap: 6px;
+    }
+
+    button {
+        padding: 8px 24px;
+        font-size: 16px;
+    }
+
+    #start {
+        margin-top: 16px;
+    }
+
+    #results {
+        list-style: none;
+        padding: 0;
+    }
+
+    #results li {
+        padding: 8px 0;
+        border-bottom: 1px solid #ddd;
+        overflow-wrap: anywhere;
+    }
+
+    .status {
+        float: right;
+        font-weight: bold;
+    }
+
+    .match .status  { color: #198754; }
+    .failed .status { color: #dc3545; }
+
+    .found {
+        display: inline-block;
+        margin: 4px 4px 0 0;
+        padding: 0 6px;
+        background: #fff3cd;
+        font-family: monospace;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Page Search&lt;/h1&gt;
+
+  &lt;form id="form"&gt;
+    &lt;p&gt;
+      Pages from:
+      &lt;label class="choice"&gt;&lt;input type="radio" name="source" value="list" checked&gt; a list of URLs&lt;/label&gt;
+      &lt;label class="choice"&gt;&lt;input type="radio" name="source" value="sitemap"&gt; a sitemap&lt;/label&gt;
+    &lt;/p&gt;
+
+    &lt;div id="list-part"&gt;
+      &lt;label for="url-list"&gt;Pages to search, one per line&lt;/label&gt;
+      &lt;textarea id="url-list" rows="5" spellcheck="false" placeholder="https://jsonplaceholder.typicode.com/posts/1"&gt;&lt;/textarea&gt;
+    &lt;/div&gt;
+
+    &lt;div id="sitemap-part" hidden&gt;
+      &lt;label for="sitemap-url"&gt;Sitemap address&lt;/label&gt;
+      &lt;div class="row"&gt;
+        &lt;input id="sitemap-url" type="text" spellcheck="false" placeholder="https://example.com/sitemap.xml"&gt;
+        &lt;button type="button" id="load"&gt;Load&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;label for="sitemap"&gt;or paste the sitemap XML&lt;/label&gt;
+      &lt;textarea id="sitemap" rows="6" spellcheck="false"&gt;&lt;/textarea&gt;
+      &lt;p id="count"&gt;&lt;/p&gt;
+    &lt;/div&gt;
+
+    &lt;label for="pattern"&gt;Regular expression (ignores case)&lt;/label&gt;
+    &lt;input id="pattern" type="text" spellcheck="false" placeholder="\bsunt\b"&gt;
+
+    &lt;label class="choice"&gt;&lt;input type="checkbox" id="search-html"&gt; Search the HTML source, not the text&lt;/label&gt;
+
+    &lt;br&gt;
+    &lt;button type="submit" id="start"&gt;Search&lt;/button&gt;
+  &lt;/form&gt;
+
+  &lt;p id="summary"&gt;&lt;/p&gt;
+  &lt;ul id="results"&gt;&lt;/ul&gt;
+
+  &lt;script&gt;
+    /*
+     * Page Search: download many pages and search each one for a regular
+     * expression. The pages come from a list of URLs or from a sitemap.
+     *
+     * fetch() can only read pages from other sites if they allow it with
+     * CORS. Pages on the same site always work.
+     */
+
+    // --- Elements on the page ------------------------------------------------
+
+    const form = document.getElementById("form");
+    const listPart = document.getElementById("list-part");
+    const sitemapPart = document.getElementById("sitemap-part");
+    const urlList = document.getElementById("url-list");
+    const sitemapUrl = document.getElementById("sitemap-url");
+    const loadButton = document.getElementById("load");
+    const sitemapInput = document.getElementById("sitemap");
+    const count = document.getElementById("count");
+    const patternInput = document.getElementById("pattern");
+    const searchHtml = document.getElementById("search-html");
+    const startButton = document.getElementById("start");
+    const summary = document.getElementById("summary");
+    const resultsList = document.getElementById("results");
+
+    // "list" or "sitemap"
+    function source() {
+        return form.elements.source.value;
+    }
+
+    // Show the part of the form for the chosen source.
+    form.addEventListener("change", function () {
+        listPart.hidden = source() !== "list";
+        sitemapPart.hidden = source() !== "sitemap";
+    });
+
+    // --- A list of URLs ------------------------------------------------------
+
+    // Text with one URL per line -&gt; a list. Empty lines and duplicates are
+    // skipped, and /path is read from this page's address.
+    function readUrls(text) {
+        const urls = [];
+        text.split(/\s+/).forEach(function (part) {
+            if (part === "") {
+                return;
+            }
+            try {
+                const url = new URL(part, location.href).href;
+                if (!urls.includes(url)) {
+                    urls.push(url);
+                }
+            } catch (error) {
+                // Not a URL, skip it.
+            }
+        });
+        return urls;
+    }
+
+    // --- A sitemap -----------------------------------------------------------
+
+    // XML text -&gt; { urls, sitemaps }
+    function parseSitemap(xml) {
+        const doc = new DOMParser().parseFromString(xml, "application/xml");
+        if (doc.querySelector("parsererror")) {
+            throw new Error("This is not valid XML.");
+        }
+        const locs = [];
+        for (const loc of doc.getElementsByTagName("loc")) {
+            locs.push(loc.textContent.trim());
+        }
+        if (doc.documentElement.localName === "sitemapindex") {
+            return { urls: [], sitemaps: locs };
+        }
+        return { urls: locs, sitemaps: [] };
+    }
+
+    async function download(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+        return response.text();
+    }
+
+    // Every page in the sitemap. For a sitemap index, read each sitemap in it.
+    async function sitemapUrls(xml) {
+        const parsed = parseSitemap(xml);
+        let urls = parsed.urls;
+        for (const address of parsed.sitemaps) {
+            const inner = parseSitemap(await download(address));
+            urls = urls.concat(inner.urls);
+        }
+        return urls;
+    }
+
+    function showCount() {
+        try {
+            const parsed = parseSitemap(sitemapInput.value);
+            count.textContent = parsed.sitemaps.length &gt; 0
+                ? "A sitemap index with " + parsed.sitemaps.length + " sitemaps."
+                : parsed.urls.length + " pages.";
+        } catch (error) {
+            count.textContent = sitemapInput.value.trim() === "" ? "" : error.message;
+        }
+    }
+
+    loadButton.addEventListener("click", async function () {
+        try {
+            sitemapInput.value = await download(sitemapUrl.value.trim());
+            showCount();
+        } catch (error) {
+            count.textContent = "Could not load the sitemap. Is the address right, and does the server allow CORS?";
+        }
+    });
+
+    sitemapInput.addEventListener("input", showCount);
+
+    // --- Loading and searching a page ----------------------------------------
+
+    // The words on a page, without tags, scripts and styles.
+    function pageText(html) {
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        doc.querySelectorAll("script, style, noscript, template").forEach(function (el) {
+            el.remove();
+        });
+        return doc.body.textContent.replace(/\s+/g, " ");
+    }
+
+    // Count every match: { "Test": 3, "test": 1 }
+    function findMatches(text, regex) {
+        const counts = {};
+        let total = 0;
+        for (const match of text.matchAll(regex)) {
+            counts[match[0]] = (counts[match[0]] || 0) + 1;
+            total++;
+        }
+        return { total: total, counts: counts };
+    }
+
+    async function searchPage(url, regex) {
+        const html = await download(url);
+        const text = searchHtml.checked ? html : pageText(html);
+        return findMatches(text, regex);
+    }
+
+    // --- Showing results -----------------------------------------------------
+
+    function addResult(url) {
+        const li = document.createElement("li");
+        const status = document.createElement("span");
+        status.className = "status";
+        status.textContent = "waiting";
+        li.append(status, document.createTextNode(url));
+        resultsList.append(li);
+        return li;
+    }
+
+    function showMatches(li, found) {
+        li.classList.add(found.total &gt; 0 ? "match" : "no-match");
+        li.querySelector(".status").textContent =
+            found.total === 0 ? "no match" : found.total + " matches";
+        for (const text in found.counts) {
+            const chip = document.createElement("span");
+            chip.className = "found";
+            chip.textContent = text + " ×" + found.counts[text];
+            li.append(document.createElement("br"), chip);
+        }
+    }
+
+    function showFailed(li, error) {
+        li.classList.add("failed");
+        li.querySelector(".status").textContent = "failed";
+        li.title = error instanceof TypeError
+            ? "Blocked by CORS, or the server could not be reached"
+            : error.message;
+    }
+
+    // --- The search ----------------------------------------------------------
+
+    async function search() {
+        let regex;
+        try {
+            regex = new RegExp(patternInput.value, "gi");
+        } catch (error) {
+            summary.textContent = "The regular expression is not valid: " + error.message;
+            return;
+        }
+        if (patternInput.value === "") {
+            summary.textContent = "Write a regular expression.";
+            return;
+        }
+
+        let urls;
+        try {
+            urls = source() === "list" ? readUrls(urlList.value) : await sitemapUrls(sitemapInput.value);
+        } catch (error) {
+            summary.textContent = "Could not read the sitemap: " + error.message;
+            return;
+        }
+        if (urls.length === 0) {
+            summary.textContent = "There are no pages to search.";
+            return;
+        }
+
+        startButton.disabled = true;
+        resultsList.textContent = "";
+        const rows = urls.map(addResult);
+        let withMatches = 0;
+
+        // One page at a time, so we don't flood the server.
+        for (let i = 0; i &lt; urls.length; i++) {
+            summary.textContent = "Searching " + (i + 1) + " of " + urls.length + "…";
+            rows[i].querySelector(".status").textContent = "searching…";
+            try {
+                const found = await searchPage(urls[i], regex);
+                showMatches(rows[i], found);
+                if (found.total &gt; 0) {
+                    withMatches++;
+                }
+            } catch (error) {
+                showFailed(rows[i], error);
+            }
+        }
+
+        summary.textContent = "Searched " + urls.length + " pages, " + withMatches + " with matches.";
+        startButton.disabled = false;
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        search();
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Pages that are made by JavaScript: a frame</h2>
+  <p><code>fetch()</code> gives you the HTML the server sends. Some pages are almost empty HTML, and JavaScript fills them in when they are shown. To search those, the <a href="/utils/page-search/">version on this site</a> can load each page in an <code>&lt;iframe&gt;</code> instead, wait a little, and read what it shows:</p>
+  <pre><code class="language-javascript">loader.onload = function () {
+    setTimeout(function () {
+        const doc = loader.contentDocument;
+        const text = doc.body.innerText;
+        // search the text
+    }, delay);
+};
+loader.src = url;</code></pre>
+  <p><code>contentDocument</code> is the document inside the frame. But the browser only gives it to you if the page in the frame is from the <strong>same site</strong>. For any other site it is <code>null</code>, whatever the server says, and CORS doesn't change that. If it didn't work that way, any site could open your webmail in a hidden frame and read it. So the frame only works for your own site, and the tool checks that before loading a page:</p>
+  <pre><code class="language-javascript">if (new URL(url).origin !== location.origin) {
+    // can't be read in a frame, use fetch instead
+}</code></pre>
+  <p>An <strong>origin</strong> is the scheme, host and port together, like <code>https://www.anderswik.se</code>. Note that <code>https://anderswik.se</code> and <code>https://www.anderswik.se</code> are different origins.</p>
+  <h2>The version on this site</h2>
+  <p><a href="/utils/page-search/">Page Search on this site</a> also:</p>
+  <ul>
+    <li>Has a Stop button and a progress bar.</li>
+    <li>Takes flags for the regular expression, so you can turn off "ignore case".</li>
+    <li>Loads the sitemap by itself if you press Search with only an address.</li>
+    <li>Skips sitemaps in an index that can't be read, and says which, instead of stopping. It reads at most 50 sitemaps from an index, so a huge site doesn't take forever.</li>
+    <li>Has a limit, so you can try your search on the first 10 pages before you search them all.</li>
+    <li>Remembers the form in <code>localStorage</code>, the same way as <a href="/tutorials/checklist/">Checklist</a>.</li>
+    <li>Saves the results as a CSV file you can open in a spreadsheet.</li>
+  </ul>
+  <p>The CSV is made the same way as the export in <a href="/tutorials/make-request/#history-and-library">Make Request</a>, with a <code>Blob</code>. Text with a comma, a quote or a line break in it goes inside quotes, with each quote doubled:</p>
+  <pre><code class="language-javascript">function csvCell(text) {
+    return /[",\n\r]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+}</code></pre>
+  <h2 id="firefox-add-on">Any site: the Firefox add-on</h2>
+  <p>Like <a href="/tutorials/make-request/#firefox-add-on">Make Request</a>, Page Search is also a Firefox add-on with permission for every site, and in the add-on <code>fetch()</code> can read any page and sitemap. The frame still only works for pages from the add-on itself, so in the add-on, always use Download.</p>
+  <h2>Try this</h2>
+  <ul>
+    <li>Show a little of the text around each match, like a search engine does. <code>match.index</code> is where the match starts.</li>
+    <li>Search two or three pages at the same time, to make it faster without flooding the server.</li>
+    <li>Read <code>&lt;lastmod&gt;</code> from the sitemap too, and only search pages changed after a date.</li>
+    <li>Find the sitemap by itself: download <code>/robots.txt</code> and look for a line that starts with <code>Sitemap:</code>.</li>
+    <li>Follow the links on each page, to search a whole site from just its front page.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
