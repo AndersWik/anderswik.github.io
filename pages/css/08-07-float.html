@@ -1,0 +1,42 @@
+---
+layout: default
+title: Float
+permalink: /css/float/
+chapter: "08"
+chapter_title: "Layout"
+keywords: [css, float, clear, text around image, shape-outside]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Float</h1>
+  <p><code>float</code> moves an element to the left or right, and lets the text flow around it. Today it is only used for that, an image in a text. For layouts, use <a href="/css/flexbox/">flexbox</a> or <a href="/css/grid/">grid</a>.</p>
+  <pre><code class="language-css">.article img {
+  float: left;
+  width: 200px;
+  margin: 0 16px 8px 0;
+}</code></pre>
+  <pre><code class="language-html">&lt;div class="article"&gt;
+  &lt;img src="cat.jpg" alt="A cat"&gt;
+  &lt;p&gt;A long text that flows around the image ...&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+  <h2>Clear</h2>
+  <p><code>clear</code> makes an element start below the floats before it:</p>
+  <pre><code class="language-css">.article h2 {
+  clear: both;
+}</code></pre>
+  <h2>Contain the floats</h2>
+  <p>A float sticks out below its parent if the parent is shorter. <code>display: flow-root</code> on the parent makes it contain its floats:</p>
+  <pre><code class="language-css">.article {
+  display: flow-root;
+}</code></pre>
+  <p>This replaces the old "clearfix" trick.</p>
+  <h2>More about float</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/float"><code>float</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/clear"><code>clear</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

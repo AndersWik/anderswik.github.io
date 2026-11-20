@@ -1,0 +1,41 @@
+---
+layout: default
+title: Transitions
+permalink: /css/transitions/
+chapter: "11"
+chapter_title: "Transforms and animation"
+keywords: [css, transition, duration, timing function, ease, delay, hover]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Transitions</h1>
+  <p>A transition makes a change happen smoothly over time, instead of at once. It is used for hover effects and things that open and close.</p>
+  <pre><code class="language-css">.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.1);
+}</code></pre>
+  <p>The transition is set on the element itself, not on <code>:hover</code>, so it is smooth both when the mouse comes and when it leaves.</p>
+  <h2>The parts</h2>
+  <pre><code class="language-css">transition: background-color 0.3s ease-in-out 0.1s;   /* property, time, timing, delay */</code></pre>
+  <ul>
+    <li><strong>Property</strong>: what to animate. <code>all</code> works, but is slower and can animate things you didn't mean to.</li>
+    <li><strong>Duration</strong>: <code>0.2s</code> to <code>0.3s</code> feels quick but smooth for small changes.</li>
+    <li><strong>Timing function</strong>: <code>ease</code> (the default), <code>linear</code>, <code>ease-in</code>, <code>ease-out</code> or <code>ease-in-out</code>.</li>
+    <li><strong>Delay</strong>: wait before it starts.</li>
+  </ul>
+  <h2>Not everything can be animated</h2>
+  <p>Colors, sizes, positions, opacity and transforms can be animated. <code>display</code> and <code>height: auto</code> can't in most browsers, so open and close with <code>max-height</code>, <code>opacity</code> or <code>transform</code> instead.</p>
+  <h2>More about transitions</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/transition"><code>transition</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Transitions/Using">Using transitions on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

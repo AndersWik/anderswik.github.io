@@ -1,0 +1,41 @@
+---
+layout: default
+title: Borders
+permalink: /css/borders/
+chapter: "05"
+chapter_title: "The box model"
+keywords: [css, borders, border, border-style, border-width, border-color, border-radius, rounded corners]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Borders</h1>
+  <p>A border is a line around the padding of an element.</p>
+  <pre><code class="language-css">.card {
+  border: 1px solid #ccc;      /* width, style, color */
+}</code></pre>
+  <h2>Style</h2>
+  <p><code>solid</code>, <code>dashed</code>, <code>dotted</code> and <code>double</code> are the most used. <code>none</code> removes the border. A border needs a style to be shown: <code>border: 2px red;</code> shows nothing.</p>
+  <h2>One side</h2>
+  <pre><code class="language-css">h2 {
+  border-bottom: 2px solid tomato;
+}
+
+.quote {
+  border-left: 4px solid #ccc;
+  padding-left: 16px;
+}</code></pre>
+  <h2>Rounded corners</h2>
+  <p><code>border-radius</code> rounds the corners, also without a border:</p>
+  <pre><code class="language-css">.card { border-radius: 8px; }
+.pill { border-radius: 999px; }       /* round ends */
+.avatar { border-radius: 50%; }       /* a circle, if the box is square */</code></pre>
+  <h2>More about borders</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/border"><code>border</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/border-radius"><code>border-radius</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

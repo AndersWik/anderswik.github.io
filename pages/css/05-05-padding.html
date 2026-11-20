@@ -1,0 +1,38 @@
+---
+layout: default
+title: Padding
+permalink: /css/padding/
+chapter: "05"
+chapter_title: "The box model"
+keywords: [css, padding, shorthand, inner space]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Padding</h1>
+  <p>Padding is the space inside an element, between its content and its border. The background of the element fills the padding.</p>
+  <pre><code class="language-css">.button {
+  padding: 8px 16px;
+  background-color: navy;
+  color: white;
+}</code></pre>
+  <h2>Shorthand</h2>
+  <p>The same as for <a href="/css/margin/">margin</a>, clockwise from the top:</p>
+  <pre><code class="language-css">padding: 16px;               /* all four sides */
+padding: 8px 16px;           /* top and bottom, left and right */
+padding: 8px 16px 12px 16px; /* top, right, bottom, left */
+padding-left: 24px;          /* one side */</code></pre>
+  <h2>Padding or margin?</h2>
+  <ul>
+    <li><strong>Padding</strong> for space inside a box, where the background should be. The space between the text and the edge of a button.</li>
+    <li><strong>Margin</strong> for space between boxes. The space between two cards.</li>
+  </ul>
+  <p>Padding can't be negative, and doesn't collapse.</p>
+  <h2>More about padding</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/padding"><code>padding</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

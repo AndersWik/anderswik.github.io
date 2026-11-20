@@ -1,0 +1,37 @@
+---
+layout: default
+title: Box sizing
+permalink: /css/box-sizing/
+chapter: "05"
+chapter_title: "The box model"
+keywords: [css, box-sizing, border-box, content-box, width]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Box sizing</h1>
+  <p><code>box-sizing</code> decides what <code>width</code> and <code>height</code> measure.</p>
+  <pre><code class="language-css">.content-box {
+  box-sizing: content-box;   /* the default: content only */
+  width: 200px;
+  padding: 16px;             /* the box is 232px wide */
+}
+
+.border-box {
+  box-sizing: border-box;    /* content, padding and border */
+  width: 200px;
+  padding: 16px;             /* the box is 200px wide */
+}</code></pre>
+  <h2>Use border-box everywhere</h2>
+  <p>With <code>border-box</code>, the width you write is the width you get, and <code>width: 50%</code> with padding still fits two boxes on a row. Most sites set it on every element, at the start of the CSS:</p>
+  <pre><code class="language-css">*, *::before, *::after {
+  box-sizing: border-box;
+}</code></pre>
+  <h2>More about box sizing</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/box-sizing"><code>box-sizing</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

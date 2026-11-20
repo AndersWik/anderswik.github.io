@@ -1,0 +1,47 @@
+---
+layout: default
+title: Fonts
+permalink: /css/fonts/
+chapter: "06"
+chapter_title: "Text and fonts"
+keywords: [css, fonts, font-family, font-size, font-weight, font-style, fallback, font shorthand, system-ui]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Fonts</h1>
+  <pre><code class="language-css">body {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 400;        /* 400 normal, 700 bold, 100 to 900 */
+  font-style: normal;      /* normal or italic */
+}</code></pre>
+  <h2>Fallbacks</h2>
+  <p><code>font-family</code> is a list. The browser uses the first font it has. End the list with a generic family, so there is always something:</p>
+  <ul>
+    <li><code>serif</code>, letters with small feet, like Times.</li>
+    <li><code>sans-serif</code>, letters without, like Arial.</li>
+    <li><code>monospace</code>, all letters the same width, for code.</li>
+    <li><code>system-ui</code>, the font of the operating system.</li>
+  </ul>
+  <p>Names with spaces go in quotes: <code>"Times New Roman"</code>.</p>
+  <h2>The system font</h2>
+  <p>The font of the operating system loads instantly, and looks at home on every device:</p>
+  <pre><code class="language-css">body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}</code></pre>
+  <h2>Font size</h2>
+  <p>Use <code>rem</code> for font sizes, so the page follows the text size the user has chosen in the browser. See <a href="/css/units/">Units</a>.</p>
+  <h2>Shorthand</h2>
+  <p><code>font</code> sets everything in one line. The size and family are required, and must come last:</p>
+  <pre><code class="language-css">font: italic 700 1.25rem/1.4 Georgia, serif;   /* style weight size/line-height family */</code></pre>
+  <h2>More about fonts</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-family"><code>font-family</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-size"><code>font-size</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-weight"><code>font-weight</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

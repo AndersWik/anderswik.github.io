@@ -1,0 +1,53 @@
+---
+layout: default
+title: Position
+permalink: /css/position/
+chapter: "08"
+chapter_title: "Layout"
+keywords: [css, position, static, relative, absolute, fixed, sticky, top, left, z-index, inset]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Position</h1>
+  <p><code>position</code> takes an element out of the normal flow, and places it with <code>top</code>, <code>right</code>, <code>bottom</code> and <code>left</code>.</p>
+  <h2>Relative</h2>
+  <p>The element is moved from where it would have been. The space it would have used stays empty:</p>
+  <pre><code class="language-css">.nudge { position: relative; top: 2px; }</code></pre>
+  <p><code>position: relative</code> is mostly used to make an element the reference for absolute children.</p>
+  <h2>Absolute</h2>
+  <p>The element is placed in the nearest parent that has a position, and takes no space:</p>
+  <pre><code class="language-css">.card { position: relative; }
+.card .badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}</code></pre>
+  <h2>Fixed</h2>
+  <p>Placed in the window, and stays there when the page is scrolled. For a button that is always shown:</p>
+  <pre><code class="language-css">.back-to-top {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+}</code></pre>
+  <h2>Sticky</h2>
+  <p>Scrolls with the page until it reaches its <code>top</code> value, then stays. For headers and table heads:</p>
+  <pre><code class="language-css">thead th {
+  position: sticky;
+  top: 0;
+  background-color: white;
+}</code></pre>
+  <p>A sticky element stops at the end of its parent, and doesn't stick if a parent has <code>overflow: hidden</code>.</p>
+  <h2>z-index</h2>
+  <p>Positioned elements can cover each other. <code>z-index</code> decides which is on top, a higher number is closer:</p>
+  <pre><code class="language-css">.modal { position: fixed; z-index: 100; }</code></pre>
+  <p><code>inset: 0</code> is short for <code>top: 0; right: 0; bottom: 0; left: 0</code>, and fills the parent.</p>
+  <h2>More about position</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position"><code>position</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/z-index"><code>z-index</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

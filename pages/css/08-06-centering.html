@@ -1,0 +1,51 @@
+---
+layout: default
+title: Centering
+permalink: /css/centering/
+chapter: "08"
+chapter_title: "Layout"
+keywords: [css, center, centering, align, horizontal, vertical, place-items, margin auto]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Centering</h1>
+  <p>The common ways to center things.</p>
+  <h2>Text and inline elements</h2>
+  <pre><code class="language-css">.title { text-align: center; }</code></pre>
+  <h2>A block with a width</h2>
+  <pre><code class="language-css">.page {
+  max-width: 800px;
+  margin: 0 auto;
+}</code></pre>
+  <h2>Both ways, with grid</h2>
+  <p>The shortest way to center anything in a box, across and down:</p>
+  <pre><code class="language-css">.box {
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+}</code></pre>
+  <h2>Both ways, with flexbox</h2>
+  <pre><code class="language-css">.box {
+  display: flex;
+  justify-content: center;   /* across */
+  align-items: center;       /* down */
+  min-height: 300px;
+}</code></pre>
+  <h2>Something positioned</h2>
+  <pre><code class="language-css">.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}</code></pre>
+  <p><code>top</code> and <code>left</code> move the corner to the middle, and <code>translate(-50%, -50%)</code> moves the element back by half its own size.</p>
+  <h2>More about centering</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/How_to/Layout_cookbook/Center_an_element">Center an element on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/place-items"><code>place-items</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

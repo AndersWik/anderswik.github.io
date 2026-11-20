@@ -1,0 +1,54 @@
+---
+layout: default
+title: Text
+permalink: /css/text/
+chapter: "06"
+chapter_title: "Text and fonts"
+keywords: [css, text, color, text-align, text-decoration, text-transform, line-height, letter-spacing, word-spacing, text-overflow, ellipsis]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Text</h1>
+  <p>Properties for how text is shown. Most of them are inherited, so they can be set on a parent.</p>
+  <pre><code class="language-css">p {
+  color: #333;
+  line-height: 1.5;           /* 1.5 times the font size, no unit */
+  text-align: left;           /* left, right, center, justify */
+}</code></pre>
+  <h2>Decoration and case</h2>
+  <pre><code class="language-css">a { text-decoration: none; }                   /* no underline */
+a:hover { text-decoration: underline; }
+.old-price { text-decoration: line-through; }
+.wavy { text-decoration: underline wavy red; }
+
+h2 { text-transform: uppercase; }              /* capitals, uppercase, lowercase */</code></pre>
+  <h2>Spacing</h2>
+  <pre><code class="language-css">h1 { letter-spacing: 0.05em; }    /* between letters */
+p { word-spacing: 0.1em; }        /* between words */
+p { text-indent: 2em; }           /* the first line */</code></pre>
+  <h2>Long text</h2>
+  <p>Cut a long line with <code>...</code>:</p>
+  <pre><code class="language-css">.title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}</code></pre>
+  <p>Break long words, like addresses, so they don't stick out:</p>
+  <pre><code class="language-css">.url { overflow-wrap: anywhere; }</code></pre>
+  <h2>Easy to read</h2>
+  <ul>
+    <li><code>line-height</code> between 1.4 and 1.6 for body text.</li>
+    <li><code>max-width: 65ch</code> keeps lines at about 65 characters.</li>
+    <li>Avoid <code>text-align: justify</code> on narrow screens, it makes holes between the words.</li>
+  </ul>
+  <h2>More about text</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Text_styling/Fundamentals">Text styling on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-decoration"><code>text-decoration</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-overflow"><code>text-overflow</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

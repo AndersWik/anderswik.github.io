@@ -1,0 +1,37 @@
+---
+layout: default
+title: Outline
+permalink: /css/outline/
+chapter: "05"
+chapter_title: "The box model"
+keywords: [css, outline, outline-offset, focus, focus ring]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Outline</h1>
+  <p>An outline is a line outside the border. It looks like a border, but takes no space, so it doesn't move anything when it is shown.</p>
+  <pre><code class="language-css">.selected {
+  outline: 2px solid tomato;
+  outline-offset: 4px;     /* space between the element and the outline */
+}</code></pre>
+  <h2>Focus</h2>
+  <p>Browsers show an outline around the element that has keyboard focus. Keyboard users need it to see where they are. Never remove it without showing something else:</p>
+  <pre><code class="language-css">/* Wrong: keyboard users can't see where they are */
+:focus { outline: none; }
+
+/* Right: a clear focus ring, only for keyboard focus */
+:focus-visible {
+  outline: 3px solid #2e9e5b;
+  outline-offset: 2px;
+}</code></pre>
+  <p><code>:focus-visible</code> shows it for the keyboard, but not when you click with the mouse.</p>
+  <h2>More about outline</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/outline"><code>outline</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:focus-visible"><code>:focus-visible</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

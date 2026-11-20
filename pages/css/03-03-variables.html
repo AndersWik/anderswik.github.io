@@ -1,0 +1,54 @@
+---
+layout: default
+title: Variables
+permalink: /css/variables/
+chapter: "03"
+chapter_title: "The cascade"
+keywords: [css, variables, custom properties, var, --, root, javascript, setProperty]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Variables</h1>
+  <p>Variables, or custom properties, keep a value in one place and use it in many. Their names start with <code>--</code>:</p>
+  <pre><code class="language-css">:root {
+  --brand: #2e9e5b;
+  --space: 16px;
+}
+
+.button {
+  background-color: var(--brand);
+  padding: var(--space);
+}
+
+.card {
+  border-top: 4px solid var(--brand);
+  margin-bottom: var(--space);
+}</code></pre>
+  <p><code>:root</code> is the <code>&lt;html&gt;</code> element, so variables set there work on the whole page.</p>
+  <h2>Fallback</h2>
+  <p>The second value in <code>var()</code> is used if the variable is not set:</p>
+  <pre><code class="language-css">color: var(--text-color, black);</code></pre>
+  <h2>Change in one place</h2>
+  <p>Variables are inherited, so a variable can be changed for a part of the page. Here, a dark theme changes the colors of everything inside it:</p>
+  <pre><code class="language-css">:root { --bg: white; --text: #222; }
+.dark { --bg: #222; --text: #eee; }
+
+body, .dark {
+  background-color: var(--bg);
+  color: var(--text);
+}</code></pre>
+  <h2>Variables and JavaScript</h2>
+  <p>JavaScript can read and change variables while the page is shown:</p>
+  <pre><code class="language-javascript">document.documentElement.style.setProperty("--brand", "tomato");
+getComputedStyle(document.documentElement).getPropertyValue("--brand");</code></pre>
+  <h2>More about variables</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/--*">Custom properties on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/var"><code>var()</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascading_variables/Using_custom_properties">Using custom properties on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

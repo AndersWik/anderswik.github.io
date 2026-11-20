@@ -1,0 +1,39 @@
+---
+layout: default
+title: Add CSS to a page
+permalink: /css/add-css/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [css, link, stylesheet, style element, style attribute, external, internal, inline]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Add CSS to a page</h1>
+  <p>There are three ways to add CSS to a page.</p>
+  <h2>A separate file</h2>
+  <p>The best way for almost everything. Link the file in the <code>&lt;head&gt;</code>:</p>
+  <pre><code class="language-html">&lt;link rel="stylesheet" href="/css/style.css"&gt;</code></pre>
+  <p>The same file is used by every page, and the browser keeps it in its cache, so the next page loads faster.</p>
+  <h2>A style element</h2>
+  <p>For CSS that only one page needs. It goes in the <code>&lt;head&gt;</code>:</p>
+  <pre><code class="language-html">&lt;style&gt;
+  .banner { background-color: gold; }
+&lt;/style&gt;</code></pre>
+  <h2>A style attribute</h2>
+  <p>For one element. Use it for quick tests only, since it is hard to find later and wins over almost everything:</p>
+  <pre><code class="language-html">&lt;p style="color: red;"&gt;Warning&lt;/p&gt;</code></pre>
+  <h2>Several files</h2>
+  <p>A page can link several style sheets. Rules in a later file win over rules in an earlier file, if they are equally specific. So link general styles first, and the page's own styles last:</p>
+  <pre><code class="language-html">&lt;link rel="stylesheet" href="/css/base.css"&gt;
+&lt;link rel="stylesheet" href="/css/contact-page.css"&gt;</code></pre>
+  <h2>More about adding CSS</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/link"><code>&lt;link&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/style"><code>&lt;style&gt;</code> on MDN</a></li>
+    <li>The same in the HTML notes: <a href="/html/add-css/">Add CSS</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

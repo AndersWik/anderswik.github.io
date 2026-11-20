@@ -1,0 +1,36 @@
+---
+layout: default
+title: Shadows
+permalink: /css/shadows/
+chapter: "07"
+chapter_title: "Backgrounds and effects"
+keywords: [css, shadows, box-shadow, text-shadow, inset]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Shadows</h1>
+  <h2>Box shadow</h2>
+  <pre><code class="language-css">.card {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+}</code></pre>
+  <p>The values are: across, down, blur, and the color. A fourth length before the color, the spread, makes the shadow larger:</p>
+  <pre><code class="language-css">box-shadow: 0 4px 12px 2px rgb(0 0 0 / 0.2);   /* x y blur spread color */
+box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.2);  /* inside the box */
+box-shadow: 0 1px 2px rgb(0 0 0 / 0.1), 0 8px 24px rgb(0 0 0 / 0.1);  /* two shadows */</code></pre>
+  <p>Soft shadows with a light, transparent color look more natural than hard, black ones. The cards on this site use two shadows like the last example.</p>
+  <h2>Text shadow</h2>
+  <p>The same, but for text, and without spread:</p>
+  <pre><code class="language-css">h1 {
+  text-shadow: 0 2px 4px rgb(0 0 0 / 0.5);
+}</code></pre>
+  <p>A text shadow makes white text on a photo easier to read.</p>
+  <h2>More about shadows</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/box-shadow"><code>box-shadow</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-shadow"><code>text-shadow</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

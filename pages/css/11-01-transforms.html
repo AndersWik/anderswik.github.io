@@ -1,0 +1,50 @@
+---
+layout: default
+title: Transforms
+permalink: /css/transforms/
+chapter: "11"
+chapter_title: "Transforms and animation"
+keywords: [css, transform, translate, rotate, scale, skew, 3d, perspective, transform-origin]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Transforms</h1>
+  <p><code>transform</code> moves, turns, scales or skews an element, without changing the layout around it.</p>
+  <pre><code class="language-css">.a { transform: translate(20px, 10px); }   /* move right and down */
+.b { transform: rotate(45deg); }           /* turn */
+.c { transform: scale(1.2); }              /* 20% larger */
+.d { transform: skewX(-10deg); }           /* lean */
+.e { transform: translate(-50%, -50%) rotate(10deg); }   /* several, from the right */</code></pre>
+  <p>A <code>%</code> in <code>translate</code> is a part of the element's own size.</p>
+  <h2>The origin</h2>
+  <p>Transforms happen around the center of the element. <code>transform-origin</code> changes that point:</p>
+  <pre><code class="language-css">.door {
+  transform-origin: left center;
+  transform: rotateY(60deg);
+}</code></pre>
+  <h2>3D</h2>
+  <pre><code class="language-css">.scene {
+  perspective: 800px;          /* how far away the viewer is */
+}
+
+.card {
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.scene:hover .card {
+  transform: rotateY(180deg);  /* turn the card around */
+}</code></pre>
+  <p>Add <code>backface-visibility: hidden</code> to the front and back sides, and you have a card that flips.</p>
+  <h2>Fast animations</h2>
+  <p>Transforms don't move other elements, so the browser can animate them smoothly. Animate <code>transform</code> and <code>opacity</code> rather than <code>top</code>, <code>left</code>, <code>width</code> or <code>margin</code>.</p>
+  <h2>More about transforms</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/transform"><code>transform</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Transforms/Using">Using transforms on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,52 @@
+---
+layout: default
+title: Tables
+permalink: /css/tables/
+chapter: "10"
+chapter_title: "Style common elements"
+keywords: [css, tables, border-collapse, zebra stripes, nth-child, responsive table]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Tables</h1>
+  <p>A table has no lines and little space by default. A simple style:</p>
+  <pre><code class="language-css">table {
+  width: 100%;
+  border-collapse: collapse;   /* one line between cells, not two */
+}
+
+th, td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background-color: #f3f3f3;
+}</code></pre>
+  <h2>Zebra stripes and hover</h2>
+  <pre><code class="language-css">tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+tbody tr:hover {
+  background-color: #eef6ff;
+}</code></pre>
+  <h2>Numbers</h2>
+  <p>Numbers are easier to compare when they are aligned to the right, and all digits are the same width:</p>
+  <pre><code class="language-css">td.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}</code></pre>
+  <h2>Wide tables on phones</h2>
+  <p>Let the table scroll sideways inside a wrapper, instead of making the whole page wider. See <a href="/css/overflow/">Overflow</a>.</p>
+  <h2>More about tables</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Tables">Styling tables on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/border-collapse"><code>border-collapse</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

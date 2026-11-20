@@ -1,0 +1,46 @@
+---
+layout: default
+title: Units
+permalink: /css/units/
+chapter: "04"
+chapter_title: "Values and units"
+keywords: [css, units, px, em, rem, percent, vw, vh, ch, absolute, relative]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Units</h1>
+  <p>Lengths in CSS need a unit: <code>16px</code>, <code>1.5rem</code>, <code>50%</code>. Only <code>0</code> can be written without one.</p>
+  <h2>Absolute</h2>
+  <ul>
+    <li><code>px</code>, pixels. The most used fixed unit.</li>
+    <li><code>cm</code>, <code>mm</code>, <code>in</code> and <code>pt</code> are for print, and seldom used on screens.</li>
+  </ul>
+  <h2>Relative to the font</h2>
+  <ul>
+    <li><code>rem</code>, the font size of the page, the <code>&lt;html&gt;</code> element. Usually 16px, so <code>1.5rem</code> is 24px.</li>
+    <li><code>em</code>, the font size of the element itself, or of the parent when used for <code>font-size</code>.</li>
+    <li><code>ch</code>, the width of the character "0". <code>max-width: 65ch</code> gives lines that are easy to read.</li>
+  </ul>
+  <h2>Relative to the screen or the parent</h2>
+  <ul>
+    <li><code>%</code>, a part of the parent: <code>width: 50%</code> is half the width of the parent.</li>
+    <li><code>vw</code> and <code>vh</code>, 1% of the width and height of the window.</li>
+    <li><code>dvh</code>, 1% of the height of the window without the browser's bars on phones. <code>100dvh</code> fills the screen exactly.</li>
+  </ul>
+  <h2>Which to use?</h2>
+  <ul>
+    <li><code>rem</code> for font sizes and spacing. If the user sets a larger text size in the browser, the whole page grows with it.</li>
+    <li><code>%</code> and <code>fr</code> for widths in a layout.</li>
+    <li><code>px</code> for borders and small details that should not grow.</li>
+  </ul>
+  <p>Convert between pixels and em or rem with the <a href="/utils/px-em-converter/">PX to EM Converter</a>.</p>
+  <h2>More about units</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Values_and_units">Values and units on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/length"><code>&lt;length&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,50 @@
+---
+layout: default
+title: Width and height
+permalink: /css/width-and-height/
+chapter: "05"
+chapter_title: "The box model"
+keywords: [css, width, height, min-width, max-width, min-height, max-height, aspect-ratio]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Width and height</h1>
+  <pre><code class="language-css">.box {
+  width: 300px;
+  height: 200px;
+}</code></pre>
+  <p>Block elements are as wide as their parent by default, and as tall as their content. Usually it is best to let the height follow the content, and only set it when you must.</p>
+  <h2>Min and max</h2>
+  <p><code>max-width</code> is the most useful of them. The element can be narrower on small screens, but never wider than the value:</p>
+  <pre><code class="language-css">.content {
+  max-width: 800px;
+  margin: 0 auto;     /* center it */
+}
+
+img {
+  max-width: 100%;    /* never wider than the parent */
+  height: auto;
+}
+
+.hero {
+  min-height: 300px;  /* at least 300px, taller if the content needs it */
+}</code></pre>
+  <h2>Aspect ratio</h2>
+  <p><code>aspect-ratio</code> keeps the shape when the width changes:</p>
+  <pre><code class="language-css">.video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}</code></pre>
+  <h2>Inline elements</h2>
+  <p><code>width</code> and <code>height</code> do nothing on inline elements like <code>&lt;span&gt;</code> and <code>&lt;a&gt;</code>. Make them <code>display: inline-block</code> or <code>block</code> first.</p>
+  <h2>More about width and height</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/width"><code>width</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/max-width"><code>max-width</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/aspect-ratio"><code>aspect-ratio</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

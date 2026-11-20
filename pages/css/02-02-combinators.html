@@ -1,0 +1,42 @@
+---
+layout: default
+title: Combinators
+permalink: /css/combinators/
+chapter: "02"
+chapter_title: "Selectors"
+keywords: [css, combinators, descendant, child, sibling, ">", "+", "~"]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Combinators</h1>
+  <p>A combinator selects elements by where they are in relation to other elements.</p>
+  <pre><code class="language-css">nav a { }          /* descendant: an &lt;a&gt; anywhere inside a &lt;nav&gt; */
+ul &gt; li { }        /* child: an &lt;li&gt; directly inside a &lt;ul&gt; */
+h2 + p { }         /* next sibling: the &lt;p&gt; directly after an &lt;h2&gt; */
+h2 ~ p { }         /* later siblings: every &lt;p&gt; after an &lt;h2&gt;, same parent */</code></pre>
+  <h2>Descendant or child?</h2>
+  <pre><code class="language-html">&lt;ul class="menu"&gt;
+  &lt;li&gt;Home
+    &lt;ul&gt;
+      &lt;li&gt;Sub page&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+  <p><code>.menu li</code> selects both <code>&lt;li&gt;</code>. <code>.menu &gt; li</code> only selects Home, the one directly inside <code>.menu</code>.</p>
+  <h2>Sibling example</h2>
+  <p>The first paragraph after each heading, a bit larger:</p>
+  <pre><code class="language-css">h2 + p {
+  font-size: 1.1rem;
+}</code></pre>
+  <h2>The parent selector</h2>
+  <p><code>:has()</code> selects an element by what is inside it, which the combinators can't. See <a href="/css/pseudo-classes/">Pseudo-classes</a>.</p>
+  <h2>More about combinators</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Selectors/Selectors_and_combinators">Selectors and combinators on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/Child_combinator">Child combinator on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

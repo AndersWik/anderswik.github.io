@@ -1,0 +1,60 @@
+---
+layout: default
+title: Grid
+permalink: /css/grid/
+chapter: "08"
+chapter_title: "Layout"
+keywords: [css, grid, grid-template-columns, fr, repeat, gap, grid-area, grid-template-areas, minmax, auto-fit]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Grid</h1>
+  <p>Grid places elements in rows <strong>and</strong> columns. It is the tool for page layouts and galleries.</p>
+  <pre><code class="language-css">.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;   /* three equal columns */
+  gap: 16px;
+}</code></pre>
+  <p><code>fr</code> is a part of the free space. <code>1fr 2fr</code> gives the second column twice the width of the first.</p>
+  <h2>repeat and minmax</h2>
+  <pre><code class="language-css">grid-template-columns: repeat(4, 1fr);                        /* four equal columns */
+grid-template-columns: 250px 1fr;                             /* a sidebar and the rest */
+grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));  /* as many as fit */</code></pre>
+  <p>The last line is responsive without a media query: columns at least 200px wide, as many as fit on the screen, sharing the rest of the space.</p>
+  <h2>Span several cells</h2>
+  <pre><code class="language-css">.featured {
+  grid-column: span 2;      /* two columns wide */
+}
+
+.header {
+  grid-column: 1 / -1;      /* from the first line to the last: the full width */
+}</code></pre>
+  <h2>Name the areas</h2>
+  <pre><code class="language-css">.page {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  grid-template-areas:
+    "header header"
+    "nav    main"
+    "footer footer";
+}
+
+header { grid-area: header; }
+nav    { grid-area: nav; }
+main   { grid-area: main; }
+footer { grid-area: footer; }</code></pre>
+  <h2>Grid or flexbox?</h2>
+  <ul>
+    <li><strong>Flexbox</strong> for one direction: a row of buttons, a menu, items that wrap.</li>
+    <li><strong>Grid</strong> for two directions: a page layout, a gallery, a form with labels and fields in columns.</li>
+  </ul>
+  <h2>More about grid</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids">Grid on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Grid_layout/Basic_concepts">Basic concepts of grid layout on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

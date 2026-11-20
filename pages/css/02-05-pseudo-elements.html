@@ -1,0 +1,40 @@
+---
+layout: default
+title: Pseudo-elements
+permalink: /css/pseudo-elements/
+chapter: "02"
+chapter_title: "Selectors"
+keywords: [css, pseudo-elements, before, after, content, first-line, first-letter, marker, placeholder, selection]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Pseudo-elements</h1>
+  <p>A pseudo-element styles a part of an element, or adds content that is not in the HTML. It starts with two colons.</p>
+  <h2>Before and after</h2>
+  <p><code>::before</code> and <code>::after</code> add content at the start and end of an element. <code>content</code> is required, even if it is empty:</p>
+  <pre><code class="language-css">.required::after {
+  content: " *";
+  color: red;
+}
+
+blockquote::before {
+  content: "“";
+  font-size: 3rem;
+}</code></pre>
+  <p>Content added this way can't be selected or copied, and is not always read by screen readers. Use it for decoration, not for important text.</p>
+  <h2>Parts of an element</h2>
+  <pre><code class="language-css">p::first-line { font-weight: bold; }
+p::first-letter { font-size: 2em; float: left; }
+li::marker { color: tomato; }
+input::placeholder { color: #999; }
+::selection { background-color: gold; }</code></pre>
+  <h2>More about pseudo-elements</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/Pseudo-elements">Pseudo-elements on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/::before"><code>::before</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

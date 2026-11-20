@@ -1,0 +1,55 @@
+---
+layout: default
+title: Media queries
+permalink: /css/media-queries/
+chapter: "09"
+chapter_title: "Responsive design"
+keywords: [css, media queries, "@media", breakpoints, min-width, prefers-color-scheme, prefers-reduced-motion, print]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Media queries</h1>
+  <p>A media query applies CSS only when something is true, for example when the screen is at least a certain width.</p>
+  <pre><code class="language-css">.cards {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 600px) {
+  .cards { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 1000px) {
+  .cards { grid-template-columns: 1fr 1fr 1fr; }
+}</code></pre>
+  <p>One column on phones, two on tablets, three on large screens.</p>
+  <h2>Mobile first</h2>
+  <p>Write the CSS for small screens first, and add to it with <code>min-width</code> queries for larger screens. The simple layout is the default, and the larger screens get more.</p>
+  <h2>Other things to ask about</h2>
+  <pre><code class="language-css">@media (prefers-color-scheme: dark) {
+  body { background-color: #222; color: #eee; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none; transition: none; }
+}
+
+@media (hover: hover) {
+  .card:hover { transform: translateY(-4px); }   /* only on devices with a mouse */
+}
+
+@media print {
+  nav, footer { display: none; }
+}</code></pre>
+  <h2>In the HTML</h2>
+  <p>Media queries need the <a href="/html/viewport/">viewport tag</a> in the HTML. Without it, phones pretend to be about 980px wide.</p>
+  <h2>More about media queries</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using">Using media queries on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-color-scheme"><code>prefers-color-scheme</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
