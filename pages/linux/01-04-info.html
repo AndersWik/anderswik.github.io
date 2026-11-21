@@ -4,11 +4,13 @@ title: Info
 permalink: /linux/info/
 chapter: "01"
 chapter_title: "Introduction"
+gnu: texinfo
 keywords: [linux, info, gnu, help, documentation]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Info</h1>
+  {% include gnu.html %}
   <p><code>info</code> reads documentation in the Info format, which is used by the GNU project. Info documents are often longer and more detailed than <a href="/linux/man/">man</a> pages, and are divided into nodes that link to each other, a bit like web pages. If a program has no Info document, <code>info</code> shows its man page instead.</p>
   <h2>Read a document</h2>
   <p>Without arguments <code>info</code> opens the directory of all installed documents. Give a name to open a specific one.</p>

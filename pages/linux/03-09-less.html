@@ -4,11 +4,13 @@ title: Less
 permalink: /linux/less/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, less, pager, read file, files, logs]
+gnu: less
+keywords: [linux, less, pager, read file, files, logs, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Less</h1>
+  {% include gnu.html %}
   <p><code>less</code> is a pager. It shows a file one screen at a time and lets you scroll and search in it. It does not load the whole file at once, so it works well even for very large log files. Manual pages are shown with <code>less</code>.</p>
   <h2>Open a file</h2>
   <pre><code class="language-bash">$ less /var/log/syslog</code></pre>

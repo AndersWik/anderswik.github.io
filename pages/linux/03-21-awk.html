@@ -4,11 +4,13 @@ title: Awk
 permalink: /linux/awk/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, awk, text processing, columns, scripting]
+gnu: gawk
+keywords: [linux, awk, text processing, columns, scripting, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Awk</h1>
+  {% include gnu.html %}
   <p><code>awk</code> is a small programming language for processing text, line by line. Each line is split into fields, <code>$1</code>, <code>$2</code> and so on, and you can print, filter and calculate with them. It is great for working with columns of data.</p>
   <h2>Print columns</h2>
   <pre><code class="language-bash">$ awk</code></pre>

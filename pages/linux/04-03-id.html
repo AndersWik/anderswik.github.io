@@ -4,11 +4,13 @@ title: Id
 permalink: /linux/id/
 chapter: "04"
 chapter_title: "Users"
-keywords: [linux, id, user, uid, groups]
+gnu: coreutils
+keywords: [linux, id, user, uid, groups, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Id</h1>
+  {% include gnu.html %}
   <p><code>id</code> prints the user id (uid), group id (gid) and all groups of a user. Without arguments it shows information about the current user.</p>
   <h2>Show user and groups</h2>
   <pre><code class="language-bash">$ id

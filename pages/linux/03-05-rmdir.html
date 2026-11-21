@@ -4,11 +4,13 @@ title: Rmdir
 permalink: /linux/rmdir/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, rmdir, remove directory, delete, directories, folders]
+gnu: coreutils
+keywords: [linux, rmdir, remove directory, delete, directories, folders, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Rmdir</h1>
+  {% include gnu.html %}
   <p><code>rmdir</code> stands for remove directory. It deletes one or more directories, but only if they are empty. This makes it a safe way to clean up, since it never removes any files.</p>
   <h2>Remove a directory</h2>
   <pre><code class="language-bash">$ rmdir projects

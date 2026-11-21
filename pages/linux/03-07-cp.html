@@ -4,11 +4,13 @@ title: Cp
 permalink: /linux/cp/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, cp, copy, files, backup]
+gnu: coreutils
+keywords: [linux, cp, copy, files, backup, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Cp</h1>
+  {% include gnu.html %}
   <p><code>cp</code> copies files and directories. The original stays where it is and a copy is created at the destination.</p>
   <h2>Copy a file</h2>
   <pre><code class="language-bash">$ cp notes.txt notes-backup.txt

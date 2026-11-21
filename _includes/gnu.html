@@ -1,0 +1,5 @@
+{% comment %}Tag under the title of a page about a GNU tool. Set gnu: to a key in _data/gnu.yml, e.g. gnu: coreutils.{% endcomment %}
+{% assign gnu_package = site.data.gnu[page.gnu] %}
+{% if gnu_package %}
+<p class="gnu-tool"><span class="gnu-tag">GNU</span> {% if gnu_package.note %}<a href="{{ gnu_package.url }}">{{ gnu_package.name }}</a> {{ gnu_package.note }}{% elsif gnu_package.builtin %}Built into <a href="{{ gnu_package.url }}">{{ gnu_package.name }}</a>, the shell from the GNU project.{% else %}Part of <a href="{{ gnu_package.url }}">{{ gnu_package.name }}</a>, from the GNU project.{% endif %}</p>
+{% endif %}

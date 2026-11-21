@@ -4,11 +4,13 @@ title: Head
 permalink: /linux/head/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, head, read file, first lines, files]
+gnu: coreutils
+keywords: [linux, head, read file, first lines, files, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Head</h1>
+  {% include gnu.html %}
   <p><code>head</code> prints the first lines of a file, by default the first 10. It is useful to get a quick look at a large file or the start of a command's output.</p>
   <h2>Print the first lines</h2>
   <pre><code class="language-bash">$ head notes.txt</code></pre>

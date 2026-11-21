@@ -4,11 +4,13 @@ title: Paste
 permalink: /linux/paste/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, paste, columns, merge, csv, text]
+gnu: coreutils
+keywords: [linux, paste, columns, merge, csv, text, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Paste</h1>
+  {% include gnu.html %}
   <p><code>paste</code> merges files line by line, putting the lines next to each other as columns separated by a tab. It does the opposite of <a href="/linux/cut/">cut</a>: where <code>cut</code> takes columns out of a file, <code>paste</code> joins columns together.</p>
   <h2>Merge files side by side</h2>
   <pre><code class="language-bash">paste</code></pre>

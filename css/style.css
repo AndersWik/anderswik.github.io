@@ -502,4 +502,21 @@ footer .social:hover img {
   border-radius: 3px;
 }
 
+.gnu-tool {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+.gnu-tool .gnu-tag {
+  display: inline-block;
+  margin-right: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid #a86a0c;
+  border-radius: 999px;
+  color: #a86a0c;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  vertical-align: 0.1em;
+}
+
 /*# sourceMappingURL=style.css.map */

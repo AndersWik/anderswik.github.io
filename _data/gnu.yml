@@ -1,0 +1,45 @@
+# GNU packages used by the gnu: field in the front matter of a page, see _includes/gnu.html.
+coreutils:
+  name: GNU coreutils
+  url: https://www.gnu.org/software/coreutils/
+bash:
+  name: GNU Bash
+  url: https://www.gnu.org/software/bash/
+  builtin: true
+findutils:
+  name: GNU findutils
+  url: https://www.gnu.org/software/findutils/
+grep:
+  name: GNU grep
+  url: https://www.gnu.org/software/grep/
+sed:
+  name: GNU sed
+  url: https://www.gnu.org/software/sed/
+gawk:
+  name: GNU awk (gawk)
+  url: https://www.gnu.org/software/gawk/
+less:
+  name: GNU less
+  url: https://www.gnu.org/software/less/
+nano:
+  name: GNU nano
+  url: https://www.nano-editor.org/
+emacs:
+  name: GNU Emacs
+  url: https://www.gnu.org/software/emacs/
+texinfo:
+  name: GNU Texinfo
+  url: https://www.gnu.org/software/texinfo/
+wget:
+  name: GNU Wget
+  url: https://www.gnu.org/software/wget/
+tar:
+  name: GNU tar
+  url: https://www.gnu.org/software/tar/
+gzip:
+  name: GNU Gzip
+  url: https://www.gnu.org/software/gzip/
+bash-shell:
+  name: GNU Bash
+  url: https://www.gnu.org/software/bash/
+  note: is the shell from the GNU project, and the default shell on most Linux systems.

@@ -4,11 +4,13 @@ title: Df
 permalink: /linux/df/
 chapter: "07"
 chapter_title: "Disc"
-keywords: [linux, df, disk free, disk usage, storage]
+gnu: coreutils
+keywords: [linux, df, disk free, disk usage, storage, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Df</h1>
+  {% include gnu.html %}
   <p>df can be used to check disk usage. The name stands for disk free, and it reports how much space is used and available on each mounted file system.</p>
   <h2>Using df</h2>
   <p>df -H will report how much space is used, available, percentage used, and the mount point of every disk attached to your system. Lower case <code>-h</code> uses powers of 1024 (GiB) and upper case <code>-H</code> uses powers of 1000 (GB).</p>

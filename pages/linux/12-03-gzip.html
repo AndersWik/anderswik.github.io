@@ -4,11 +4,13 @@ title: Gzip
 permalink: /linux/gzip/
 chapter: "12"
 chapter_title: "Compression"
-keywords: [linux, gzip, gunzip, compression, gz]
+gnu: gzip
+keywords: [linux, gzip, gunzip, compression, gz, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Gzip</h1>
+  {% include gnu.html %}
   <p><code>gzip</code> compresses single files. The compressed file gets the extension <code>.gz</code> and replaces the original. To compress directories, first put them in an archive with <a href="/linux/tar/">tar</a>.</p>
   <h2>Compress a file</h2>
   <pre><code class="language-bash">$ gzip</code></pre>
