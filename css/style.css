@@ -302,14 +302,15 @@ body > header a:hover {
   outline: none;
 }
 
-.games {
-  max-width: 820px;
-}
-.games .category-title {
+.notes .category-title, .games .category-title {
   margin-top: 2.5rem;
 }
-.games .category-title:first-child {
+.notes .category-title:first-child, .games .category-title:first-child {
   margin-top: 0;
+}
+
+.games {
+  max-width: 820px;
 }
 .games .badge-card {
   width: 175px;

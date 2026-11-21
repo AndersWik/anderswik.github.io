@@ -352,16 +352,19 @@ body > header {
 	}
 }
 
-// The games page shows a small screenshot of each game instead of an icon.
-.games {
-	max-width: 820px;
-
+// Space between the categories on the notes and games pages.
+.notes, .games {
 	.category-title {
 		margin-top: 2.5rem;
 	}
 	.category-title:first-child {
 		margin-top: 0;
 	}
+}
+
+// The games page shows a small screenshot of each game instead of an icon.
+.games {
+	max-width: 820px;
 
 	.badge-card {
 		width: 175px;
