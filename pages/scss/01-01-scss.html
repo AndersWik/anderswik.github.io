@@ -1,0 +1,46 @@
+---
+layout: default
+title: SCSS
+permalink: /scss/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [scss, sass, css, preprocessor, introduction, indented syntax, dart sass]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>SCSS</h1>
+  <p>Sass is a language that is compiled to <a href="/css/">CSS</a>. It adds things CSS does not have, or did not have for a long time: variables, nesting, mixins, functions, loops and a way to split the styles into many files. Browsers can not read Sass, so a program, the Sass compiler, turns it into a normal CSS file.</p>
+  <h2>SCSS and Sass</h2>
+  <p>Sass has two syntaxes. SCSS, with the file ending <code>.scss</code>, looks like CSS with curly brackets and semicolons. Every CSS file is also a valid SCSS file, so an old style sheet can be renamed to <code>.scss</code> and changed a little at a time.</p>
+  <pre><code class="language-scss">$color-accent: #e8b455;
+
+nav {
+  a {
+    color: $color-accent;
+  }
+}</code></pre>
+  <p>The older indented syntax, with the file ending <code>.sass</code>, uses indentation instead of brackets.</p>
+  <pre><code class="language-bash">$color-accent: #e8b455
+
+nav
+  a
+    color: $color-accent</code></pre>
+  <p>Both compile to the same CSS. These notes use SCSS, which is what most projects use.</p>
+  <pre><code class="language-css">nav a {
+  color: #e8b455;
+}</code></pre>
+  <h2>Sass and modern CSS</h2>
+  <p>CSS has caught up with some of what Sass offers. CSS has <a href="/css/variables/">custom properties</a> and <a href="/css/math-functions/">calc()</a>, and browsers now support nesting too. Sass is still useful for splitting the styles into files, for mixins and loops, and since it runs before the browser, for things that should be decided once when the CSS is built.</p>
+  <h2>Dart Sass</h2>
+  <p>The Sass compiler is called Dart Sass. The older Ruby Sass, with the commands <code>sass</code> and <code>scss</code> from the <code>ruby-sass</code> package, and LibSass, used by <code>sassc</code> and <code>node-sass</code>, are no longer maintained. They do not understand the newer features, like <code>@use</code>.</p>
+  <h2>More about SCSS</h2>
+  <ul>
+    <li><a href="https://sass-lang.com">sass-lang.com</a></li>
+    <li><a href="https://sass-lang.com/guide/">Sass basics</a></li>
+    <li><a href="https://sass-lang.com/documentation/">Sass documentation</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,116 @@
+---
+layout: default
+title: Nesting
+permalink: /scss/nesting/
+chapter: "02"
+chapter_title: "Basics"
+keywords: [scss, sass, nesting, parent selector, &, hover, bem, nested properties, specificity]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Nesting</h1>
+  <p>In SCSS a rule can be written inside another rule. The inner selector only matches elements inside the outer one, the same as a space between two selectors in CSS, a <a href="/css/combinators/">descendant combinator</a>.</p>
+  <pre><code class="language-scss">nav {
+  background: #1b1d21;
+
+  ul {
+    list-style: none;
+  }
+
+  a {
+    color: white;
+  }
+}</code></pre>
+  <pre><code class="language-css">nav {
+  background: #1b1d21;
+}
+nav ul {
+  list-style: none;
+}
+nav a {
+  color: white;
+}</code></pre>
+  <p>Other combinators work too, like <code>&gt; li</code> for direct children and <code>+ p</code> for the next sibling.</p>
+  <h2>The parent selector &amp;</h2>
+  <p><code>&amp;</code> is replaced with the outer selector. Without it, Sass adds a space. With it, the selectors are joined. It is used for <a href="/css/pseudo-classes/">pseudo-classes</a> and <a href="/css/pseudo-elements/">pseudo-elements</a>.</p>
+  <pre><code class="language-scss">a {
+  color: blue;
+
+  &amp;:hover {
+    color: red;
+  }
+
+  &amp;::after {
+    content: ' →';
+  }
+
+  &amp;.active {
+    font-weight: bold;
+  }
+}</code></pre>
+  <pre><code class="language-css">a {
+  color: blue;
+}
+a:hover {
+  color: red;
+}
+a::after {
+  content: " →";
+}
+a.active {
+  font-weight: bold;
+}</code></pre>
+  <p>Without the <code>&amp;</code>, <code>:hover</code> would become <code>a :hover</code>, any hovered element inside a link, which is not what we want.</p>
+  <h3>&amp; at the end</h3>
+  <p><code>&amp;</code> can be put after a selector, to style the element when it is inside something else.</p>
+  <pre><code class="language-scss">.button {
+  color: black;
+
+  .dark-mode &amp; {
+    color: white;    // .dark-mode .button
+  }
+}</code></pre>
+  <h3>Join class names</h3>
+  <p><code>&amp;</code> can also be the start of a longer class name. This is used a lot with the <a href="https://getbem.com">BEM</a> naming style.</p>
+  <pre><code class="language-scss">.card {
+  padding: 1rem;
+
+  &amp;__title {
+    font-size: 1.25rem;   // .card__title
+  }
+
+  &amp;--featured {
+    border: 2px solid gold;   // .card--featured
+  }
+}</code></pre>
+  <h2>Media queries</h2>
+  <p>A <a href="/css/media-queries/">media query</a> can be nested inside a rule. Sass moves it out and repeats the selector, so everything about the element is in one place.</p>
+  <pre><code class="language-scss">.sidebar {
+  width: 100%;
+
+  @media (min-width: 768px) {
+    width: 300px;
+  }
+}</code></pre>
+  <pre><code class="language-css">.sidebar {
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .sidebar {
+    width: 300px;
+  }
+}</code></pre>
+  <h2>Do not nest too deep</h2>
+  <p>Every level makes the selector longer and more specific. <code>.page .content .article .header h2 a</code> is hard to override and breaks when the HTML changes. A rule of thumb is no more than three levels. Nest when the inner element only makes sense inside the outer one, not just because the HTML is nested.</p>
+  <h2>Nesting in CSS</h2>
+  <p>Browsers also support nesting in plain CSS now, with the same <code>&amp;</code>. It is not exactly the same as in Sass. In CSS, <code>&amp;__title</code> does not work, since CSS nesting does not join strings, and the specificity can be different. In an <code>.scss</code> file Sass always does the nesting, so the CSS that reaches the browser has none.</p>
+  <h2>More about nesting</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/style-rules/">Style rules</a></li>
+    <li><a href="https://sass-lang.com/documentation/style-rules/parent-selector/">The parent selector</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,80 @@
+---
+layout: default
+title: Project structure
+permalink: /scss/project-structure/
+chapter: "05"
+chapter_title: "In practice"
+keywords: [scss, sass, project structure, folders, partials, abstracts, base, components, layout, 7-1 pattern, architecture]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Project structure</h1>
+  <p>A small site can have all its SCSS in one file. When it grows, split it into <a href="/scss/partials/">partials</a> in folders, so it is easy to find where something is styled.</p>
+  <h2>A simple structure</h2>
+  <pre><code class="language-bash">scss/
+├── style.scss              # Only @use, compiled to css/style.css
+├── abstracts/
+│   ├── _index.scss
+│   ├── _variables.scss     # Colors, fonts, sizes, breakpoints
+│   ├── _functions.scss
+│   └── _mixins.scss
+├── base/
+│   ├── _reset.scss
+│   └── _typography.scss    # body, headings, links
+├── layout/
+│   ├── _header.scss
+│   ├── _footer.scss
+│   └── _grid.scss
+├── components/
+│   ├── _buttons.scss
+│   ├── _cards.scss
+│   └── _forms.scss
+└── pages/
+    └── _home.scss          # Styles for one page only</code></pre>
+  <ul>
+    <li><strong>abstracts</strong> has no CSS of its own, only variables, functions and mixins. It can be loaded by every other file without adding anything to the CSS.</li>
+    <li><strong>base</strong> styles the HTML elements themselves.</li>
+    <li><strong>layout</strong> is the big parts of the page.</li>
+    <li><strong>components</strong> is the small parts that are used in many places.</li>
+    <li><strong>pages</strong> is what is special for one page.</li>
+  </ul>
+  <p>This is a smaller version of the popular <a href="https://sass-guidelin.es/#the-7-1-pattern">7-1 pattern</a>, which has seven folders and one main file.</p>
+  <h2>The files</h2>
+  <pre><code class="language-scss">// abstracts/_index.scss
+@forward 'variables';
+@forward 'functions';
+@forward 'mixins';</code></pre>
+  <pre><code class="language-scss">// components/_buttons.scss
+@use '../abstracts' as *;
+
+.button {
+  padding: rem(8px) rem(16px);
+  background: $color-accent;
+  border-radius: $radius;
+}</code></pre>
+  <pre><code class="language-scss">// style.scss
+@use 'base/reset';
+@use 'base/typography';
+@use 'layout/header';
+@use 'layout/footer';
+@use 'layout/grid';
+@use 'components/buttons';
+@use 'components/cards';
+@use 'components/forms';
+@use 'pages/home';</code></pre>
+  <p>The order in <code>style.scss</code> is the order in the CSS. Put general styles first and specific ones last, so the specific ones win when the <a href="/css/cascade-and-specificity/">specificity</a> is the same.</p>
+  <h2>Tips</h2>
+  <ul>
+    <li>One component per file, with the same name as the class. <code>.card</code> is in <code>_cards.scss</code>.</li>
+    <li>Keep all colors and sizes in <code>_variables.scss</code>. A color written straight in a component is easy to miss when the design changes.</li>
+    <li>Add the compiled CSS to <code>.gitignore</code> if the server builds it, or commit it if the server can not run Sass. Never edit the compiled file by hand, the next build overwrites it.</li>
+  </ul>
+  <h2>More about structure</h2>
+  <ul>
+    <li><a href="https://sass-guidelin.es/#architecture">Sass Guidelines: architecture</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

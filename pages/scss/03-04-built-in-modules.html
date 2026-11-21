@@ -1,0 +1,81 @@
+---
+layout: default
+title: Built-in modules
+permalink: /scss/built-in-modules/
+chapter: "03"
+chapter_title: "Reuse"
+keywords: [scss, sass, built-in modules, sass:math, sass:color, sass:string, sass:list, sass:map, sass:meta, color.adjust, color.scale, color.mix, math.div, darken, lighten]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Built-in modules</h1>
+  <p>Sass's own functions are grouped in modules, loaded with <code>@use</code> and a name that starts with <code>sass:</code>.</p>
+  <pre><code class="language-scss">@use 'sass:math';
+@use 'sass:color';
+@use 'sass:map';</code></pre>
+  <h2>sass:math</h2>
+  <pre><code class="language-scss">@use 'sass:math';
+
+math.div(10px, 4)      // 2.5px, division
+math.round(2.6px)      // 3px
+math.floor(2.6)        // 2
+math.ceil(2.1)         // 3
+math.max(1px, 4px)     // 4px
+math.percentage(0.25)  // 25%
+math.$pi               // 3.1415926536</code></pre>
+  <p>In old code, division is written with <code>/</code>, like <code>$width / 2</code>. Since <code>/</code> also separates values in CSS, like in <code>font: 16px/1.5</code>, Sass has deprecated it for division. Use <code>math.div()</code>.</p>
+  <h2>sass:color</h2>
+  <p>Make new colors from a base color, for example a darker version for hover.</p>
+  <pre><code class="language-scss">@use 'sass:color';
+
+$accent: #e8b455;
+
+.button {
+  background: $accent;
+
+  &amp;:hover {
+    background: color.scale($accent, $lightness: -20%);   // 20% closer to black
+  }
+
+  &amp;:disabled {
+    background: color.mix($accent, white, 50%);   // Half accent, half white
+  }
+}</code></pre>
+  <ul>
+    <li><code>color.scale()</code> changes a value by a percentage of what is left. <code>$lightness: -20%</code> moves the color 20% of the way to black. It is the one to use for lighter and darker versions.</li>
+    <li><code>color.adjust()</code> adds a fixed amount, <code>color.adjust($accent, $lightness: -10%)</code>. It is what the old <code>darken()</code> and <code>lighten()</code> did, and they are deprecated.</li>
+    <li><code>color.mix()</code> mixes two colors.</li>
+    <li><code>color.change()</code> sets a value, <code>color.change($accent, $alpha: 0.5)</code>.</li>
+  </ul>
+  <p>In the browser, the CSS function <code>color-mix()</code> can do the same with <a href="/css/colors/">colors</a> and custom properties, for example for dark mode.</p>
+  <h2>sass:string</h2>
+  <pre><code class="language-scss">@use 'sass:string';
+
+string.unquote('Ubuntu')   // Ubuntu
+string.quote(Ubuntu)       // "Ubuntu"
+string.to-upper-case('a')  // "A"
+string.index('hello', 'l') // 3</code></pre>
+  <h2>sass:list and sass:map</h2>
+  <p>For lists and maps, see <a href="/scss/lists-and-maps/">lists and maps</a>.</p>
+  <pre><code class="language-scss">@use 'sass:list';
+@use 'sass:map';
+
+list.nth((10px, 20px, 30px), 2)       // 20px
+map.get((sm: 576px, md: 768px), md)   // 768px</code></pre>
+  <h2>sass:meta</h2>
+  <pre><code class="language-scss">@use 'sass:meta';
+
+meta.type-of(12px)   // number
+meta.type-of(red)    // color</code></pre>
+  <h2>Global names</h2>
+  <p>Older code calls the functions without a module, like <code>map-get()</code>, <code>percentage()</code> and <code>darken()</code>. These global names are deprecated since Dart Sass 1.80 and will be removed. Use the module functions, <code>map.get()</code>, <code>math.percentage()</code> and <code>color.adjust()</code>.</p>
+  <h2>More about built-in modules</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/modules/">Built-in modules</a>, with every function</li>
+    <li><a href="https://sass-lang.com/documentation/modules/color/">sass:color</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

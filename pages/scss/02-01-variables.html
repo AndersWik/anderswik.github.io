@@ -1,0 +1,79 @@
+---
+layout: default
+title: Variables
+permalink: /scss/variables/
+chapter: "02"
+chapter_title: "Basics"
+keywords: [scss, sass, variables, $, scope, default, !default, !global, custom properties, css variables]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Variables</h1>
+  <p>A variable starts with <code>$</code> and stores a value, like a color, a size or a font. Change the value in one place and it changes everywhere it is used.</p>
+  <pre><code class="language-scss">$color-accent: #e8b455;
+$radius: 12px;
+$font-text: 'Ubuntu', system-ui, sans-serif;
+
+.button {
+  background-color: $color-accent;
+  border-radius: $radius;
+  font-family: $font-text;
+}</code></pre>
+  <pre><code class="language-css">.button {
+  background-color: #e8b455;
+  border-radius: 12px;
+  font-family: "Ubuntu", system-ui, sans-serif;
+}</code></pre>
+  <p>The variables themselves are not in the CSS. Sass replaces them with their values when it compiles.</p>
+  <h2>Names</h2>
+  <p>Name a variable after what it is for, not after its value. <code>$color-accent</code> still makes sense when the accent color changes from yellow to green, <code>$yellow</code> does not. In Sass, <code>-</code> and <code>_</code> are the same, <code>$font-size</code> and <code>$font_size</code> is one variable.</p>
+  <h2>Scope</h2>
+  <p>A variable made at the top of a file can be used everywhere below it. A variable made inside a block, between <code>{</code> and <code>}</code>, only exists in that block.</p>
+  <pre><code class="language-scss">$size: 16px;
+
+.card {
+  $padding: 1rem;      // Only inside .card
+  padding: $padding;
+  font-size: $size;    // The top level variable works here
+}
+
+.box {
+  padding: $padding;   // Error: Undefined variable
+}</code></pre>
+  <p>Setting a top level variable inside a block makes a new local variable with the same name. To change the top level one, add <code>!global</code>. It is rarely needed and makes the code hard to follow.</p>
+  <h2>Default values</h2>
+  <p><code>!default</code> only sets the variable if it does not have a value already. It is used in files that others load, so they can change the value. See <a href="/scss/partials/">partials</a> for how to set it with <code>@use ... with</code>.</p>
+  <pre><code class="language-scss">// _buttons.scss
+$button-color: blue !default;</code></pre>
+  <h2>Sass variables and CSS custom properties</h2>
+  <p>CSS has its own <a href="/css/variables/">variables</a>, custom properties, like <code>--color-accent</code>. The difference:</p>
+  <ul>
+    <li>A Sass variable is replaced when the CSS is built. The browser never sees it.</li>
+    <li>A custom property is in the CSS and can be changed by the browser, for example in a media query, for dark mode or from JavaScript.</li>
+  </ul>
+  <p>They work well together. Keep the values in Sass and print them as custom properties where they need to change in the browser. A Sass variable in a custom property needs <a href="/scss/operators/">interpolation</a>, <code>#{}</code>.</p>
+  <pre><code class="language-scss">$color-ink: #1f2328;
+$color-ink-dark: #e6e6e6;
+
+:root {
+  --color-ink: #{$color-ink};
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-ink: #{$color-ink-dark};
+  }
+}
+
+body {
+  color: var(--color-ink);
+}</code></pre>
+  <h2>More about variables</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/variables/">Variables</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

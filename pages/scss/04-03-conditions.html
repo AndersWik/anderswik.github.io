@@ -1,0 +1,55 @@
+---
+layout: default
+title: "@if and @else"
+permalink: /scss/conditions/
+chapter: "04"
+chapter_title: "Logic"
+keywords: [scss, sass, conditions, @if, @else, @else if, true, false, null]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>@if and @else</h1>
+  <p><code>@if</code> only adds the styles in its block if the condition is true. It is used in mixins and functions, to do different things depending on the arguments.</p>
+  <pre><code class="language-scss">@mixin button($style: solid) {
+  padding: .5rem 1rem;
+  border: 2px solid currentColor;
+
+  @if $style == solid {
+    background: #e8b455;
+    color: #1f2328;
+  } @else if $style == outline {
+    background: transparent;
+  } @else {
+    @error "Unknown button style #{$style}, use solid or outline.";
+  }
+}
+
+.button {
+  @include button;
+}
+
+.button-outline {
+  @include button(outline);
+}</code></pre>
+  <h2>True and false</h2>
+  <p>Only <code>false</code> and <code>null</code> are false. Everything else is true, also <code>0</code>, an empty string and an empty list. That is different from PHP and JavaScript, where <code>0</code> is false.</p>
+  <pre><code class="language-scss">@mixin shadow($enabled: true) {
+  @if $enabled {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .06);
+  }
+}
+
+@mixin maybe-color($color: null) {
+  @if $color {
+    color: $color;   // Only when a color is given
+  }
+}</code></pre>
+  <h2>More about @if</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/at-rules/control/if/">@if and @else</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,83 @@
+---
+layout: default
+title: Loops
+permalink: /scss/loops/
+chapter: "04"
+chapter_title: "Logic"
+keywords: [scss, sass, loops, @each, @for, @while, through, to, utility classes, grid]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Loops</h1>
+  <p>Loops make many rules from a little code. They are used for utility classes, like a set of spacing or color classes.</p>
+  <h2>@each</h2>
+  <p><code>@each</code> goes through a list or a <a href="/scss/lists-and-maps/">map</a>.</p>
+  <pre><code class="language-scss">$icons: home, search, user;
+
+@each $icon in $icons {
+  .icon-#{$icon} {
+    background-image: url('/assets/icons/#{$icon}.svg');
+  }
+}</code></pre>
+  <pre><code class="language-css">.icon-home {
+  background-image: url("/assets/icons/home.svg");
+}
+.icon-search {
+  background-image: url("/assets/icons/search.svg");
+}
+.icon-user {
+  background-image: url("/assets/icons/user.svg");
+}</code></pre>
+  <p>With a map, <code>@each</code> gets both the key and the value.</p>
+  <pre><code class="language-scss">$spacers: (0: 0, 1: .25rem, 2: .5rem, 3: 1rem, 4: 1.5rem, 5: 3rem);
+
+@each $key, $size in $spacers {
+  .mt-#{$key} { margin-top: $size; }
+  .mb-#{$key} { margin-bottom: $size; }
+}</code></pre>
+  <p>This is how Bootstrap makes classes like <code>mt-3</code> and <code>pb-5</code>, used on this site.</p>
+  <h2>@for</h2>
+  <p><code>@for</code> counts. <code>through</code> includes the last number, <code>to</code> stops before it.</p>
+  <pre><code class="language-scss">@use 'sass:math';
+
+@for $i from 1 through 4 {
+  .col-#{$i} {
+    width: math.percentage(math.div($i, 4));
+  }
+}</code></pre>
+  <pre><code class="language-css">.col-1 {
+  width: 25%;
+}
+.col-2 {
+  width: 50%;
+}
+.col-3 {
+  width: 75%;
+}
+.col-4 {
+  width: 100%;
+}</code></pre>
+  <h2>@while</h2>
+  <p><code>@while</code> runs as long as a condition is true. It is rarely needed, <code>@each</code> and <code>@for</code> are easier to read. Make sure the condition becomes false, otherwise Sass never finishes.</p>
+  <pre><code class="language-scss">$size: 64px;
+
+@while $size &gt; 8px {
+  .avatar-#{$size} {
+    width: $size;
+    height: $size;
+  }
+  $size: $size * 0.5;
+}</code></pre>
+  <h2>Do not make too much CSS</h2>
+  <p>Loops make it easy to make thousands of rules that are never used. Every class ends up in the file the visitor downloads. Only make the classes the site needs.</p>
+  <h2>More about loops</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/at-rules/control/each/">@each</a></li>
+    <li><a href="https://sass-lang.com/documentation/at-rules/control/for/">@for</a></li>
+    <li><a href="https://sass-lang.com/documentation/at-rules/control/while/">@while</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

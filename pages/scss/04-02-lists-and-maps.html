@@ -1,0 +1,74 @@
+---
+layout: default
+title: Lists and maps
+permalink: /scss/lists-and-maps/
+chapter: "04"
+chapter_title: "Logic"
+keywords: [scss, sass, lists, maps, map.get, map.merge, map.has-key, map.keys, list.nth, list.append, list.length, sass:map, sass:list]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lists and maps</h1>
+  <h2>Lists</h2>
+  <p>A list is several values, separated by commas or spaces. Many CSS values are already lists, like <code>margin: 0 auto</code> or a font stack.</p>
+  <pre><code class="language-scss">$sizes: 12px, 16px, 24px, 32px;
+$font-stack: 'Ubuntu', system-ui, sans-serif;
+$spacing: 0 1rem 2rem;     // A space separated list</code></pre>
+  <pre><code class="language-scss">@use 'sass:list';
+
+list.length($sizes)          // 4
+list.nth($sizes, 1)          // 12px, the first is 1, not 0
+list.nth($sizes, -1)         // 32px, the last
+list.index($sizes, 24px)     // 3
+list.append($sizes, 48px)    // 12px, 16px, 24px, 32px, 48px</code></pre>
+  <p>Lists can not be changed. <code>list.append()</code> returns a new list, so save it in the variable again: <code>$sizes: list.append($sizes, 48px);</code>.</p>
+  <h2>Maps</h2>
+  <p>A map is a list of keys and values, like an associative array in <a href="/php/arrays/">PHP</a>. It is written in parentheses.</p>
+  <pre><code class="language-scss">$breakpoints: (
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+);
+
+$colors: (
+  'primary': #e8b455,
+  'danger': #d64545,
+  'success': #2e9e5b,
+);</code></pre>
+  <pre><code class="language-scss">@use 'sass:map';
+
+map.get($breakpoints, md)          // 768px
+map.has-key($breakpoints, xxl)     // false
+map.keys($breakpoints)             // sm, md, lg, xl
+map.values($breakpoints)           // 576px, 768px, 992px, 1200px
+map.merge($breakpoints, (xxl: 1400px))  // A new map with xxl added
+map.remove($colors, 'danger')      // A new map without danger</code></pre>
+  <p><code>map.get()</code> returns <code>null</code> if the key does not exist, and a declaration with <code>null</code> is not printed at all. Check with <code>map.has-key()</code> and give an <a href="/scss/debug/">@error</a> to catch spelling mistakes.</p>
+  <h2>Maps and loops</h2>
+  <p>Maps are most useful together with <a href="/scss/loops/">@each</a>, to make many rules from one list of values.</p>
+  <pre><code class="language-scss">@each $name, $color in $colors {
+  .text-#{$name} {
+    color: $color;
+  }
+}</code></pre>
+  <pre><code class="language-css">.text-primary {
+  color: #e8b455;
+}
+.text-danger {
+  color: #d64545;
+}
+.text-success {
+  color: #2e9e5b;
+}</code></pre>
+  <h2>More about lists and maps</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/values/lists/">Lists</a></li>
+    <li><a href="https://sass-lang.com/documentation/values/maps/">Maps</a></li>
+    <li><a href="https://sass-lang.com/documentation/modules/map/">sass:map</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

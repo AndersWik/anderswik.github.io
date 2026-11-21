@@ -1,0 +1,54 @@
+---
+layout: default
+title: Sass in Jekyll
+permalink: /scss/jekyll/
+chapter: "05"
+chapter_title: "In practice"
+keywords: [scss, sass, jekyll, _sass, sass_dir, front matter, main.scss, jekyll-sass-converter, github pages, style compressed]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Sass in Jekyll</h1>
+  <p><a href="https://jekyllrb.com">Jekyll</a>, which builds this site, has Sass built in. It compiles the SCSS when the site is built, so no separate <code>sass</code> command is needed.</p>
+  <h2>How Jekyll finds the files</h2>
+  <pre><code class="language-bash">site/
+├── _config.yml
+├── _sass/              # Partials, not copied to the site
+│   ├── _variables.scss
+│   └── _style.scss
+└── css/
+    └── main.scss       # Compiled to _site/css/main.css</code></pre>
+  <ul>
+    <li>An <code>.scss</code> file outside <code>_sass</code> is compiled only if it starts with front matter, two lines of three dashes. They can be empty.</li>
+    <li>Files in <code>_sass</code> are only used when another file loads them.</li>
+  </ul>
+  <pre><code class="language-scss">---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+@use 'variables';
+@use 'style';</code></pre>
+  <p>Link the compiled file in the layout, with <code>.css</code> instead of <code>.scss</code>:</p>
+  {% raw %}<pre><code class="language-html">&lt;link rel="stylesheet" href="{{ '/css/main.css' | relative_url }}"&gt;</code></pre>{% endraw %}
+  <h2>Settings</h2>
+  <p>In <code>_config.yml</code>:</p>
+  <pre><code class="language-bash">sass:
+  sass_dir: _sass        # The default
+  style: compressed      # expanded is the default</code></pre>
+  <h2>Which Sass</h2>
+  <p>Jekyll 4.3 and newer uses Dart Sass, through <code>jekyll-sass-converter</code> version 3, and understands <code>@use</code>. Older Jekyll, and the version GitHub Pages builds with, uses LibSass, which does not understand <code>@use</code>, <code>math.div()</code> or the module functions. With LibSass, use <code>@import</code> and the old global functions, or build the site with GitHub Actions and a newer Jekyll.</p>
+  <pre><code class="language-bash">$ jekyll --version
+$ bundle exec gem list jekyll-sass-converter</code></pre>
+  <h2>Compile by hand</h2>
+  <p>A site can also compile its SCSS with the <a href="/scss/compile/">sass command</a> and commit the CSS file, so the server does not need Sass at all.</p>
+  <pre><code class="language-bash">$ sass --style=compressed _sass/_style.scss css/style.css</code></pre>
+  <p>Pick one of the two ways. If a file in <code>_sass</code> is both compiled by Jekyll through <code>main.scss</code> and by hand to <code>style.css</code>, and both are linked in the layout, the same CSS is downloaded twice.</p>
+  <h2>More about Sass in Jekyll</h2>
+  <ul>
+    <li><a href="https://jekyllrb.com/docs/assets/">Jekyll assets</a></li>
+    <li><a href="https://github.com/jekyll/jekyll-sass-converter">jekyll-sass-converter</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
