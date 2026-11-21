@@ -1,0 +1,76 @@
+---
+layout: default
+title: functions.php
+permalink: /wordpress/functions/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, functions.php, wp_enqueue_style, wp_enqueue_script, get_stylesheet_uri, get_theme_file_uri, wp_enqueue_scripts, after_setup_theme, add_theme_support]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>functions.php</h1>
+  <p><code>functions.php</code> in the theme folder is loaded on every request, before the templates. It is where the theme loads its styles and scripts, turns on features and registers menus and widget areas.</p>
+  <h2>Add style.css</h2>
+  <p>Styles are added with <code>wp_enqueue_style()</code>. <code>get_stylesheet_uri()</code> returns the URL of the theme's <code>style.css</code>.</p>
+  <pre><code class="language-php">&lt;?php
+wp_enqueue_style( 'style', get_stylesheet_uri() );</code></pre>
+  <p>This works, but it runs too early, before WordPress is ready to print the styles. Put the call in a function and run it on the <code>wp_enqueue_scripts</code> action. WordPress calls the function when it is time to add styles and scripts, and <code>wp_head()</code> in the header prints them.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_add_styles() {
+  wp_enqueue_style( 'nerdy-style', get_stylesheet_uri() );
+}
+
+add_action( 'wp_enqueue_scripts', 'nerdy_add_styles' );</code></pre>
+  <ul>
+    <li>The first parameter is a unique name, the handle. Other styles can use it to say they depend on this one.</li>
+    <li>Start the function name with the theme name, <code>nerdy_</code>. Every theme and plugin shares the same function names, and two functions with the same name is a fatal error.</li>
+  </ul>
+  <p>Read more about actions on the <a href="/wordpress/hooks/">hooks</a> page.</p>
+  <h2>More styles and scripts</h2>
+  <p><code>get_theme_file_uri()</code> returns the URL of a file in the theme folder.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_add_assets() {
+  $version = wp_get_theme()-&gt;get( 'Version' );
+
+  wp_enqueue_style( 'nerdy-style', get_stylesheet_uri(), array(), $version );
+  wp_enqueue_style( 'nerdy-print', get_theme_file_uri( 'css/print.css' ), array( 'nerdy-style' ), $version, 'print' );
+
+  wp_enqueue_script( 'nerdy-script', get_theme_file_uri( 'js/script.js' ), array(), $version, array( 'in_footer' =&gt; true ) );
+}
+
+add_action( 'wp_enqueue_scripts', 'nerdy_add_assets' );</code></pre>
+  <ul>
+    <li>The third parameter is a list of handles that have to be loaded first.</li>
+    <li>The version is added to the URL, <code>style.css?ver=1.0.0</code>. When it changes, browsers download the file again instead of using the old one from the cache. Here it comes from <code>Version</code> in the theme header.</li>
+    <li><code>in_footer</code> prints the script in <code>wp_footer()</code> instead of <code>wp_head()</code>, so it does not slow down the page.</li>
+  </ul>
+  <h2>Theme setup</h2>
+  <p>Features are turned on with <code>add_theme_support()</code> on the <code>after_setup_theme</code> action, which runs once, when the theme is loaded.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_setup() {
+  add_theme_support( 'title-tag' );         // WordPress writes the &lt;title&gt;
+  add_theme_support( 'post-thumbnails' );   // Featured images
+  add_theme_support( 'html5', array( 'search-form', 'comment-form', 'gallery', 'caption' ) );
+  add_theme_support( 'custom-logo' );       // Logo under Appearance → Customize
+
+  register_nav_menus( array(
+    'primary' =&gt; 'Primary menu',
+  ) );
+}
+
+add_action( 'after_setup_theme', 'nerdy_setup' );</code></pre>
+  <p>Featured images and menus have their own pages, <a href="/wordpress/featured-images/">featured images</a> and <a href="/wordpress/navigation/">navigation</a>.</p>
+  <h2>A plugin or functions.php</h2>
+  <p>Code in <code>functions.php</code> stops working when the theme is changed. Put things that should stay, like <a href="/wordpress/custom-post-types/">custom post types</a>, in a <a href="/wordpress/plugin/">plugin</a> instead.</p>
+  <h2>More about functions.php</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/basics/theme-functions/">Theme functions</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/wp_enqueue_style/">wp_enqueue_style()</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/wp_enqueue_script/">wp_enqueue_script()</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/add_theme_support/">add_theme_support()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

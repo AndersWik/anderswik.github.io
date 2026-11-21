@@ -1,0 +1,86 @@
+---
+layout: default
+title: Hooks
+permalink: /wordpress/hooks/
+chapter: "03"
+chapter_title: "Plugins"
+keywords: [wordpress, hooks, actions, filters, add_action, add_filter, do_action, apply_filters, remove_action, priority, init, wp_head, the_content, the_title]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Hooks</h1>
+  <p>Hooks are how themes and plugins change WordPress without changing its files. WordPress calls a hook at many places in its code, and every function added to the hook is run there. There are two kinds of hooks, actions and filters.</p>
+  <h2>Actions</h2>
+  <p>An action is a point in time, like "the page head is printed" or "a post was saved". The function does something, and returns nothing.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_add_meta() {
+  echo '&lt;meta name="author" content="Anders Wik"&gt;';
+}
+
+add_action( 'wp_head', 'nerdy_add_meta' );</code></pre>
+  <p>When the header calls <code>wp_head()</code>, WordPress runs every function added to the <code>wp_head</code> action, ours included.</p>
+  <h2>Filters</h2>
+  <p>A filter gets a value, and returns it, changed or not. The value is passed through all the functions added to the filter, one after the other.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_shout_title( $title ) {
+  return strtoupper( $title );
+}
+
+add_filter( 'the_title', 'nerdy_shout_title' );</code></pre>
+  <p>A filter function must always return a value. If it returns nothing, the value is gone and every title is empty.</p>
+  <h2>Priority and arguments</h2>
+  <p>The third parameter is the priority. Lower numbers run first, the default is 10. The fourth is the number of arguments the function takes, the default is 1.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_title_with_id( $title, $post_id ) {
+  return $title . ' (' . $post_id . ')';
+}
+
+add_filter( 'the_title', 'nerdy_title_with_id', 20, 2 );</code></pre>
+  <h2>Anonymous functions</h2>
+  <p>A hook can take an <a href="/php/anonymous-functions/">anonymous function</a>. It is shorter, but it can not be removed with <code>remove_action()</code>, since it has no name.</p>
+  <pre><code class="language-php">&lt;?php
+add_action( 'wp_footer', function () {
+  echo '&lt;!-- Made with WordPress --&gt;';
+} );</code></pre>
+  <h2>Remove a hook</h2>
+  <p>To stop a function that WordPress, a theme or a plugin added. The priority has to be the same as when it was added.</p>
+  <pre><code class="language-php">&lt;?php
+remove_action( 'wp_head', 'wp_generator' );  // Remove the WordPress version from the head</code></pre>
+  <h2>Our own hooks</h2>
+  <p>Add hooks to our own theme or plugin, so others can change it without editing the code.</p>
+  <pre><code class="language-php">&lt;?php
+// In the theme
+do_action( 'nerdy_before_footer' );
+$text = apply_filters( 'nerdy_footer_text', 'Made by Anders' );
+echo esc_html( $text );
+
+// In a child theme or plugin
+add_filter( 'nerdy_footer_text', function ( $text ) {
+  return 'Made by Anna';
+} );</code></pre>
+  <h2>Common hooks</h2>
+  <table class="table">
+    <thead><tr><th>Hook</th><th>Type</th><th>Runs</th></tr></thead>
+    <tbody>
+      <tr><td><code>after_setup_theme</code></td><td>Action</td><td>After the theme is loaded, for <code>add_theme_support()</code></td></tr>
+      <tr><td><code>init</code></td><td>Action</td><td>When WordPress is loaded, for post types and shortcodes</td></tr>
+      <tr><td><code>wp_enqueue_scripts</code></td><td>Action</td><td>When styles and scripts are added</td></tr>
+      <tr><td><code>widgets_init</code></td><td>Action</td><td>When widget areas are registered</td></tr>
+      <tr><td><code>wp_head</code>, <code>wp_footer</code></td><td>Action</td><td>In the page head and before <code>&lt;/body&gt;</code></td></tr>
+      <tr><td><code>save_post</code></td><td>Action</td><td>When a post is saved</td></tr>
+      <tr><td><code>pre_get_posts</code></td><td>Action</td><td>Before a query runs</td></tr>
+      <tr><td><code>the_content</code>, <code>the_title</code></td><td>Filter</td><td>Before the content or title is printed</td></tr>
+      <tr><td><code>body_class</code></td><td>Filter</td><td>The list of classes on <code>&lt;body&gt;</code></td></tr>
+    </tbody>
+  </table>
+  <h2>More about hooks</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/plugins/hooks/">Hooks</a></li>
+    <li><a href="https://developer.wordpress.org/apis/hooks/action-reference/">Action reference</a></li>
+    <li><a href="https://developer.wordpress.org/apis/hooks/filter-reference/">Filter reference</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

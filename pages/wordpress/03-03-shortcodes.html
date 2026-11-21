@@ -1,0 +1,77 @@
+---
+layout: default
+title: Shortcodes
+permalink: /wordpress/shortcodes/
+chapter: "03"
+chapter_title: "Plugins"
+keywords: [wordpress, shortcodes, add_shortcode, shortcode_atts, do_shortcode, attributes, ob_start]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Shortcodes</h1>
+  <p>A shortcode is a code in square brackets that the editor writes in the content, like <code>[year]</code>. WordPress replaces it with what our function returns when the page is shown.</p>
+  <h2>A simple shortcode</h2>
+  <pre><code class="language-php">&lt;?php
+function nerdy_year_shortcode() {
+  return date( 'Y' );
+}
+
+add_shortcode( 'year', 'nerdy_year_shortcode' );</code></pre>
+  <p>Write <code>© [year]</code> in a post or in a Shortcode block, and it shows <code>© 2026</code>.</p>
+  <p>The function must return the HTML, not print it with <code>echo</code>. Printed text ends up at the top of the content instead of where the shortcode is.</p>
+  <h2>Attributes</h2>
+  <p><code>[button url="/contact/" color="green"]Contact us[/button]</code></p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_button_shortcode( $atts, $content = '' ) {
+  $atts = shortcode_atts( array(
+    'url'   =&gt; '#',
+    'color' =&gt; 'blue',
+  ), $atts, 'button' );
+
+  return sprintf(
+    '&lt;a class="button button-%s" href="%s"&gt;%s&lt;/a&gt;',
+    esc_attr( $atts['color'] ),
+    esc_url( $atts['url'] ),
+    esc_html( $content )
+  );
+}
+
+add_shortcode( 'button', 'nerdy_button_shortcode' );</code></pre>
+  <ul>
+    <li><code>$atts</code> is an array of the attributes the editor wrote.</li>
+    <li><code>shortcode_atts()</code> fills in the default values for attributes that are missing, and removes attributes we do not know.</li>
+    <li><code>$content</code> is the text between <code>[button]</code> and <code>[/button]</code>.</li>
+    <li>Everything comes from the editor, so escape it before it is printed, see <a href="/wordpress/escaping/">escaping</a>.</li>
+  </ul>
+  <h2>Longer HTML</h2>
+  <p>For more HTML it is easier to write it as a template. <code>ob_start()</code> catches everything that is printed, and <code>ob_get_clean()</code> returns it.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_latest_shortcode() {
+  $latest = new WP_Query( array( 'posts_per_page' =&gt; 3 ) );
+
+  ob_start();
+  ?&gt;
+  &lt;ul class="latest"&gt;
+    &lt;?php while ( $latest-&gt;have_posts() ) : $latest-&gt;the_post(); ?&gt;
+      &lt;li&gt;&lt;a href="&lt;?php the_permalink(); ?&gt;"&gt;&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;?php endwhile; ?&gt;
+  &lt;/ul&gt;
+  &lt;?php
+  wp_reset_postdata();
+  return ob_get_clean();
+}
+
+add_shortcode( 'latest', 'nerdy_latest_shortcode' );</code></pre>
+  <h2>Shortcodes in templates</h2>
+  <pre><code class="language-php">&lt;?php echo do_shortcode( '[latest]' ); ?&gt;</code></pre>
+  <p>In our own templates it is better to call the function directly, <code>echo nerdy_latest_shortcode();</code>.</p>
+  <h2>More about shortcodes</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/plugins/shortcodes/">Shortcodes</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/shortcode_atts/">shortcode_atts()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

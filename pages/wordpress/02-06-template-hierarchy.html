@@ -1,0 +1,92 @@
+---
+layout: default
+title: Template hierarchy
+permalink: /wordpress/template-hierarchy/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, template hierarchy, layouts, page.php, single.php, archive.php, category.php, page-about.php, front-page.php, home.php, 404.php, search.php, archive title, rewind_posts]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Template hierarchy</h1>
+  <p>For every request WordPress looks for the most specific template in the theme. If it does not exist, it tries the next one in the list, and in the end it uses <code>index.php</code>. This order is called the template hierarchy.</p>
+  <h2>The most common templates</h2>
+  <table class="table">
+    <thead><tr><th>Request</th><th>Templates, most specific first</th></tr></thead>
+    <tbody>
+      <tr><td>Front page</td><td><code>front-page.php</code>, then the blog or page templates below</td></tr>
+      <tr><td>Blog page</td><td><code>home.php</code>, <code>index.php</code></td></tr>
+      <tr><td>A post</td><td><code>single-post.php</code>, <code>single.php</code>, <code>singular.php</code>, <code>index.php</code></td></tr>
+      <tr><td>A page</td><td>page template, <code>page-about.php</code> (slug), <code>page-13.php</code> (ID), <code>page.php</code>, <code>singular.php</code>, <code>index.php</code></td></tr>
+      <tr><td>Category</td><td><code>category-news.php</code> (slug), <code>category-4.php</code> (ID), <code>category.php</code>, <code>archive.php</code>, <code>index.php</code></td></tr>
+      <tr><td>Tag</td><td><code>tag-php.php</code>, <code>tag-7.php</code>, <code>tag.php</code>, <code>archive.php</code>, <code>index.php</code></td></tr>
+      <tr><td>Author</td><td><code>author-anders.php</code>, <code>author-1.php</code>, <code>author.php</code>, <code>archive.php</code>, <code>index.php</code></td></tr>
+      <tr><td>Date</td><td><code>date.php</code>, <code>archive.php</code>, <code>index.php</code></td></tr>
+      <tr><td>Search</td><td><code>search.php</code>, <code>index.php</code></td></tr>
+      <tr><td>Not found</td><td><code>404.php</code>, <code>index.php</code></td></tr>
+    </tbody>
+  </table>
+  <p>A good start is to copy <code>index.php</code> to <code>single.php</code>, <code>page.php</code> and <code>archive.php</code> and change them a little at a time.</p>
+  <h2>Pages and posts</h2>
+  <p><code>page.php</code> is used for pages and <code>single.php</code> for posts. The loop is the same, but a post usually shows the date and the author and a page does not.</p>
+  <pre><code class="language-php">&lt;?php get_header(); ?&gt;
+&lt;?php while ( have_posts() ) : the_post(); ?&gt;
+  &lt;article&gt;
+    &lt;h1&gt;&lt;?php the_title(); ?&gt;&lt;/h1&gt;
+    &lt;p&gt;&lt;?php the_time( 'F j, Y' ); ?&gt; by &lt;?php the_author(); ?&gt;&lt;/p&gt;
+    &lt;?php the_content(); ?&gt;
+  &lt;/article&gt;
+&lt;?php endwhile; ?&gt;
+&lt;?php get_footer(); ?&gt;</code></pre>
+  <h2>One special page</h2>
+  <p>Create <code>page-about.php</code> in the theme root and it is used instead of <code>page.php</code> for the page with the slug <code>about</code>. The slug is the last part of the URL, <code>/about/</code>. For a template that the editor can choose for any page, see <a href="/wordpress/page-templates/">page templates</a>.</p>
+  <h2>Archives</h2>
+  <p><code>archive.php</code> is used for the category, tag, author and date archives. The <a href="/wordpress/conditional-tags/">conditional tags</a> tell which kind of archive it is, to print a heading.</p>
+  <pre><code class="language-php">&lt;?php get_header(); ?&gt;
+&lt;h1&gt;
+  &lt;?php
+  if ( is_category() ) {
+    single_cat_title();               // Category name
+  } elseif ( is_tag() ) {
+    single_tag_title();               // Tag name
+  } elseif ( is_author() ) {
+    the_post();                       // Set up the first post to get its author
+    echo 'Posts by ' . esc_html( get_the_author() );
+    rewind_posts();                   // Start the loop below from the first post again
+  } elseif ( is_day() ) {
+    echo esc_html( get_the_date() );            // November 21, 2026
+  } elseif ( is_month() ) {
+    echo esc_html( get_the_date( 'F Y' ) );     // November 2026
+  } elseif ( is_year() ) {
+    echo esc_html( get_the_date( 'Y' ) );       // 2026
+  } else {
+    echo 'Archive';
+  }
+  ?&gt;
+&lt;/h1&gt;
+
+&lt;?php while ( have_posts() ) : the_post(); ?&gt;
+  &lt;h2&gt;&lt;a href="&lt;?php the_permalink(); ?&gt;"&gt;&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+  &lt;?php the_excerpt(); ?&gt;
+&lt;?php endwhile; ?&gt;
+
+&lt;?php the_posts_pagination(); ?&gt;
+&lt;?php get_footer(); ?&gt;</code></pre>
+  <ul>
+    <li><code>get_the_author()</code> only works inside the loop. On an author archive we are not in the loop when the heading is printed, so <code>the_post()</code> sets up the first post, and <code>rewind_posts()</code> moves back so the loop still starts at the first post.</li>
+    <li><code>get_the_date()</code> takes a <a href="https://www.php.net/manual/en/datetime.format.php">PHP date format</a>. Without one it uses the format from Settings → General.</li>
+    <li><code>the_posts_pagination()</code> prints links to the next and previous pages of posts.</li>
+  </ul>
+  <p>The whole <code>if</code> can be replaced with <code>the_archive_title()</code>, which prints a title like "Category: News".</p>
+  <pre><code class="language-php">&lt;h1&gt;&lt;?php the_archive_title(); ?&gt;&lt;/h1&gt;
+&lt;?php the_archive_description(); ?&gt;</code></pre>
+  <h2>More about the template hierarchy</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/basics/template-hierarchy/">Template hierarchy</a>, with a picture of the whole tree</li>
+    <li><a href="https://developer.wordpress.org/reference/functions/the_archive_title/">the_archive_title()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

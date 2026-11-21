@@ -1,0 +1,56 @@
+---
+layout: default
+title: Child themes
+permalink: /wordpress/child-themes/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, child theme, parent theme, template, get_stylesheet_directory, get_template_directory, get_parent_theme_file_uri]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Child themes</h1>
+  <p>Changes made in a theme from someone else are lost when the theme is updated. A child theme is a small theme that uses another theme, the parent, and only contains what we change.</p>
+  <h2>Create a child theme</h2>
+  <pre><code class="language-bash">wp-content/themes/
+├── twentytwentyfive/      # The parent
+└── nerdy-child/
+    ├── style.css
+    └── functions.php</code></pre>
+  <p><code>Template</code> in the header of <code>style.css</code> is the folder name of the parent theme.</p>
+  <pre><code class="language-css">/*
+Theme Name: Nerdy Child
+Template: twentytwentyfive
+Version: 1.0.0
+*/</code></pre>
+  <h2>Load the styles</h2>
+  <p>Many parent themes load their own <code>style.css</code> already. If it does not, load it in the child's <code>functions.php</code>, and then the child's style sheet after it, so the child's rules win.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_child_styles() {
+  wp_enqueue_style( 'parent-style', get_parent_theme_file_uri( 'style.css' ) );
+  wp_enqueue_style( 'child-style', get_stylesheet_uri(), array( 'parent-style' ) );
+}
+
+add_action( 'wp_enqueue_scripts', 'nerdy_child_styles' );</code></pre>
+  <p>The child's <code>functions.php</code> is loaded before the parent's, and both are used.</p>
+  <h2>Change a template</h2>
+  <p>Copy a template from the parent to the same place in the child theme and change it. WordPress looks in the child first and uses the parent's file if the child does not have one.</p>
+  <h2>Paths in a child theme</h2>
+  <table class="table">
+    <thead><tr><th>Function</th><th>Returns</th></tr></thead>
+    <tbody>
+      <tr><td><code>get_stylesheet_directory()</code></td><td>Path to the child theme (the active theme)</td></tr>
+      <tr><td><code>get_template_directory()</code></td><td>Path to the parent theme</td></tr>
+      <tr><td><code>get_theme_file_uri( 'js/a.js' )</code></td><td>URL of the file in the child, or in the parent if the child does not have it</td></tr>
+      <tr><td><code>get_parent_theme_file_uri( 'js/a.js' )</code></td><td>URL of the file in the parent</td></tr>
+    </tbody>
+  </table>
+  <p>Without a child theme, the stylesheet and template functions return the same folder.</p>
+  <h2>More about child themes</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/advanced-topics/child-themes/">Child themes</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

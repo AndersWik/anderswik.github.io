@@ -1,0 +1,67 @@
+---
+layout: default
+title: Create a theme
+permalink: /wordpress/theme/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, theme, style.css, index.php, screenshot.png, theme header, activate]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Create a theme</h1>
+  <p>A theme is a folder in <code>wp-content/themes</code>. It needs only two files, <code>style.css</code> and <code>index.php</code>.</p>
+  <pre><code class="language-bash">wp-content/themes/nerdy/
+├── style.css
+└── index.php</code></pre>
+  <h2>style.css</h2>
+  <p>The comment at the top of <code>style.css</code> is the theme header. WordPress reads it to show the theme under Appearance → Themes in the dashboard. Only <code>Theme Name</code> is required.</p>
+  <pre><code class="language-css">/*
+Theme Name: Nerdy
+Theme URI: https://www.anderswik.se
+Author: Anders Wik
+Description: A small theme to learn how themes work.
+Version: 1.0.0
+Requires at least: 6.0
+Requires PHP: 8.0
+License: GPL-2.0-or-later
+Text Domain: nerdy
+*/
+
+body {
+  font-family: sans-serif;
+}</code></pre>
+  <p>WordPress does not load <code>style.css</code> on the page by itself, see <a href="/wordpress/functions/">functions.php</a> for how to add it.</p>
+  <h2>index.php</h2>
+  <p><code>index.php</code> is the template that is used when no other template fits. Start with plain HTML to see that the theme works.</p>
+  <pre><code class="language-html">&lt;h1&gt;Hello World&lt;/h1&gt;</code></pre>
+  <p>Go to Appearance → Themes, activate the theme and open the site. Every URL on the site now shows "Hello World", since <code>index.php</code> is the only template. The <a href="/wordpress/the-loop/">loop</a> page fills it with real posts.</p>
+  <h2>Screenshot</h2>
+  <p>Add a <code>screenshot.png</code> to the theme folder to show a picture of the theme in the dashboard. The recommended size is 1200 × 900 pixels.</p>
+  <h2>The theme files</h2>
+  <p>A finished classic theme often has these files. Each one is explained in the following pages.</p>
+  <pre><code class="language-bash">wp-content/themes/nerdy/
+├── style.css        # Theme header and styles
+├── functions.php    # Setup, styles, scripts, menus
+├── index.php        # Fallback template
+├── header.php       # Top of every page
+├── footer.php       # Bottom of every page
+├── sidebar.php      # Widget area
+├── front-page.php   # The front page
+├── single.php       # One post
+├── page.php         # One page
+├── archive.php      # Category, tag, author and date archives
+├── search.php       # Search results
+├── 404.php          # Page not found
+└── screenshot.png</code></pre>
+  <h2>Classic and block themes</h2>
+  <p>These notes are about classic themes, where the templates are PHP files. Block themes, used by the default themes since Twenty Twenty-Two, build the templates from blocks in HTML files in a <code>templates</code> folder and are edited in the site editor. The PHP functions here work in both.</p>
+  <h2>More about themes</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/">Theme handbook</a></li>
+    <li><a href="https://developer.wordpress.org/themes/classic-themes/basics/main-stylesheet-style-css/">Main stylesheet (style.css)</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

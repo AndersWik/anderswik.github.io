@@ -1,0 +1,79 @@
+---
+layout: default
+title: WordPress in a subdirectory
+permalink: /wordpress/subdirectory/
+chapter: "04"
+chapter_title: "Project setup"
+keywords: [wordpress, setup, subdirectory, wp folder, ABSPATH, WP_HOME, WP_SITEURL, WP_CONTENT_DIR, WP_CONTENT_URL, DISALLOW_FILE_EDIT, AUTOMATIC_UPDATER_DISABLED, version control]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>WordPress in a subdirectory</h1>
+  <p>In a normal install, WordPress core and our own code are mixed in the same folders. For a project in version control it is cleaner to keep core in its own folder, <code>wp</code>, and our themes and plugins in a <code>wp-content</code> folder next to it. Core can then be replaced as a whole, for example by <a href="/wordpress/composer/">Composer</a>, and is not added to git.</p>
+  <pre><code class="language-bash">public_html/
+├── index.php          # Ours, loads WordPress from wp/
+├── wp-config.php      # Ours
+├── .htaccess
+├── wp/                # WordPress core, not in git
+│   ├── wp-admin/
+│   ├── wp-includes/
+│   └── ...
+└── wp-content/        # Ours
+    ├── themes/
+    ├── plugins/
+    └── uploads/</code></pre>
+  <p>The site is still at <code>http://example.com</code>, but the dashboard is at <code>http://example.com/wp/wp-admin/</code>.</p>
+  <h2>Move core</h2>
+  <p>Install WordPress as usual. Create a folder called <code>wp</code> and move all the WordPress files into it, except these two:</p>
+  <ul>
+    <li><code>wp-config.php</code></li>
+    <li><code>index.php</code></li>
+  </ul>
+  <p>Keep <code>.htaccess</code> in the root too. WordPress finds <code>wp-config.php</code> one folder above core by itself.</p>
+  <h2>index.php</h2>
+  <p>Every request starts in the root <code>index.php</code>, which loads WordPress. Change the path to point to the <code>wp</code> folder.</p>
+  <pre><code class="language-php">&lt;?php
+define( 'WP_USE_THEMES', true );
+require __DIR__ . '/wp/wp-blog-header.php';</code></pre>
+  <h2>wp-config.php</h2>
+  <p><code>ABSPATH</code> is the folder that core is in. At the bottom of <code>wp-config.php</code>, change</p>
+  <pre><code class="language-php">if ( ! defined( 'ABSPATH' ) ) {
+  define( 'ABSPATH', __DIR__ . '/' );
+}</code></pre>
+  <p>to</p>
+  <pre><code class="language-php">if ( ! defined( 'ABSPATH' ) ) {
+  define( 'ABSPATH', __DIR__ . '/wp/' );
+}</code></pre>
+  <h3>The addresses</h3>
+  <p>WordPress has two addresses. <code>WP_HOME</code> is where visitors see the site. <code>WP_SITEURL</code> is where the core files are.</p>
+  <pre><code class="language-php">define( 'WP_HOME', 'http://example.com' );
+define( 'WP_SITEURL', 'http://example.com/wp' );</code></pre>
+  <p>The same values are stored in the database, as <code>home</code> and <code>siteurl</code> in <code>wp_options</code>. When they are set in <code>wp-config.php</code> the database values are ignored and the fields are locked under Settings → General. Instead of <code>wp-config.php</code>, the database can be changed, see <a href="/wordpress/change-site-url/">change site URL</a>.</p>
+  <h3>The content folder</h3>
+  <p>Create a new <code>wp-content</code> folder in the root, next to <code>index.php</code>, with the folders <code>themes</code> and <code>plugins</code>. Git does not keep empty folders, so put an empty <code>.gitkeep</code> file in each.</p>
+  <pre><code class="language-bash">$ mkdir -p wp-content/themes wp-content/plugins
+$ touch wp-content/themes/.gitkeep wp-content/plugins/.gitkeep</code></pre>
+  <p>Then tell WordPress where it is. <code>WP_CONTENT_DIR</code> is the path on the server, <code>WP_CONTENT_URL</code> is the address in the browser.</p>
+  <pre><code class="language-php">define( 'WP_CONTENT_DIR', __DIR__ . '/wp-content' );
+define( 'WP_CONTENT_URL', WP_HOME . '/wp-content' );</code></pre>
+  <p><code>__DIR__</code> is the folder of <code>wp-config.php</code>. It is better than <code>$_SERVER['DOCUMENT_ROOT']</code>, which is empty when WordPress is run from the command line, like with <a href="/wordpress/wp-cli/">WP-CLI</a>. These lines have to come before <code>wp-settings.php</code> is loaded at the bottom of the file.</p>
+  <h3>Updates and the file editor</h3>
+  <p>When the code is in git, changes should be made in git and not on the server.</p>
+  <pre><code class="language-php">define( 'DISALLOW_FILE_EDIT', true );          // Remove the theme and plugin editors from the dashboard
+define( 'AUTOMATIC_UPDATER_DISABLED', true );  // Do not update core, themes and plugins automatically</code></pre>
+  <p>With automatic updates off, someone has to update WordPress. Do it often, most updates fix security problems.</p>
+  <h2>.gitignore</h2>
+  <pre><code class="language-bash">.DS_Store
+/wp
+/wp-content/uploads</code></pre>
+  <p>Whether <code>uploads</code> should be in git depends on the project. Images uploaded by editors on the live site are not in the repository, so they are often backed up separately and left out.</p>
+  <h2>More about the setup</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/">Giving WordPress its own directory</a></li>
+    <li><a href="https://developer.wordpress.org/advanced-administration/wordpress/wp-config/">Editing wp-config.php</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,51 @@
+---
+layout: default
+title: WordPress
+permalink: /wordpress/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [wordpress, cms, php, mysql, introduction, wp-content, wp-admin, wp-includes, themes, plugins]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>WordPress</h1>
+  <p>WordPress is a content management system (CMS) written in <a href="/php/">PHP</a> that stores its content in a <a href="/mysql/">MySQL</a> or MariaDB database. Editors write posts and pages in the admin area, the dashboard, and WordPress turns them into HTML pages with the help of a theme.</p>
+  <p>A WordPress site has three parts:</p>
+  <ul>
+    <li><strong>Core</strong>: WordPress itself. Never edit these files, they are replaced on every update.</li>
+    <li><strong>Themes</strong>: decide how the site looks. Only one theme is active at a time.</li>
+    <li><strong>Plugins</strong>: add features, like contact forms or SEO. Many plugins can be active at the same time.</li>
+  </ul>
+  <h2>Files and folders</h2>
+  <pre><code class="language-bash">wordpress/
+├── index.php        # Every request starts here
+├── wp-config.php    # Database login, keys and settings
+├── wp-admin/        # The dashboard (core)
+├── wp-includes/     # The WordPress functions and classes (core)
+└── wp-content/      # Everything that is ours
+    ├── themes/
+    ├── plugins/
+    └── uploads/     # Images and files added in the media library</code></pre>
+  <p>Everything we write goes in <code>wp-content</code>. When WordPress is updated only <code>wp-admin</code>, <code>wp-includes</code> and the files in the root are replaced.</p>
+  <h2>Posts and pages</h2>
+  <p>Posts are dated entries, shown newest first on the blog page and in the category, tag and author archives. Pages are for content that is not part of the timeline, like "About" or "Contact". Pages can have a parent page, posts can not.</p>
+  <h2>The database</h2>
+  <p>Every table starts with the prefix set in <code>wp-config.php</code>, <code>wp_</code> by default. The most important ones:</p>
+  <ul>
+    <li><code>wp_posts</code>: posts, pages, menu items and attachments. They are all "posts" with a different <code>post_type</code>.</li>
+    <li><code>wp_postmeta</code>: extra fields for posts.</li>
+    <li><code>wp_users</code> and <code>wp_usermeta</code>: users.</li>
+    <li><code>wp_options</code>: site settings, like the site name and URL.</li>
+    <li><code>wp_terms</code>, <code>wp_term_taxonomy</code> and <code>wp_term_relationships</code>: categories and tags.</li>
+  </ul>
+  <h2>More about WordPress</h2>
+  <ul>
+    <li><a href="https://wordpress.org">wordpress.org</a></li>
+    <li><a href="https://developer.wordpress.org">WordPress developer resources</a></li>
+    <li><a href="https://developer.wordpress.org/advanced-administration/">Advanced administration handbook</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

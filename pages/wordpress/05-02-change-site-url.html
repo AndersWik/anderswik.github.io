@@ -1,0 +1,38 @@
+---
+layout: default
+title: Change site URL
+permalink: /wordpress/change-site-url/
+chapter: "05"
+chapter_title: "Administration"
+keywords: [wordpress, site url, home, siteurl, move, migrate, domain, wp_options, search-replace, serialized, https]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Change site URL</h1>
+  <p>When a site moves to a new domain, from a local copy to a server, or from <code>http</code> to <code>https</code>, the URL has to be changed in the database.</p>
+  <h2>home and siteurl</h2>
+  <p>WordPress keeps two URLs in <code>wp_options</code>. <code>home</code> is the address of the site. <code>siteurl</code> is where the WordPress files are. They are the same, unless core is in a <a href="/wordpress/subdirectory/">subdirectory</a>.</p>
+  <pre><code class="language-sql">SELECT option_name, option_value FROM wp_options WHERE option_name IN ('home', 'siteurl');
+
+UPDATE wp_options SET option_value = 'https://example.com' WHERE option_name = 'home';
+UPDATE wp_options SET option_value = 'https://example.com/wp' WHERE option_name = 'siteurl';</code></pre>
+  <p>Or set them in <code>wp-config.php</code>, which wins over the database.</p>
+  <pre><code class="language-php">define( 'WP_HOME', 'https://example.com' );
+define( 'WP_SITEURL', 'https://example.com/wp' );</code></pre>
+  <h2>The URL in the content</h2>
+  <p>Links and images in posts have the old URL written in them too. Change them all with <a href="/wordpress/wp-cli/">WP-CLI</a>.</p>
+  <pre><code class="language-bash">$ wp db export before-move.sql
+$ wp search-replace 'http://old.example.com' 'https://example.com' --dry-run
+$ wp search-replace 'http://old.example.com' 'https://example.com'</code></pre>
+  <p><code>--dry-run</code> shows how many changes there would be in each table, without changing anything.</p>
+  <p>Do not do this with <code>REPLACE()</code> in SQL or a text editor on the SQL file. WordPress and plugins save arrays as serialized PHP strings, where the length of each string is stored too, like <code>s:22:"http://old.example.com"</code>. When the URL gets a different length, the length is wrong and the whole setting is lost. <code>wp search-replace</code> understands serialized data and fixes the lengths.</p>
+  <h2>More about moving a site</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/advanced-administration/upgrade/migrating/">Moving WordPress</a></li>
+    <li><a href="https://developer.wordpress.org/cli/commands/search-replace/">wp search-replace</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,66 @@
+---
+layout: default
+title: List pages
+permalink: /wordpress/page-functions/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, page functions, wp_list_pages, get_pages, child pages, sub pages, parent, post_parent, get_children]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>List pages</h1>
+  <p>Pages can have a parent page, which makes a tree of pages. These functions print or return pages from the tree.</p>
+  <h2>wp_list_pages()</h2>
+  <p><code>wp_list_pages()</code> prints a nested list with links to all published pages.</p>
+  <pre><code class="language-php">&lt;ul&gt;
+  &lt;?php wp_list_pages( array( 'title_li' =&gt; '' ) ); ?&gt;
+&lt;/ul&gt;</code></pre>
+  <p>By default the list starts with a "Pages" heading inside an extra <code>&lt;li&gt;</code>. <code>'title_li' =&gt; ''</code> removes it, so the items can go in our own <code>&lt;ul&gt;</code>.</p>
+  <pre><code class="language-php">&lt;?php
+wp_list_pages( array(
+  'title_li'    =&gt; '',
+  'depth'       =&gt; 1,                  // Only top level pages
+  'exclude'     =&gt; '13,42',            // Page IDs to leave out
+  'sort_column' =&gt; 'menu_order',       // The Order field in the page settings
+) );</code></pre>
+  <h2>Sub pages of the current page</h2>
+  <p>A small menu with the sub pages, for example in a sidebar on <code>page.php</code>. If the page has a parent, show the sub pages of the parent instead, so the menu is the same on all pages in the group.</p>
+  <pre><code class="language-php">&lt;?php
+$parent_id = wp_get_post_parent_id( get_the_ID() ) ?: get_the_ID();
+
+$children = wp_list_pages( array(
+  'title_li' =&gt; '',
+  'child_of' =&gt; $parent_id,
+  'echo'     =&gt; false,        // Return the HTML instead of printing it
+) );
+?&gt;
+&lt;?php if ( $children ) : ?&gt;
+  &lt;nav class="sub-pages"&gt;
+    &lt;h2&gt;&lt;?php echo esc_html( get_the_title( $parent_id ) ); ?&gt;&lt;/h2&gt;
+    &lt;ul&gt;&lt;?php echo $children; ?&gt;&lt;/ul&gt;
+  &lt;/nav&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <p>With <code>'echo' =&gt; false</code> the function returns the HTML. That way we can check if there are any sub pages before printing the heading.</p>
+  <h2>get_pages()</h2>
+  <p><code>get_pages()</code> returns the pages as an array of post objects, to build the HTML ourselves.</p>
+  <pre><code class="language-php">&lt;?php $pages = get_pages( array( 'parent' =&gt; 0, 'sort_column' =&gt; 'menu_order' ) ); ?&gt;
+&lt;ul&gt;
+  &lt;?php foreach ( $pages as $page ) : ?&gt;
+    &lt;li&gt;
+      &lt;a href="&lt;?php echo esc_url( get_permalink( $page ) ); ?&gt;"&gt;
+        &lt;?php echo esc_html( $page-&gt;post_title ); ?&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+  &lt;?php endforeach; ?&gt;
+&lt;/ul&gt;</code></pre>
+  <p>For most menus it is better to use a <a href="/wordpress/navigation/">navigation menu</a>, which the editor can change without code.</p>
+  <h2>More about listing pages</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/reference/functions/wp_list_pages/">wp_list_pages()</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/get_pages/">get_pages()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

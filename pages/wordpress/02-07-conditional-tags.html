@@ -1,0 +1,62 @@
+---
+layout: default
+title: Conditional tags
+permalink: /wordpress/conditional-tags/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, conditional tags, is_page, is_single, is_front_page, is_home, is_category, is_tag, is_author, is_archive, is_search, is_404, is_user_logged_in]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Conditional tags</h1>
+  <p>Conditional tags are functions that return <code>true</code> or <code>false</code> depending on what page is shown. They are used to show something on some pages only.</p>
+  <h2>One page</h2>
+  <p><code>is_page()</code> takes the ID, the slug or the title of a page. The ID is shown in the URL when the page is edited, <code>post.php?post=13</code>.</p>
+  <pre><code class="language-php">&lt;div&gt;
+  &lt;?php if ( is_page( 13 ) ) : ?&gt;
+    &lt;p&gt;Special condition&lt;/p&gt;
+  &lt;?php endif; ?&gt;
+&lt;/div&gt;</code></pre>
+  <p>A slug is a string, so it needs quotes.</p>
+  <pre><code class="language-php">&lt;div&gt;
+  &lt;?php if ( is_page( 'about' ) ) : ?&gt;
+    &lt;p&gt;Special condition&lt;/p&gt;
+  &lt;?php endif; ?&gt;
+&lt;/div&gt;</code></pre>
+  <p>An array checks several pages, <code>is_page( array( 13, 'about', 'contact' ) )</code>. Without a parameter, <code>is_page()</code> is true on every page.</p>
+  <h2>Common conditional tags</h2>
+  <table class="table">
+    <thead><tr><th>Function</th><th>True on</th></tr></thead>
+    <tbody>
+      <tr><td><code>is_front_page()</code></td><td>The front page of the site</td></tr>
+      <tr><td><code>is_home()</code></td><td>The blog page, the list of latest posts</td></tr>
+      <tr><td><code>is_single()</code></td><td>A single post, <code>is_single( 'hello-world' )</code> for one post</td></tr>
+      <tr><td><code>is_page()</code></td><td>A page</td></tr>
+      <tr><td><code>is_singular()</code></td><td>A single post, page or custom post</td></tr>
+      <tr><td><code>is_archive()</code></td><td>Any archive</td></tr>
+      <tr><td><code>is_category()</code></td><td>A category archive, <code>is_category( 'news' )</code> for one</td></tr>
+      <tr><td><code>is_tag()</code></td><td>A tag archive</td></tr>
+      <tr><td><code>is_author()</code></td><td>An author archive</td></tr>
+      <tr><td><code>is_day()</code>, <code>is_month()</code>, <code>is_year()</code></td><td>A date archive</td></tr>
+      <tr><td><code>is_search()</code></td><td>Search results</td></tr>
+      <tr><td><code>is_404()</code></td><td>Page not found</td></tr>
+      <tr><td><code>is_user_logged_in()</code></td><td>A logged in visitor</td></tr>
+      <tr><td><code>in_category( 'news' )</code></td><td>The current post is in the category, used in the loop</td></tr>
+    </tbody>
+  </table>
+  <p>If the front page is set to the latest posts, <code>is_front_page()</code> and <code>is_home()</code> are both true there. If a static page is set as the front page under Settings → Reading, <code>is_home()</code> is true on the posts page instead.</p>
+  <h2>A class on the body</h2>
+  <p>For differences in style only, a conditional tag is often not needed. <code>body_class()</code> in the <a href="/wordpress/header-and-footer/">header</a> already adds a class like <code>page-id-13</code>.</p>
+  <pre><code class="language-css">.page-id-13 h1 {
+  color: crimson;
+}</code></pre>
+  <h2>More about conditional tags</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/basics/conditional-tags/">Conditional tags</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/is_page/">is_page()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
