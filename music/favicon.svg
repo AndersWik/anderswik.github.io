@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1c1a17"/>
+  <!-- guitar pick -->
+  <path d="M256 84c-86 0-150 30-150 92 0 84 92 214 130 250 12 11 28 11 40 0 38-36 130-166 130-250 0-62-64-92-150-92z" fill="#f2a33a"/>
+  <!-- strings -->
+  <g stroke="#1c1a17" stroke-width="14" stroke-linecap="round">
+    <line x1="196" y1="150" x2="196" y2="300"/>
+    <line x1="236" y1="140" x2="236" y2="360"/>
+    <line x1="276" y1="140" x2="276" y2="360"/>
+    <line x1="316" y1="150" x2="316" y2="300"/>
+  </g>
+</svg>
