@@ -1,0 +1,61 @@
+---
+layout: default
+title: WP-CLI
+permalink: /wordpress/wp-cli/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [wordpress, wp-cli, wp, command line, core download, config create, plugin install, theme activate, search-replace]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>WP-CLI</h1>
+  <p>WP-CLI is the command line tool for WordPress. Everything that can be done in the dashboard can be done with the <code>wp</code> command, which makes it good for scripts and servers without a browser.</p>
+  <h2>Install</h2>
+  <pre><code class="language-bash">$ curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+$ php wp-cli.phar --info
+$ chmod +x wp-cli.phar
+$ sudo mv wp-cli.phar /usr/local/bin/wp
+$ wp --info</code></pre>
+  <p>Run <code>wp</code> from the WordPress folder, or give the folder with <code>--path=/var/www/wordpress</code>.</p>
+  <h2>Install WordPress</h2>
+  <p>The same steps as on the <a href="/wordpress/install/">install</a> page. <code>config create</code> writes <code>wp-config.php</code> with new keys and salts.</p>
+  <pre><code class="language-bash">$ wp core download
+$ wp config create --dbname=wordpress --dbuser=wordpress --dbpass=a-strong-password
+$ wp core install --url=http://localhost --title="My site" --admin_user=admin --admin_email=admin@example.com --prompt=admin_password</code></pre>
+  <p><code>--prompt=admin_password</code> asks for the password, so it does not end up in the shell history.</p>
+  <h2>Common commands</h2>
+  <pre><code class="language-bash"># Update core, plugins and themes
+$ wp core update
+$ wp plugin update --all
+$ wp theme update --all
+
+# Plugins and themes
+$ wp plugin list
+$ wp plugin install query-monitor --activate
+$ wp plugin deactivate query-monitor
+$ wp theme activate nerdy
+
+# Users
+$ wp user list
+$ wp user create anna anna@example.com --role=editor
+$ wp user update 1 --user_pass=new-password
+
+# Settings
+$ wp option get siteurl
+$ wp option update blogname "My site"
+
+# Database
+$ wp db export backup.sql
+$ wp db import backup.sql
+$ wp search-replace 'http://old.example.com' 'https://new.example.com' --dry-run</code></pre>
+  <p><code>search-replace</code> is the safe way to change a URL in the whole database, see <a href="/wordpress/change-site-url/">change site URL</a>.</p>
+  <h2>More about WP-CLI</h2>
+  <ul>
+    <li><a href="https://wp-cli.org">wp-cli.org</a></li>
+    <li><a href="https://developer.wordpress.org/cli/commands/">All commands</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

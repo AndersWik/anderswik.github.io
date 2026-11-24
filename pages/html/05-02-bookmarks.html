@@ -1,0 +1,39 @@
+---
+layout: default
+title: Bookmarks
+permalink: /html/bookmarks/
+chapter: "05"
+chapter_title: "Links and paths"
+keywords: [html, bookmarks, anchor, fragment, id, "#", jump to]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Bookmarks</h1>
+  <p>A link can jump to a part of a page. Give the part an <code>id</code>, and link to it with <code>#</code> and the id:</p>
+  <pre><code class="language-html">&lt;a href="#prices"&gt;See the prices&lt;/a&gt;
+
+...
+
+&lt;h2 id="prices"&gt;Prices&lt;/h2&gt;</code></pre>
+  <h2>A part of another page</h2>
+  <p>Add <code>#</code> and the id after the address of the page:</p>
+  <pre><code class="language-html">&lt;a href="prices.html#cakes"&gt;Cake prices&lt;/a&gt;</code></pre>
+  <h2>Back to the top</h2>
+  <p><code>#top</code> always goes to the top of the page, even without an element with that id:</p>
+  <pre><code class="language-html">&lt;a href="#top"&gt;Back to the top&lt;/a&gt;</code></pre>
+  <h2>Good to know</h2>
+  <ul>
+    <li>The part of an address after <code>#</code> is called a <strong>fragment</strong>. It is not sent to the server.</li>
+    <li>With CSS <code>scroll-behavior: smooth</code> on <code>html</code>, the page scrolls to the part instead of jumping.</li>
+    <li>If a fixed menu covers the heading, <code>scroll-margin-top</code> on the heading leaves room for it.</li>
+  </ul>
+  <h2>More about bookmarks</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment">Fragment on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/id">The id attribute on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

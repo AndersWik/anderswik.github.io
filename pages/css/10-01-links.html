@@ -1,0 +1,45 @@
+---
+layout: default
+title: Links
+permalink: /css/links/
+chapter: "10"
+chapter_title: "Style common elements"
+keywords: [css, links, a, hover, visited, focus-visible, text-decoration, link states]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Links</h1>
+  <p>A link has states, which can be styled with pseudo-classes:</p>
+  <pre><code class="language-css">a {
+  color: #0b57d0;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:visited { color: #6f42c1; }
+a:hover { text-decoration-thickness: 2px; }
+a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+a:active { color: tomato; }</code></pre>
+  <p><code>:hover</code> must come after <code>:visited</code>, or the visited color wins on hover.</p>
+  <h2>Keep links easy to find</h2>
+  <p>Links in a text should look like links. If you remove the underline, they need another clear difference than only the color, since some people can't see the difference between the colors.</p>
+  <h2>A link that looks like a button</h2>
+  <pre><code class="language-css">a.button {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #2e9e5b;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+}</code></pre>
+  <p>Use this for links that go somewhere, like "Read more". Things that do something on the page should be real <code>&lt;button&gt;</code> elements. See <a href="/html/buttons/">Buttons</a> in the HTML notes.</p>
+  <h2>More about links</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Text_styling/Styling_links">Styling links on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-decoration"><code>text-decoration</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

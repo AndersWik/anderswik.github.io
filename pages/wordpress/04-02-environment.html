@@ -1,0 +1,89 @@
+---
+layout: default
+title: Environment variables
+permalink: /wordpress/environment/
+chapter: "04"
+chapter_title: "Project setup"
+keywords: [wordpress, setup, environment, environment variables, getenv, SetEnv, PassEnv, htaccess, staging, production, WP_ENVIRONMENT_TYPE, wp_get_environment_type, wp-config]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Environment variables</h1>
+  <p>The same code runs on a laptop, a staging server and the live server, but the database login and the URL are different on each one. Passwords should not be in git either. Instead of writing the values in <code>wp-config.php</code>, read them from environment variables that are set on each server.</p>
+  <h2>Read the variables</h2>
+  <pre><code class="language-php">define( 'DB_NAME', getenv( 'WP_DB_NAME' ) );
+define( 'DB_USER', getenv( 'WP_DB_USER' ) );
+define( 'DB_PASSWORD', getenv( 'WP_DB_PASSWORD' ) );
+define( 'DB_HOST', getenv( 'WP_DB_HOST' ) );
+
+define( 'WP_HOME', getenv( 'WP_HOME' ) );
+define( 'WP_SITEURL', getenv( 'WP_SITEURL' ) );
+
+define( 'AUTH_KEY', getenv( 'WP_AUTH_KEY' ) );
+define( 'SECURE_AUTH_KEY', getenv( 'WP_SECURE_AUTH_KEY' ) );
+define( 'LOGGED_IN_KEY', getenv( 'WP_LOGGED_IN_KEY' ) );
+define( 'NONCE_KEY', getenv( 'WP_NONCE_KEY' ) );
+// ...and the same for the four salts
+
+define( 'WP_DEBUG', filter_var( getenv( 'WP_DEBUG' ), FILTER_VALIDATE_BOOLEAN ) );</code></pre>
+  <ul>
+    <li>Use <code>getenv()</code>. The <code>$_ENV</code> array is often empty, since many PHP installs leave it out (<code>variables_order</code> in <code>php.ini</code>).</li>
+    <li>Environment variables are always strings. The string <code>"false"</code> is true in PHP, so <code>WP_DEBUG</code> would always be on. <code>filter_var( ..., FILTER_VALIDATE_BOOLEAN )</code> turns <code>"true"</code>, <code>"1"</code> and <code>"on"</code> into <code>true</code>, and everything else into <code>false</code>.</li>
+  </ul>
+  <h2>Set the variables in .htaccess</h2>
+  <p>With Apache, <code>SetEnv</code> in the <code>.htaccess</code> file in the root sets a variable for PHP. Apache never sends <code>.htaccess</code> to the browser, but keep the file out of git, since it has the passwords.</p>
+  <pre><code class="language-bash">SetEnv WP_DB_NAME wordpress
+SetEnv WP_DB_USER wordpress
+SetEnv WP_DB_PASSWORD a-strong-password
+SetEnv WP_DB_HOST localhost
+SetEnv WP_HOME http://example.com
+SetEnv WP_SITEURL http://example.com/wp
+SetEnv WP_AUTH_KEY put-a-long-random-string-here
+SetEnv WP_SECURE_AUTH_KEY put-a-long-random-string-here
+SetEnv WP_LOGGED_IN_KEY put-a-long-random-string-here
+SetEnv WP_NONCE_KEY put-a-long-random-string-here
+SetEnv WP_DEBUG false</code></pre>
+  <p>The names have to be exactly the same as in <code>getenv()</code>. <code>SetEnv</code> in <code>.htaccess</code> only works if the virtual host allows it with <code>AllowOverride FileInfo</code> or <code>AllowOverride All</code>. It can also be put straight in the virtual host.</p>
+  <h2>Set the variables for the server</h2>
+  <p>On Red Hat, CentOS and Fedora, Apache reads variables from <code>/etc/sysconfig/httpd</code> when it starts. On Debian and Ubuntu the file is <code>/etc/apache2/envvars</code>, with <code>export</code> before each line.</p>
+  <pre><code class="language-bash"># /etc/sysconfig/httpd
+WP_DB_PASSWORD=a-strong-password
+mydocroot=/var/www/public_html</code></pre>
+  <p>These variables can be used in the Apache config with <code>${...}</code>.</p>
+  <pre><code class="language-bash">&lt;VirtualHost *:80&gt;
+  DocumentRoot ${mydocroot}
+  PassEnv WP_DB_PASSWORD
+&lt;/VirtualHost&gt;</code></pre>
+  <p>They are not sent to PHP by themselves. <code>PassEnv</code> passes a variable from Apache's environment on to PHP. Restart Apache after a change with <code>sudo systemctl restart httpd</code>.</p>
+  <h2>Different settings for each environment</h2>
+  <p>One variable can tell which server the code runs on. WordPress has its own constant for it, <code>WP_ENVIRONMENT_TYPE</code>, with the values <code>local</code>, <code>development</code>, <code>staging</code> and <code>production</code>.</p>
+  <pre><code class="language-php">define( 'WP_ENVIRONMENT_TYPE', getenv( 'WP_ENV' ) ?: 'production' );
+
+switch ( WP_ENVIRONMENT_TYPE ) {
+  case 'local':
+  case 'staging':
+    define( 'WP_DEBUG', true );
+    define( 'WP_DEBUG_DISPLAY', true );
+    break;
+
+  default:
+    define( 'WP_DEBUG', false );
+    define( 'DISALLOW_FILE_MODS', true ); // No plugin or theme installs from the dashboard
+}</code></pre>
+  <p><code>?: 'production'</code> uses production if the variable is missing, so a forgotten variable never turns on debugging on the live site. In themes and plugins, <code>wp_get_environment_type()</code> returns the value.</p>
+  <pre><code class="language-php">&lt;?php if ( 'production' !== wp_get_environment_type() ) : ?&gt;
+  &lt;div class="test-banner"&gt;Test site&lt;/div&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <h2>A .env file</h2>
+  <p>On hosts where environment variables can not be set, a common alternative is a <code>.env</code> file that is not in git, read by the <a href="https://github.com/vlucas/phpdotenv">vlucas/phpdotenv</a> package from <a href="/wordpress/composer/">Composer</a>.</p>
+  <h2>More about environments</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/reference/functions/wp_get_environment_type/">wp_get_environment_type()</a></li>
+    <li><a href="https://httpd.apache.org/docs/current/mod/mod_env.html">mod_env</a>, <code>SetEnv</code> and <code>PassEnv</code> in Apache</li>
+    <li><a href="https://www.php.net/manual/en/function.getenv.php">getenv()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

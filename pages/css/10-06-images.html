@@ -1,0 +1,50 @@
+---
+layout: default
+title: Images
+permalink: /css/images/
+chapter: "10"
+chapter_title: "Style common elements"
+keywords: [css, images, object-fit, object-position, aspect-ratio, responsive images, max-width]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Images</h1>
+  <p>Images that never get wider than their parent, and keep their shape:</p>
+  <pre><code class="language-css">img {
+  max-width: 100%;
+  height: auto;
+  display: block;   /* removes the small gap below inline images */
+}</code></pre>
+  <h2>Fill a box</h2>
+  <p><code>object-fit</code> decides how an image fills a box with another shape, like <code>background-size</code> for backgrounds:</p>
+  <pre><code class="language-css">.thumbnail {
+  width: 240px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;          /* fill the box, crop the edges */
+  object-position: top;       /* keep the top when cropping */
+}</code></pre>
+  <ul>
+    <li><code>cover</code> fills the box, and crops what doesn't fit.</li>
+    <li><code>contain</code> shows the whole image, with empty space if needed.</li>
+  </ul>
+  <p>The thumbnails on this site's index pages use <code>object-fit: cover</code>.</p>
+  <h2>Round images</h2>
+  <pre><code class="language-css">.avatar {
+  width: 64px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+}</code></pre>
+  <h2>Effects</h2>
+  <p>Grey images, blur and other effects are made with <a href="/css/opacity-and-filters/">filters</a>.</p>
+  <h2>More about images</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit"><code>object-fit</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-position"><code>object-position</code> on MDN</a></li>
+    <li>Images in the HTML notes: <a href="/html/images/">Images</a> and <a href="/html/responsive-images/">Responsive images</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

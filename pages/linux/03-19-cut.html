@@ -4,11 +4,13 @@ title: Cut
 permalink: /linux/cut/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, cut, columns, csv, text]
+gnu: coreutils
+keywords: [linux, cut, columns, csv, text, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Cut</h1>
+  {% include gnu.html %}
   <p><code>cut</code> extracts parts of each line: selected fields separated by a delimiter, or selected characters. It is useful for picking columns out of CSV files and other structured text.</p>
   <h2>Cut fields</h2>
   <p><code>-d</code> sets the delimiter and <code>-f</code> chooses which fields to keep. This prints the user names from <code>/etc/passwd</code>, where fields are separated by <code>:</code>.</p>

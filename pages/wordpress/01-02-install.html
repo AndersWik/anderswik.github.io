@@ -1,0 +1,52 @@
+---
+layout: default
+title: Install
+permalink: /wordpress/install/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [wordpress, install, download, database, wp-config, salt, keys, table prefix]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Install</h1>
+  <p>WordPress needs a web server (Apache or nginx), PHP and a MySQL or MariaDB database.</p>
+  <h2>Download</h2>
+  <pre><code class="language-bash">$ cd /var/www
+$ wget https://wordpress.org/latest.tar.gz
+$ tar -xzf latest.tar.gz</code></pre>
+  <p>This gives a <code>wordpress</code> folder. Point the web server's document root to it, or move the files to the document root.</p>
+  <h2>Create a database</h2>
+  <p>Create a database and a user that only has access to that database. Log in with <code>mysql -u root -p</code> and run:</p>
+  <pre><code class="language-sql">CREATE DATABASE wordpress CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'wordpress'@'localhost' IDENTIFIED BY 'a-strong-password';
+GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'localhost';
+FLUSH PRIVILEGES;</code></pre>
+  <p><code>utf8mb4</code> can store every Unicode character, emoji included.</p>
+  <h2>wp-config.php</h2>
+  <p>Copy the sample file and add the database login.</p>
+  <pre><code class="language-bash">$ cd wordpress
+$ cp wp-config-sample.php wp-config.php
+$ nano wp-config.php</code></pre>
+  <pre><code class="language-php">define( 'DB_NAME', 'wordpress' );
+define( 'DB_USER', 'wordpress' );
+define( 'DB_PASSWORD', 'a-strong-password' );
+define( 'DB_HOST', 'localhost' );</code></pre>
+  <p>Replace the eight keys and salts with random values from <a href="https://api.wordpress.org/secret-key/1.1/salt/">api.wordpress.org/secret-key/1.1/salt/</a>. They are used to sign the login cookies. Changing them logs out every user.</p>
+  <p>The table prefix can be changed if several sites share one database.</p>
+  <pre><code class="language-php">$table_prefix = 'wp_';</code></pre>
+  <h2>Run the installer</h2>
+  <p>Open the site in a browser. WordPress finds the empty database and asks for the site title, an admin user name and a password. When it is done, log in at <code>/wp-admin/</code>.</p>
+  <h2>File permissions</h2>
+  <p>The web server has to be able to write to <code>wp-content</code> to upload images and install plugins and updates.</p>
+  <pre><code class="language-bash">$ sudo chown -R www-data:www-data /var/www/wordpress/wp-content</code></pre>
+  <h2>More about installing</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/advanced-administration/before-install/howto-install/">How to install WordPress</a></li>
+    <li><a href="https://developer.wordpress.org/advanced-administration/wordpress/wp-config/">Editing wp-config.php</a></li>
+    <li>The <a href="/wordpress/wp-cli/">WP-CLI</a> page does the same from the command line</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

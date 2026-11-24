@@ -1,0 +1,38 @@
+---
+layout: default
+title: HTML
+permalink: /html/html/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [html, introduction, markup, browser, tags]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>HTML</h1>
+  <p>HTML (HyperText Markup Language) describes the content of a web page: which text is a heading, which is a paragraph, where a link goes and where an image is. The browser reads the HTML and shows the page.</p>
+  <p>HTML is written with <strong>tags</strong> in angle brackets. Most tags come in pairs around the content they describe:</p>
+  <pre><code class="language-html">&lt;h1&gt;My first heading&lt;/h1&gt;
+&lt;p&gt;This is a paragraph with a &lt;a href="/html/"&gt;link&lt;/a&gt;.&lt;/p&gt;</code></pre>
+  <h2>HTML, CSS and JavaScript</h2>
+  <p>A web page is usually made of three languages, each with its own job:</p>
+  <ul>
+    <li><strong>HTML</strong> is the content and its structure.</li>
+    <li><strong>CSS</strong> is how it looks: colors, fonts, sizes and layout.</li>
+    <li><strong>JavaScript</strong> is what it does: things that change when you click, type or wait.</li>
+  </ul>
+  <p>These notes are about HTML. They show a little CSS, so you can see how the two work together.</p>
+  <h2>Versions</h2>
+  <p>The HTML used today is often called HTML5. It is a "living standard" from WHATWG: it is updated all the time, and there are no new version numbers. All modern browsers follow it.</p>
+  <h2>View the HTML of a page</h2>
+  <p>Right-click on any web page and choose <strong>View Page Source</strong> to see its HTML, or press <code>Ctrl</code> + <code>U</code>. <strong>Inspect</strong> (<code>F12</code>) opens the developer tools, where you can see the HTML as the browser understands it, and change it to try things.</p>
+  <h2>More about HTML</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML">HTML on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference">HTML reference on MDN</a>: every element and attribute</li>
+    <li><a href="https://html.spec.whatwg.org/multipage/">The HTML standard</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

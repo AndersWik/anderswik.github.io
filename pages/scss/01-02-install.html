@@ -1,0 +1,44 @@
+---
+layout: default
+title: Install
+permalink: /scss/install/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [scss, sass, install, npm, dart sass, homebrew, ruby-sass, sassc, version]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Install</h1>
+  <p>Install Dart Sass, the current Sass compiler. It gives the command <code>sass</code>.</p>
+  <h2>With npm</h2>
+  <p>With <a href="https://nodejs.org">Node.js</a> installed, install Sass for the whole computer:</p>
+  <pre><code class="language-bash">$ npm install -g sass</code></pre>
+  <p>Or for one project only, which is better when several people work on it, since everyone gets the same version from <code>package.json</code>.</p>
+  <pre><code class="language-bash">$ npm install --save-dev sass
+$ npx sass --version</code></pre>
+  <h2>Without Node.js</h2>
+  <p>Download the standalone version for Linux, macOS or Windows from the <a href="https://github.com/sass/dart-sass/releases">Dart Sass releases</a>, unpack it and put the folder in the <code>PATH</code>.</p>
+  <pre><code class="language-bash">$ tar -xzf dart-sass-*-linux-x64.tar.gz
+$ sudo mv dart-sass /opt/
+$ echo 'export PATH="/opt/dart-sass:$PATH"' &gt;&gt; ~/.bashrc
+$ source ~/.bashrc</code></pre>
+  <h2>macOS</h2>
+  <pre><code class="language-bash">$ brew install sass/sass/sass</code></pre>
+  <h2>Check the version</h2>
+  <pre><code class="language-bash">$ sass --version
+1.83.0</code></pre>
+  <p>The version should be a number like <code>1.83.0</code>. If it ends with <code>compiled with dart2js</code> it is the npm version, which works the same but is a little slower.</p>
+  <h2>The old packages</h2>
+  <p>On Debian and Ubuntu, <code>sudo apt install ruby-sass</code> installs Ruby Sass, which has not been updated since 2019. It does not understand <code>@use</code>, <code>math.div()</code> and the other newer features in these notes. Remove it, so its <code>sass</code> command does not hide the new one.</p>
+  <pre><code class="language-bash">$ sudo apt remove ruby-sass
+$ which sass</code></pre>
+  <h2>More about installing</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/install/">Install Sass</a></li>
+    <li><a href="https://github.com/sass/dart-sass">Dart Sass on GitHub</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

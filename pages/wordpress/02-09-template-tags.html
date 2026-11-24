@@ -1,0 +1,77 @@
+---
+layout: default
+title: Template tags
+permalink: /wordpress/template-tags/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, post functions, template tags, the_title, the_time, the_date, the_content, the_author, get_the_author_meta, get_author_posts_url, get_the_category, get_category_link, the_category, the_tags, date format]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Template tags</h1>
+  <p>Template tags are the functions that print information about the current post in <a href="/wordpress/the-loop/">the loop</a>. Most of them have two forms. <code>the_title()</code> prints the value, <code>get_the_title()</code> returns it.</p>
+  <h2>Title and content</h2>
+  <pre><code class="language-php">&lt;?php the_title(); ?&gt;      &lt;!-- Title --&gt;
+&lt;?php the_content(); ?&gt;    &lt;!-- The whole content --&gt;
+&lt;?php the_excerpt(); ?&gt;    &lt;!-- A summary --&gt;
+&lt;?php the_permalink(); ?&gt;  &lt;!-- URL of the post --&gt;
+&lt;?php the_ID(); ?&gt;         &lt;!-- ID of the post --&gt;</code></pre>
+  <h2>Date and time</h2>
+  <p><code>the_time()</code> prints when the post was published. It takes a <a href="https://www.php.net/manual/en/datetime.format.php">PHP date format</a>.</p>
+  <pre><code class="language-php">&lt;?php the_time( 'F j, Y' ); ?&gt;   &lt;!-- November 21, 2026 --&gt;
+&lt;?php the_time( 'Y-m-d' ); ?&gt;    &lt;!-- 2026-11-21 --&gt;
+&lt;?php the_time( 'H:i' ); ?&gt;      &lt;!-- 14:05 --&gt;
+&lt;?php the_time(); ?&gt;             &lt;!-- Time format from Settings → General --&gt;</code></pre>
+  <p><code>the_date()</code> looks the same, but it only prints the date for the first of several posts published on the same day. It is made for lists that are grouped by day. To always show the date use <code>the_time()</code> or <code>echo get_the_date();</code>.</p>
+  <p>A <code>&lt;time&gt;</code> element with a machine readable date:</p>
+  <pre><code class="language-php">&lt;time datetime="&lt;?php echo esc_attr( get_the_date( 'c' ) ); ?&gt;"&gt;
+  &lt;?php echo esc_html( get_the_date() ); ?&gt;
+&lt;/time&gt;</code></pre>
+  <h2>Author</h2>
+  <pre><code class="language-php">&lt;?php the_author(); ?&gt;                              &lt;!-- Display name --&gt;
+&lt;?php the_author_meta( 'description' ); ?&gt;          &lt;!-- Biographical info --&gt;
+&lt;?php echo esc_html( get_the_author_meta( 'user_email' ) ); ?&gt;</code></pre>
+  <p><code>get_the_author_meta()</code> returns a field from the author's profile, like <code>ID</code>, <code>display_name</code>, <code>first_name</code>, <code>user_url</code> or <code>description</code>.</p>
+  <p>A link to the author's archive needs the author's ID:</p>
+  <pre><code class="language-php">&lt;?php $author_id = get_the_author_meta( 'ID' ); ?&gt;
+&lt;a href="&lt;?php echo esc_url( get_author_posts_url( $author_id ) ); ?&gt;"&gt;
+  &lt;?php the_author(); ?&gt;
+&lt;/a&gt;</code></pre>
+  <p><code>the_author_posts_link()</code> prints the same link in one call.</p>
+  <h2>Categories</h2>
+  <p><code>the_category()</code> prints links to the categories of the post, with a separator.</p>
+  <pre><code class="language-php">&lt;?php the_category( ', ' ); ?&gt;</code></pre>
+  <p>For our own HTML, <code>get_the_category()</code> returns an array of category objects, one for each category of the post.</p>
+  <pre><code class="language-php">&lt;?php
+$categories = get_the_category();
+
+$categories[0]-&gt;term_id;  // 4
+$categories[0]-&gt;name;     // News
+$categories[0]-&gt;slug;     // news</code></pre>
+  <p>The objects also have the older names <code>cat_ID</code> and <code>cat_name</code>. A link to the first category:</p>
+  <pre><code class="language-php">&lt;?php $categories = get_the_category(); ?&gt;
+&lt;?php if ( $categories ) : ?&gt;
+  &lt;?php $category = $categories[0]; ?&gt;
+  &lt;a href="&lt;?php echo esc_url( get_category_link( $category-&gt;term_id ) ); ?&gt;"&gt;
+    &lt;?php echo esc_html( $category-&gt;name ); ?&gt;
+  &lt;/a&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <p>A post always has at least one category, but check the array anyway. On a page, or a custom post type without categories, it is empty and <code>$categories[0]</code> gives a warning.</p>
+  <h2>Tags</h2>
+  <pre><code class="language-php">&lt;?php the_tags( 'Tags: ', ', ' ); ?&gt;   &lt;!-- Tags: php, wordpress --&gt;
+&lt;?php $tags = get_the_tags(); ?&gt;       &lt;!-- Array of tags, or false --&gt;</code></pre>
+  <h2>Edit link</h2>
+  <p><code>edit_post_link()</code> prints a link to edit the post, only for users that are allowed to edit it.</p>
+  <pre><code class="language-php">&lt;?php edit_post_link( 'Edit' ); ?&gt;</code></pre>
+  <h2>More about template tags</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/basics/template-tags/">Template tags</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/get_the_author_meta/">get_the_author_meta()</a>, with all the fields</li>
+    <li><a href="https://developer.wordpress.org/reference/functions/get_the_category/">get_the_category()</a></li>
+    <li><a href="https://wordpress.org/documentation/article/customize-date-and-time-format/">Date and time format</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

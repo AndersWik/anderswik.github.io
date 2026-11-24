@@ -352,16 +352,19 @@ body > header {
 	}
 }
 
-// The games page shows a small screenshot of each game instead of an icon.
-.games {
-	max-width: 820px;
-
+// Space between the categories on the notes and games pages.
+.notes, .games {
 	.category-title {
 		margin-top: 2.5rem;
 	}
 	.category-title:first-child {
 		margin-top: 0;
 	}
+}
+
+// The games page shows a small screenshot of each game instead of an icon.
+.games {
+	max-width: 820px;
 
 	.badge-card {
 		width: 175px;
@@ -560,7 +563,7 @@ footer {
 // Dark code blocks for the tutorials and notes. The colors come from
 // _includes/code-highlight.html, which wraps words in <span class="tok-...">
 // when the page loads. Add new sections here and in _layouts/default.html.
-.tutorials, .linux, .markdown, .git, .vagrant, .mysql, .php, .latex, .pwa, .firefox-plugins, .regular-expressions {
+.tutorials, .linux, .markdown, .git, .vagrant, .mysql, .php, .latex, .pwa, .firefox-plugins, .regular-expressions, .strudel, .html, .css, .wordpress, .scss {
 	pre {
 		background-color: #1b1d21;
 		color: #e6e6e6;
@@ -606,6 +609,31 @@ footer {
 		background-color: #ffe58f;
 		padding: 0 1px;
 		border-radius: 3px;
+	}
+}
+
+//</editor-fold>
+
+///////////////////////////////////////////////////
+//<editor-fold desc="-- GNU tag --">
+///////////////////////////////////////////////////
+
+// Shown under the title of pages about GNU tools, see _includes/gnu.html.
+.gnu-tool {
+	color: $color-muted;
+	font-size: .9rem;
+
+	.gnu-tag {
+		display: inline-block;
+		margin-right: .4rem;
+		padding: .1rem .5rem;
+		border: 1px solid $color-accent-dark;
+		border-radius: 999px;
+		color: $color-accent-dark;
+		font-size: .75rem;
+		font-weight: 700;
+		letter-spacing: .05em;
+		vertical-align: .1em;
 	}
 }
 

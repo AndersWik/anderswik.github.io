@@ -1,0 +1,79 @@
+---
+layout: default
+title: Custom post types
+permalink: /wordpress/custom-post-types/
+chapter: "03"
+chapter_title: "Plugins"
+keywords: [wordpress, custom post types, register_post_type, register_taxonomy, archive, single-book.php, archive-book.php, flush_rewrite_rules, show_in_rest]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Custom post types</h1>
+  <p>Posts and pages are two post types. A custom post type is our own kind of content, like books, products or events, with its own menu in the dashboard and its own URLs.</p>
+  <h2>Register a post type</h2>
+  <p>Register the post type on the <code>init</code> action, in a <a href="/wordpress/plugin/">plugin</a>, so the content does not disappear from the dashboard when the theme is changed.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_register_book() {
+  register_post_type( 'book', array(
+    'labels' =&gt; array(
+      'name'          =&gt; 'Books',
+      'singular_name' =&gt; 'Book',
+      'add_new_item'  =&gt; 'Add new book',
+    ),
+    'public'       =&gt; true,
+    'has_archive'  =&gt; true,                 // A list of all books at /books/
+    'rewrite'      =&gt; array( 'slug' =&gt; 'books' ),
+    'menu_icon'    =&gt; 'dashicons-book',
+    'supports'     =&gt; array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+    'show_in_rest' =&gt; true,                 // Use the block editor
+  ) );
+}
+
+add_action( 'init', 'nerdy_register_book' );</code></pre>
+  <ul>
+    <li>The name, <code>book</code>, is saved in the database. It can be at most 20 characters, lower case, without spaces. Do not change it later.</li>
+    <li><code>supports</code> decides which boxes are shown in the editor.</li>
+    <li>Without <code>show_in_rest</code> the old classic editor is used.</li>
+  </ul>
+  <h2>The URLs</h2>
+  <p>WordPress keeps a list of URL patterns, the rewrite rules. The new <code>/books/</code> URLs are not in it until it is made again. Go to Settings → Permalinks and click Save, or do it when the plugin is activated.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_books_activate() {
+  nerdy_register_book();
+  flush_rewrite_rules();
+}
+
+register_activation_hook( __FILE__, 'nerdy_books_activate' );</code></pre>
+  <p>Do not call <code>flush_rewrite_rules()</code> on every page load. It is slow.</p>
+  <h2>Templates</h2>
+  <p>The <a href="/wordpress/template-hierarchy/">template hierarchy</a> has templates for each post type.</p>
+  <ul>
+    <li><code>single-book.php</code>: one book, then <code>single.php</code>.</li>
+    <li><code>archive-book.php</code>: the list at <code>/books/</code>, then <code>archive.php</code>.</li>
+  </ul>
+  <p>Books are not shown in the normal blog loop. Use <a href="/wordpress/custom-queries/">WP_Query</a> with <code>'post_type' =&gt; 'book'</code> to show them on another page.</p>
+  <h2>Taxonomies</h2>
+  <p>Categories and tags are taxonomies. A post type can have its own, like a genre for books.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_register_genre() {
+  register_taxonomy( 'genre', 'book', array(
+    'labels'       =&gt; array( 'name' =&gt; 'Genres', 'singular_name' =&gt; 'Genre' ),
+    'hierarchical' =&gt; true,         // Like categories. false is like tags
+    'rewrite'      =&gt; array( 'slug' =&gt; 'genre' ),
+    'show_in_rest' =&gt; true,
+  ) );
+}
+
+add_action( 'init', 'nerdy_register_genre' );</code></pre>
+  <p>The genres of a book are printed with <code>the_terms( get_the_ID(), 'genre', 'Genre: ', ', ' );</code>.</p>
+  <h2>More about custom post types</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/plugins/post-types/">Post types</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/register_post_type/">register_post_type()</a></li>
+    <li><a href="https://developer.wordpress.org/resource/dashicons/">Dashicons</a>, icons for the menu</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

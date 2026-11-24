@@ -4,11 +4,13 @@ title: Touch
 permalink: /linux/touch/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, touch, create file, timestamp, files]
+gnu: coreutils
+keywords: [linux, touch, create file, timestamp, files, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Touch</h1>
+  {% include gnu.html %}
   <p><code>touch</code> updates the access and modification time of a file. If the file does not exist it creates a new, empty file, which is what it is most often used for.</p>
   <h2>Create an empty file</h2>
   <pre><code class="language-bash">$ touch notes.txt</code></pre>

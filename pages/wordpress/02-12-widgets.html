@@ -1,0 +1,55 @@
+---
+layout: default
+title: Widgets and sidebars
+permalink: /wordpress/widgets/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, widgets, sidebar, sidebar.php, register_sidebar, dynamic_sidebar, is_active_sidebar, get_sidebar, widgets_init]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Widgets and sidebars</h1>
+  <p>A sidebar, or widget area, is a place in the theme where the editor can add blocks or widgets, like a search box or a list of the latest posts, under Appearance → Widgets. It does not have to be on the side, a footer with three columns is often three widget areas.</p>
+  <h2>Register a widget area</h2>
+  <p>In <a href="/wordpress/functions/">functions.php</a>, on the <code>widgets_init</code> action.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_widgets() {
+  register_sidebar( array(
+    'name'          =&gt; 'Sidebar',
+    'id'            =&gt; 'sidebar-1',
+    'description'   =&gt; 'Shown next to posts and pages.',
+    'before_widget' =&gt; '&lt;section id="%1$s" class="widget %2$s"&gt;',
+    'after_widget'  =&gt; '&lt;/section&gt;',
+    'before_title'  =&gt; '&lt;h2 class="widget-title"&gt;',
+    'after_title'   =&gt; '&lt;/h2&gt;',
+  ) );
+}
+
+add_action( 'widgets_init', 'nerdy_widgets' );</code></pre>
+  <p><code>before_widget</code> and <code>after_widget</code> is the HTML around each widget. WordPress replaces <code>%1$s</code> with the widget's ID and <code>%2$s</code> with its class.</p>
+  <h2>Show the widget area</h2>
+  <p>Create <code>sidebar.php</code> in the theme. <code>is_active_sidebar()</code> checks that it has any widgets, so an empty <code>&lt;aside&gt;</code> is not printed.</p>
+  <pre><code class="language-php">&lt;?php if ( is_active_sidebar( 'sidebar-1' ) ) : ?&gt;
+  &lt;aside class="sidebar"&gt;
+    &lt;?php dynamic_sidebar( 'sidebar-1' ); ?&gt;
+  &lt;/aside&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <p>Load it in a template with <code>get_sidebar()</code>, the same way as <code>get_header()</code>.</p>
+  <pre><code class="language-php">&lt;?php get_header(); ?&gt;
+&lt;div class="content"&gt;
+  &lt;?php while ( have_posts() ) : the_post(); ?&gt;
+    &lt;?php the_content(); ?&gt;
+  &lt;?php endwhile; ?&gt;
+&lt;/div&gt;
+&lt;?php get_sidebar(); ?&gt;
+&lt;?php get_footer(); ?&gt;</code></pre>
+  <h2>More about widgets</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/functionality/sidebars/">Sidebars</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/register_sidebar/">register_sidebar()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

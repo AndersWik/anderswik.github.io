@@ -1,0 +1,50 @@
+---
+layout: default
+title: Cascade and specificity
+permalink: /css/cascade-and-specificity/
+chapter: "03"
+chapter_title: "The cascade"
+keywords: [css, cascade, specificity, order, important, "!important", which rule wins]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Cascade and specificity</h1>
+  <p>When several rules set the same property on the same element, the cascade decides which one wins.</p>
+  <h2>1. Importance</h2>
+  <p>A declaration with <code>!important</code> wins over normal declarations:</p>
+  <pre><code class="language-css">p { color: red !important; }</code></pre>
+  <p>Avoid it. The only way to override it is another <code>!important</code>, and soon everything has one.</p>
+  <h2>2. Specificity</h2>
+  <p>The more specific selector wins. Specificity is counted in three columns, id, class and type, and compared from the left:</p>
+  <pre><code class="language-css">p { }                  /* 0-0-1 */
+.note { }              /* 0-1-0 */
+p.note { }             /* 0-1-1 */
+#intro { }             /* 1-0-0 */
+#intro .note p { }     /* 1-1-1 */</code></pre>
+  <ul>
+    <li><strong>id</strong>: each <code>#id</code>.</li>
+    <li><strong>class</strong>: each class, attribute selector and pseudo-class.</li>
+    <li><strong>type</strong>: each element name and pseudo-element.</li>
+  </ul>
+  <p><code>1-0-0</code> wins over <code>0-9-9</code>: one id is stronger than any number of classes. A <code>style</code> attribute wins over all of them.</p>
+  <h2>3. Order</h2>
+  <p>If the specificity is the same, the rule that comes last wins:</p>
+  <pre><code class="language-css">.button { background-color: blue; }
+.button { background-color: green; }   /* this one wins */</code></pre>
+  <h2>Tips</h2>
+  <ul>
+    <li>Use classes, so most rules have the same specificity and the order decides.</li>
+    <li>If a rule doesn't work, the developer tools show it crossed out, and which rule won.</li>
+    <li><code>:where()</code> has specificity 0, which makes rules that are easy to override.</li>
+  </ul>
+  <h2>More about the cascade</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Specificity">Specificity on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Introduction">The cascade on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/important"><code>!important</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

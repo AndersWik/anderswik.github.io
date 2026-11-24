@@ -1,0 +1,54 @@
+---
+layout: default
+title: Flexbox
+permalink: /css/flexbox/
+chapter: "08"
+chapter_title: "Layout"
+keywords: [css, flexbox, flex, justify-content, align-items, flex-direction, flex-wrap, gap, flex-grow]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Flexbox</h1>
+  <p>Flexbox places elements in a row or a column, and shares the space between them. It is the tool for menus, toolbars, cards in a row and centering.</p>
+  <pre><code class="language-css">.menu {
+  display: flex;
+  gap: 16px;                    /* space between the items */
+  justify-content: space-between;
+  align-items: center;
+}</code></pre>
+  <pre><code class="language-html">&lt;nav class="menu"&gt;
+  &lt;a href="/"&gt;Logo&lt;/a&gt;
+  &lt;a href="/about/"&gt;About&lt;/a&gt;
+  &lt;a href="/contact/"&gt;Contact&lt;/a&gt;
+&lt;/nav&gt;</code></pre>
+  <p><code>display: flex</code> goes on the <strong>container</strong>. Its children become flex items.</p>
+  <h2>Direction</h2>
+  <ul>
+    <li><code>flex-direction: row</code>, the default, places the items across.</li>
+    <li><code>flex-direction: column</code> places them below each other.</li>
+  </ul>
+  <h2>Along the direction: justify-content</h2>
+  <p><code>flex-start</code>, <code>center</code>, <code>flex-end</code>, <code>space-between</code> (space only between the items) and <code>space-around</code>.</p>
+  <h2>Across the direction: align-items</h2>
+  <p><code>stretch</code> (the default, as tall as the tallest), <code>center</code>, <code>flex-start</code>, <code>flex-end</code> and <code>baseline</code>.</p>
+  <h2>Wrap</h2>
+  <p>By default, all items stay on one line. <code>flex-wrap: wrap</code> lets them continue on a new line:</p>
+  <pre><code class="language-css">.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}</code></pre>
+  <h2>The size of the items</h2>
+  <pre><code class="language-css">.search input { flex: 1; }       /* take all the free space */
+.sidebar { flex: 0 0 250px; }    /* always 250px: don't grow, don't shrink */</code></pre>
+  <p><code>flex: 1</code> on several items shares the space equally between them.</p>
+  <h2>More about flexbox</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Flexbox">Flexbox on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Flexible_box_layout/Basic_concepts">Basic concepts of flexbox on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

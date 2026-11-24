@@ -1,0 +1,44 @@
+---
+layout: default
+title: Attribute selectors
+permalink: /css/attribute-selectors/
+chapter: "02"
+chapter_title: "Selectors"
+keywords: [css, attribute selectors, "[attr]", starts with, ends with, contains]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Attribute selectors</h1>
+  <p>An attribute selector selects elements by their attributes and values, written in square brackets.</p>
+  <pre><code class="language-css">[disabled] { }               /* has the attribute */
+[type="email"] { }           /* the value is exactly "email" */
+a[href^="https"] { }         /* the value starts with "https" */
+a[href$=".pdf"] { }          /* ends with ".pdf" */
+a[href*="example"] { }       /* contains "example" */
+[lang|="en"] { }             /* is "en" or starts with "en-" */</code></pre>
+  <h2>Examples</h2>
+  <p>Mark links to PDF files, and links to other sites:</p>
+  <pre><code class="language-css">a[href$=".pdf"]::after {
+  content: " (PDF)";
+}
+
+a[href^="http"]:not([href*="anderswik.se"])::after {
+  content: " ↗";
+}</code></pre>
+  <p>Style the text fields of a form, but not the checkboxes:</p>
+  <pre><code class="language-css">input[type="text"],
+input[type="email"] {
+  border: 1px solid #ccc;
+  padding: 6px;
+}</code></pre>
+  <h2>Ignore case</h2>
+  <p>Add <code> i</code> before the closing bracket: <code>a[href$=".pdf" i]</code> also matches <code>.PDF</code>.</p>
+  <h2>More about attribute selectors</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/Attribute_selectors">Attribute selectors on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

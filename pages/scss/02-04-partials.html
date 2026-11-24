@@ -1,0 +1,98 @@
+---
+layout: default
+title: Partials and @use
+permalink: /scss/partials/
+chapter: "02"
+chapter_title: "Basics"
+keywords: [scss, sass, partials, "@use", "@forward", "@import", modules, namespace, with, files, underscore, index]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Partials and @use</h1>
+  <p>Sass can split the styles into many small files and join them into one CSS file. The browser then only has to download one file.</p>
+  <h2>Partials</h2>
+  <p>A file whose name starts with <code>_</code> is a partial. It is meant to be loaded by other files and is not compiled to its own CSS file.</p>
+  <pre><code class="language-bash">scss/
+├── style.scss          # Compiled to css/style.css
+├── _variables.scss
+├── _buttons.scss
+└── _header.scss</code></pre>
+  <h2>@use</h2>
+  <p><code>@use</code> loads a file. Leave out the <code>_</code> and the <code>.scss</code>. All <code>@use</code> rules have to be at the top of the file.</p>
+  <pre><code class="language-scss">// style.scss
+@use 'variables';
+@use 'buttons';
+@use 'header';</code></pre>
+  <p>The CSS from each file is added where the <code>@use</code> is. A file is only included once, even if many files <code>@use</code> it.</p>
+  <h2>Namespaces</h2>
+  <p>Variables, mixins and functions from a file loaded with <code>@use</code> are reached through a namespace, which is the last part of the file name, followed by a dot.</p>
+  <pre><code class="language-scss">// _variables.scss
+$color-accent: #e8b455;
+$radius: 12px;</code></pre>
+  <pre><code class="language-scss">// _buttons.scss
+@use 'variables';
+
+.button {
+  background: variables.$color-accent;
+  border-radius: variables.$radius;
+}</code></pre>
+  <p>Each file has to <code>@use</code> what it needs itself. That a file is loaded in <code>style.scss</code> does not make its variables available in the other files. This way it is always clear where a variable comes from.</p>
+  <p>A long namespace can be made shorter with <code>as</code>, or removed with <code>as *</code>.</p>
+  <pre><code class="language-scss">@use 'variables' as v;
+@use 'mixins' as *;
+
+.button {
+  color: v.$color-accent;
+  @include rounded;   // From mixins, without a namespace
+}</code></pre>
+  <h2>Private members</h2>
+  <p>Variables, mixins and functions that start with <code>-</code> or <code>_</code> are private. They can only be used in their own file.</p>
+  <pre><code class="language-scss">$-base-size: 16px;   // Not available in other files</code></pre>
+  <h2>Configure a file</h2>
+  <p>Variables with <a href="/scss/variables/"><code>!default</code></a> can be set when the file is loaded, with <code>with</code>.</p>
+  <pre><code class="language-scss">// _theme.scss
+$color-accent: blue !default;
+$radius: 4px !default;
+
+.button {
+  background: $color-accent;
+  border-radius: $radius;
+}</code></pre>
+  <pre><code class="language-scss">// style.scss
+@use 'theme' with (
+  $color-accent: #e8b455,
+  $radius: 12px
+);</code></pre>
+  <p>This is how libraries like <a href="https://getbootstrap.com/docs/5.3/customize/sass/">Bootstrap</a> let you change their colors without changing their files.</p>
+  <h2>Folders and index files</h2>
+  <p>A folder can have an <code>_index.scss</code>, which is loaded when the folder is used.</p>
+  <pre><code class="language-bash">scss/
+├── style.scss
+└── components/
+    ├── _index.scss
+    ├── _buttons.scss
+    └── _cards.scss</code></pre>
+  <pre><code class="language-scss">// components/_index.scss
+@forward 'buttons';
+@forward 'cards';</code></pre>
+  <pre><code class="language-scss">// style.scss
+@use 'components';</code></pre>
+  <p><code>@forward</code> passes on the variables, mixins and functions of a file, so whoever loads <code>components</code> can use them too, as <code>components.$something</code>. It is used to collect many files behind one <code>@use</code>.</p>
+  <h2>@import</h2>
+  <p>Older code uses <code>@import</code> instead of <code>@use</code>.</p>
+  <pre><code class="language-scss">@import 'variables';
+@import 'buttons';</code></pre>
+  <p><code>@import</code> makes every variable available everywhere, with no namespace, and includes a file again each time it is imported. It is deprecated since Dart Sass 1.80 and will be removed in Dart Sass 3. Replace it with <code>@use</code>. The <a href="https://sass-lang.com/documentation/cli/migrator/">Sass migrator</a> can do it automatically.</p>
+  <pre><code class="language-bash">$ npx sass-migrator module --migrate-deps scss/style.scss</code></pre>
+  <p>A plain <code>@import url(...)</code> of a CSS file, like a Google font, is still fine. Sass leaves it as it is for the browser.</p>
+  <h2>More about partials and modules</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/at-rules/use/">@use</a></li>
+    <li><a href="https://sass-lang.com/documentation/at-rules/forward/">@forward</a></li>
+    <li><a href="https://sass-lang.com/documentation/at-rules/import/">@import</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

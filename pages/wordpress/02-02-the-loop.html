@@ -1,0 +1,84 @@
+---
+layout: default
+title: The loop
+permalink: /wordpress/the-loop/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, loop, have_posts, the_post, the_title, the_content, the_excerpt, get_the_excerpt, the_permalink, bloginfo, get_bloginfo]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>The loop</h1>
+  <p>When a page is requested, WordPress finds the posts that belong to the URL before the template runs. For the blog page it is the latest posts, for a single post it is that one post. The loop goes through these posts and prints them.</p>
+  <h2>Site name</h2>
+  <p><code>bloginfo()</code> prints information about the site. Without a parameter it prints the site name, set under Settings → General.</p>
+  <pre><code class="language-php">&lt;h1&gt;&lt;?php bloginfo( 'name' ); ?&gt;&lt;/h1&gt;</code></pre>
+  <p><code>bloginfo()</code> prints the value itself, so it does not need <code>echo</code>. <code>get_bloginfo()</code> returns the value instead, to use it in PHP.</p>
+  <pre><code class="language-php">&lt;?php
+$name = get_bloginfo( 'name' );
+$description = get_bloginfo( 'description' ); // The tagline</code></pre>
+  <p>Most template functions come in these two forms: <code>the_title()</code> prints, <code>get_the_title()</code> returns.</p>
+  <h2>The loop</h2>
+  <pre><code class="language-php">&lt;h1&gt;&lt;?php bloginfo( 'name' ); ?&gt;&lt;/h1&gt;
+&lt;?php if ( have_posts() ) : ?&gt;
+  &lt;?php while ( have_posts() ) : ?&gt;
+    &lt;?php the_post(); ?&gt;
+    &lt;h2&gt;
+      &lt;a href="&lt;?php the_permalink(); ?&gt;"&gt;
+        &lt;?php the_title(); ?&gt;
+      &lt;/a&gt;
+    &lt;/h2&gt;
+    &lt;?php the_content(); ?&gt;
+  &lt;?php endwhile; ?&gt;
+&lt;?php else : ?&gt;
+  &lt;p&gt;No posts found.&lt;/p&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <ul>
+    <li><code>have_posts()</code> returns <code>true</code> while there are posts left.</li>
+    <li><code>the_post()</code> moves to the next post and sets it up, so the functions below know which post to print. Always call it first in the loop.</li>
+    <li><code>the_permalink()</code> prints the URL of the post.</li>
+    <li><code>the_title()</code> prints the title.</li>
+    <li><code>the_content()</code> prints the content, with the filters applied that turn blocks and shortcodes into HTML.</li>
+  </ul>
+  <p>The <code>if (): while (): endwhile; endif;</code> form is PHP's alternative syntax. It is easier to read than curly brackets when PHP and HTML are mixed.</p>
+  <h2>Excerpt</h2>
+  <p>On a list of posts it is often better to show a short summary. <code>the_excerpt()</code> prints the excerpt written in the editor, or the first 55 words of the content, inside a <code>&lt;p&gt;</code>.</p>
+  <pre><code class="language-php">&lt;?php while ( have_posts() ) : the_post(); ?&gt;
+  &lt;h2&gt;&lt;a href="&lt;?php the_permalink(); ?&gt;"&gt;&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+  &lt;?php the_excerpt(); ?&gt;
+&lt;?php endwhile; ?&gt;</code></pre>
+  <h3>Our own HTML around the excerpt</h3>
+  <p><code>the_excerpt()</code> adds its own <code>&lt;p&gt;</code>. To choose the HTML ourselves use <code>get_the_excerpt()</code>, which returns the text without the tag. It only returns, so it has to be printed with <code>echo</code>. <code>esc_html()</code> makes sure the text can not break the HTML, see <a href="/wordpress/escaping/">escaping</a>.</p>
+  <pre><code class="language-php">&lt;div class="post_div"&gt;
+  &lt;p class="post_excerpt"&gt;&lt;?php echo esc_html( get_the_excerpt() ); ?&gt;&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+  <h3>Read more link</h3>
+  <p>Link to the post after the excerpt, in the same way as the title.</p>
+  <pre><code class="language-php">&lt;div class="post_div"&gt;
+  &lt;p class="post_excerpt"&gt;
+    &lt;?php echo esc_html( get_the_excerpt() ); ?&gt;
+    &lt;a href="&lt;?php the_permalink(); ?&gt;"&gt;(More...)&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/div&gt;</code></pre>
+  <p>The length and the <code>[…]</code> at the end can be changed with the filters <code>excerpt_length</code> and <code>excerpt_more</code> in <a href="/wordpress/functions/">functions.php</a>.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_excerpt_length( $length ) {
+  return 30; // Words
+}
+add_filter( 'excerpt_length', 'nerdy_excerpt_length' );
+
+function nerdy_excerpt_more( $more ) {
+  return '…';
+}
+add_filter( 'excerpt_more', 'nerdy_excerpt_more' );</code></pre>
+  <h2>More about the loop</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/basics/the-loop/">The loop</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/get_bloginfo/">get_bloginfo()</a>, with all the values it can return</li>
+    <li><a href="https://developer.wordpress.org/reference/functions/the_excerpt/">the_excerpt()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

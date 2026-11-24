@@ -1,0 +1,37 @@
+---
+layout: default
+title: Comments
+permalink: /html/comments/
+chapter: "02"
+chapter_title: "Elements and attributes"
+keywords: [html, comments, comment out, notes]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Comments</h1>
+  <p>A comment is text in the HTML that is not shown on the page. It starts with <code>&lt;!--</code> and ends with <code>--&gt;</code>:</p>
+  <pre><code class="language-html">&lt;!-- The menu starts here --&gt;
+&lt;nav&gt;...&lt;/nav&gt;
+
+&lt;!--
+  A comment can be
+  several lines long.
+--&gt;</code></pre>
+  <h2>Comment out code</h2>
+  <p>Put code inside a comment to hide it without removing it:</p>
+  <pre><code class="language-html">&lt;!-- &lt;p&gt;This paragraph is hidden for now.&lt;/p&gt; --&gt;</code></pre>
+  <h2>Good to know</h2>
+  <ul>
+    <li>Comments are not shown, but everyone can read them with <strong>View Page Source</strong>. Never put passwords or secrets in them.</li>
+    <li>A comment can't be inside another comment. The first <code>--&gt;</code> ends it.</li>
+    <li>In VS Code, <code>Ctrl</code> + <code>/</code> comments out the selected lines.</li>
+  </ul>
+  <h2>More about comments</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Comments">Comments on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

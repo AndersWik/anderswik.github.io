@@ -1,0 +1,45 @@
+---
+layout: default
+title: Margin
+permalink: /css/margin/
+chapter: "05"
+chapter_title: "The box model"
+keywords: [css, margin, auto, center, margin collapse, negative margin]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Margin</h1>
+  <p>Margin is the space outside an element, between it and the elements around it.</p>
+  <pre><code class="language-css">p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}</code></pre>
+  <h2>Shorthand</h2>
+  <p><code>margin</code> sets all four sides at once, clockwise from the top:</p>
+  <pre><code class="language-css">margin: 16px;                /* all four sides */
+margin: 16px 24px;           /* top and bottom, left and right */
+margin: 16px 24px 8px;       /* top, left and right, bottom */
+margin: 16px 24px 8px 0;     /* top, right, bottom, left */</code></pre>
+  <h2>Center a block</h2>
+  <p><code>auto</code> on both sides takes all the free space and centers a block that has a width:</p>
+  <pre><code class="language-css">.page {
+  max-width: 900px;
+  margin: 0 auto;
+}</code></pre>
+  <h2>Margin collapse</h2>
+  <p>When two vertical margins meet, they are not added. The larger one is used:</p>
+  <pre><code class="language-css">h2 { margin-bottom: 24px; }
+p  { margin-top: 16px; }     /* the space between them is 24px, not 40px */</code></pre>
+  <p>This only happens to top and bottom margins of block elements, not in flexbox or grid. Many people only set <code>margin-bottom</code> on text elements, which avoids the problem.</p>
+  <h2>Negative margin</h2>
+  <p>A negative margin pulls the element, or the next one, closer. It is allowed, but makes the layout harder to understand.</p>
+  <h2>More about margin</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/margin"><code>margin</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Box_model/Margin_collapsing">Margin collapsing on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

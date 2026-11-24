@@ -1,0 +1,49 @@
+---
+layout: default
+title: Web fonts
+permalink: /css/web-fonts/
+chapter: "06"
+chapter_title: "Text and fonts"
+keywords: [css, web fonts, font-face, "@font-face", woff2, google fonts, font-display]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Web fonts</h1>
+  <p>A web font is a font file that the browser downloads with the page, so every visitor sees the same font.</p>
+  <h2>Your own font files</h2>
+  <p>Put the files on your site, and describe them with <code>@font-face</code>. Use the <code>woff2</code> format, it is the smallest:</p>
+  <pre><code class="language-css">@font-face {
+  font-family: "Ubuntu";
+  src: url("/fonts/ubuntu-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Ubuntu";
+  src: url("/fonts/ubuntu-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+body {
+  font-family: "Ubuntu", sans-serif;
+}</code></pre>
+  <p>One <code>@font-face</code> per weight and style. With the same <code>font-family</code> name, the browser picks the right file for <code>font-weight: 700</code>.</p>
+  <h2>font-display</h2>
+  <p><code>font-display: swap</code> shows the text in a fallback font at once, and changes it when the web font has loaded. Without it, the text can be invisible for a while.</p>
+  <h2>Google Fonts</h2>
+  <p><a href="https://fonts.google.com/">Google Fonts</a> has many free fonts. Choose a font, and copy the <code>&lt;link&gt;</code> they give you to your <code>&lt;head&gt;</code>. Hosting the files yourself is faster, and sends no data about your visitors to Google.</p>
+  <h2>Keep it fast</h2>
+  <p>Every font file is a download. Use few fonts and few weights, two fonts and three weights is plenty.</p>
+  <h2>More about web fonts</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Text_styling/Web_fonts">Web fonts on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@font-face"><code>@font-face</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@font-face/font-display"><code>font-display</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

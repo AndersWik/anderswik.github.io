@@ -1,0 +1,40 @@
+---
+layout: default
+title: Attributes
+permalink: /html/attributes/
+chapter: "02"
+chapter_title: "Elements and attributes"
+keywords: [html, attributes, value, quotes, lang, title]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Attributes</h1>
+  <p>Attributes give more information about an element. They are written in the start tag, as <code>name="value"</code>:</p>
+  <pre><code class="language-html">&lt;a href="https://example.com" title="Go to example.com"&gt;Example&lt;/a&gt;
+&lt;img src="cat.jpg" alt="A cat" width="300"&gt;</code></pre>
+  <h2>Quotes</h2>
+  <p>Put the value in double quotes. Single quotes work too, and are useful when the value has a double quote in it. Without quotes, the value can't have spaces, so always using quotes is simplest.</p>
+  <h2>Boolean attributes</h2>
+  <p>Some attributes have no value. If they are there, they are on:</p>
+  <pre><code class="language-html">&lt;input type="checkbox" checked&gt;
+&lt;button disabled&gt;Send&lt;/button&gt;</code></pre>
+  <h2>Global attributes</h2>
+  <p>Some attributes work on every element:</p>
+  <ul>
+    <li><code>id</code>, a unique name for the element. See <a href="/html/id/">Id</a>.</li>
+    <li><code>class</code>, one or more class names. See <a href="/html/classes/">Classes</a>.</li>
+    <li><code>style</code>, CSS for this element only. See <a href="/html/add-css/">Add CSS</a>.</li>
+    <li><code>title</code>, extra information, shown as a tooltip.</li>
+    <li><code>lang</code>, the language of the content.</li>
+    <li><code>hidden</code>, hides the element.</li>
+  </ul>
+  <h2>More about attributes</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes">Attributes on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes">Global attributes on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

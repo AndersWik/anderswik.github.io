@@ -1,0 +1,37 @@
+---
+layout: default
+title: Images
+permalink: /html/images/
+chapter: "06"
+chapter_title: "Images and media"
+keywords: [html, images, img, src, alt, width, height, loading, lazy]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Images</h1>
+  <p><code>&lt;img&gt;</code> shows an image. <code>src</code> is the address of the image file, and <code>alt</code> is a text that describes it:</p>
+  <pre><code class="language-html">&lt;img src="cat.jpg" alt="A grey cat sleeping on a sofa" width="600" height="400"&gt;</code></pre>
+  <h2>Alt text</h2>
+  <p><code>alt</code> is read by screen readers, and shown if the image can't load. Describe what the image shows, as you would on the phone. If the image is only decoration, write an empty <code>alt=""</code>, so screen readers skip it.</p>
+  <h2>Width and height</h2>
+  <p>Write the size of the image in <code>width</code> and <code>height</code>. Then the browser saves the space before the image has loaded, and the page doesn't jump. CSS can still make it smaller, as long as the shape stays the same.</p>
+  <h2>Load later</h2>
+  <p><code>loading="lazy"</code> waits with the image until you scroll near it. This makes long pages with many images faster:</p>
+  <pre><code class="language-html">&lt;img src="big-photo.jpg" alt="..." width="1200" height="800" loading="lazy"&gt;</code></pre>
+  <h2>Image with a caption</h2>
+  <pre><code class="language-html">&lt;figure&gt;
+  &lt;img src="chart.png" alt="Sales went up in March" width="600" height="300"&gt;
+  &lt;figcaption&gt;Sales in the first quarter.&lt;/figcaption&gt;
+&lt;/figure&gt;</code></pre>
+  <h2>File types</h2>
+  <p>JPEG for photos, PNG for screenshots and images with sharp edges, SVG for logos and icons, and WebP or AVIF for smaller files of both photos and graphics.</p>
+  <h2>More about images</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/img"><code>&lt;img&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/figure"><code>&lt;figure&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

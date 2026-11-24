@@ -1,0 +1,46 @@
+---
+layout: default
+title: Gradients
+permalink: /css/gradients/
+chapter: "07"
+chapter_title: "Backgrounds and effects"
+keywords: [css, gradients, linear-gradient, radial-gradient, conic-gradient]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Gradients</h1>
+  <p>A gradient is a smooth change between colors. It is used as a <code>background-image</code>.</p>
+  <h2>Linear</h2>
+  <pre><code class="language-css">.a { background-image: linear-gradient(white, lightblue); }            /* top to bottom */
+.b { background-image: linear-gradient(to right, tomato, gold); }      /* left to right */
+.c { background-image: linear-gradient(45deg, navy, purple, tomato); } /* an angle */</code></pre>
+  <h2>Color stops</h2>
+  <p>A position after each color decides where it is. Two colors at the same position give a sharp edge, as in stripes:</p>
+  <pre><code class="language-css">.progress {
+  background-image: linear-gradient(to right, #2e9e5b 60%, #eee 60%);
+}
+
+.stripes {
+  background-image: repeating-linear-gradient(45deg, #eee 0 10px, white 10px 20px);
+}</code></pre>
+  <h2>Radial</h2>
+  <p>From the center and out, as a circle or an ellipse:</p>
+  <pre><code class="language-css">.glow { background-image: radial-gradient(circle, gold, transparent 70%); }</code></pre>
+  <h2>Conic</h2>
+  <p>Around the center, like a pie chart:</p>
+  <pre><code class="language-css">.pie {
+  width: 120px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-image: conic-gradient(tomato 0 40%, gold 40% 70%, #2e9e5b 70%);
+}</code></pre>
+  <h2>More about gradients</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Images/Using_gradients">Using gradients on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/gradient/linear-gradient"><code>linear-gradient()</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

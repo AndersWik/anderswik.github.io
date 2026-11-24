@@ -1,0 +1,56 @@
+---
+layout: default
+title: Compile
+permalink: /scss/compile/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [scss, sass, compile, watch, style, compressed, expanded, source map, no-source-map, load-path, command line]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Compile</h1>
+  <p>The <code>sass</code> command reads an <code>.scss</code> file and writes a <code>.css</code> file. The input comes first and the output second.</p>
+  <pre><code class="language-bash">$ sass scss/style.scss css/style.css</code></pre>
+  <p>Without an output file the CSS is printed in the terminal, which is handy to see what a piece of SCSS becomes.</p>
+  <pre><code class="language-bash">$ sass scss/style.scss</code></pre>
+  <h2>Watch</h2>
+  <p><code>--watch</code> keeps running and compiles the file again every time it, or a file it loads, is saved. Stop it with <code>Ctrl + C</code>.</p>
+  <pre><code class="language-bash">$ sass --watch scss/style.scss css/style.css</code></pre>
+  <p>With <code>input:output</code> pairs, several files, or whole folders, can be compiled at once. Files that start with <code>_</code> are <a href="/scss/partials/">partials</a> and are not compiled to their own CSS file.</p>
+  <pre><code class="language-bash">$ sass --watch scss/dev.scss:css/dev.css scss/print.scss:css/print.css
+$ sass --watch scss:css</code></pre>
+  <h2>Output style</h2>
+  <p><code>--style</code> decides how the CSS looks. <code>expanded</code>, the default, is easy to read. <code>compressed</code> removes all spaces, line breaks and comments to make the file as small as possible. Use it for the live site.</p>
+  <pre><code class="language-bash">$ sass --style=compressed scss/style.scss css/style.css</code></pre>
+  <pre><code class="language-css">nav a{color:#e8b455}nav a:hover{color:#a86a0c}</code></pre>
+  <h2>Source maps</h2>
+  <p>By default Sass also writes <code>style.css.map</code>, a source map. With it, the browser's developer tools show which line in which <code>.scss</code> file a rule came from, instead of the line in the compiled CSS. Turn it off for the live site with <code>--no-source-map</code>.</p>
+  <h2>The full command</h2>
+  <p>For development, watch with source maps:</p>
+  <pre><code class="language-bash">$ sass --watch scss/dev.scss:css/dev.css</code></pre>
+  <p>For the live site, compressed and without a source map:</p>
+  <pre><code class="language-bash">$ sass --style=compressed --no-source-map scss/dev.scss:css/dev.css</code></pre>
+  <p>The same with the old Ruby Sass looked like this. Ruby Sass needed <code>--no-cache</code> to not write a <code>.sass-cache</code> folder. Dart Sass has no cache, so the flag is gone.</p>
+  <pre><code class="language-bash">$ scss --watch --no-cache scss/dev.scss:css/dev.css --style compressed</code></pre>
+  <h2>Load path</h2>
+  <p><code>--load-path</code>, or <code>-I</code>, adds a folder where <code>@use</code> looks for files, for example to load Bootstrap's SCSS from <code>node_modules</code>.</p>
+  <pre><code class="language-bash">$ sass --load-path=node_modules scss/style.scss css/style.css</code></pre>
+  <h2>npm scripts</h2>
+  <p>Save the commands in <code>package.json</code> so nobody has to remember them.</p>
+  <pre><code class="language-json">{
+  "scripts": {
+    "watch": "sass --watch scss/dev.scss:css/dev.css",
+    "build": "sass --style=compressed --no-source-map scss/dev.scss:css/dev.css"
+  }
+}</code></pre>
+  <pre><code class="language-bash">$ npm run watch
+$ npm run build</code></pre>
+  <h2>More about compiling</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/cli/dart-sass/">The sass command</a>, with all the options</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

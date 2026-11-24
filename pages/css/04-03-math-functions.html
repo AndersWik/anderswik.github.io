@@ -1,0 +1,45 @@
+---
+layout: default
+title: Math functions
+permalink: /css/math-functions/
+chapter: "04"
+chapter_title: "Values and units"
+keywords: [css, math functions, calc, min, max, clamp]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Math functions</h1>
+  <p>CSS can calculate values. This is useful when units are mixed, or a size should depend on the screen.</p>
+  <h2>calc()</h2>
+  <pre><code class="language-css">.sidebar-layout main {
+  width: calc(100% - 300px);    /* the width of the parent, minus the sidebar */
+}
+
+.hero {
+  height: calc(100vh - 4rem);   /* the window, minus the header */
+}</code></pre>
+  <p>The <code>+</code> and <code>-</code> need spaces around them: <code>calc(100% - 2rem)</code>, not <code>calc(100%-2rem)</code>.</p>
+  <h2>min() and max()</h2>
+  <p><code>min()</code> uses the smallest of the values, and <code>max()</code> the largest:</p>
+  <pre><code class="language-css">.content {
+  width: min(100%, 800px);      /* 800px, but never wider than the parent */
+}</code></pre>
+  <h2>clamp()</h2>
+  <p><code>clamp(min, preferred, max)</code> keeps a value between a smallest and a largest value. Font sizes that grow with the window, but not too much:</p>
+  <pre><code class="language-css">h1 {
+  font-size: clamp(1.75rem, 4vw + 1rem, 3rem);
+}</code></pre>
+  <h2>Variables</h2>
+  <p>The functions work with <a href="/css/variables/">variables</a>:</p>
+  <pre><code class="language-css">padding: calc(var(--space) * 2);</code></pre>
+  <h2>More about math functions</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/calc"><code>calc()</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/min"><code>min()</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/clamp"><code>clamp()</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

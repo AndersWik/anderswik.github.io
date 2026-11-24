@@ -1,0 +1,48 @@
+---
+layout: default
+title: Colspan and rowspan
+permalink: /html/colspan-and-rowspan/
+chapter: "07"
+chapter_title: "Tables"
+keywords: [html, colspan, rowspan, merge cells]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Colspan and rowspan</h1>
+  <p>A cell can be wider or taller than one cell.</p>
+  <h2>Colspan</h2>
+  <p><code>colspan</code> makes a cell as wide as several columns:</p>
+  <pre><code class="language-html">&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th colspan="2"&gt;Name&lt;/th&gt;
+    &lt;th&gt;Age&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Anna&lt;/td&gt;
+    &lt;td&gt;Svensson&lt;/td&gt;
+    &lt;td&gt;34&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;</code></pre>
+  <h2>Rowspan</h2>
+  <p><code>rowspan</code> makes a cell as tall as several rows:</p>
+  <pre><code class="language-html">&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th rowspan="2"&gt;Monday&lt;/th&gt;
+    &lt;td&gt;Swimming&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Football&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;</code></pre>
+  <p>The second row has only one <code>&lt;td&gt;</code>, because the first column is already filled by the Monday cell.</p>
+  <h2>Good to know</h2>
+  <p>Count the cells: every row must add up to the same number of columns. If a row has too many cells, they stick out to the right of the table.</p>
+  <h2>More about colspan and rowspan</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/td"><code>&lt;td&gt;</code> on MDN</a>, with <code>colspan</code> and <code>rowspan</code></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

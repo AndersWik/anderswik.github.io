@@ -4,11 +4,13 @@ title: Chmod
 permalink: /linux/chmod/
 chapter: "04"
 chapter_title: "Users"
-keywords: [linux, chmod, permissions, execute, files]
+gnu: coreutils
+keywords: [linux, chmod, permissions, execute, files, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Chmod</h1>
+  {% include gnu.html %}
   <p><code>chmod</code> stands for change mode. It changes the permissions of files and directories: who may read (<code>r</code>), write (<code>w</code>) and execute (<code>x</code>) them. Permissions are set for the owner (<code>u</code>), the group (<code>g</code>) and others (<code>o</code>).</p>
   <h2>Make a file executable</h2>
   <pre><code class="language-bash">$ chmod +x script.sh

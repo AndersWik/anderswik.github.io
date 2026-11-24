@@ -1,0 +1,43 @@
+---
+layout: default
+title: Overflow
+permalink: /css/overflow/
+chapter: "08"
+chapter_title: "Layout"
+keywords: [css, overflow, scroll, hidden, auto, overflow-x, overflow-y]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Overflow</h1>
+  <p>Overflow is content that doesn't fit in its box. <code>overflow</code> decides what happens to it:</p>
+  <pre><code class="language-css">.a { overflow: visible; }  /* the default: it sticks out of the box */
+.b { overflow: hidden; }   /* it is cut off */
+.c { overflow: scroll; }   /* scroll bars, always */
+.d { overflow: auto; }     /* scroll bars, only when needed */</code></pre>
+  <h2>Scroll in one direction</h2>
+  <p>A wide table that can be scrolled sideways on a phone, without the whole page getting wider:</p>
+  <pre><code class="language-css">.table-wrap {
+  overflow-x: auto;
+}</code></pre>
+  <pre><code class="language-html">&lt;div class="table-wrap"&gt;
+  &lt;table&gt;...&lt;/table&gt;
+&lt;/div&gt;</code></pre>
+  <p>A box with a fixed height that scrolls:</p>
+  <pre><code class="language-css">.chat {
+  height: 300px;
+  overflow-y: auto;
+}</code></pre>
+  <h2>Good to know</h2>
+  <ul>
+    <li><code>overflow: hidden</code> on a parent stops <code>position: sticky</code> inside it.</li>
+    <li>A page that scrolls sideways on a phone often has one element that is too wide. Look for it with the developer tools instead of hiding it with <code>overflow-x: hidden</code> on <code>body</code>.</li>
+  </ul>
+  <h2>More about overflow</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overflow"><code>overflow</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

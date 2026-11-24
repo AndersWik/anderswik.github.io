@@ -1,0 +1,51 @@
+---
+layout: default
+title: Effects
+permalink: /strudel/effects/
+chapter: "02"
+chapter_title: "Getting started"
+keywords: [strudel, effects, filter, lpf, vowel, gain, volume, adsr, envelope, delay, room, reverb, pan, speed, signal, sine, saw, range, slow]
+---
+
+<div class="strudel container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Effects</h1>
+  <p>Effects change how a sound sounds. They are functions you add after the sound with a dot. Every effect takes a number, or a pattern of numbers in quotes.</p>
+  <h2>Filter</h2>
+  <p><code>lpf</code> is a low-pass filter. It removes the high frequencies, so the sound gets darker. The number is the frequency in hertz: a lower number is a darker sound.</p>
+  <pre><code class="language-javascript">note("c2 c3 c2 c3").sound("sawtooth").lpf("&lt;400 2000&gt;")</code></pre>
+  <p><code>hpf</code> is a high-pass filter, which does the opposite. <code>vowel</code> is a filter that makes the sound talk:</p>
+  <pre><code class="language-javascript">note("c3 eb3 g3").sound("sawtooth").vowel("&lt;a e i o&gt;")</code></pre>
+  <h2>Volume</h2>
+  <p><code>gain</code> sets the volume. <code>1</code> is normal. A pattern of volumes gives the rhythm some life.</p>
+  <pre><code class="language-javascript">sound("hh*16").gain("[.25 1]*2")</code></pre>
+  <h2>Envelope</h2>
+  <p><code>adsr</code> shapes each note: attack, decay, sustain and release, written with colons between them.</p>
+  <pre><code class="language-javascript">note("c3 bb2 f3 eb3").sound("sawtooth").lpf(600).adsr(".1:.1:.5:.2")</code></pre>
+  <h2>Delay and reverb</h2>
+  <p><code>delay</code> adds echoes. <code>room</code> adds reverb, as if the sound is played in a large room. Both take a number from <code>0</code> to <code>1</code>.</p>
+  <pre><code class="language-javascript">sound("bd rim bd cp").delay(.5)
+sound("bd rim bd cp").room(.5)</code></pre>
+  <h2>Pan</h2>
+  <p><code>pan</code> moves the sound between the left (<code>0</code>) and the right (<code>1</code>) speaker.</p>
+  <pre><code class="language-javascript">sound("bd rim bd cp").pan("0 1")</code></pre>
+  <h2>Speed</h2>
+  <p><code>speed</code> plays a sample faster or slower, which also makes it higher or lower. A negative number plays it backwards.</p>
+  <pre><code class="language-javascript">sound("bd rim bd cp").speed("&lt;1 2 -1 -2&gt;")</code></pre>
+  <h2>Signals</h2>
+  <p>A signal is a value that changes smoothly over time. <code>sine</code> goes up and down between <code>0</code> and <code>1</code> once a cycle. <code>saw</code> goes up and then jumps back.</p>
+  <pre><code class="language-javascript">sound("hh*16").gain(sine)</code></pre>
+  <p><code>range</code> sets the lowest and highest value, and <code>slow</code> makes the signal take more cycles. Here the filter opens and closes over 4 cycles:</p>
+  <pre><code class="language-javascript">note("c2 c3 c2 c3").sound("sawtooth").lpf(sine.range(100, 2000).slow(4))</code></pre>
+  <h2>Slow a whole pattern</h2>
+  <p><code>slow</code> also works on a whole pattern. <code>fast</code> does the opposite.</p>
+  <pre><code class="language-javascript">sound("bd*4, ~ rim ~ cp").slow(2)</code></pre>
+  <h2>More about effects</h2>
+  <ul>
+    <li><a href="https://strudel.cc/workshop/first-effects/">First Effects</a> in the Strudel workshop</li>
+    <li><a href="https://strudel.cc/learn/effects/">Audio effects</a> in the Strudel documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

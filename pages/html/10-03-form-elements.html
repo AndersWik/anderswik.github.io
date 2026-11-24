@@ -1,0 +1,55 @@
+---
+layout: default
+title: Form elements
+permalink: /html/form-elements/
+chapter: "10"
+chapter_title: "Forms"
+keywords: [html, form elements, input, label, select, option, textarea, fieldset, legend, datalist]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Form elements</h1>
+  <h2>Label</h2>
+  <p>Every field needs a <code>&lt;label&gt;</code>. Click on the label and the field gets focus, and screen readers read the label with the field. Connect them with <code>for</code> and <code>id</code>, or put the field inside the label:</p>
+  <pre><code class="language-html">&lt;label for="email"&gt;Email&lt;/label&gt;
+&lt;input type="email" id="email" name="email"&gt;
+
+&lt;label&gt;&lt;input type="checkbox" name="news"&gt; Send me news&lt;/label&gt;</code></pre>
+  <h2>Select</h2>
+  <p>A list to choose from:</p>
+  <pre><code class="language-html">&lt;label for="size"&gt;Size&lt;/label&gt;
+&lt;select id="size" name="size"&gt;
+  &lt;option value="s"&gt;Small&lt;/option&gt;
+  &lt;option value="m" selected&gt;Medium&lt;/option&gt;
+  &lt;option value="l"&gt;Large&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+  <h2>Textarea</h2>
+  <p>A field for text with several lines:</p>
+  <pre><code class="language-html">&lt;label for="message"&gt;Message&lt;/label&gt;
+&lt;textarea id="message" name="message" rows="5"&gt;&lt;/textarea&gt;</code></pre>
+  <h2>Fieldset</h2>
+  <p><code>&lt;fieldset&gt;</code> groups fields that belong together, and <code>&lt;legend&gt;</code> is its title. It is good for a group of radio buttons:</p>
+  <pre><code class="language-html">&lt;fieldset&gt;
+  &lt;legend&gt;Delivery&lt;/legend&gt;
+  &lt;label&gt;&lt;input type="radio" name="delivery" value="post"&gt; Post&lt;/label&gt;
+  &lt;label&gt;&lt;input type="radio" name="delivery" value="pickup"&gt; Pick up&lt;/label&gt;
+&lt;/fieldset&gt;</code></pre>
+  <h2>Datalist</h2>
+  <p>Suggestions for a text field. The user can still type something else:</p>
+  <pre><code class="language-html">&lt;input list="fruits" name="fruit"&gt;
+&lt;datalist id="fruits"&gt;
+  &lt;option value="Apple"&gt;
+  &lt;option value="Banana"&gt;
+&lt;/datalist&gt;</code></pre>
+  <h2>More about form elements</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/label"><code>&lt;label&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/select"><code>&lt;select&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/textarea"><code>&lt;textarea&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/fieldset"><code>&lt;fieldset&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

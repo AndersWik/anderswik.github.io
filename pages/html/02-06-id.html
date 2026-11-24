@@ -1,0 +1,35 @@
+---
+layout: default
+title: Id
+permalink: /html/id/
+chapter: "02"
+chapter_title: "Elements and attributes"
+keywords: [html, id, unique, anchor, label, javascript]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Id</h1>
+  <p>The <code>id</code> attribute gives an element a name that is <strong>unique</strong>: only one element on the page may have it.</p>
+  <pre><code class="language-html">&lt;section id="contact"&gt;
+  &lt;h2&gt;Contact&lt;/h2&gt;
+&lt;/section&gt;</code></pre>
+  <h2>What it is used for</h2>
+  <ul>
+    <li><strong>Bookmarks</strong>: <code>&lt;a href="#contact"&gt;</code> jumps to the element. See <a href="/html/bookmarks/">Bookmarks</a>.</li>
+    <li><strong>Labels</strong>: <code>&lt;label for="email"&gt;</code> belongs to the input with <code>id="email"</code>.</li>
+    <li><strong>CSS</strong>: <code>#contact { ... }</code> styles the element.</li>
+    <li><strong>JavaScript</strong>: <code>document.getElementById("contact")</code> finds it.</li>
+  </ul>
+  <h2>Id or class?</h2>
+  <p>Use <code>id</code> for one special element, like a part of the page you link to or a form field. Use <code>class</code> for things that can occur many times, like all the cards or all the warnings. In CSS, use classes for styling. An <code>id</code> selector is stronger than a class, which makes it hard to change later.</p>
+  <h2>Names</h2>
+  <p>An id can't have spaces. It is case-sensitive, so <code>Contact</code> and <code>contact</code> are different ids.</p>
+  <h2>More about id</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/id">The id attribute on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

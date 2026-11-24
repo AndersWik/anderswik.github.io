@@ -1,0 +1,36 @@
+---
+layout: default
+title: Links
+permalink: /html/links/
+chapter: "05"
+chapter_title: "Links and paths"
+keywords: [html, links, a, href, target, mailto, tel, download]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Links</h1>
+  <p><code>&lt;a&gt;</code> makes a link. <code>href</code> is where the link goes, and the content is what you click:</p>
+  <pre><code class="language-html">&lt;a href="https://www.anderswik.se/"&gt;My website&lt;/a&gt;</code></pre>
+  <h2>Links to other pages</h2>
+  <pre><code class="language-html">&lt;a href="https://example.com/"&gt;Another site&lt;/a&gt;
+&lt;a href="/html/"&gt;A page on this site&lt;/a&gt;
+&lt;a href="images.html"&gt;A page in the same folder&lt;/a&gt;</code></pre>
+  <p>See <a href="/html/file-paths/">File paths</a> for how the address is read.</p>
+  <h2>Open in a new tab</h2>
+  <p><code>target="_blank"</code> opens the link in a new tab. Use it sparingly, most people prefer to choose for themselves.</p>
+  <pre><code class="language-html">&lt;a href="https://example.com/" target="_blank"&gt;Opens in a new tab&lt;/a&gt;</code></pre>
+  <h2>Email, phone and download</h2>
+  <pre><code class="language-html">&lt;a href="mailto:name@example.com"&gt;Send an email&lt;/a&gt;
+&lt;a href="tel:+46701234567"&gt;Call us&lt;/a&gt;
+&lt;a href="report.pdf" download&gt;Download the report&lt;/a&gt;</code></pre>
+  <h2>Link text</h2>
+  <p>Write link text that says where the link goes. "Read the price list" is better than "click here". Screen reader users often list all the links on a page, without the text around them.</p>
+  <h2>More about links</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/a"><code>&lt;a&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

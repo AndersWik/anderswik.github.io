@@ -1,0 +1,60 @@
+---
+layout: default
+title: Forms
+permalink: /css/forms/
+chapter: "10"
+chapter_title: "Style common elements"
+keywords: [css, forms, input, focus, accent-color, appearance, placeholder, invalid]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Forms</h1>
+  <p>Form fields get their own font and size from the browser. A clean start:</p>
+  <pre><code class="language-css">input, select, textarea, button {
+  font: inherit;               /* the same font as the page */
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+}
+
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #2e9e5b;
+  outline-offset: 1px;
+  border-color: #2e9e5b;
+}
+
+textarea {
+  resize: vertical;            /* only taller, not wider */
+}</code></pre>
+  <h2>Labels above the fields</h2>
+  <pre><code class="language-css">label {
+  display: block;
+  margin: 16px 0 4px;
+  font-weight: 600;
+}</code></pre>
+  <h2>Checkboxes and radio buttons</h2>
+  <p><code>accent-color</code> changes the color of checkboxes, radio buttons and range sliders, without rebuilding them:</p>
+  <pre><code class="language-css">input[type="checkbox"], input[type="radio"] {
+  width: auto;
+  accent-color: #2e9e5b;
+}</code></pre>
+  <h2>Show errors</h2>
+  <p><code>:user-invalid</code> matches a field with a wrong value, but only after the user has changed it, not as soon as the page loads:</p>
+  <pre><code class="language-css">input:user-invalid {
+  border-color: #dc3545;
+}</code></pre>
+  <h2>More about forms</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Styling_web_forms">Styling forms on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/accent-color"><code>accent-color</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:user-invalid"><code>:user-invalid</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

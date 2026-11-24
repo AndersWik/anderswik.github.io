@@ -1,0 +1,49 @@
+---
+layout: default
+title: Syntax
+permalink: /css/syntax/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [css, syntax, rule, selector, property, value, declaration, comments]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Syntax</h1>
+  <p>A CSS rule has a <strong>selector</strong>, which says which elements it is for, and a block of <strong>declarations</strong>, which say how they look:</p>
+  <pre><code class="language-css">selector {
+  property: value;
+  property: value;
+}</code></pre>
+  <pre><code class="language-css">p {
+  color: #333;
+  line-height: 1.5;
+}</code></pre>
+  <ul>
+    <li><code>p</code> is the selector: all paragraphs.</li>
+    <li><code>color: #333;</code> is a declaration: the property <code>color</code> gets the value <code>#333</code>.</li>
+    <li>Each declaration ends with a semicolon.</li>
+  </ul>
+  <h2>Several selectors</h2>
+  <p>A comma gives several selectors the same declarations:</p>
+  <pre><code class="language-css">h1, h2, h3 {
+  font-family: Georgia, serif;
+}</code></pre>
+  <h2>Comments</h2>
+  <p>Comments start with <code>/*</code> and end with <code>*/</code>. They can be one line or many:</p>
+  <pre><code class="language-css">/* The main heading */
+h1 {
+  color: navy; /* dark blue */
+}</code></pre>
+  <p>There is no <code>//</code> comment in CSS. A line that starts with <code>//</code> breaks the next rule.</p>
+  <h2>Errors</h2>
+  <p>If the browser doesn't understand a declaration, it skips it and goes on with the next. A misspelled property doesn't break the page, but it does nothing. The developer tools show such lines crossed out.</p>
+  <h2>More about the syntax</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Syntax/Introduction">CSS syntax on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Syntax/Comments">Comments on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

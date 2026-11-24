@@ -1,0 +1,62 @@
+---
+layout: default
+title: Navigation menus
+permalink: /wordpress/navigation/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, nav, menu, navigation, wp_nav_menu, register_nav_menus, theme_location, has_nav_menu]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Navigation menus</h1>
+  <p>Menus are built under Appearance → Menus. The theme decides where they can be shown, the menu locations, and prints them with <code>wp_nav_menu()</code>.</p>
+  <h2>The simplest menu</h2>
+  <pre><code class="language-php">&lt;nav&gt;
+  &lt;?php wp_nav_menu(); ?&gt;
+&lt;/nav&gt;</code></pre>
+  <p><code>wp_nav_menu()</code> prints the menu itself, it does not need <code>echo</code>. Without parameters it shows the first menu that is created, or a list of all pages if there are no menus.</p>
+  <h2>Menu locations</h2>
+  <p>To let the editor choose which menu goes where, register the locations in <a href="/wordpress/functions/">functions.php</a>. The key is used in the code, the value is the name shown in the dashboard.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_menus() {
+  register_nav_menus( array(
+    'primary' =&gt; 'Primary menu',
+    'footer'  =&gt; 'Footer menu',
+  ) );
+}
+
+add_action( 'after_setup_theme', 'nerdy_menus' );</code></pre>
+  <p>Then ask for the location in the template, like <code>header.php</code>.</p>
+  <pre><code class="language-php">&lt;nav&gt;
+  &lt;?php wp_nav_menu( array( 'theme_location' =&gt; 'primary' ) ); ?&gt;
+&lt;/nav&gt;</code></pre>
+  <p>Under Appearance → Menus → Manage locations a menu can now be set as "Primary menu".</p>
+  <h2>Options</h2>
+  <pre><code class="language-php">&lt;?php if ( has_nav_menu( 'footer' ) ) : ?&gt;
+  &lt;nav class="footer-nav"&gt;
+    &lt;?php
+    wp_nav_menu( array(
+      'theme_location' =&gt; 'footer',
+      'container'      =&gt; false,     // No &lt;div&gt; around the &lt;ul&gt;
+      'menu_class'     =&gt; 'footer-menu',
+      'depth'          =&gt; 1,         // No sub menus
+      'fallback_cb'    =&gt; false,     // Print nothing if no menu is set
+    ) );
+    ?&gt;
+  &lt;/nav&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <p><code>has_nav_menu()</code> checks if a menu is set for the location, so the empty <code>&lt;nav&gt;</code> is not printed.</p>
+  <p>WordPress adds classes to the menu items. The item for the page we are on gets <code>current-menu-item</code>, which can be used to highlight it.</p>
+  <pre><code class="language-css">.current-menu-item &gt; a {
+  font-weight: bold;
+}</code></pre>
+  <h2>More about menus</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/functionality/navigation-menus/">Navigation menus</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/wp_nav_menu/">wp_nav_menu()</a>, with all the options</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

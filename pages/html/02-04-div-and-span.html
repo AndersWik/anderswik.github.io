@@ -1,0 +1,33 @@
+---
+layout: default
+title: Div and span
+permalink: /html/div-and-span/
+chapter: "02"
+chapter_title: "Elements and attributes"
+keywords: [html, div, span, container, grouping]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Div and span</h1>
+  <p><code>&lt;div&gt;</code> and <code>&lt;span&gt;</code> are containers with no meaning of their own. They are used to group content, so it can be styled with CSS or found with JavaScript.</p>
+  <h2>Div</h2>
+  <p><code>&lt;div&gt;</code> is a block container. Use it to group larger parts of a page:</p>
+  <pre><code class="language-html">&lt;div class="card"&gt;
+  &lt;h2&gt;Card title&lt;/h2&gt;
+  &lt;p&gt;Some text in the card.&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+  <h2>Span</h2>
+  <p><code>&lt;span&gt;</code> is the inline version. Use it to mark a few words inside a line of text:</p>
+  <pre><code class="language-html">&lt;p&gt;The price is &lt;span class="price"&gt;99 kr&lt;/span&gt; today.&lt;/p&gt;</code></pre>
+  <h2>Use the right element first</h2>
+  <p>Before you use a <code>&lt;div&gt;</code>, check if there is an element that says what the content is: <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;section&gt;</code> or <code>&lt;footer&gt;</code>. The same goes for <code>&lt;span&gt;</code>: <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code> or <code>&lt;time&gt;</code> may fit better. Screen readers and search engines understand those. See <a href="/html/semantic-elements/">Semantic elements</a>.</p>
+  <h2>More about div and span</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/div"><code>&lt;div&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/span"><code>&lt;span&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

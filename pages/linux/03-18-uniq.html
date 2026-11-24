@@ -4,11 +4,13 @@ title: Uniq
 permalink: /linux/uniq/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, uniq, duplicates, sort, text]
+gnu: coreutils
+keywords: [linux, uniq, duplicates, sort, text, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Uniq</h1>
+  {% include gnu.html %}
   <p><code>uniq</code> removes or reports repeated lines. It only compares lines that are next to each other, so the input is almost always sorted with <code>sort</code> first.</p>
   <h2>Remove duplicate lines</h2>
   <pre><code class="language-bash">$ sort names.txt | uniq</code></pre>

@@ -4,11 +4,13 @@ title: Find
 permalink: /linux/find/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, find, search, files, directories]
+gnu: findutils
+keywords: [linux, find, search, files, directories, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Find</h1>
+  {% include gnu.html %}
   <p><code>find</code> searches for files and directories in a directory tree. You can search by name, type, size, modification time and more, and run a command on every match.</p>
   <h2>Find files by name</h2>
   <p>Search the current directory (<code>.</code>) and everything below it. Quote the pattern so the shell doesn't expand it. <code>-iname</code> ignores case.</p>

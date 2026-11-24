@@ -1,0 +1,67 @@
+---
+layout: default
+title: Operators and interpolation
+permalink: /scss/operators/
+chapter: "04"
+chapter_title: "Logic"
+keywords: [scss, sass, operators, math, units, interpolation, "#{}", strings, comparison, and, or, not, calc]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Operators and interpolation</h1>
+  <h2>Math</h2>
+  <p>Sass can calculate with numbers, and keeps track of their units.</p>
+  <pre><code class="language-scss">@use 'sass:math';
+
+$gutter: 16px;
+
+.box {
+  padding: $gutter * 2;           // 32px
+  margin: $gutter + 4px;          // 20px
+  width: 100% - 20%;              // 80%
+  height: math.div(600px, 3);     // 200px
+}</code></pre>
+  <p>Numbers with different units that can be converted, like <code>1in + 6px</code>, are converted. Units that depend on the browser, like <code>100% - 20px</code>, can not be calculated by Sass and give an error. Use <code>calc(100% - 20px)</code> for those, and the browser does the math.</p>
+  <pre><code class="language-scss">$sidebar: 300px;
+
+.content {
+  width: calc(100% - #{$sidebar});   // calc(100% - 300px)
+}</code></pre>
+  <p>Divide with <a href="/scss/built-in-modules/">math.div()</a>, not with <code>/</code>.</p>
+  <h2>Comparison and logic</h2>
+  <p>Used in <a href="/scss/conditions/">@if</a>.</p>
+  <pre><code class="language-scss">==  !=  &lt;  &gt;  &lt;=  &gt;=     // Compare
+and  or  not             // Logic</code></pre>
+  <h2>Strings</h2>
+  <p><code>+</code> joins two strings.</p>
+  <pre><code class="language-scss">$font: 'Ubuntu' + ' Mono';   // "Ubuntu Mono"</code></pre>
+  <h2>Interpolation</h2>
+  <p><code>#{}</code> puts the value of an expression into a selector, a property name, a string or a CSS value where Sass would not calculate it otherwise.</p>
+  <pre><code class="language-scss">$name: 'warning';
+$side: 'left';
+$breakpoint: 768px;
+
+.alert-#{$name} {                     // .alert-warning
+  border-#{$side}: 4px solid orange;  // border-left
+}
+
+@media (min-width: #{$breakpoint}) {
+  .alert-#{$name} {
+    padding: 2rem;
+  }
+}
+
+.icon::after {
+  content: 'Size: #{$breakpoint}';    // "Size: 768px"
+}</code></pre>
+  <p>Interpolation is needed in selectors and property names, inside <code>url()</code> and strings, and in <a href="/scss/variables/">custom properties</a>, <code>--color: #{$color};</code>. In normal values, use the variable directly. <code>width: $width</code> and not <code>width: #{$width}</code>, since interpolation turns the number into a string and Sass can not calculate with it afterwards.</p>
+  <h2>More about operators</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/operators/">Operators</a></li>
+    <li><a href="https://sass-lang.com/documentation/interpolation/">Interpolation</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

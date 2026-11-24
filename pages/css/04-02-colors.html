@@ -1,0 +1,48 @@
+---
+layout: default
+title: Colors
+permalink: /css/colors/
+chapter: "04"
+chapter_title: "Values and units"
+keywords: [css, colors, colours, hex, rgb, hsl, alpha, transparent, currentColor, named colors]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Colors</h1>
+  <p>Colors are used in <code>color</code> for text, <code>background-color</code>, <code>border-color</code> and many other properties.</p>
+  <pre><code class="language-css">color: tomato;                    /* a name */
+color: #ff6347;                   /* hex: red, green, blue, 00 to ff */
+color: #f63;                      /* short hex: #ff6633 */
+color: rgb(255 99 71);            /* red, green, blue, 0 to 255 */
+color: hsl(9 100% 64%);           /* hue 0-360, saturation, lightness */</code></pre>
+  <h2>Transparency</h2>
+  <p>A fourth value is the alpha, from 0, invisible, to 1, solid:</p>
+  <pre><code class="language-css">background-color: rgb(0 0 0 / 0.5);
+background-color: hsl(9 100% 64% / 50%);
+background-color: #00000080;
+color: transparent;</code></pre>
+  <h2>HSL is easy to change</h2>
+  <p>In HSL, the same hue with another lightness gives a lighter or darker version of the color. This makes it easy to make a set of colors that fit together:</p>
+  <pre><code class="language-css">--green: hsl(145 55% 40%);
+--green-light: hsl(145 55% 85%);
+--green-dark: hsl(145 55% 25%);</code></pre>
+  <h2>currentColor</h2>
+  <p><code>currentColor</code> is the text color of the element. A border or an SVG icon with <code>currentColor</code> changes color with the text:</p>
+  <pre><code class="language-css">.tag {
+  color: navy;
+  border: 1px solid currentColor;
+}</code></pre>
+  <h2>Contrast</h2>
+  <p>Text must have enough contrast to its background to be easy to read. The developer tools show the contrast ratio when you click on a color. Aim for at least 4.5:1 for normal text.</p>
+  <p>Try colors and convert between the formats with <a href="/utils/colorhex/">Colorhex</a>.</p>
+  <h2>More about colors</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value">Color values on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/hsl"><code>hsl()</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/named-color">Color names on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,36 @@
+---
+layout: default
+title: Audio
+permalink: /html/audio/
+chapter: "06"
+chapter_title: "Images and media"
+keywords: [html, audio, source, controls, autoplay, loop]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Audio</h1>
+  <p><code>&lt;audio&gt;</code> plays sound. Without <code>controls</code>, nothing is shown:</p>
+  <pre><code class="language-html">&lt;audio src="song.mp3" controls&gt;&lt;/audio&gt;</code></pre>
+  <h2>Several formats</h2>
+  <pre><code class="language-html">&lt;audio controls&gt;
+  &lt;source src="song.ogg" type="audio/ogg"&gt;
+  &lt;source src="song.mp3" type="audio/mpeg"&gt;
+  Your browser can't play this sound.
+&lt;/audio&gt;</code></pre>
+  <p>MP3 works in all modern browsers, so one MP3 file is often enough.</p>
+  <h2>Attributes</h2>
+  <ul>
+    <li><code>controls</code> shows play, pause, time and volume.</li>
+    <li><code>loop</code> starts again at the end.</li>
+    <li><code>preload="none"</code> waits with downloading until you press play.</li>
+    <li><code>autoplay</code> is blocked by browsers until the user has clicked on the page.</li>
+  </ul>
+  <h2>More about audio</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/audio"><code>&lt;audio&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

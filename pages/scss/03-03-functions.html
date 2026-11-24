@@ -1,0 +1,60 @@
+---
+layout: default
+title: Functions
+permalink: /scss/functions/
+chapter: "03"
+chapter_title: "Reuse"
+keywords: [scss, sass, functions, "@function", "@return", arguments, rem, px to rem]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Functions</h1>
+  <p>A function takes values, calculates something and returns a value. Unlike a <a href="/scss/mixins/">mixin</a>, which adds declarations, a function is used as a value in a declaration.</p>
+  <h2>@function and @return</h2>
+  <p>A function that turns pixels into <code>rem</code>, so sizes can be written in pixels from a design and still follow the user's font size.</p>
+  <pre><code class="language-scss">@use 'sass:math';
+
+$base-font-size: 16px;
+
+@function rem($px) {
+  @return math.div($px, $base-font-size) * 1rem;
+}
+
+h1 {
+  font-size: rem(32px);   // 2rem
+  margin-bottom: rem(24px);   // 1.5rem
+}</code></pre>
+  <ul>
+    <li><code>math.div()</code> divides. <code>16px / 16px</code> is <code>1</code>, without a unit, and <code>1 * 1rem</code> is <code>1rem</code>. Sass keeps track of the units.</li>
+    <li><code>@return</code> ends the function and gives the value back. A function must return a value.</li>
+  </ul>
+  <p>The <a href="/utils/px-em-converter/">PX to EM converter</a> does the same calculation in the browser.</p>
+  <h2>Arguments</h2>
+  <p>Arguments work like in mixins. They can have default values and be given by name.</p>
+  <pre><code class="language-scss">@use 'sass:math';
+
+@function fluid($min, $max, $min-screen: 400px, $max-screen: 1200px) {
+  $slope: math.div($max - $min, $max-screen - $min-screen);
+  @return clamp($min, $min - $slope * $min-screen + $slope * 100vw, $max);
+}
+
+h1 {
+  font-size: fluid(24px, 48px);
+}</code></pre>
+  <pre><code class="language-css">h1 {
+  font-size: clamp(24px, 12px + 3vw, 48px);
+}</code></pre>
+  <p>This returns a CSS <a href="/css/math-functions/">clamp()</a>, so the size grows with the screen between 24 and 48 pixels. Sass calculates as much as it can. <code>12px + 3vw</code> can not be added before the screen width is known, so Sass leaves that part for the browser.</p>
+  <h2>Sass functions and CSS functions</h2>
+  <p>If Sass does not know a function, it prints it as it is for the browser. That is why <code>clamp()</code>, <code>calc()</code> and <code>var()</code> work in SCSS. It also means that a misspelled Sass function gives no error, it just ends up in the CSS. Check the compiled CSS if a value looks wrong.</p>
+  <h2>Built-in functions</h2>
+  <p>Sass comes with many functions for colors, numbers, strings, lists and maps. They are in <a href="/scss/built-in-modules/">built-in modules</a>.</p>
+  <h2>More about functions</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/at-rules/function/">@function</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

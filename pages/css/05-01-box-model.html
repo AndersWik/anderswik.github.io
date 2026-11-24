@@ -1,0 +1,48 @@
+---
+layout: default
+title: Box model
+permalink: /css/box-model/
+chapter: "05"
+chapter_title: "The box model"
+keywords: [css, box model, content, padding, border, margin]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Box model</h1>
+  <p>Every element is a box, made of four layers from the inside out:</p>
+  <pre><code class="language-text">+--------------------------------+
+|             margin             |
+|  +--------------------------+  |
+|  |          border          |  |
+|  |  +--------------------+  |  |
+|  |  |      padding       |  |  |
+|  |  |  +--------------+  |  |  |
+|  |  |  |   content    |  |  |  |
+|  |  |  +--------------+  |  |  |
+|  |  +--------------------+  |  |
+|  +--------------------------+  |
++--------------------------------+</code></pre>
+  <ul>
+    <li><strong>Content</strong>: the text or image.</li>
+    <li><strong>Padding</strong>: space inside the border. It has the element's background.</li>
+    <li><strong>Border</strong>: a line around the padding.</li>
+    <li><strong>Margin</strong>: space outside the border, between this box and the next. It is always transparent.</li>
+  </ul>
+  <pre><code class="language-css">.card {
+  padding: 16px;
+  border: 1px solid #ccc;
+  margin: 24px;
+}</code></pre>
+  <h2>See the box</h2>
+  <p>Inspect an element in the developer tools. The <strong>Layout</strong> or <strong>Computed</strong> tab shows the box with the size of every layer.</p>
+  <h2>How wide is the box?</h2>
+  <p>By default, <code>width</code> is the width of the content only, and padding and border are added to it. A box with <code>width: 200px</code>, <code>padding: 16px</code> and a 1px border is 234px wide on the screen. <a href="/css/box-sizing/">Box sizing</a> changes that.</p>
+  <h2>More about the box model</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Box_model">The box model on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

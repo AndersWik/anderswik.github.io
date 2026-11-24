@@ -4,11 +4,13 @@ title: Rm
 permalink: /linux/rm/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, rm, remove, delete, files]
+gnu: coreutils
+keywords: [linux, rm, remove, delete, files, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Rm</h1>
+  {% include gnu.html %}
   <p><code>rm</code> removes files and directories. There is no trash can on the command line: removed files are gone, so be careful, especially with wildcards and <code>sudo</code>.</p>
   <h2>Remove files</h2>
   <pre><code class="language-bash">$ rm notes.txt

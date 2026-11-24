@@ -1,0 +1,75 @@
+---
+layout: default
+title: Escaping and sanitizing
+permalink: /wordpress/escaping/
+chapter: "03"
+chapter_title: "Plugins"
+keywords: [wordpress, security, escaping, sanitizing, esc_html, esc_attr, esc_url, wp_kses_post, sanitize_text_field, nonce, wp_nonce_field, check_admin_referer, current_user_can, xss]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Escaping and sanitizing</h1>
+  <p>Data that comes from users, the database or other sites can contain HTML or JavaScript. If it is printed as it is, someone can run their own script on the site, an attack called cross-site scripting (XSS). The rule is: sanitize data when it comes in, escape it when it goes out.</p>
+  <h2>Escape output</h2>
+  <p>Choose the function from where the value is printed.</p>
+  <pre><code class="language-php">&lt;h2&gt;&lt;?php echo esc_html( $title ); ?&gt;&lt;/h2&gt;
+&lt;input type="text" value="&lt;?php echo esc_attr( $name ); ?&gt;"&gt;
+&lt;a href="&lt;?php echo esc_url( $link ); ?&gt;"&gt;Link&lt;/a&gt;
+&lt;div&gt;&lt;?php echo wp_kses_post( $html ); ?&gt;&lt;/div&gt;
+&lt;script&gt;var data = &lt;?php echo wp_json_encode( $data ); ?&gt;;&lt;/script&gt;</code></pre>
+  <table class="table">
+    <thead><tr><th>Function</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><code>esc_html()</code></td><td>Text inside an element. <code>&lt;</code> becomes <code>&amp;lt;</code></td></tr>
+      <tr><td><code>esc_attr()</code></td><td>The value of an attribute</td></tr>
+      <tr><td><code>esc_url()</code></td><td><code>href</code> and <code>src</code>. Removes <code>javascript:</code> links</td></tr>
+      <tr><td><code>wp_kses_post()</code></td><td>HTML, keeping only the tags allowed in a post</td></tr>
+      <tr><td><code>wp_json_encode()</code></td><td>Values for JavaScript</td></tr>
+    </tbody>
+  </table>
+  <p>Template tags like <code>the_title()</code> and <code>the_content()</code> already make their output safe. The <code>get_</code> functions and our own variables need escaping.</p>
+  <h2>Sanitize input</h2>
+  <p>Clean data from forms before it is saved.</p>
+  <pre><code class="language-php">&lt;?php
+$name  = sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) );   // Plain text on one line
+$email = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+$text  = sanitize_textarea_field( wp_unslash( $_POST['message'] ?? '' ) );
+$id    = absint( $_POST['id'] ?? 0 );                                 // A positive whole number</code></pre>
+  <p>WordPress adds backslashes before quotes in <code>$_POST</code>, <code>$_GET</code> and <code>$_COOKIE</code>. <code>wp_unslash()</code> removes them.</p>
+  <h2>Nonces</h2>
+  <p>A nonce is a token that proves a form was sent from our own site, and not from another site the user visited while logged in. Print it in the form.</p>
+  <pre><code class="language-php">&lt;form method="post"&gt;
+  &lt;?php wp_nonce_field( 'nerdy_save_settings', 'nerdy_nonce' ); ?&gt;
+  &lt;input type="text" name="name"&gt;
+  &lt;button type="submit"&gt;Save&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+  <p>Check it, and that the user is allowed to do the change, before anything is saved.</p>
+  <pre><code class="language-php">&lt;?php
+if ( isset( $_POST['nerdy_nonce'] ) ) {
+  check_admin_referer( 'nerdy_save_settings', 'nerdy_nonce' ); // Stops if the nonce is wrong
+
+  if ( ! current_user_can( 'manage_options' ) ) {
+    wp_die( 'Not allowed.' );
+  }
+
+  update_option( 'nerdy_name', sanitize_text_field( wp_unslash( $_POST['name'] ) ) );
+}</code></pre>
+  <h2>Database queries</h2>
+  <p>Use <code>$wpdb-&gt;prepare()</code> for SQL with values from outside, never put a variable straight into the SQL string. It works like the prepared statements on the <a href="/php/mysql/">PHP MySQL</a> page.</p>
+  <pre><code class="language-php">&lt;?php
+global $wpdb;
+
+$posts = $wpdb-&gt;get_results(
+  $wpdb-&gt;prepare( "SELECT ID, post_title FROM {$wpdb-&gt;posts} WHERE post_author = %d AND post_status = %s", $author_id, 'publish' )
+);</code></pre>
+  <h2>More about security</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/apis/security/">Security</a> in the developer handbook</li>
+    <li><a href="https://developer.wordpress.org/apis/security/escaping/">Escaping data</a></li>
+    <li><a href="https://developer.wordpress.org/apis/security/nonces/">Nonces</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

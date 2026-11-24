@@ -1,0 +1,45 @@
+---
+layout: default
+title: Debug
+permalink: /wordpress/debug/
+chapter: "05"
+chapter_title: "Administration"
+keywords: [wordpress, debug, WP_DEBUG, WP_DEBUG_LOG, WP_DEBUG_DISPLAY, SCRIPT_DEBUG, SAVEQUERIES, debug.log, error_log, query monitor, white screen]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Debug</h1>
+  <p>By default WordPress hides PHP errors. A broken theme or plugin can show only a white page, or "There has been a critical error on this website". Turn on debugging in <code>wp-config.php</code> to see what is wrong.</p>
+  <h2>Debug constants</h2>
+  <p>Put these above the line <code>/* That's all, stop editing! */</code>.</p>
+  <pre><code class="language-php">define( 'WP_DEBUG', true );           // Show all PHP errors, warnings and notices
+define( 'WP_DEBUG_LOG', true );       // Write them to wp-content/debug.log
+define( 'WP_DEBUG_DISPLAY', false );  // Do not print them on the page
+define( 'SCRIPT_DEBUG', true );       // Load the full versions of WordPress's CSS and JavaScript, not the minified</code></pre>
+  <p>Follow the log while using the site:</p>
+  <pre><code class="language-bash">$ tail -f wp-content/debug.log</code></pre>
+  <p><code>wp-content/debug.log</code> can be opened by anyone in a browser. On a public server, give <code>WP_DEBUG_LOG</code> a path outside the public folder instead of <code>true</code>.</p>
+  <pre><code class="language-php">define( 'WP_DEBUG_LOG', '/var/log/wordpress/debug.log' );</code></pre>
+  <p>Turn debugging off again on the live site. The <a href="/wordpress/environment/">environment</a> page shows how to turn it on for local and staging only.</p>
+  <h2>Write to the log</h2>
+  <p><code>error_log()</code> writes to the same log. <code>print_r( $value, true )</code> turns an array or object into a string.</p>
+  <pre><code class="language-php">&lt;?php
+error_log( 'nerdy: the shortcode ran' );
+error_log( print_r( $atts, true ) );</code></pre>
+  <h2>Database queries</h2>
+  <p><code>SAVEQUERIES</code> saves every database query with how long it took, in <code>$wpdb-&gt;queries</code>. It makes the site slower, use it only while debugging.</p>
+  <pre><code class="language-php">define( 'SAVEQUERIES', true );</code></pre>
+  <h2>Query Monitor</h2>
+  <p>The <a href="https://wordpress.org/plugins/query-monitor/">Query Monitor</a> plugin shows errors, database queries, hooks, the template that was used and much more in the admin bar. It is the best tool to see what happens on a page.</p>
+  <h2>Recovery mode</h2>
+  <p>When a plugin or theme causes a fatal error, WordPress sends an email to the admin with a link to recovery mode. In recovery mode the broken plugin is paused, so the admin can log in and deactivate it. If the email does not arrive, rename the plugin's folder in <code>wp-content/plugins</code> to deactivate it.</p>
+  <h2>More about debugging</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/">Debugging in WordPress</a></li>
+    <li>The <a href="/php/debug/">PHP debug notes</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

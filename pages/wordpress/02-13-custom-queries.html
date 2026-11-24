@@ -1,0 +1,80 @@
+---
+layout: default
+title: Custom queries
+permalink: /wordpress/custom-queries/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, WP_Query, query, custom loop, wp_reset_postdata, pre_get_posts, posts_per_page, get_posts, meta_query]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Custom queries</h1>
+  <p>The main loop shows the posts WordPress found for the URL. To show other posts too, like the three latest news posts on the front page, make a new query with <code>WP_Query</code>.</p>
+  <h2>WP_Query</h2>
+  <pre><code class="language-php">&lt;?php
+$news = new WP_Query( array(
+  'post_type'      =&gt; 'post',
+  'category_name'  =&gt; 'news',     // Category slug
+  'posts_per_page' =&gt; 3,
+) );
+?&gt;
+
+&lt;?php if ( $news-&gt;have_posts() ) : ?&gt;
+  &lt;ul&gt;
+    &lt;?php while ( $news-&gt;have_posts() ) : $news-&gt;the_post(); ?&gt;
+      &lt;li&gt;&lt;a href="&lt;?php the_permalink(); ?&gt;"&gt;&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;?php endwhile; ?&gt;
+  &lt;/ul&gt;
+  &lt;?php wp_reset_postdata(); ?&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <ul>
+    <li>The loop is the same as the main loop, but <code>have_posts()</code> and <code>the_post()</code> are called on our query object.</li>
+    <li><code>$news-&gt;the_post()</code> changes the global current post. <code>wp_reset_postdata()</code> sets it back to the post of the main loop, so <code>the_title()</code> after our loop shows the right title again.</li>
+  </ul>
+  <h2>Common parameters</h2>
+  <pre><code class="language-php">&lt;?php
+$query = new WP_Query( array(
+  'post_type'      =&gt; array( 'post', 'book' ),
+  'posts_per_page' =&gt; 10,           // -1 for all
+  'orderby'        =&gt; 'title',      // date, title, menu_order, rand, meta_value
+  'order'          =&gt; 'ASC',
+  'post__not_in'   =&gt; array( get_the_ID() ),  // Leave out the current post
+  'tag'            =&gt; 'php',
+  'author'         =&gt; 1,
+  's'              =&gt; 'theme',      // Search
+  'meta_key'       =&gt; 'price',      // A custom field
+  'meta_value'     =&gt; '100',
+) );</code></pre>
+  <h2>Change the main query</h2>
+  <p>Do not make a new query to change the posts of the page itself, for example to show 20 posts on the blog page. That runs the database query twice and breaks the pagination. Change the main query before it runs instead, with the <code>pre_get_posts</code> action in <a href="/wordpress/functions/">functions.php</a>.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_blog_posts( $query ) {
+  if ( is_admin() || ! $query-&gt;is_main_query() ) {
+    return; // Only the main query on the public site
+  }
+
+  if ( $query-&gt;is_home() ) {
+    $query-&gt;set( 'posts_per_page', 20 );
+  }
+}
+
+add_action( 'pre_get_posts', 'nerdy_blog_posts' );</code></pre>
+  <p><code>pre_get_posts</code> runs for every query, also the ones in the dashboard, so always check <code>is_main_query()</code> and <code>is_admin()</code>.</p>
+  <h2>get_posts()</h2>
+  <p><code>get_posts()</code> takes the same parameters and returns an array of posts, without a loop. Use it when the template tags are not needed.</p>
+  <pre><code class="language-php">&lt;?php
+$posts = get_posts( array( 'numberposts' =&gt; 5 ) );
+
+foreach ( $posts as $post ) {
+  echo esc_html( $post-&gt;post_title );
+}</code></pre>
+  <h2>More about queries</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/reference/classes/wp_query/">WP_Query</a>, with all the parameters</li>
+    <li><a href="https://developer.wordpress.org/reference/hooks/pre_get_posts/">pre_get_posts</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

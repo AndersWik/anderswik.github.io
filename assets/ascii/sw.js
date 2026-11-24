@@ -6,12 +6,14 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "ascii-5f0cae412e";
+const CACHE = "ascii-bdf8a2bcf7";
 
 const FILES = [
     "/assets/ascii/app.html",
     "/assets/ascii/ascii.css",
     "/assets/ascii/images/apple-touch-icon.png",
+    "/assets/ascii/images/ascii.svg",
+    "/assets/ascii/images/favicon.svg",
     "/assets/ascii/images/icon-192.png",
     "/assets/ascii/images/icon-512.png",
     "/assets/ascii/images/icon-maskable-512.png",

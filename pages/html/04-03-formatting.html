@@ -1,0 +1,46 @@
+---
+layout: default
+title: Formatting
+permalink: /html/formatting/
+chapter: "04"
+chapter_title: "Text"
+keywords: [html, formatting, strong, em, b, i, mark, small, del, ins, sub, sup]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Formatting</h1>
+  <p>These elements mark a part of a text. Most of them say what the text <strong>is</strong>, and the browser shows it in a matching style.</p>
+  <pre><code class="language-html">&lt;p&gt;This is &lt;strong&gt;important&lt;/strong&gt; and this is &lt;em&gt;stressed&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Search results &lt;mark&gt;marked&lt;/mark&gt; in yellow.&lt;/p&gt;
+&lt;p&gt;Old price &lt;del&gt;199 kr&lt;/del&gt;, new price &lt;ins&gt;149 kr&lt;/ins&gt;.&lt;/p&gt;
+&lt;p&gt;H&lt;sub&gt;2&lt;/sub&gt;O and E = mc&lt;sup&gt;2&lt;/sup&gt;&lt;/p&gt;
+&lt;p&gt;&lt;small&gt;The small print.&lt;/small&gt;&lt;/p&gt;
+&lt;p&gt;Press &lt;kbd&gt;Ctrl&lt;/kbd&gt; + &lt;kbd&gt;C&lt;/kbd&gt; to copy the &lt;code&gt;&amp;lt;p&amp;gt;&lt;/code&gt; code.&lt;/p&gt;</code></pre>
+  <h2>Strong or b, em or i?</h2>
+  <ul>
+    <li><code>&lt;strong&gt;</code> means important. <code>&lt;b&gt;</code> is only bold, without meaning.</li>
+    <li><code>&lt;em&gt;</code> means stressed, as when you say a word louder. <code>&lt;i&gt;</code> is only italic, for things like a book title or a word in another language.</li>
+  </ul>
+  <p>Screen readers can say <code>&lt;strong&gt;</code> and <code>&lt;em&gt;</code> differently, so use them when the meaning is there. If you only want the look, use CSS.</p>
+  <h2>The elements</h2>
+  <ul>
+    <li><code>&lt;strong&gt;</code> important, <code>&lt;b&gt;</code> bold</li>
+    <li><code>&lt;em&gt;</code> stressed, <code>&lt;i&gt;</code> italic</li>
+    <li><code>&lt;mark&gt;</code> highlighted</li>
+    <li><code>&lt;small&gt;</code> side comments and small print</li>
+    <li><code>&lt;del&gt;</code> removed text, <code>&lt;ins&gt;</code> added text</li>
+    <li><code>&lt;sub&gt;</code> subscript, <code>&lt;sup&gt;</code> superscript</li>
+    <li><code>&lt;code&gt;</code> code, <code>&lt;kbd&gt;</code> a key on the keyboard</li>
+  </ul>
+  <h2>More about formatting</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/strong"><code>&lt;strong&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/em"><code>&lt;em&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/mark"><code>&lt;mark&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/code"><code>&lt;code&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

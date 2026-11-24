@@ -1,0 +1,45 @@
+---
+layout: default
+title: Your first page
+permalink: /html/first-page/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [html, doctype, html, head, body, document, structure, boilerplate]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Your first page</h1>
+  <p>Every HTML page starts with the same few lines. Save this as <code>index.html</code> and open it in a browser:</p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;My first page&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello&lt;/h1&gt;
+  &lt;p&gt;This is my first web page.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>The parts</h2>
+  <ul>
+    <li><code>&lt;!DOCTYPE html&gt;</code> tells the browser that this is a modern HTML page. Without it, browsers use an old "quirks mode".</li>
+    <li><code>&lt;html lang="en"&gt;</code> holds the whole page. <code>lang</code> tells the browser and screen readers which language the page is in.</li>
+    <li><code>&lt;head&gt;</code> holds information about the page, which is not shown on the page itself. See <a href="/html/head/">Head</a>.</li>
+    <li><code>&lt;meta charset="utf-8"&gt;</code> makes characters like å, é and emojis work. See <a href="/html/charset/">Charset</a>.</li>
+    <li><code>&lt;meta name="viewport" ...&gt;</code> makes the page fit on a phone. See <a href="/html/viewport/">Viewport</a>.</li>
+    <li><code>&lt;title&gt;</code> is the name shown in the browser tab. See <a href="/html/page-title/">Page title</a>.</li>
+    <li><code>&lt;body&gt;</code> holds everything that is shown on the page.</li>
+  </ul>
+  <h2>More about the first page</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Doctype"><code>&lt;!DOCTYPE&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/html"><code>&lt;html&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/body"><code>&lt;body&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

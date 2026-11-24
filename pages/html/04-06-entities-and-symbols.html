@@ -1,0 +1,39 @@
+---
+layout: default
+title: Entities and symbols
+permalink: /html/entities-and-symbols/
+chapter: "04"
+chapter_title: "Text"
+keywords: [html, entities, symbols, emojis, nbsp, amp, lt, gt, copy, unicode]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Entities and symbols</h1>
+  <p>Some characters have a special meaning in HTML. <code>&lt;</code> starts a tag, so to show a <code>&lt;</code> on the page, write a <strong>character reference</strong>, also called an entity:</p>
+  <pre><code class="language-html">&lt;p&gt;5 &amp;lt; 10 and 10 &amp;gt; 5&lt;/p&gt;
+&lt;p&gt;Fish &amp;amp; chips&lt;/p&gt;</code></pre>
+  <h2>Common entities</h2>
+  <ul>
+    <li><code>&amp;lt;</code> is <code>&lt;</code> and <code>&amp;gt;</code> is <code>&gt;</code></li>
+    <li><code>&amp;amp;</code> is <code>&amp;</code></li>
+    <li><code>&amp;quot;</code> is <code>"</code> (in attribute values)</li>
+    <li><code>&amp;nbsp;</code> is a space where the line can't break, as in <code>10&amp;nbsp;kr</code></li>
+    <li><code>&amp;copy;</code> is ©, <code>&amp;euro;</code> is € and <code>&amp;hellip;</code> is …</li>
+  </ul>
+  <h2>Numbers</h2>
+  <p>Every character can also be written with its number in Unicode, in decimal or in hex:</p>
+  <pre><code class="language-html">&lt;p&gt;&amp;#169; and &amp;#xA9; are both ©&lt;/p&gt;
+&lt;p&gt;&amp;#x1F600; is 😀&lt;/p&gt;</code></pre>
+  <h2>Or just type it</h2>
+  <p>When the page is saved as UTF-8, with <code>&lt;meta charset="utf-8"&gt;</code>, you can type ©, €, å and emojis directly in the HTML. Only <code>&lt;</code>, <code>&gt;</code> and <code>&amp;</code> must always be written as entities. See <a href="/html/charset/">Charset</a>.</p>
+  <p>The <a href="/references/ascii/">ASCII table</a> lists the number and the entity for the first 256 characters.</p>
+  <h2>More about entities</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Character_reference">Character reference on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Entity">Entity on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

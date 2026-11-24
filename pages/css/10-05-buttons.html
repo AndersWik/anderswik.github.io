@@ -1,0 +1,59 @@
+---
+layout: default
+title: Buttons
+permalink: /css/buttons/
+chapter: "10"
+chapter_title: "Style common elements"
+keywords: [css, buttons, button, hover, active, disabled, cursor]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Buttons</h1>
+  <pre><code class="language-css">.button {
+  display: inline-block;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 600;
+  color: white;
+  background-color: #2e9e5b;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.button:hover { background-color: #23824a; }
+.button:active { transform: translateY(1px); }
+.button:focus-visible { outline: 3px solid #23824a; outline-offset: 2px; }
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}</code></pre>
+  <h2>Outline button</h2>
+  <p>A second, less important button:</p>
+  <pre><code class="language-css">.button-outline {
+  color: #2e9e5b;
+  background-color: transparent;
+  border: 2px solid currentColor;
+}</code></pre>
+  <h2>A row of buttons</h2>
+  <pre><code class="language-css">.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}</code></pre>
+  <h2>Good to know</h2>
+  <ul>
+    <li>Make buttons at least 44 × 44 pixels on touch screens, so they are easy to hit with a finger.</li>
+    <li>A smooth change on hover: <code>transition: background-color 0.2s</code>. See <a href="/css/transitions/">Transitions</a>.</li>
+  </ul>
+  <h2>More about buttons</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/button"><code>&lt;button&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/cursor"><code>cursor</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

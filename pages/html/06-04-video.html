@@ -1,0 +1,39 @@
+---
+layout: default
+title: Video
+permalink: /html/video/
+chapter: "06"
+chapter_title: "Images and media"
+keywords: [html, video, source, controls, autoplay, muted, poster, track]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Video</h1>
+  <p><code>&lt;video&gt;</code> plays a video. <code>controls</code> shows the play button, the time line and the volume:</p>
+  <pre><code class="language-html">&lt;video src="movie.mp4" controls width="640" height="360"&gt;&lt;/video&gt;</code></pre>
+  <h2>Several formats</h2>
+  <p>Give the video in several formats with <code>&lt;source&gt;</code>. The browser plays the first one it can. Text between the tags is shown by browsers that can't play video at all:</p>
+  <pre><code class="language-html">&lt;video controls width="640" height="360" poster="movie.jpg"&gt;
+  &lt;source src="movie.webm" type="video/webm"&gt;
+  &lt;source src="movie.mp4" type="video/mp4"&gt;
+  Your browser can't play this video.
+&lt;/video&gt;</code></pre>
+  <p><code>poster</code> is an image that is shown before the video starts.</p>
+  <h2>Autoplay</h2>
+  <p>Browsers only start a video by itself if it has no sound. For a background video:</p>
+  <pre><code class="language-html">&lt;video src="waves.mp4" autoplay muted loop playsinline&gt;&lt;/video&gt;</code></pre>
+  <p><code>playsinline</code> stops phones from opening the video in full screen.</p>
+  <h2>Subtitles</h2>
+  <pre><code class="language-html">&lt;video src="movie.mp4" controls&gt;
+  &lt;track src="movie.sv.vtt" kind="subtitles" srclang="sv" label="Svenska"&gt;
+&lt;/video&gt;</code></pre>
+  <h2>More about video</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video"><code>&lt;video&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/track"><code>&lt;track&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

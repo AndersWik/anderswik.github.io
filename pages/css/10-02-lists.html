@@ -1,0 +1,60 @@
+---
+layout: default
+title: Lists
+permalink: /css/lists/
+chapter: "10"
+chapter_title: "Style common elements"
+keywords: [css, lists, list-style, marker, counters, menu, ul, ol]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lists</h1>
+  <pre><code class="language-css">ul {
+  list-style-type: square;    /* disc, circle, square, none */
+  padding-left: 1.5rem;
+}
+
+ol {
+  list-style-type: lower-alpha;   /* decimal, lower-alpha, upper-roman ... */
+}
+
+li::marker {
+  color: tomato;              /* only the dot or the number */
+}</code></pre>
+  <h2>A list without dots</h2>
+  <p>A menu is often a list of links, without dots and in a row:</p>
+  <pre><code class="language-css">.menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 16px;
+}</code></pre>
+  <h2>Your own markers</h2>
+  <pre><code class="language-css">.checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.checklist li::before {
+  content: "✓ ";
+  color: #2e9e5b;
+}</code></pre>
+  <h2>Counters</h2>
+  <p>CSS can count elements, for example to number headings:</p>
+  <pre><code class="language-css">article { counter-reset: section; }
+h2::before {
+  counter-increment: section;
+  content: counter(section) ". ";
+}</code></pre>
+  <h2>More about lists</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Text_styling/Styling_lists">Styling lists on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/list-style"><code>list-style</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/::marker"><code>::marker</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

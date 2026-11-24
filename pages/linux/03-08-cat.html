@@ -4,11 +4,13 @@ title: Cat
 permalink: /linux/cat/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, cat, concatenate, read file, files]
+gnu: coreutils
+keywords: [linux, cat, concatenate, read file, files, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Cat</h1>
+  {% include gnu.html %}
   <p><code>cat</code> stands for concatenate. It reads one or more files and prints their content to the terminal. It is the quickest way to look at a short file, and it can join several files into one.</p>
   <h2>Print a file</h2>
   <pre><code class="language-bash">$ cat notes.txt</code></pre>

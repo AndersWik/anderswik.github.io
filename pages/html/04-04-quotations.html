@@ -1,0 +1,42 @@
+---
+layout: default
+title: Quotations
+permalink: /html/quotations/
+chapter: "04"
+chapter_title: "Text"
+keywords: [html, quotations, blockquote, q, cite, abbr, address, bdo]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Quotations</h1>
+  <h2>Long quotes</h2>
+  <p><code>&lt;blockquote&gt;</code> is a quote from another source, as its own block. <code>cite</code> is the address of the source.</p>
+  <pre><code class="language-html">&lt;blockquote cite="https://www.w3.org/"&gt;
+  &lt;p&gt;The web is for everyone.&lt;/p&gt;
+&lt;/blockquote&gt;</code></pre>
+  <h2>Short quotes</h2>
+  <p><code>&lt;q&gt;</code> is a short quote inside a line of text. The browser adds the quotation marks.</p>
+  <pre><code class="language-html">&lt;p&gt;She said &lt;q&gt;see you tomorrow&lt;/q&gt; and left.&lt;/p&gt;</code></pre>
+  <h2>Other elements</h2>
+  <pre><code class="language-html">&lt;p&gt;&lt;cite&gt;The Hobbit&lt;/cite&gt; was written by J. R. R. Tolkien.&lt;/p&gt;
+&lt;p&gt;The &lt;abbr title="World Health Organization"&gt;WHO&lt;/abbr&gt; was founded in 1948.&lt;/p&gt;
+&lt;address&gt;
+  Anders Wik&lt;br&gt;
+  Stockholm
+&lt;/address&gt;</code></pre>
+  <ul>
+    <li><code>&lt;cite&gt;</code> is the title of a work: a book, film or song.</li>
+    <li><code>&lt;abbr&gt;</code> is an abbreviation. <code>title</code> is shown when you point at it.</li>
+    <li><code>&lt;address&gt;</code> is contact information for the page or an article.</li>
+  </ul>
+  <h2>More about quotations</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/blockquote"><code>&lt;blockquote&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/q"><code>&lt;q&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/abbr"><code>&lt;abbr&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,43 @@
+---
+layout: default
+title: Pseudo-classes
+permalink: /css/pseudo-classes/
+chapter: "02"
+chapter_title: "Selectors"
+keywords: [css, pseudo-classes, hover, focus, focus-visible, nth-child, first-child, not, is, has]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Pseudo-classes</h1>
+  <p>A pseudo-class selects elements in a certain state, or at a certain place. It starts with a colon.</p>
+  <h2>States</h2>
+  <pre><code class="language-css">a:hover { }            /* the mouse is over it */
+a:focus-visible { }    /* it has focus from the keyboard */
+button:active { }      /* it is being pressed */
+input:disabled { }     /* it is disabled */
+input:checked { }      /* a checked checkbox or radio button */
+input:invalid { }      /* the value is not valid */
+a:visited { }          /* a link you have visited */</code></pre>
+  <h2>Place</h2>
+  <pre><code class="language-css">li:first-child { }     /* the first item */
+li:last-child { }      /* the last item */
+tr:nth-child(even) { } /* every second row: 2, 4, 6 ... */
+li:nth-child(3n+1) { } /* 1, 4, 7 ... */
+p:only-child { }       /* the only element in its parent */</code></pre>
+  <h2>Logic</h2>
+  <pre><code class="language-css">li:not(:last-child) { }        /* all but the last */
+:is(h1, h2, h3) a { }          /* a link in any of the headings */
+.card:has(img) { }             /* a card that has an image inside */
+label:has(+ input:invalid) { } /* a label before an invalid input */</code></pre>
+  <p><code>:has()</code> is the "parent selector": it selects an element by what is inside it or after it.</p>
+  <h2>More about pseudo-classes</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/Pseudo-classes">Pseudo-classes on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:has"><code>:has()</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:nth-child"><code>:nth-child()</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

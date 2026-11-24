@@ -1,0 +1,34 @@
+---
+layout: default
+title: Charset
+permalink: /html/charset/
+chapter: "08"
+chapter_title: "The head"
+keywords: [html, charset, character set, utf-8, encoding, meta charset]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Charset</h1>
+  <p>The charset (character set, or encoding) tells the browser how the bytes in the file are turned into characters. Always use UTF-8, and write it first in the <code>&lt;head&gt;</code>:</p>
+  <pre><code class="language-html">&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  ...
+&lt;/head&gt;</code></pre>
+  <h2>Why</h2>
+  <p>UTF-8 has every character, in every language: å, ä, ö, é, ß, 中文, emojis. With the wrong charset, the browser shows wrong characters, like <code>Ã¥</code> instead of <code>å</code>.</p>
+  <h2>Good to know</h2>
+  <ul>
+    <li>The editor must also save the file as UTF-8. This is the default in VS Code, and is shown at the bottom right of the window.</li>
+    <li><code>&lt;meta charset&gt;</code> must be in the first 1024 bytes of the file, so put it first in the <code>&lt;head&gt;</code>.</li>
+    <li>With UTF-8, you can type special characters directly instead of writing <a href="/html/entities-and-symbols/">entities</a>.</li>
+  </ul>
+  <h2>More about charset</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta#charset">The charset attribute of <code>&lt;meta&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/UTF-8">UTF-8 on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,81 @@
+---
+layout: default
+title: Create a plugin
+permalink: /wordpress/plugin/
+chapter: "03"
+chapter_title: "Plugins"
+keywords: [wordpress, plugins, plugin header, ABSPATH, register_activation_hook, register_deactivation_hook, uninstall.php, plugin_dir_path, plugin_dir_url, mu-plugins]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Create a plugin</h1>
+  <p>A plugin is a PHP file, or a folder with a PHP file, in <code>wp-content/plugins</code>. It adds features that should stay when the theme is changed.</p>
+  <h2>The plugin file</h2>
+  <pre><code class="language-bash">wp-content/plugins/nerdy-hello/
+└── nerdy-hello.php</code></pre>
+  <p>The comment at the top is the plugin header. WordPress reads it to list the plugin under Plugins in the dashboard. Only <code>Plugin Name</code> is required.</p>
+  <pre><code class="language-php">&lt;?php
+/*
+Plugin Name: Nerdy Hello
+Description: Adds a greeting after every post.
+Version: 1.0.0
+Author: Anders Wik
+License: GPL-2.0-or-later
+Text Domain: nerdy-hello
+*/
+
+if ( ! defined( 'ABSPATH' ) ) {
+  exit; // Stop if the file is opened directly in the browser
+}
+
+function nerdy_hello_add_greeting( $content ) {
+  if ( is_single() ) {
+    $content .= '&lt;p class="greeting"&gt;Thanks for reading!&lt;/p&gt;';
+  }
+  return $content;
+}
+
+add_filter( 'the_content', 'nerdy_hello_add_greeting' );</code></pre>
+  <ul>
+    <li><code>ABSPATH</code> is defined by WordPress. If it is missing, someone opened the file directly at <code>/wp-content/plugins/nerdy-hello/nerdy-hello.php</code>, and the code should not run.</li>
+    <li><code>the_content</code> is a filter, see <a href="/wordpress/hooks/">hooks</a>. WordPress sends the content of the post through our function before it is printed, and prints what we return.</li>
+  </ul>
+  <p>Activate the plugin under Plugins and open a post.</p>
+  <h2>Files in the plugin</h2>
+  <p>Use these functions to find other files in the plugin folder. <code>__FILE__</code> is the main plugin file.</p>
+  <pre><code class="language-php">&lt;?php
+require_once plugin_dir_path( __FILE__ ) . 'includes/settings.php';  // Path on the server
+
+wp_enqueue_style( 'nerdy-hello', plugin_dir_url( __FILE__ ) . 'css/hello.css' );  // URL</code></pre>
+  <h2>Activate and deactivate</h2>
+  <p>Code that should only run once, like creating a database table or flushing the rewrite rules, goes in the activation hook.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_hello_activate() {
+  add_option( 'nerdy_hello_text', 'Thanks for reading!' );
+}
+register_activation_hook( __FILE__, 'nerdy_hello_activate' );
+
+function nerdy_hello_deactivate() {
+  // Stop scheduled events and similar. Keep the data, the plugin may be activated again.
+}
+register_deactivation_hook( __FILE__, 'nerdy_hello_deactivate' );</code></pre>
+  <p>To remove the plugin's data when it is deleted, add an <code>uninstall.php</code> file to the plugin folder.</p>
+  <pre><code class="language-php">&lt;?php
+if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+  exit;
+}
+
+delete_option( 'nerdy_hello_text' );</code></pre>
+  <h2>Must use plugins</h2>
+  <p>PHP files in <code>wp-content/mu-plugins</code> are always loaded and can not be turned off in the dashboard. They are good for code that the site always needs. WordPress only loads the files directly in the folder, not files in sub folders.</p>
+  <h2>More about plugins</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/plugins/">Plugin handbook</a></li>
+    <li><a href="https://developer.wordpress.org/plugins/plugin-basics/header-requirements/">Header requirements</a></li>
+    <li><a href="https://developer.wordpress.org/plugins/plugin-basics/activation-deactivation-hooks/">Activation and deactivation hooks</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

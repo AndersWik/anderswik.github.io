@@ -1,0 +1,43 @@
+---
+layout: default
+title: Opacity and filters
+permalink: /css/opacity-and-filters/
+chapter: "07"
+chapter_title: "Backgrounds and effects"
+keywords: [css, opacity, filter, blur, grayscale, brightness, backdrop-filter]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Opacity and filters</h1>
+  <h2>Opacity</h2>
+  <p><code>opacity</code> makes the whole element see-through, from <code>0</code>, invisible, to <code>1</code>, solid:</p>
+  <pre><code class="language-css">.disabled {
+  opacity: 0.5;
+}</code></pre>
+  <p>Opacity is for the element and everything inside it. To make only the background see-through, use a color with alpha instead: <code>background-color: rgb(0 0 0 / 0.5)</code>.</p>
+  <h2>Filters</h2>
+  <p><code>filter</code> changes how an element looks, like in a photo program:</p>
+  <pre><code class="language-css">img.grey { filter: grayscale(100%); }
+img.soft { filter: blur(4px); }
+img.dark { filter: brightness(60%); }
+img.mix  { filter: contrast(120%) saturate(150%); }</code></pre>
+  <p>A grey image that gets its colors back on hover:</p>
+  <pre><code class="language-css">.logo { filter: grayscale(100%); transition: filter 0.3s; }
+.logo:hover { filter: none; }</code></pre>
+  <h2>Backdrop filter</h2>
+  <p><code>backdrop-filter</code> changes what is behind the element. A menu that blurs the page below it, like frosted glass:</p>
+  <pre><code class="language-css">.menu {
+  background-color: rgb(255 255 255 / 0.6);
+  backdrop-filter: blur(10px);
+}</code></pre>
+  <h2>More about opacity and filters</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/opacity"><code>opacity</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/filter"><code>filter</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/backdrop-filter"><code>backdrop-filter</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

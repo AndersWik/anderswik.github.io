@@ -1,0 +1,93 @@
+---
+layout: default
+title: Mixins
+permalink: /scss/mixins/
+chapter: "03"
+chapter_title: "Reuse"
+keywords: [scss, sass, mixins, "@mixin", "@include", arguments, default values, "@content", keyword arguments]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Mixins</h1>
+  <p>A mixin is a group of declarations with a name. <code>@include</code> copies them into a rule. Use mixins for groups of properties that are needed in many places.</p>
+  <pre><code class="language-scss">@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  @include visually-hidden;
+}</code></pre>
+  <pre><code class="language-css">.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}</code></pre>
+  <h2>Arguments</h2>
+  <p>A mixin can take arguments, like a function. An argument can have a default value, which is used when it is left out.</p>
+  <pre><code class="language-scss">@mixin card($padding, $radius: 12px) {
+  padding: $padding;
+  border-radius: $radius;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 6px 24px rgba(0, 0, 0, .06);
+}
+
+.post {
+  @include card(1.5rem);           // radius is 12px
+}
+
+.badge {
+  @include card(.25rem, 999px);
+}
+
+.panel {
+  @include card($radius: 0, $padding: 2rem);   // By name, in any order
+}</code></pre>
+  <h2>@content</h2>
+  <p><code>@content</code> in a mixin is replaced with the block written after the <code>@include</code>. It lets a mixin wrap declarations, for example in a media query.</p>
+  <pre><code class="language-scss">@mixin dark-mode {
+  @media (prefers-color-scheme: dark) {
+    @content;
+  }
+}
+
+.card {
+  background: white;
+
+  @include dark-mode {
+    background: #1b1d21;
+  }
+}</code></pre>
+  <pre><code class="language-css">.card {
+  background: white;
+}
+@media (prefers-color-scheme: dark) {
+  .card {
+    background: #1b1d21;
+  }
+}</code></pre>
+  <p>See <a href="/scss/breakpoints/">breakpoints</a> for a mixin that does the same with screen sizes.</p>
+  <h2>Mixins from other files</h2>
+  <p>Keep mixins in a partial and load it with <a href="/scss/partials/">@use</a>.</p>
+  <pre><code class="language-scss">@use 'mixins';
+
+.skip-link {
+  @include mixins.visually-hidden;
+}</code></pre>
+  <h2>Mixin, extend or class</h2>
+  <p>A mixin copies the declarations into every rule that includes it, so the CSS gets bigger the more it is used. For a few lines that is fine, and compression takes care of most of it. If the same group is used on many elements, a class in the HTML, like <code>class="card"</code>, can be simpler. See also <a href="/scss/extend/">@extend</a>.</p>
+  <h2>More about mixins</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/at-rules/mixin/">@mixin and @include</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,64 @@
+---
+layout: default
+title: Featured images
+permalink: /wordpress/featured-images/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, post images, featured image, post thumbnail, the_post_thumbnail, has_post_thumbnail, add_image_size, post-thumbnails, image sizes]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Featured images</h1>
+  <p>A featured image, called a post thumbnail in the code, is one image that represents a post. It is used in lists of posts and at the top of the post.</p>
+  <h2>Turn on featured images</h2>
+  <p>The Featured image box in the editor is only shown if the theme supports it. Add the support in <a href="/wordpress/functions/">functions.php</a>.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_setup() {
+  add_theme_support( 'post-thumbnails' );
+}
+
+add_action( 'after_setup_theme', 'nerdy_setup' );</code></pre>
+  <h2>Show the image</h2>
+  <p>In the loop, <code>the_post_thumbnail()</code> prints an <code>&lt;img&gt;</code> with <code>srcset</code>, so the browser can choose the best size. Check with <code>has_post_thumbnail()</code> first, since not every post has an image.</p>
+  <pre><code class="language-php">&lt;?php if ( has_post_thumbnail() ) : ?&gt;
+  &lt;a href="&lt;?php the_permalink(); ?&gt;"&gt;
+    &lt;?php the_post_thumbnail( 'medium' ); ?&gt;
+  &lt;/a&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <h2>Sizes</h2>
+  <p>When an image is uploaded, WordPress saves copies in several sizes. The sizes can be changed under Settings → Media.</p>
+  <pre><code class="language-php">&lt;?php
+the_post_thumbnail();                    // 'post-thumbnail', or the full image if that size is not set
+the_post_thumbnail( 'thumbnail' );       // Thumbnail (default 150 × 150, cropped)
+the_post_thumbnail( 'medium' );          // Medium (default 300 × 300 max)
+the_post_thumbnail( 'large' );           // Large (default 1024 × 1024 max)
+the_post_thumbnail( 'full' );            // The original image
+the_post_thumbnail( array( 100, 100 ) ); // The closest size that fits in 100 × 100</code></pre>
+  <h2>Attributes</h2>
+  <p>The second parameter adds attributes to the <code>&lt;img&gt;</code>.</p>
+  <pre><code class="language-php">&lt;?php the_post_thumbnail( 'large', array( 'class' =&gt; 'hero', 'loading' =&gt; 'eager' ) ); ?&gt;</code></pre>
+  <h2>Our own sizes</h2>
+  <p><code>add_image_size()</code> adds a new size. The last parameter <code>true</code> crops the image to the exact size, <code>false</code> scales it to fit.</p>
+  <pre><code class="language-php">&lt;?php
+function nerdy_setup() {
+  add_theme_support( 'post-thumbnails' );
+  add_image_size( 'nerdy-card', 600, 400, true );
+}
+
+add_action( 'after_setup_theme', 'nerdy_setup' );</code></pre>
+  <pre><code class="language-php">&lt;?php the_post_thumbnail( 'nerdy-card' ); ?&gt;</code></pre>
+  <p>New sizes are only made for images uploaded after the change. Run <code>wp media regenerate</code> with <a href="/wordpress/wp-cli/">WP-CLI</a> to make them for the old images too.</p>
+  <h2>Only the URL</h2>
+  <pre><code class="language-php">&lt;div class="banner" style="background-image: url('&lt;?php echo esc_url( get_the_post_thumbnail_url( null, 'large' ) ); ?&gt;');"&gt;
+&lt;/div&gt;</code></pre>
+  <h2>More about featured images</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/">Featured images</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/the_post_thumbnail/">the_post_thumbnail()</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/add_image_size/">add_image_size()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

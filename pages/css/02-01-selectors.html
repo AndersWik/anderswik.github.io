@@ -1,0 +1,37 @@
+---
+layout: default
+title: Selectors
+permalink: /css/selectors/
+chapter: "02"
+chapter_title: "Selectors"
+keywords: [css, selectors, type, class, id, universal, grouping]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Selectors</h1>
+  <p>The selector chooses which elements a rule is for.</p>
+  <pre><code class="language-css">p { }              /* type: every &lt;p&gt; */
+.note { }          /* class: every element with class="note" */
+#menu { }          /* id: the element with id="menu" */
+* { }              /* universal: every element */
+h1, h2 { }         /* a list: every &lt;h1&gt; and every &lt;h2&gt; */</code></pre>
+  <h2>Combine them</h2>
+  <p>Written together, without a space, the element must match all of them:</p>
+  <pre><code class="language-css">p.note { }         /* a &lt;p&gt; with the class note */
+.note.important { }/* an element with both classes */</code></pre>
+  <h2>Which to use?</h2>
+  <p>Use <strong>classes</strong> for almost everything. They can be used on any element, many times, and are easy to override. Use type selectors for general styles, like the font of all paragraphs. Avoid id selectors for styling: they are so strong that they are hard to override. See <a href="/css/cascade-and-specificity/">Cascade and specificity</a>.</p>
+  <h2>Test a selector</h2>
+  <p><code>document.querySelectorAll()</code> in the browser console uses the same selectors, and shows which elements match:</p>
+  <pre><code class="language-javascript">document.querySelectorAll(".note.important");</code></pre>
+  <h2>More about selectors</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Selectors">Selectors on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/Class_selectors">Class selectors on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/Type_selectors">Type selectors on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

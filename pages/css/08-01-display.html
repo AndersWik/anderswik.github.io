@@ -1,0 +1,40 @@
+---
+layout: default
+title: Display
+permalink: /css/display/
+chapter: "08"
+chapter_title: "Layout"
+keywords: [css, display, block, inline, inline-block, none, visibility, hidden]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Display</h1>
+  <p><code>display</code> decides how an element is placed, and how its children are placed.</p>
+  <pre><code class="language-css">a.button { display: inline-block; }
+.menu { display: flex; }
+.gallery { display: grid; }
+.hidden { display: none; }</code></pre>
+  <h2>The values</h2>
+  <ul>
+    <li><code>block</code>, starts on a new line and is as wide as the parent. See <a href="/html/block-and-inline/">Block and inline</a> in the HTML notes.</li>
+    <li><code>inline</code>, flows with the text. <code>width</code>, <code>height</code> and top and bottom margin do nothing.</li>
+    <li><code>inline-block</code>, flows with the text, but has a width, height and padding like a block. Good for buttons and tags.</li>
+    <li><code>flex</code>, places the children in a row or a column. See <a href="/css/flexbox/">Flexbox</a>.</li>
+    <li><code>grid</code>, places the children in rows and columns. See <a href="/css/grid/">Grid</a>.</li>
+    <li><code>none</code>, the element is removed, as if it was not in the HTML.</li>
+  </ul>
+  <h2>Hide an element</h2>
+  <pre><code class="language-css">.a { display: none; }        /* gone, takes no space, not read by screen readers */
+.b { visibility: hidden; }   /* invisible, but still takes its space */
+.c { opacity: 0; }           /* invisible, takes space, can still be clicked */</code></pre>
+  <p>The HTML attribute <code>hidden</code> does the same as <code>display: none</code>.</p>
+  <h2>More about display</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/display"><code>display</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/visibility"><code>visibility</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

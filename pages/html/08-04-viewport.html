@@ -1,0 +1,30 @@
+---
+layout: default
+title: Viewport
+permalink: /html/viewport/
+chapter: "08"
+chapter_title: "The head"
+keywords: [html, viewport, meta viewport, mobile, responsive, width=device-width]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Viewport</h1>
+  <p>Without the viewport tag, a phone shows the page as if the screen were about 980 pixels wide, and makes everything small. Add this line to the <code>&lt;head&gt;</code>, and the page uses the real width of the screen:</p>
+  <pre><code class="language-html">&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;</code></pre>
+  <ul>
+    <li><code>width=device-width</code> makes the page as wide as the screen.</li>
+    <li><code>initial-scale=1</code> shows it without zoom.</li>
+  </ul>
+  <h2>Don't stop zoom</h2>
+  <p>Some pages add <code>maximum-scale=1</code> or <code>user-scalable=no</code>. Don't: people who need larger text can't zoom then.</p>
+  <h2>Responsive pages</h2>
+  <p>The viewport tag is the HTML part of a page that works on all screens. The rest is CSS, with media queries and flexible layouts, and images with <a href="/html/responsive-images/">srcset</a>.</p>
+  <h2>More about the viewport</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta/name/viewport">The viewport meta tag on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

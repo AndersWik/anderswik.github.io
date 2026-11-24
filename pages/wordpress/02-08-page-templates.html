@@ -1,0 +1,51 @@
+---
+layout: default
+title: Page templates
+permalink: /wordpress/page-templates/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, templates, page templates, template name, template post type, full width]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Page templates</h1>
+  <p>A page template is a template that the editor can choose for any page, in the Template setting in the page editor. Use it for layouts that are needed on several pages, like a full width page or a landing page.</p>
+  <h2>Create a page template</h2>
+  <p>Create a file in the theme, for example <code>template-full-width.php</code>. The comment at the top with <code>Template Name</code> makes it a page template. The comment has to be PHP, inside <code>&lt;?php</code>, otherwise it is printed on the page.</p>
+  <pre><code class="language-php">&lt;?php
+/*
+Template Name: Full width
+*/
+?&gt;
+&lt;?php get_header(); ?&gt;
+
+&lt;div class="full-width"&gt;
+  &lt;?php while ( have_posts() ) : the_post(); ?&gt;
+    &lt;h1&gt;&lt;?php the_title(); ?&gt;&lt;/h1&gt;
+    &lt;?php the_content(); ?&gt;
+  &lt;?php endwhile; ?&gt;
+&lt;/div&gt;
+
+&lt;?php get_footer(); ?&gt;</code></pre>
+  <p>Edit a page, choose "Full width" under Template and save. The template is used instead of <code>page.php</code>.</p>
+  <p>Do not start the file name with <code>page-</code>. <code>page-something.php</code> is also the template for the page with the slug <code>something</code>, see the <a href="/wordpress/template-hierarchy/">template hierarchy</a>. Many themes keep page templates in a folder, like <code>page-templates/full-width.php</code>.</p>
+  <h2>Templates for posts</h2>
+  <p>By default a page template can only be chosen for pages. <code>Template Post Type</code> makes it available for other post types too.</p>
+  <pre><code class="language-php">&lt;?php
+/*
+Template Name: Wide
+Template Post Type: post, page, book
+*/</code></pre>
+  <h2>Check the template in code</h2>
+  <pre><code class="language-php">&lt;?php if ( is_page_template( 'template-full-width.php' ) ) : ?&gt;
+  &lt;p&gt;This page uses the full width template.&lt;/p&gt;
+&lt;?php endif; ?&gt;</code></pre>
+  <h2>More about page templates</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/themes/classic-themes/templates/page-template-files/">Page template files</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

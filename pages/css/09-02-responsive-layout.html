@@ -1,0 +1,58 @@
+---
+layout: default
+title: Responsive layout
+permalink: /css/responsive-layout/
+chapter: "09"
+chapter_title: "Responsive design"
+keywords: [css, responsive, mobile first, fluid, clamp, container queries, "@container"]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Responsive layout</h1>
+  <p>A responsive page works on every screen size, from a phone to a large monitor.</p>
+  <h2>Flexible by default</h2>
+  <p>Many layouts need few or no media queries, if the sizes are flexible:</p>
+  <pre><code class="language-css">img {
+  max-width: 100%;
+  height: auto;
+}
+
+.content {
+  width: min(100% - 2rem, 900px);   /* 1rem space on each side on phones */
+  margin-inline: auto;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}</code></pre>
+  <h2>Fluid sizes</h2>
+  <p><a href="/css/math-functions/"><code>clamp()</code></a> gives sizes that grow with the screen, between a smallest and a largest value:</p>
+  <pre><code class="language-css">h1 { font-size: clamp(1.75rem, 3vw + 1rem, 3rem); }
+section { padding-block: clamp(2rem, 6vw, 5rem); }</code></pre>
+  <h2>Container queries</h2>
+  <p>A media query asks about the window. A container query asks about the size of the parent, so a component can change its layout wherever it is placed:</p>
+  <pre><code class="language-css">.card-list {
+  container-type: inline-size;
+}
+
+@container (min-width: 500px) {
+  .card {
+    display: flex;
+    gap: 16px;
+  }
+}</code></pre>
+  <p>The same card is a column in a narrow sidebar, and a row in the wide main content.</p>
+  <h2>Test it</h2>
+  <p>The developer tools have a device mode (<code>Ctrl</code> + <code>Shift</code> + <code>M</code> in Firefox and Chrome) that shows the page as on a phone or a tablet.</p>
+  <h2>More about responsive layout</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Responsive_Design">Responsive design on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Containment/Container_queries">Container queries on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

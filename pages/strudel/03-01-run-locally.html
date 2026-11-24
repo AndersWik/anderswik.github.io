@@ -1,0 +1,71 @@
+---
+layout: default
+title: Run Strudel locally
+permalink: /strudel/run-locally/
+chapter: "03"
+chapter_title: "Run Strudel locally"
+keywords: [strudel, local, install, source code, codeberg, node, nodejs, pnpm, vagrant, vagrantfile, localhost, port 4321, offline]
+---
+
+<div class="strudel container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Run Strudel locally</h1>
+  <p>Strudel is a web site, so the easiest way to use it is <a href="https://strudel.cc/">strudel.cc</a>. But Strudel is open source, and you can run your own copy. Then you can try changes to Strudel itself, or use a version that doesn't change while you work on a song.</p>
+  <p>The source code is on Codeberg, at <a href="https://codeberg.org/uzu/strudel">codeberg.org/uzu/strudel</a>. Strudel needs <a href="https://nodejs.org/">Node.js</a> 18 or newer and the package manager <a href="https://pnpm.io/">pnpm</a>.</p>
+  <h2>With Vagrant</h2>
+  <p>The Vagrantfile below makes an Ubuntu virtual machine with everything installed. Strudel starts by itself when the machine starts. You need <a href="/vagrant/">Vagrant</a> and VirtualBox.</p>
+  <ol>
+    <li>Make a new folder and download the <a href="{{ site.baseurl }}/assets/vagrantfile/strudel/Vagrantfile" download="Vagrantfile">Vagrantfile</a> into it. It is also in the <a href="/utils/vagrant/">Vagrantfile Maker</a>.</li>
+    <li>Start the machine. The first time takes several minutes, since it installs Node.js and downloads Strudel.</li>
+    <li>Open <a href="http://localhost:4321/">http://localhost:4321/</a> in your browser.</li>
+  </ol>
+  <pre><code class="language-bash">$ mkdir strudel
+$ cd strudel
+$ vagrant up</code></pre>
+  <p>Use <code>localhost</code>, not the IP address of the machine. The browser only lets a page use the audio engine Strudel needs on a <strong>secure</strong> page: an <code>https://</code> address, or <code>localhost</code>. The Vagrantfile forwards port 4321 in the machine to port 4321 on your computer, so <code>localhost</code> works.</p>
+  <p>Stop the machine when you are done, and start it again later. Strudel starts by itself.</p>
+  <pre><code class="language-bash">$ vagrant halt
+$ vagrant up</code></pre>
+  <h2>What the Vagrantfile does</h2>
+  <ul>
+    <li>Uses the box <code>bento/ubuntu-24.04</code>, with 4 GB of memory and 2 CPUs.</li>
+    <li>Forwards port 4321 to <code>127.0.0.1</code>, so only your own computer can open it.</li>
+    <li>Installs Node.js 22 from NodeSource, since the Node.js in Ubuntu is too old, and pnpm with npm.</li>
+    <li>Downloads the Strudel source code to <code>/home/vagrant/strudel</code> with <code>git clone</code>, and installs its packages with <code>pnpm install</code>.</li>
+    <li>Makes a systemd service, <code>strudel</code>, that runs <code>pnpm dev</code> every time the machine starts.</li>
+  </ul>
+  <p>The source code is kept inside the machine, not in a <a href="/vagrant/synced-folders/">synced folder</a>. Strudel has thousands of package files in <code>node_modules</code>, and those are slow and can break in a synced folder.</p>
+  <h2>Look at the server</h2>
+  <p>Log in to the machine with <a href="/vagrant/ssh/">vagrant ssh</a> to see if Strudel runs, read its output, or restart it.</p>
+  <pre><code class="language-bash">$ vagrant ssh
+$ systemctl status strudel        # is it running?
+$ journalctl -u strudel -f        # follow the output, Ctrl+C to stop
+$ sudo systemctl restart strudel  # restart it</code></pre>
+  <h2>Update Strudel</h2>
+  <p>Download the newest code and packages, and restart the service.</p>
+  <pre><code class="language-bash">$ vagrant ssh
+$ cd ~/strudel
+$ git pull
+$ pnpm install
+$ sudo systemctl restart strudel</code></pre>
+  <h2>Without Vagrant</h2>
+  <p>If Node.js 18 or newer and pnpm are already installed on your computer, you can run Strudel directly. <code>pnpm dev</code> starts a development server, and when it is ready it shows the address, usually <a href="http://localhost:4321/">http://localhost:4321/</a>.</p>
+  <pre><code class="language-bash">$ git clone https://codeberg.org/uzu/strudel.git
+$ cd strudel
+$ pnpm install
+$ pnpm dev</code></pre>
+  <p>pnpm can be installed with npm, which comes with Node.js:</p>
+  <pre><code class="language-bash">$ npm install -g pnpm</code></pre>
+  <h2>Offline</h2>
+  <p>Your own copy still downloads the samples, like drums and pianos, from the internet when a pattern uses them. So the computer needs a network connection. Synthesizer sounds, like <code>sawtooth</code>, work without one.</p>
+  <h2>License</h2>
+  <p>Strudel is under the GNU Affero General Public License v3. You can use and change it freely, but if you share your changes, or let others use your changed version over a network, you must share its source code under the same license.</p>
+  <h2>More about running Strudel</h2>
+  <ul>
+    <li><a href="https://codeberg.org/uzu/strudel">The Strudel source code</a> and its README</li>
+    <li><a href="/vagrant/">Vagrant notes</a>: boxes, provisioning and the Vagrant commands</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

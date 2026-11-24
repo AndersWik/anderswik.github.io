@@ -1,0 +1,70 @@
+---
+layout: default
+title: Mini-notation
+permalink: /strudel/mini-notation/
+chapter: "02"
+chapter_title: "Getting started"
+keywords: [strudel, mini-notation, rest, sub-sequence, brackets, speed up, slow down, alternate, comma, replicate, elongate]
+---
+
+<div class="strudel container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Mini-notation</h1>
+  <p>The text inside the quotes, like <code>"bd sd"</code>, is written in <strong>mini-notation</strong>: a short language for rhythms. It is the same for sounds, notes and numbers. These are the symbols you use the most.</p>
+  <table class="table table-sm">
+    <thead><tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>-</code> or <code>~</code></td><td>Rest, a step with no sound</td><td><code>"bd - sd -"</code></td></tr>
+      <tr><td><code>[ ]</code></td><td>Sub-sequence, several steps in one step</td><td><code>"bd [hh hh]"</code></td></tr>
+      <tr><td><code>*</code></td><td>Speed up, play a step several times</td><td><code>"hh*4"</code></td></tr>
+      <tr><td><code>/</code></td><td>Slow down, stretch over several cycles</td><td><code>"[c e g b]/2"</code></td></tr>
+      <tr><td><code>&lt; &gt;</code></td><td>Alternate, one step per cycle</td><td><code>"&lt;bd cp&gt;"</code></td></tr>
+      <tr><td><code>,</code></td><td>Play at the same time</td><td><code>"bd*2, hh*4"</code></td></tr>
+      <tr><td><code>!</code></td><td>Replicate, repeat a step</td><td><code>"c!3 e"</code></td></tr>
+      <tr><td><code>@</code></td><td>Elongate, make a step longer</td><td><code>"c@3 e"</code></td></tr>
+      <tr><td><code>:</code></td><td>Sample number</td><td><code>"casio:1"</code></td></tr>
+    </tbody>
+  </table>
+  <h2>Rests</h2>
+  <p><code>-</code> is a step with no sound. <code>~</code> does the same thing.</p>
+  <pre><code class="language-javascript">sound("bd hh - rim - bd hh rim")</code></pre>
+  <h2>Sub-sequences</h2>
+  <p>Brackets put several steps in the space of one. <code>[hh hh]</code> plays two hi-hats in the time of one step.</p>
+  <pre><code class="language-javascript">sound("bd [hh hh] sd [hh bd] bd - [hh sd] cp")</code></pre>
+  <p>Sub-sequences can be inside other sub-sequences:</p>
+  <pre><code class="language-javascript">sound("bd [[rim rim] hh] bd cp")</code></pre>
+  <h2>Speed up</h2>
+  <p><code>*</code> plays a step, or a sub-sequence, several times in its own space.</p>
+  <pre><code class="language-javascript">sound("bd hh*2 rim hh*3 bd [- hh*2] rim hh*2")
+sound("bd [hh rim]*2 bd [hh rim]*1.5")</code></pre>
+  <h2>Slow down</h2>
+  <p><code>/</code> does the opposite. <code>/4</code> stretches the sequence over 4 cycles, so you hear one note per cycle.</p>
+  <pre><code class="language-javascript">note("[36 34 41 39]/4").sound("gm_acoustic_bass")</code></pre>
+  <h2>Alternate</h2>
+  <p>Angle brackets play one step per cycle: the first step in the first cycle, the second in the second cycle, and so on. Adding steps doesn't change the speed.</p>
+  <pre><code class="language-javascript">sound("&lt;bd bd hh bd rim bd hh bd&gt;")</code></pre>
+  <p>Speed it up with <code>*</code> to get a fast pattern you can make as long as you want:</p>
+  <pre><code class="language-javascript">sound("&lt;bd bd hh bd rim bd hh bd&gt;*8")</code></pre>
+  <p>Inside a pattern, it changes one step in each cycle:</p>
+  <pre><code class="language-javascript">sound("bd*4, [- &lt;sd cp&gt;]*2, [- hh]*4").bank("RolandTR909")</code></pre>
+  <h2 id="play-at-the-same-time">Play at the same time</h2>
+  <p>A comma plays two sequences at the same time. Each sequence keeps its own speed.</p>
+  <pre><code class="language-javascript">sound("hh hh hh, bd casio")</code></pre>
+  <h2>Replicate and elongate</h2>
+  <p><code>!</code> repeats a step. Unlike <code>*</code>, the repeats take steps of their own.</p>
+  <pre><code class="language-javascript">note("c!3 e").sound("piano")</code></pre>
+  <p><code>@</code> makes a step longer. Here <code>c</code> is three times as long as <code>eb</code>.</p>
+  <pre><code class="language-javascript">note("c@3 eb").sound("piano")</code></pre>
+  <h2>Long patterns</h2>
+  <p>Strings in backticks can go over several lines. This makes long patterns easier to read.</p>
+  <pre><code class="language-javascript">sound(`bd*2, - cp,
+- - - oh, hh*4,
+[- casio]*2`)</code></pre>
+  <h2>More about mini-notation</h2>
+  <ul>
+    <li><a href="https://strudel.cc/learn/mini-notation/">Mini-notation</a> in the Strudel documentation</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

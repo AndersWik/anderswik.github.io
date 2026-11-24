@@ -4,11 +4,13 @@ title: Tail
 permalink: /linux/tail/
 chapter: "03"
 chapter_title: "Files"
-keywords: [linux, tail, read file, last lines, logs, files]
+gnu: coreutils
+keywords: [linux, tail, read file, last lines, logs, files, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Tail</h1>
+  {% include gnu.html %}
   <p><code>tail</code> prints the last lines of a file, by default the last 10. It is often used to look at the newest entries in log files, and it can follow a file as new lines are written to it.</p>
   <h2>Print the last lines</h2>
   <pre><code class="language-bash">$ tail /var/log/syslog

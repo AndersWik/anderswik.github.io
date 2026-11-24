@@ -1,0 +1,87 @@
+---
+layout: default
+title: Breakpoints
+permalink: /scss/breakpoints/
+chapter: "05"
+chapter_title: "In practice"
+keywords: [scss, sass, breakpoints, media queries, responsive, mixin, mobile first, min-width, "@content"]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Breakpoints</h1>
+  <p>Breakpoints are the screen widths where the layout changes. Writing <a href="/css/media-queries/">media queries</a> with the pixel values everywhere makes them hard to change. Keep the breakpoints in a <a href="/scss/lists-and-maps/">map</a> and write the media queries with a <a href="/scss/mixins/">mixin</a>.</p>
+  <h2>The mixin</h2>
+  <pre><code class="language-scss">// abstracts/_breakpoints.scss
+@use 'sass:map';
+
+$breakpoints: (
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+);
+
+@mixin up($name) {
+  @if not map.has-key($breakpoints, $name) {
+    @error "Unknown breakpoint `#{$name}`. Use one of #{map.keys($breakpoints)}.";
+  }
+
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}</code></pre>
+  <ul>
+    <li><code>@content</code> is replaced with the styles written in the <code>@include</code>.</li>
+    <li><code>@error</code> stops the build if the name is misspelled, instead of making a media query without a width.</li>
+  </ul>
+  <h2>Use it</h2>
+  <pre><code class="language-scss">@use 'abstracts/breakpoints' as bp;
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+
+  @include bp.up(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include bp.up(lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}</code></pre>
+  <pre><code class="language-css">.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 992px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}</code></pre>
+  <h2>Mobile first</h2>
+  <p>The mixin uses <code>min-width</code>. The styles without a media query are for the smallest screens, and each breakpoint adds to them as the screen gets wider. This is called mobile first, and is usually simpler than starting with the big screen and taking things away.</p>
+  <p>For the few times a style is only for small screens, add a <code>down</code> mixin. The <code>- 0.02px</code> keeps it from overlapping with <code>up</code> at exactly the breakpoint.</p>
+  <pre><code class="language-scss">@mixin down($name) {
+  @media (max-width: map.get($breakpoints, $name) - 0.02px) {
+    @content;
+  }
+}</code></pre>
+  <h2>The same breakpoints as Bootstrap</h2>
+  <p>The values above are the same as in Bootstrap 5, which this site uses, so the classes like <code>col-md-6</code> and our own media queries change at the same widths.</p>
+  <h2>More about breakpoints</h2>
+  <ul>
+    <li><a href="https://getbootstrap.com/docs/5.3/layout/breakpoints/">Bootstrap breakpoints</a></li>
+    <li>The <a href="/css/media-queries/">media queries</a> page in the CSS notes</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -4,11 +4,13 @@ title: Whoami
 permalink: /linux/whoami/
 chapter: "04"
 chapter_title: "Users"
-keywords: [linux, whoami, user, users]
+gnu: coreutils
+keywords: [linux, whoami, user, users, gnu]
 ---
 
 <div class="linux container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Whoami</h1>
+  {% include gnu.html %}
   <p><code>whoami</code> prints the name of the user you are currently running commands as. It is useful after switching users or inside scripts.</p>
   <h2>Print the current user</h2>
   <pre><code class="language-bash">$ whoami

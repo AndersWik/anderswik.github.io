@@ -1,0 +1,86 @@
+---
+layout: default
+title: Composer
+permalink: /wordpress/composer/
+chapter: "04"
+chapter_title: "Project setup"
+keywords: [wordpress, setup, composer, composer.json, johnpbloch/wordpress, roots/wordpress, wpackagist, composer/installers, installer-paths, autoload, gitignore]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Composer</h1>
+  <p><a href="https://getcomposer.org">Composer</a> is the package manager for PHP. With Composer, WordPress core and the plugins are listed in <code>composer.json</code> with their versions, and <code>composer install</code> downloads them. Only our own code and <code>composer.json</code> are kept in git. This builds on the <a href="/wordpress/subdirectory/">subdirectory</a> setup.</p>
+  <h2>WordPress core</h2>
+  <p>WordPress is not on <a href="https://packagist.org">Packagist</a> itself, but the package <a href="https://github.com/johnpbloch/wordpress">johnpbloch/wordpress</a> is a copy of every release. <a href="https://github.com/roots/wordpress">roots/wordpress</a> is another one that works the same way.</p>
+  <pre><code class="language-bash">$ composer init
+$ composer require johnpbloch/wordpress</code></pre>
+  <p>It installs core in a folder called <code>wordpress</code>. To use the <code>wp</code> folder from the subdirectory setup instead, set <code>wordpress-install-dir</code> in <code>composer.json</code> before installing.</p>
+  <h2>Plugins from wpackagist</h2>
+  <p><a href="https://wpackagist.org">wpackagist.org</a> is a Composer repository with every plugin and theme from wordpress.org. Add it under <code>repositories</code>. The plugins get the names <code>wpackagist-plugin/&lt;slug&gt;</code> and the themes <code>wpackagist-theme/&lt;slug&gt;</code>, where the slug is the last part of the plugin's URL on wordpress.org.</p>
+  <pre><code class="language-bash">$ composer require wpackagist-plugin/query-monitor</code></pre>
+  <h2>composer.json</h2>
+  <pre><code class="language-json">{
+  "name": "anderswik/example-site",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org",
+      "only": ["wpackagist-plugin/*", "wpackagist-theme/*"]
+    }
+  ],
+  "require": {
+    "php": "&gt;=8.1",
+    "composer/installers": "^2.0",
+    "johnpbloch/wordpress": "^6.8",
+    "wpackagist-plugin/query-monitor": "^3.16"
+  },
+  "extra": {
+    "wordpress-install-dir": "wp",
+    "installer-paths": {
+      "wp-content/plugins/{$name}/": ["type:wordpress-plugin"],
+      "wp-content/themes/{$name}/": ["type:wordpress-theme"]
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "johnpbloch/wordpress-core-installer": true
+    }
+  }
+}</code></pre>
+  <ul>
+    <li><code>only</code> makes Composer look for <code>wpackagist-*</code> packages in wpackagist only, and nothing else there.</li>
+    <li><code>wordpress-install-dir</code> is the folder for core.</li>
+    <li><code>composer/installers</code> reads <code>installer-paths</code> and puts plugins and themes in <code>wp-content</code> instead of <code>vendor</code>.</li>
+    <li><code>allow-plugins</code> is needed since Composer 2.2. Composer asks before it runs code from a package, and these two packages are the ones that move the files.</li>
+  </ul>
+  <p>Then install everything, and update to newer versions later with <code>composer update</code>.</p>
+  <pre><code class="language-bash">$ composer install
+$ composer update</code></pre>
+  <p><code>composer install</code> uses the exact versions in <code>composer.lock</code>. Keep <code>composer.lock</code> in git, so every server gets the same versions.</p>
+  <h2>Autoloading</h2>
+  <p>To use other PHP packages from Composer in themes and plugins, load Composer's autoloader at the top of <code>wp-config.php</code>.</p>
+  <pre><code class="language-php">require_once __DIR__ . '/vendor/autoload.php';</code></pre>
+  <p><code>__DIR__</code> is the folder of <code>wp-config.php</code>. If <code>vendor</code> is one folder up, outside the public folder, use <code>dirname( __DIR__ ) . '/vendor/autoload.php'</code>. Keeping <code>vendor</code> outside the public folder means its files can not be opened in the browser.</p>
+  <h2>.gitignore</h2>
+  <p>Everything Composer installs can be installed again, so it is not added to git. Our own theme and plugin are kept with <code>!</code>.</p>
+  <pre><code class="language-bash">.DS_Store
+/vendor
+/wp
+/wp-content/plugins/*
+!/wp-content/plugins/nerdy-*
+/wp-content/themes/*
+!/wp-content/themes/nerdy
+/wp-content/uploads</code></pre>
+  <h2>More about Composer</h2>
+  <ul>
+    <li><a href="https://getcomposer.org/doc/">Composer documentation</a></li>
+    <li><a href="https://wpackagist.org">wpackagist.org</a></li>
+    <li><a href="https://github.com/johnpbloch/wordpress">johnpbloch/wordpress</a></li>
+    <li><a href="https://github.com/composer/installers">composer/installers</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,73 @@
+---
+layout: default
+title: Extend
+permalink: /scss/extend/
+chapter: "03"
+chapter_title: "Reuse"
+keywords: [scss, sass, extend, "@extend", placeholder, "%placeholder", inheritance, selectors]
+---
+
+<div class="scss container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Extend</h1>
+  <p><code>@extend</code> lets one selector use the styles of another. Instead of copying the declarations like a <a href="/scss/mixins/">mixin</a>, Sass adds the selector to the other rule.</p>
+  <pre><code class="language-scss">.message {
+  padding: 1rem;
+  border: 1px solid #ccc;
+}
+
+.message-error {
+  @extend .message;
+  border-color: red;
+}
+
+.message-success {
+  @extend .message;
+  border-color: green;
+}</code></pre>
+  <pre><code class="language-css">.message, .message-error, .message-success {
+  padding: 1rem;
+  border: 1px solid #ccc;
+}
+
+.message-error {
+  border-color: red;
+}
+
+.message-success {
+  border-color: green;
+}</code></pre>
+  <h2>Placeholders</h2>
+  <p>A placeholder selector starts with <code>%</code>. It is only printed if something extends it, so it is a group of styles that is meant to be extended and never used in the HTML.</p>
+  <pre><code class="language-scss">%message {
+  padding: 1rem;
+  border: 1px solid #ccc;
+}
+
+.message-error {
+  @extend %message;
+  border-color: red;
+}</code></pre>
+  <pre><code class="language-css">.message-error {
+  padding: 1rem;
+  border: 1px solid #ccc;
+}
+
+.message-error {
+  border-color: red;
+}</code></pre>
+  <h2>Be careful with extend</h2>
+  <ul>
+    <li><code>@extend</code> changes every place the extended selector is used, also in nested rules, like <code>.sidebar .message</code>. That can make many more selectors than expected.</li>
+    <li>It does not work inside a media query on a selector from outside the media query.</li>
+    <li>The order of the CSS can be surprising, since the styles stay where the extended rule is, not where the <code>@extend</code> is.</li>
+  </ul>
+  <p>Most projects use mixins instead, which are easier to follow. Use <code>@extend</code> for real "is a kind of" relationships, like an error message is a kind of message, and prefer placeholders.</p>
+  <h2>More about extend</h2>
+  <ul>
+    <li><a href="https://sass-lang.com/documentation/at-rules/extend/">@extend</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

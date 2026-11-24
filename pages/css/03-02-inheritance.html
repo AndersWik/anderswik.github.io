@@ -1,0 +1,41 @@
+---
+layout: default
+title: Inheritance
+permalink: /css/inheritance/
+chapter: "03"
+chapter_title: "The cascade"
+keywords: [css, inheritance, inherit, initial, unset, revert, inherited properties]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Inheritance</h1>
+  <p>Some properties are passed on from an element to everything inside it. Set the font once on <code>&lt;body&gt;</code>, and all the text on the page gets it:</p>
+  <pre><code class="language-css">body {
+  font-family: system-ui, sans-serif;
+  color: #222;
+  line-height: 1.5;
+}</code></pre>
+  <h2>What is inherited?</h2>
+  <ul>
+    <li><strong>Inherited</strong>: properties for text, like <code>color</code>, <code>font-family</code>, <code>font-size</code>, <code>line-height</code>, <code>text-align</code> and <code>visibility</code>.</li>
+    <li><strong>Not inherited</strong>: properties for the box, like <code>margin</code>, <code>padding</code>, <code>border</code>, <code>background</code>, <code>width</code> and <code>display</code>. It would be strange if every element inside a box got the same border.</li>
+  </ul>
+  <h2>Control it</h2>
+  <p>Every property accepts these values:</p>
+  <pre><code class="language-css">button {
+  font: inherit;      /* use the value of the parent */
+  color: initial;     /* the default value of the property */
+  margin: unset;      /* inherit if it is inherited, else initial */
+  padding: revert;    /* the browser's own style */
+}</code></pre>
+  <p><code>font: inherit</code> is useful on buttons and inputs, since browsers give them their own font instead of the page's.</p>
+  <h2>More about inheritance</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Inheritance">Inheritance on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/inherit"><code>inherit</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

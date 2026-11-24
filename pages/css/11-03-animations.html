@@ -1,0 +1,61 @@
+---
+layout: default
+title: Animations
+permalink: /css/animations/
+chapter: "11"
+chapter_title: "Transforms and animation"
+keywords: [css, animation, "@keyframes", iteration, infinite, prefers-reduced-motion]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Animations</h1>
+  <p>An animation runs by itself, through steps you describe with <code>@keyframes</code>. A transition goes from one state to another, an animation can have many steps and repeat.</p>
+  <pre><code class="language-css">@keyframes pulse {
+  from { transform: scale(1); }
+  50%  { transform: scale(1.1); }
+  to   { transform: scale(1); }
+}
+
+.heart {
+  animation: pulse 1s ease-in-out infinite;
+}</code></pre>
+  <h2>The parts</h2>
+  <pre><code class="language-css">animation: spin 2s linear 0s infinite;   /* name, time, timing, delay, count */</code></pre>
+  <ul>
+    <li><code>animation-iteration-count</code>, a number or <code>infinite</code>.</li>
+    <li><code>animation-direction: alternate</code>, goes back and forth.</li>
+    <li><code>animation-fill-mode: forwards</code>, keeps the last step when the animation ends.</li>
+  </ul>
+  <h2>A loading spinner</h2>
+  <pre><code class="language-css">@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 32px;
+  aspect-ratio: 1;
+  border: 4px solid #ddd;
+  border-top-color: #2e9e5b;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}</code></pre>
+  <h2>Less motion</h2>
+  <p>Some people get dizzy or sick from things that move. Respect the setting in their system:</p>
+  <pre><code class="language-css">@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}</code></pre>
+  <h2>More about animations</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/animation"><code>animation</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@keyframes"><code>@keyframes</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-reduced-motion"><code>prefers-reduced-motion</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

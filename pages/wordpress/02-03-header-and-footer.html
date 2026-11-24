@@ -1,0 +1,90 @@
+---
+layout: default
+title: Header and footer
+permalink: /wordpress/header-and-footer/
+chapter: "02"
+chapter_title: "Themes"
+keywords: [wordpress, header.php, footer.php, get_header, get_footer, wp_head, wp_footer, body_class, wp_body_open, home_url, language_attributes, get_template_part, sidebar]
+---
+
+<div class="wordpress container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Header and footer</h1>
+  <p>The top and bottom of the page are the same on every page. Instead of copying them into every template, they are kept in <code>header.php</code> and <code>footer.php</code>.</p>
+  <h2>get_header() and get_footer()</h2>
+  <pre><code class="language-php">&lt;?php get_header(); ?&gt;
+
+&lt;?php if ( have_posts() ) : ?&gt;
+  &lt;?php while ( have_posts() ) : the_post(); ?&gt;
+    &lt;h2&gt;&lt;a href="&lt;?php the_permalink(); ?&gt;"&gt;&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+    &lt;?php the_content(); ?&gt;
+  &lt;?php endwhile; ?&gt;
+&lt;?php endif; ?&gt;
+
+&lt;?php get_footer(); ?&gt;</code></pre>
+  <p><code>get_header()</code> includes <code>header.php</code> from the theme and <code>get_footer()</code> includes <code>footer.php</code>. If the files do not exist, WordPress uses a simple built-in header and footer and shows a deprecation notice when debugging is on. Create the files to get our own.</p>
+  <pre><code class="language-bash">wp-content/themes/nerdy/
+├── header.php
+├── footer.php
+└── index.php</code></pre>
+  <h2>header.php</h2>
+  <p>The header starts the HTML document. Tags opened here, like <code>&lt;body&gt;</code> and <code>&lt;html&gt;</code>, are closed in the footer. The site name moves from <code>index.php</code> to the header, so it is shown on every page.</p>
+  <pre><code class="language-php">&lt;!doctype html&gt;
+&lt;html &lt;?php language_attributes(); ?&gt;&gt;
+  &lt;head&gt;
+    &lt;meta charset="&lt;?php bloginfo( 'charset' ); ?&gt;"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;?php wp_head(); ?&gt;
+  &lt;/head&gt;
+  &lt;body &lt;?php body_class(); ?&gt;&gt;
+    &lt;?php wp_body_open(); ?&gt;
+    &lt;header&gt;
+      &lt;h1&gt;
+        &lt;a href="&lt;?php echo esc_url( home_url( '/' ) ); ?&gt;"&gt;
+          &lt;?php bloginfo( 'name' ); ?&gt;
+        &lt;/a&gt;
+      &lt;/h1&gt;
+    &lt;/header&gt;
+    &lt;main&gt;</code></pre>
+  <ul>
+    <li><code>language_attributes()</code> prints the language of the site, like <code>lang="en-US"</code>.</li>
+    <li><code>wp_head()</code> is where WordPress and plugins add their styles, scripts and meta tags. Without it, the styles from <a href="/wordpress/functions/">functions.php</a> are not loaded. Always put it right before <code>&lt;/head&gt;</code>.</li>
+    <li><code>body_class()</code> adds classes that describe the page, like <code>home</code>, <code>single</code>, <code>page-id-13</code> or <code>logged-in</code>. Useful to style one kind of page.</li>
+    <li><code>wp_body_open()</code> lets plugins add code right after <code>&lt;body&gt;</code>.</li>
+    <li><code>home_url( '/' )</code> returns the address of the front page.</li>
+  </ul>
+  <h3>Title</h3>
+  <p>Instead of writing a <code>&lt;title&gt;</code> ourselves, let WordPress write it. Add theme support for <code>title-tag</code> in <a href="/wordpress/functions/">functions.php</a> and <code>wp_head()</code> prints a title that fits the page, like "Post title – Site name".</p>
+  <pre><code class="language-php">&lt;?php
+add_theme_support( 'title-tag' );</code></pre>
+  <h2>footer.php</h2>
+  <p>The footer closes the tags opened in the header. <code>wp_footer()</code> is where scripts loaded in the footer are added, and where the admin bar is printed for logged in users. Put it right before <code>&lt;/body&gt;</code>.</p>
+  <pre><code class="language-php">    &lt;/main&gt;
+    &lt;footer&gt;
+      &lt;p&gt;&amp;copy; &lt;?php echo esc_html( date( 'Y' ) ); ?&gt; &lt;?php bloginfo( 'name' ); ?&gt;&lt;/p&gt;
+    &lt;/footer&gt;
+    &lt;?php wp_footer(); ?&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Several headers</h2>
+  <p>A name loads a different file. <code>get_header( 'shop' )</code> loads <code>header-shop.php</code>, and <code>get_footer( 'shop' )</code> loads <code>footer-shop.php</code>.</p>
+  <h2>Sidebar and template parts</h2>
+  <p><code>get_sidebar()</code> loads <code>sidebar.php</code> in the same way, see <a href="/wordpress/widgets/">widgets</a>. For other pieces that are used in many templates, use <code>get_template_part()</code>.</p>
+  <pre><code class="language-php">&lt;?php
+// Loads template-parts/content.php
+get_template_part( 'template-parts/content' );
+
+// Loads template-parts/content-page.php, or content.php if it does not exist
+get_template_part( 'template-parts/content', 'page' );</code></pre>
+  <h2>More about header and footer</h2>
+  <ul>
+    <li><a href="https://developer.wordpress.org/reference/functions/wp_head/">wp_head()</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/wp_footer/">wp_footer()</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/body_class/">body_class()</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/home_url/">home_url()</a></li>
+    <li><a href="https://developer.wordpress.org/reference/functions/get_template_part/">get_template_part()</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

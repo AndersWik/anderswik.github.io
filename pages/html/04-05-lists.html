@@ -1,0 +1,57 @@
+---
+layout: default
+title: Lists
+permalink: /html/lists/
+chapter: "04"
+chapter_title: "Text"
+keywords: [html, lists, ul, ol, li, dl, dt, dd, unordered, ordered, description list]
+---
+
+<div class="html container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Lists</h1>
+  <h2>Unordered list</h2>
+  <p><code>&lt;ul&gt;</code> is a list where the order doesn't matter. Each item is an <code>&lt;li&gt;</code>, shown with a dot:</p>
+  <pre><code class="language-html">&lt;ul&gt;
+  &lt;li&gt;Milk&lt;/li&gt;
+  &lt;li&gt;Bread&lt;/li&gt;
+  &lt;li&gt;Cheese&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+  <h2>Ordered list</h2>
+  <p><code>&lt;ol&gt;</code> is a list where the order matters, like steps. The items get numbers:</p>
+  <pre><code class="language-html">&lt;ol&gt;
+  &lt;li&gt;Open the box&lt;/li&gt;
+  &lt;li&gt;Plug in the cable&lt;/li&gt;
+  &lt;li&gt;Press the button&lt;/li&gt;
+&lt;/ol&gt;</code></pre>
+  <p><code>start="5"</code> starts at 5, <code>reversed</code> counts down, and <code>type="a"</code> uses letters instead of numbers.</p>
+  <h2>Lists in lists</h2>
+  <p>A list can be inside an <code>&lt;li&gt;</code>:</p>
+  <pre><code class="language-html">&lt;ul&gt;
+  &lt;li&gt;Fruit
+    &lt;ul&gt;
+      &lt;li&gt;Apples&lt;/li&gt;
+      &lt;li&gt;Pears&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Vegetables&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+  <h2>Description list</h2>
+  <p><code>&lt;dl&gt;</code> is a list of terms (<code>&lt;dt&gt;</code>) and their descriptions (<code>&lt;dd&gt;</code>), like a glossary:</p>
+  <pre><code class="language-html">&lt;dl&gt;
+  &lt;dt&gt;HTML&lt;/dt&gt;
+  &lt;dd&gt;The content and structure of a page.&lt;/dd&gt;
+  &lt;dt&gt;CSS&lt;/dt&gt;
+  &lt;dd&gt;How the page looks.&lt;/dd&gt;
+&lt;/dl&gt;</code></pre>
+  <p>Menus are often made as a <code>&lt;ul&gt;</code> of links, with CSS that removes the dots.</p>
+  <h2>More about lists</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/ul"><code>&lt;ul&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/ol"><code>&lt;ol&gt;</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dl"><code>&lt;dl&gt;</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

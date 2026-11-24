@@ -1,0 +1,51 @@
+---
+layout: default
+title: Backgrounds
+permalink: /css/backgrounds/
+chapter: "07"
+chapter_title: "Backgrounds and effects"
+keywords: [css, backgrounds, background-color, background-image, background-size, background-position, background-repeat, cover, multiple backgrounds]
+---
+
+<div class="css container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Backgrounds</h1>
+  <pre><code class="language-css">.box {
+  background-color: #f3f3f3;
+}
+
+.hero {
+  background-image: url("/images/mountains.jpg");
+  background-size: cover;          /* fill the box, crop if needed */
+  background-position: center;
+  background-repeat: no-repeat;
+}</code></pre>
+  <h2>Size</h2>
+  <ul>
+    <li><code>cover</code> fills the whole box. Parts of the image may be cut off.</li>
+    <li><code>contain</code> shows the whole image. Parts of the box may be empty.</li>
+    <li><code>100px auto</code> or <code>50%</code> sets the size directly.</li>
+  </ul>
+  <h2>Repeat</h2>
+  <p>By default, a background image is repeated to fill the box. <code>no-repeat</code> shows it once, and <code>repeat-x</code> only repeats it across. A small image that repeats can be a pattern.</p>
+  <h2>Shorthand</h2>
+  <pre><code class="language-css">background: #222 url("/images/stars.png") center / cover no-repeat;</code></pre>
+  <h2>Several backgrounds</h2>
+  <p>A comma gives several layers. The first is on top. Here, a dark gradient over a photo, to make white text on it easy to read:</p>
+  <pre><code class="language-css">.hero {
+  background:
+    linear-gradient(rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.5)),
+    url("/images/mountains.jpg") center / cover;
+  color: white;
+}</code></pre>
+  <h2>Background or image?</h2>
+  <p>Use <code>background-image</code> for decoration. Images that are part of the content belong in the HTML as <code>&lt;img&gt;</code>, with an <code>alt</code> text.</p>
+  <h2>More about backgrounds</h2>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/background"><code>background</code> on MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/background-size"><code>background-size</code> on MDN</a></li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

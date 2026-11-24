@@ -1,0 +1,41 @@
+---
+layout: default
+title: Strudel
+permalink: /strudel/introduction/
+chapter: "01"
+chapter_title: "Introduction"
+keywords: [strudel, live coding, music, browser, tidal cycles, repl, javascript, introduction]
+---
+
+<div class="strudel container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Strudel</h1>
+  <p>Strudel is a live coding environment for making music with code. You write short patterns of text, and Strudel plays them as drums, notes and sounds. You can change the code while the music plays, and the change is heard on the next beat. This is called live coding.</p>
+  <p>Strudel is a JavaScript version of <a href="https://tidalcycles.org/">Tidal Cycles</a>, a pattern language for music. You don't need to know JavaScript or Tidal to start.</p>
+  <h2>A browser app</h2>
+  <p>Strudel runs in the web browser. Open <a href="https://strudel.cc/">strudel.cc</a> and you get the <strong>REPL</strong>: a code editor and a player on the same page. There is nothing to install. The sounds are made in the browser with the Web Audio API, and the samples, like drums and pianos, are downloaded when a pattern uses them.</p>
+  <p>Strudel is free and open source, under the GNU AGPL v3 license. You can also run your own copy, see <a href="/strudel/run-locally/">Run Strudel locally</a>.</p>
+  <h2>Play your first pattern</h2>
+  <p>Open the REPL, remove the example code and write:</p>
+  <pre><code class="language-javascript">sound("bd sd")</code></pre>
+  <p>Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to play. You hear a bass drum (<code>bd</code>) and a snare drum (<code>sd</code>), over and over. Change the code to add a clap and a hi-hat, and press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> again:</p>
+  <pre><code class="language-javascript">sound("bd sd cp hh")</code></pre>
+  <p>The music changes without stopping. Press <kbd>Ctrl</kbd> + <kbd>.</kbd> to stop.</p>
+  <h2>Keyboard shortcuts</h2>
+  <ul>
+    <li><kbd>Ctrl</kbd> + <kbd>Enter</kbd> plays the code, or updates it while it plays.</li>
+    <li><kbd>Ctrl</kbd> + <kbd>.</kbd> stops the music.</li>
+  </ul>
+  <p>On a Mac you can use <kbd>Cmd</kbd> instead of <kbd>Ctrl</kbd>. There are also <strong>play</strong> and <strong>update</strong> buttons at the top of the REPL. While the music plays, the play button changes to stop.</p>
+  <h2>Cycles</h2>
+  <p>Strudel thinks in <strong>cycles</strong>, not in beats. A pattern like <code>"bd sd cp hh"</code> is squeezed into one cycle, however many steps it has. By default a cycle is 2 seconds, so four sounds take half a second each, and eight sounds a quarter of a second each. Read more in <a href="/strudel/first-sounds/#tempo">First sounds</a>.</p>
+  <h2>More about Strudel</h2>
+  <ul>
+    <li><a href="https://strudel.cc/">The Strudel REPL</a></li>
+    <li><a href="https://strudel.cc/workshop/getting-started/">The Strudel workshop</a>, an interactive course where every example can be played on the page</li>
+    <li><a href="/strudel/links/">Links</a>: more about Strudel and live coding</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
