@@ -1,0 +1,36 @@
+---
+layout: game
+title: Five in a Row
+permalink: /games/five-in-a-row/
+nonav: true
+css:
+  - /assets/five-in-a-row/five-in-a-row.css
+js:
+  - /assets/five-in-a-row/five-in-a-row.js
+---
+<div class="container">
+  <h1>Five in a Row</h1>
+  <div id="board"></div>
+  <p id="status" aria-live="polite"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy" selected>The computer (easy)</option>
+      <option value="hard">The computer (hard)</option>
+    </select>
+  </p>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>Two players, black and white, take turns placing a stone on any free point where the lines cross. Black starts.</li>
+      <li>Stones are never moved or taken away.</li>
+      <li><strong>Winning:</strong> the first to get five or more stones in a row wins: across, down or diagonally.</li>
+      <li><strong>Blocking:</strong> four in a row with both ends free can't be stopped, so block a row of three before it gets there.</li>
+      <li>If the board fills up with no five in a row, it's a draw.</li>
+      <li>The game is also called Gomoku, and in Sweden luffarschack.</li>
+    </ul>
+  </details>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/five-in-a-row/">How to build this game</a></p>

@@ -1,0 +1,681 @@
+---
+layout: default
+title: Five in a Row
+permalink: /tutorials/five-in-a-row/
+chapter: "05"
+chapter_title: "Board Games"
+keywords: [javascript, game, board game, gomoku, luffarschack, computer player, ai, score, open ends, pseudo-element, nth-child, radial-gradient, css grid]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Five in a Row</h1>
+  <p>Two players, black and white, take turns placing a stone where the lines cross on a 15 by 15 board. The first to get five or more in a row, across, down or diagonally, wins. The game is also called Gomoku, and in Sweden luffarschack, where it is played with X and O on squared paper. 15 by 15 is the standard board.</p>
+  <p>It is <a href="/tutorials/tic-tac-toe/">Tic Tac Toe</a> on a big board, and the check for a row is the same as in <a href="/tutorials/connect-four/">Connect Four</a>, just with five. The new parts are drawing a board where the stones go on the lines, not in the squares, and a computer for a board too big to look ahead on.</p>
+  <p><a href="/assets/tutorials/five-in-a-row.html">Open the finished game</a></p>
+
+  <h2>Step 1: The page</h2>
+  <pre><code class="language-html">&lt;h1&gt;Five in a Row&lt;/h1&gt;
+&lt;div id="board"&gt;&lt;/div&gt;
+&lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+&lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+&lt;p&gt;
+  &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+  &lt;select id="mode"&gt;
+    &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+    &lt;option value="easy" selected&gt;The computer (easy)&lt;/option&gt;
+    &lt;option value="hard"&gt;The computer (hard)&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/p&gt;
+&lt;details class="rules"&gt;
+  &lt;summary&gt;How to play&lt;/summary&gt;
+  &lt;ul&gt;
+    &lt;li&gt;...&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/details&gt;</code></pre>
+  <p><code>&lt;details&gt;</code> is a box the browser opens and closes by itself when you click its <code>&lt;summary&gt;</code>. It needs no JavaScript at all, so it is a good place for the rules.</p>
+
+  <h2>Step 2: Stones on the lines</h2>
+  <p>In Connect Four every piece sat in a square. Here the stones go where the lines cross. The trick: make a grid of 15 by 15 points as usual, and let every point draw a short line across and a short line down through its middle. Side by side, the short lines join up into the board's lines, and they cross exactly in the middle of each point, where the stone goes.</p>
+  <pre><code class="language-css">.point {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.point::before,
+.point::after {
+    content: "";
+    position: absolute;
+    background-color: #5a4320;
+}
+
+/* The line across... */
+.point::before {
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+}
+
+/* ...and the line down. */
+.point::after {
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+}</code></pre>
+  <p><code>::before</code> and <code>::after</code> are two extra boxes CSS can add to any element, without any HTML. With <code>content: ""</code> they are empty, and <code>position: absolute</code> places them inside the point.</p>
+  <p>At the edge of the board, the lines must stop in the middle of the point, not go on to its edge. <code>nth-child</code> finds the points at the edges by their place among the 225:</p>
+  <pre><code class="language-css">.point:nth-child(15n + 1)::before { left: 50%; }
+.point:nth-child(15n)::before { right: 50%; }
+.point:nth-child(-n + 15)::after { top: 50%; }
+.point:nth-last-child(-n + 15)::after { bottom: 50%; }</code></pre>
+  <p><code>15n + 1</code> is 1, 16, 31...: the first point of every row, the left edge. <code>15n</code> is 15, 30, 45...: the right edge. <code>-n + 15</code> is 15, 14, 13... down to 1: the top row. <code>nth-last-child</code> counts from the end instead, so <code>nth-last-child(-n + 15)</code> is the bottom row.</p>
+  <p>The five small dots, like on a Go board, are a <code>radial-gradient</code> that is dark in the very middle of the point:</p>
+  <pre><code class="language-css">.point.star {
+    background-image: radial-gradient(circle, #5a4320 0 14%, transparent 16%);
+}</code></pre>
+
+  <h2>Step 3: The stones</h2>
+  <pre><code class="language-css">.stone {
+    position: relative;
+    z-index: 1;
+    width: 88%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.45);
+}
+
+.stone.black {
+    background-image: radial-gradient(circle at 35% 30%, #666666, #111111 55%);
+}
+
+.stone.white {
+    background-image: radial-gradient(circle at 35% 30%, #ffffff, #d6d6d6 70%);
+}</code></pre>
+  <p><code>z-index: 1</code> puts the stone on top of the lines. A gradient that is light up to the left and dark further out, and a small shadow, make it look round.</p>
+  <p>On a big board it can be hard to see where the other player just played, so the last stone gets a small red dot. <code>play</code> takes the class <code>last</code> off the stone before, and puts it on the new one:</p>
+  <pre><code class="language-javascript">if (lastMove) {
+    points[lastMove[0]][lastMove[1]].firstChild.classList.remove("last");
+}
+const stone = document.createElement("div");
+stone.className = "stone " + (player === 1 ? "black" : "white") + " last";
+points[row][col].appendChild(stone);
+lastMove = [row, col];</code></pre>
+
+  <h2>Step 4: Five in a row</h2>
+  <p>This is the check from Connect Four. <code>lineFrom</code> walks from a point in one direction as long as the stones are the same color. <code>findWin</code> looks both ways in each of the four directions:</p>
+  <pre><code class="language-javascript">function findWin(row, col, who) {
+    for (const [dRow, dCol] of DIRECTIONS) {
+        // Look both ways from the new stone.
+        const line = [[row, col]]
+            .concat(lineFrom(row, col, dRow, dCol, who))
+            .concat(lineFrom(row, col, -dRow, -dCol, who));
+        if (line.length &gt;= WIN) {
+            return line;
+        }
+    }
+    return null;
+}</code></pre>
+  <p>One change: <code>lineFrom</code> and <code>findWin</code> now get <code>who</code>, the color to look for, instead of reading it from the board. Then the computer can ask "would a black stone here make five?" for a point that is still empty.</p>
+
+  <h2>Step 5: Where to look</h2>
+  <p>The board has 225 points. A stone far away from all the others does nothing, so the computer only looks at free points near a stone:</p>
+  <pre><code class="language-javascript">function candidates(distance) {
+    const list = [];
+    for (let row = 0; row &lt; SIZE; row++) {
+        for (let col = 0; col &lt; SIZE; col++) {
+            if (grid[row][col] === 0 &amp;&amp; hasNeighbor(row, col, distance)) {
+                list.push([row, col]);
+            }
+        }
+    }
+    // The first stone goes in the middle.
+    return list.length &gt; 0 ? list : [[7, 7]];
+}</code></pre>
+
+  <h2>Step 6: The easy computer</h2>
+  <pre><code class="language-javascript">function easyMove() {
+    const choices = candidates(1);
+    const win = choices.find(function ([r, c]) { return findWin(r, c, COMPUTER); });
+    if (win) {
+        return win;
+    }
+    const block = choices.find(function ([r, c]) { return findWin(r, c, HUMAN); });
+    if (block) {
+        return block;
+    }
+    return randomItem(choices);
+}</code></pre>
+  <p>The same three rules as the easy computer in <a href="/tutorials/connect-four-ai/">Connect Four vs computer</a>: win if you can, block if the human is about to win, otherwise play somewhere next to a stone. It only sees a five when it is one move away, so it is easy to beat with a row of three that is open at both ends.</p>
+
+  <h2>Step 7: Open ends</h2>
+  <p>In Connect Four the hard computer looked five moves ahead with minimax. Here there are often 50 or more points to choose from, so five moves ahead would be hundreds of millions of boards. Instead the hard computer gives every point a score, and the secret is in the ends of a line.</p>
+  <p>Four in a row with both ends free can't be stopped: block one end, and the other player plays the other. Four with one end blocked is only a threat that you must answer. And a line blocked at both ends can never become five, so it is worth nothing:</p>
+  <pre><code class="language-javascript">function lineScore(length, openEnds) {
+    if (length &gt;= WIN) {
+        return 100000;
+    }
+    if (openEnds === 0) {
+        return 0;                // blocked at both ends, it can never be five
+    }
+    const scores = {
+        4: [1000, 10000],        // four: one open end, two open ends
+        3: [100, 1000],
+        2: [10, 100],
+        1: [1, 10]
+    };
+    return scores[length][openEnds - 1];
+}</code></pre>
+  <p>An open three scores the same as a closed four: both force the other player to answer.</p>
+
+  <h2>Step 8: Scoring a point</h2>
+  <pre><code class="language-javascript">function scorePoint(row, col, who) {
+    let score = 0;
+    for (const [dRow, dCol] of DIRECTIONS) {
+        const forward = lineFrom(row, col, dRow, dCol, who);
+        const back = lineFrom(row, col, -dRow, -dCol, who);
+        const length = 1 + forward.length + back.length;
+        // An end is open if the point after the line is free.
+        const openEnds = isOpen(row + (forward.length + 1) * dRow, col + (forward.length + 1) * dCol)
+            + isOpen(row - (back.length + 1) * dRow, col - (back.length + 1) * dCol);
+        score += lineScore(length, openEnds);
+    }
+    return score;
+}</code></pre>
+  <p>For each direction: imagine a stone on the point, count the line it would be part of, and look at the point just past each end. <code>isOpen</code> gives 1 or 0, so adding them up gives 0, 1 or 2 open ends. A point that makes two open threes at once gets 2000, more than one open three. That is a "fork", and it usually wins.</p>
+  <p>A good point is good for two reasons: the lines it makes for the computer, and the lines it takes away from the human. So the hard computer scores each point both ways:</p>
+  <pre><code class="language-javascript">// Making your own lines is a little better than stopping theirs,
+// so a win always comes before a block.
+const score = scorePoint(row, col, COMPUTER) + 0.9 * scorePoint(row, col, HUMAN);</code></pre>
+  <p>If several points get the same score, it picks one of them at random, so it doesn't play the same game every time. Every move takes about a millisecond. In tests, the hard computer beat the easy one in every game.</p>
+
+  <h2>Step 9: Test it</h2>
+  <ul>
+    <li>Make an open three against the easy computer, and win.</li>
+    <li>Try the same against the hard computer: it blocks it.</li>
+    <li>Make four with one end blocked, and see the computer block the other end.</li>
+    <li>Get five in a row at the edge of the board and in a corner.</li>
+    <li>Get six in a row by filling the gap between a two and a three. It should count.</li>
+    <li>Press New game while the computer is thinking.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>five-in-a-row.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Five in a Row&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+        text-align: center;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    /* The board: 15 by 15 points. Each point draws its own piece of the lines
+         through its middle, so the lines meet where the stones go. */
+    #board {
+        display: grid;
+        grid-template-columns: repeat(15, 1fr);
+        width: 450px;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 8px;
+        background-color: #dcb675;
+        border-radius: 8px;
+        box-shadow: inset 0 0 0 1px #b8924f;
+        box-sizing: border-box;
+    }
+
+    .point {
+        position: relative;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .point::before,
+    .point::after {
+        content: "";
+        position: absolute;
+        background-color: #5a4320;
+    }
+
+    /* The line across... */
+    .point::before {
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+    }
+
+    /* ...and the line down. */
+    .point::after {
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+    }
+
+    /* At the edges the lines stop in the middle of the point. */
+    .point:nth-child(15n + 1)::before { left: 50%; }
+    .point:nth-child(15n)::before { right: 50%; }
+    .point:nth-child(-n + 15)::after { top: 50%; }
+    .point:nth-last-child(-n + 15)::after { bottom: 50%; }
+
+    /* The five small dots. */
+    .point.star {
+        background-image: radial-gradient(circle, #5a4320 0 14%, transparent 16%);
+    }
+
+    /* A stone covers the lines. */
+    .stone {
+        position: relative;
+        z-index: 1;
+        width: 88%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.45);
+    }
+
+    .stone.black {
+        background-image: radial-gradient(circle at 35% 30%, #666666, #111111 55%);
+    }
+
+    .stone.white {
+        background-image: radial-gradient(circle at 35% 30%, #ffffff, #d6d6d6 70%);
+    }
+
+    /* A small red dot on the last stone played. */
+    .stone.last::after {
+        content: "";
+        position: absolute;
+        inset: 38%;
+        border-radius: 50%;
+        background-color: #d93a3a;
+    }
+
+    /* The five in a row. */
+    .stone.winning {
+        box-shadow: 0 0 0 3px #d93a3a;
+    }
+
+    #status {
+        font-size: 18px;
+        margin-top: 16px;
+    }
+
+    #message {
+        color: #c25e00;
+        min-height: 1.5em;
+    }
+
+    /* The rules: click "How to play" to open them. */
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Five in a Row&lt;/h1&gt;
+  &lt;div id="board"&gt;&lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+  &lt;p&gt;
+    &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+    &lt;select id="mode"&gt;
+      &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+      &lt;option value="easy" selected&gt;The computer (easy)&lt;/option&gt;
+      &lt;option value="hard"&gt;The computer (hard)&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/p&gt;
+  &lt;details class="rules"&gt;
+    &lt;summary&gt;How to play&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Two players, black and white, take turns placing a stone on any free point where the lines cross. Black starts.&lt;/li&gt;
+      &lt;li&gt;Stones are never moved or taken away.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Winning:&lt;/strong&gt; the first to get five or more stones in a row wins: across, down or diagonally.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Blocking:&lt;/strong&gt; four in a row with both ends free can't be stopped, so block a row of three before it gets there.&lt;/li&gt;
+      &lt;li&gt;If the board fills up with no five in a row, it's a draw.&lt;/li&gt;
+      &lt;li&gt;The game is also called Gomoku, and in Sweden luffarschack.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
+
+  &lt;script&gt;
+    /*
+     * Five in a Row (Gomoku, or luffarschack in Swedish): two players take turns
+     * placing a stone on a free point of a 15 x 15 board. Black starts. The
+     * first to get five or more of their stones in a row, across, down or
+     * diagonally, wins.
+     *
+     * White can be played by the computer:
+     *
+     *   Easy: wins if it can, blocks you if you are about to get five,
+     *         otherwise plays next to a stone that is already there.
+     *   Hard: gives every free point a score for the lines it would make for
+     *         itself, and the lines it would stop for you, and picks the best.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SIZE = 15;              // the board is 15 by 15 points
+    const WIN = 5;                // stones in a row to win
+    const NAMES = { 1: "Black", 2: "White" };
+    const HUMAN = 1;
+    const COMPUTER = 2;
+    const COMPUTER_DELAY = 500;   // ms before the computer moves
+
+    // The four directions a line can go. The other four are the same, backwards.
+    const DIRECTIONS = [
+        [0, 1],   // across
+        [1, 0],   // down
+        [1, 1],   // diagonal \
+        [1, -1]   // diagonal /
+    ];
+
+    // The small dots on the board, as on a Go board.
+    const STAR_POINTS = ["3,3", "3,11", "7,7", "11,3", "11,11"];
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const statusText = document.getElementById("status");
+    const restartButton = document.getElementById("restart");
+    const modeSelect = document.getElementById("mode");
+
+    // --- State ---------------------------------------------------------------
+
+    let grid = [];          // grid[row][col]: 0 = empty, 1 = black, 2 = white
+    let points = [];        // points[row][col]: the &lt;div&gt; for each point
+    let player = 1;         // whose turn it is
+    let moves = 0;
+    let lastMove = null;    // [row, col] of the last stone, to mark it
+    let gameOver = false;
+    let computerTimer = null;
+
+    // --- The board -----------------------------------------------------------
+
+    function newGame() {
+        // A computer move that is waiting to happen belongs to the old game.
+        clearTimeout(computerTimer);
+
+        grid = [];
+        points = [];
+        boardElement.innerHTML = "";
+        for (let row = 0; row &lt; SIZE; row++) {
+            grid.push([]);
+            points.push([]);
+            for (let col = 0; col &lt; SIZE; col++) {
+                const point = document.createElement("div");
+                point.className = "point";
+                if (STAR_POINTS.includes(row + "," + col)) {
+                    point.classList.add("star");
+                }
+                point.addEventListener("click", function () {
+                    if (!isComputersTurn()) {
+                        play(row, col);
+                    }
+                });
+                boardElement.appendChild(point);
+                grid[row].push(0);
+                points[row].push(point);
+            }
+        }
+
+        player = 1;
+        moves = 0;
+        lastMove = null;
+        gameOver = false;
+        showTurn();
+    }
+
+    function isInside(row, col) {
+        return row &gt;= 0 &amp;&amp; row &lt; SIZE &amp;&amp; col &gt;= 0 &amp;&amp; col &lt; SIZE;
+    }
+
+    function isComputersTurn() {
+        return modeSelect.value !== "pvp" &amp;&amp; player === COMPUTER;
+    }
+
+    function showTurn() {
+        if (isComputersTurn()) {
+            statusText.textContent = NAMES[player] + " is thinking...";
+        } else {
+            statusText.textContent = NAMES[player] + "'s turn.";
+        }
+    }
+
+    // --- Five in a row -------------------------------------------------------
+
+    // The stones of the same color in a line from (row, col), one step at a
+    // time in the direction (dRow, dCol), not counting the start.
+    function lineFrom(row, col, dRow, dCol, who) {
+        const line = [];
+        let r = row + dRow;
+        let c = col + dCol;
+        while (isInside(r, c) &amp;&amp; grid[r][c] === who) {
+            line.push([r, c]);
+            r += dRow;
+            c += dCol;
+        }
+        return line;
+    }
+
+    // Does a stone of "who" at (row, col) make five or more in a row? Returns
+    // the stones in the row, or null.
+    function findWin(row, col, who) {
+        for (const [dRow, dCol] of DIRECTIONS) {
+            // Look both ways from the new stone.
+            const line = [[row, col]]
+                .concat(lineFrom(row, col, dRow, dCol, who))
+                .concat(lineFrom(row, col, -dRow, -dCol, who));
+            if (line.length &gt;= WIN) {
+                return line;
+            }
+        }
+        return null;
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function play(row, col) {
+        if (gameOver || grid[row][col] !== 0) {
+            return;
+        }
+        grid[row][col] = player;
+        moves++;
+
+        // Draw the stone, and move the "last move" mark to it.
+        if (lastMove) {
+            points[lastMove[0]][lastMove[1]].firstChild.classList.remove("last");
+        }
+        const stone = document.createElement("div");
+        stone.className = "stone " + (player === 1 ? "black" : "white") + " last";
+        points[row][col].appendChild(stone);
+        lastMove = [row, col];
+
+        const line = findWin(row, col, player);
+        if (line) {
+            line.forEach(function ([r, c]) {
+                points[r][c].firstChild.classList.add("winning");
+            });
+            gameOver = true;
+            statusText.textContent = NAMES[player] + " wins!";
+        } else if (moves === SIZE * SIZE) {
+            gameOver = true;
+            statusText.textContent = "The board is full. It's a draw!";
+        } else {
+            player = player === 1 ? 2 : 1;
+            showTurn();
+            if (isComputersTurn()) {
+                computerTimer = setTimeout(computerMove, COMPUTER_DELAY);
+            }
+        }
+    }
+
+    // --- The computer --------------------------------------------------------
+
+    function computerMove() {
+        const [row, col] = modeSelect.value === "easy" ? easyMove() : hardMove();
+        play(row, col);
+    }
+
+    // The free points within "distance" of a stone. Far away from all stones a
+    // move does nothing, so there is no need to look there.
+    function candidates(distance) {
+        const list = [];
+        for (let row = 0; row &lt; SIZE; row++) {
+            for (let col = 0; col &lt; SIZE; col++) {
+                if (grid[row][col] === 0 &amp;&amp; hasNeighbor(row, col, distance)) {
+                    list.push([row, col]);
+                }
+            }
+        }
+        // The first stone goes in the middle.
+        return list.length &gt; 0 ? list : [[7, 7]];
+    }
+
+    function hasNeighbor(row, col, distance) {
+        for (let r = row - distance; r &lt;= row + distance; r++) {
+            for (let c = col - distance; c &lt;= col + distance; c++) {
+                if (isInside(r, c) &amp;&amp; grid[r][c] !== 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function randomItem(list) {
+        return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function easyMove() {
+        const choices = candidates(1);
+        const win = choices.find(function ([r, c]) { return findWin(r, c, COMPUTER); });
+        if (win) {
+            return win;
+        }
+        const block = choices.find(function ([r, c]) { return findWin(r, c, HUMAN); });
+        if (block) {
+            return block;
+        }
+        return randomItem(choices);
+    }
+
+    function hardMove() {
+        let best = [];
+        let bestScore = -Infinity;
+        candidates(2).forEach(function ([row, col]) {
+            // Making your own lines is a little better than stopping theirs,
+            // so a win always comes before a block.
+            const score = scorePoint(row, col, COMPUTER) + 0.9 * scorePoint(row, col, HUMAN);
+            if (score &gt; bestScore) {
+                bestScore = score;
+                best = [[row, col]];
+            } else if (score === bestScore) {
+                best.push([row, col]);
+            }
+        });
+        return randomItem(best);
+    }
+
+    // How good a stone of "who" at the free point (row, col) would be: the sum
+    // of the lines it makes in the four directions.
+    function scorePoint(row, col, who) {
+        let score = 0;
+        for (const [dRow, dCol] of DIRECTIONS) {
+            const forward = lineFrom(row, col, dRow, dCol, who);
+            const back = lineFrom(row, col, -dRow, -dCol, who);
+            const length = 1 + forward.length + back.length;
+            // An end is open if the point after the line is free.
+            const openEnds = isOpen(row + (forward.length + 1) * dRow, col + (forward.length + 1) * dCol)
+                + isOpen(row - (back.length + 1) * dRow, col - (back.length + 1) * dCol);
+            score += lineScore(length, openEnds);
+        }
+        return score;
+    }
+
+    function isOpen(row, col) {
+        return isInside(row, col) &amp;&amp; grid[row][col] === 0 ? 1 : 0;
+    }
+
+    // A line with both ends open is much stronger than one with one end open:
+    // the other player can only block one end at a time.
+    function lineScore(length, openEnds) {
+        if (length &gt;= WIN) {
+            return 100000;
+        }
+        if (openEnds === 0) {
+            return 0;                // blocked at both ends, it can never be five
+        }
+        const scores = {
+            4: [1000, 10000],        // four: one open end, two open ends
+            3: [100, 1000],
+            2: [10, 100],
+            1: [1, 10]
+        };
+        return scores[length][openEnds - 1];
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    restartButton.addEventListener("click", newGame);
+    modeSelect.addEventListener("change", newGame);
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Lines with a gap, like two stones, a free point and two more, are just as dangerous as four. Teach <code>scorePoint</code> to see them.</li>
+    <li>Black has an advantage from playing first. In the game Renju, black may not make two open threes at once. Add that rule.</li>
+    <li>Play with X and O on squared paper instead, like luffarschack: the stones in the squares, as in Tic Tac Toe.</li>
+    <li>Let the hard computer look two moves ahead: for its best few points, what is the human's best answer?</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>Five in a Row needs no keyboard, so it works well on a phone. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
