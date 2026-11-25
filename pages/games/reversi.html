@@ -1,6 +1,6 @@
 ---
 layout: game
-title: Reversi Game
+title: Reversi
 permalink: /games/reversi/
 nonav: true
 css:
@@ -14,5 +14,17 @@ js:
   <p id="status" aria-live="polite"></p>
   <p id="message"></p>
   <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy" selected>The computer (easy)</option>
+      <option value="hard">The computer (hard)</option>
+    </select>
+  </p>
 </div>
-<p class="text-center mt-4"><a href="/tutorials/reversi/">How to build this game</a></p>
+<section class="game-tutorials container-sm mt-4 text-center">
+  <h2 class="h5">How to build this game</h2>
+  <p><a href="/tutorials/reversi/">Reversi</a>: the game for two players on one screen. The board, the rules for flipping pieces, the dots that show where you may play, and passing.</p>
+  <p><a href="/tutorials/reversi-ai/">Reversi vs computer</a>: carries on from the first tutorial and adds the computer player. The easy computer takes the move that flips the most pieces, the hard one looks four moves ahead.</p>
+</section>

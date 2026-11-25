@@ -85,6 +85,7 @@ def app_body(path, front, html):
     """The page HTML, cleaned up to stand on its own."""
     # The links to the tutorial don't belong in the app.
     html = re.sub(r'\s*<p[^>]*>\s*<a href="/tutorials/[^"]*">How to build this \w+</a>\s*</p>', "", html)
+    html = re.sub(r'\s*<section class="game-tutorials[^"]*">.*?</section>', "", html, flags=re.S)
     html = html.replace("{{ site.baseurl }}", "")
     if "{{" in html or "{%" in html:
         sys.exit(f"{path}: has Liquid tags the script can't handle")

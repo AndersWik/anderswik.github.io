@@ -36,7 +36,6 @@
 - { slug: memory, page: pages/games/memory.html, name: Memory, emoji: "🧠" }
 - { slug: quiz, page: pages/games/quiz.html, emoji: "❓" }
 - { slug: reversi, page: pages/games/reversi.html, name: Reversi, emoji: "🌗" }
-- { slug: reversi-ai, page: pages/games/reversi-ai.html, emoji: "🌗", label: AI }
 - { slug: rock-paper-scissors, page: pages/games/rock-paper-scissors.html, emoji: "✌️" }
 - { slug: roulette, page: pages/games/roulette.html, emoji: "🎡" }
 - { slug: slot-machine, page: pages/games/slot-machine.html, emoji: "🎰" }
