@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ludo</title>
+  <style>
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+        text-align: center;
+    }
+
+    #board {
+        display: grid;
+        grid-template-columns: repeat(15, 1fr);
+        gap: 1px;
+        width: min(450px, 100%);
+        margin: 0 auto;
+        padding: 1px;
+        background-color: #555555;
+        box-sizing: border-box;
+    }
+
+    .cell {
+        aspect-ratio: 1;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        align-content: center;
+        background-color: #ffffff;
+    }
+
+    /* The colors: the bases and lanes are light, the start squares strong. */
+    .base.red, .lane.red { background-color: #f4b4b4; }
+    .base.green, .lane.green { background-color: #b4e0c0; }
+    .base.yellow, .lane.yellow { background-color: #f6e3a1; }
+    .base.blue, .lane.blue { background-color: #b4caf0; }
+    .start.red { background-color: #d93a3a; }
+    .start.green { background-color: #2e9e4f; }
+    .start.yellow { background-color: #e8b923; }
+    .start.blue { background-color: #2f6fd6; }
+    .middle { background-color: #444444; }
+
+    /* A white circle where each piece waits in its base. */
+    .slot {
+        background-image: radial-gradient(circle, #ffffff 60%, transparent 62%);
+    }
+
+    .piece {
+        width: 78%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 2px solid #222222;
+        box-sizing: border-box;
+    }
+
+    /* Two or more pieces on one square: make them smaller. */
+    .cell.many .piece {
+        width: 45%;
+        border-width: 1px;
+    }
+
+    .piece.red { background-color: #d93a3a; }
+    .piece.green { background-color: #2e9e4f; }
+    .piece.yellow { background-color: #e8b923; }
+    .piece.blue { background-color: #2f6fd6; }
+
+    /* The pieces you may move: a white ring that blinks. */
+    .piece.movable {
+        cursor: pointer;
+        box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #222222;
+        animation: blink 0.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes blink {
+        to { box-shadow: 0 0 0 1px #ffffff, 0 0 0 2px #222222; }
+    }
+
+    .dice-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    #die {
+        font-size: 64px;
+        line-height: 1;
+    }
+
+    #die.red { color: #d93a3a; }
+    #die.green { color: #2e9e4f; }
+    #die.yellow { color: #c99a0e; }
+    #die.blue { color: #2f6fd6; }
+
+    #status {
+        font-size: 18px;
+        margin-top: 16px;
+    }
+
+    #message {
+        color: #c25e00;
+        min-height: 1.5em;
+    }
+
+    #roll.red { background-color: #d93a3a; }
+    #roll.green { background-color: #2e9e4f; }
+    #roll.yellow { background-color: #c99a0e; }
+    #roll.blue { background-color: #2f6fd6; }
+
+    #roll {
+        padding: 10px 24px;
+        font-size: 18px;
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+    }
+
+    #roll:disabled {
+        opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ludo</h1>
+  <div id="board"></div>
+  <div class="dice-row">
+    <span id="die" aria-hidden="true"></span>
+    <button type="button" id="roll">Roll</button>
+  </div>
+  <p id="status" aria-live="polite"></p>
+  <p id="message"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="easy" selected>Three computers (easy)</option>
+      <option value="hard">Three computers (hard)</option>
+      <option value="pvp">A friend</option>
+      <option value="pvp4">Three friends</option>
+    </select>
+  </p>
+
+  <script>
+    /*
+     * Ludo: two or four players race their four pieces around the board and up
+     * their own lane into the middle. Roll a 6 to bring a piece out. Land on
+     * another player's piece to knock it back to its base. The first player
+     * with all four pieces in the middle wins.
+     *
+     * The other players can be played by the computer:
+     *
+     *   Easy: moves a random piece.
+     *   Hard: gives every move points: knocking someone out, getting a piece
+     *         home or out of base, and not stopping where it can be hit.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const COLORS = ["red", "green", "yellow", "blue"];   // in turn order
+    const NAMES = { red: "Red", green: "Green", yellow: "Yellow", blue: "Blue" };
+    const SIZE = 15;              // the board is 15 by 15 squares
+    const TRACK = 52;             // squares in the track around the board
+    const LAST_ON_TRACK = 50;     // a piece goes 50 steps on the track,
+    const HOME = 56;              // then 6 more up its lane, into the middle
+    const BASE = -1;              // a piece that hasn't come out yet
+    const COMPUTER_DELAY = 600;   // ms between the computer's actions
+    const DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+    // Who plays each color, for every choice in the drop-down list.
+    // A color that isn't listed is not in the game.
+    const MODES = {
+        easy: { red: "human", green: "easy", yellow: "easy", blue: "easy" },
+        hard: { red: "human", green: "hard", yellow: "hard", blue: "hard" },
+        pvp: { red: "human", yellow: "human" },
+        pvp4: { red: "human", green: "human", yellow: "human", blue: "human" }
+    };
+
+    // Red's quarter of the board, as [row, col]. The other three colors have
+    // the same squares, turned a quarter, a half and three quarters around.
+    const RED_TRACK = [
+        [6, 1], [6, 2], [6, 3], [6, 4], [6, 5],           // out from the start
+        [5, 6], [4, 6], [3, 6], [2, 6], [1, 6], [0, 6],   // up
+        [0, 7], [0, 8]                                    // across the top
+    ];
+    const RED_LANE = [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6]];
+    const RED_BASE = [[1, 1], [1, 4], [4, 1], [4, 4]];
+
+    // Turn a square a quarter clockwise around the middle of the board, "times"
+    // times.
+    function turn([row, col], times) {
+        for (let i = 0; i < times; i++) {
+            [row, col] = [col, SIZE - 1 - row];
+        }
+        return [row, col];
+    }
+
+    // All 52 track squares, starting at red's start square and going clockwise.
+    const TRACK_SQUARES = [];
+    for (let quarter = 0; quarter < 4; quarter++) {
+        RED_TRACK.forEach(function (square) {
+            TRACK_SQUARES.push(turn(square, quarter));
+        });
+    }
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const dieElement = document.getElementById("die");
+    const rollButton = document.getElementById("roll");
+    const statusText = document.getElementById("status");
+    const messageText = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+    const modeSelect = document.getElementById("mode");
+
+    // --- State ---------------------------------------------------------------
+
+    let cells = [];       // cells[row][col]: the <div> for each square
+    let players = [];     // the colors in this game
+    let pieces = {};      // pieces.red = [BASE, BASE, BASE, BASE]: steps gone
+    let turnIndex = 0;    // players[turnIndex] is the one to play
+    let dice = null;      // the number to move, or null when it's time to roll
+    let triesLeft = 0;    // rolls left this turn
+    let winner = null;
+    let computerTimer = null;
+
+    // --- Where things are ----------------------------------------------------
+
+    function current() {
+        return players[turnIndex];
+    }
+
+    // How many quarters a color's part of the board is turned from red's.
+    function quarterOf(color) {
+        return COLORS.indexOf(color);
+    }
+
+    // The track square (0-51) a piece is on, counted from red's start.
+    function trackIndex(color, steps) {
+        return (quarterOf(color) * RED_TRACK.length + steps) % TRACK;
+    }
+
+    // The [row, col] on the board where a color's piece number "index" is.
+    function squareOf(color, index) {
+        const steps = pieces[color][index];
+        if (steps === BASE) {
+            return turn(RED_BASE[index], quarterOf(color));
+        }
+        if (steps <= LAST_ON_TRACK) {
+            return TRACK_SQUARES[trackIndex(color, steps)];
+        }
+        return turn(RED_LANE[steps - LAST_ON_TRACK - 1], quarterOf(color));
+    }
+
+    // --- Rules ---------------------------------------------------------------
+
+    function canMove(color, index, number) {
+        const steps = pieces[color][index];
+        if (steps === BASE) {
+            return number === 6;
+        }
+        return steps + number <= HOME;   // you need the exact number to get home
+    }
+
+    // The numbers (0-3) of the pieces that can move.
+    function movablePieces(color, number) {
+        return [0, 1, 2, 3].filter(function (index) {
+            return canMove(color, index, number);
+        });
+    }
+
+    // The other players' pieces on the track square "where": [color, index].
+    function piecesOn(where, color) {
+        const found = [];
+        players.forEach(function (other) {
+            if (other === color) {
+                return;
+            }
+            pieces[other].forEach(function (steps, index) {
+                if (steps !== BASE && steps <= LAST_ON_TRACK && trackIndex(other, steps) === where) {
+                    found.push([other, index]);
+                }
+            });
+        });
+        return found;
+    }
+
+    // With nothing on the board, you get three tries to roll a 6.
+    function onlyInBase(color) {
+        return pieces[color].every(function (steps) {
+            return steps === BASE || steps === HOME;
+        });
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function startTurn() {
+        dice = null;
+        triesLeft = onlyInBase(current()) ? 3 : 1;
+        update();
+    }
+
+    function nextPlayer() {
+        turnIndex = (turnIndex + 1) % players.length;
+        startTurn();
+    }
+
+    function roll() {
+        if (winner || dice !== null) {
+            return;
+        }
+        const color = current();
+        const number = Math.floor(Math.random() * 6) + 1;
+        dieElement.textContent = DIE_FACES[number - 1];
+        dieElement.className = color;
+        triesLeft--;
+        messageText.textContent = "";
+        if (movablePieces(color, number).length > 0) {
+            dice = number;
+            update();
+        } else if (triesLeft > 0) {
+            messageText.textContent = NAMES[color] + " rolled " + number + ". Try again!";
+            update();
+        } else {
+            messageText.textContent = NAMES[color] + " rolled " + number + " and can't move.";
+            nextPlayer();
+        }
+    }
+
+    function move(index) {
+        const color = current();
+        if (winner || dice === null || !canMove(color, index, dice)) {
+            return;
+        }
+        const steps = pieces[color][index];
+        const to = steps === BASE ? 0 : steps + dice;
+        pieces[color][index] = to;
+        messageText.textContent = "";
+
+        // Knock out the other players' pieces on the square.
+        if (to <= LAST_ON_TRACK) {
+            piecesOn(trackIndex(color, to), color).forEach(function ([other, otherIndex]) {
+                pieces[other][otherIndex] = BASE;
+                messageText.textContent = NAMES[color] + " knocks " + NAMES[other] + " back to base!";
+            });
+        }
+
+        if (pieces[color].every(function (s) { return s === HOME; })) {
+            winner = color;
+            dice = null;
+            update();
+        } else if (dice === 6) {
+            messageText.textContent += " " + NAMES[color] + " rolled a 6 and goes again.";
+            messageText.textContent = messageText.textContent.trim();
+            startTurn();
+        } else {
+            nextPlayer();
+        }
+    }
+
+    // --- The computer --------------------------------------------------------
+
+    function playerType(color) {
+        return MODES[modeSelect.value][color];
+    }
+
+    function isComputersTurn() {
+        return !winner && playerType(current()) !== "human";
+    }
+
+    // One step at a time: roll, or move a piece. update() calls this again
+    // until it is a human's turn.
+    function computerStep() {
+        if (dice === null) {
+            roll();
+            return;
+        }
+        const color = current();
+        const choices = movablePieces(color, dice);
+        let best = choices[Math.floor(Math.random() * choices.length)];
+        if (playerType(color) === "hard") {
+            let bestScore = -Infinity;
+            choices.forEach(function (index) {
+                const score = scoreMove(color, index);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = index;
+                }
+            });
+        }
+        move(best);
+    }
+
+    // Points for moving piece "index" the number on the die.
+    function scoreMove(color, index) {
+        const from = pieces[color][index];
+        const to = from === BASE ? 0 : from + dice;
+        let score = to;                       // further along is better
+        if (from === BASE) {
+            score += 40;                      // a new piece out
+        }
+        if (to === HOME) {
+            score += 50;                      // a piece home
+        }
+        if (from <= LAST_ON_TRACK && to > LAST_ON_TRACK) {
+            score += 30;                      // into the lane, nobody can hit it there
+        }
+        if (to <= LAST_ON_TRACK) {
+            score += 60 * piecesOn(trackIndex(color, to), color).length;   // knock out
+            if (canBeHit(color, to)) {
+                score -= 40;                  // don't stop where you can be hit
+            }
+        }
+        if (from !== BASE && from <= LAST_ON_TRACK && canBeHit(color, from)) {
+            score += 20;                      // run away
+        }
+        return score;
+    }
+
+    // Can another player reach the square "steps" along color's way, with one
+    // roll?
+    function canBeHit(color, steps) {
+        const where = trackIndex(color, steps);
+        return players.some(function (other) {
+            if (other === color) {
+                return false;
+            }
+            return pieces[other].some(function (otherSteps) {
+                if (otherSteps === BASE) {
+                    return trackIndex(other, 0) === where;   // comes out on a 6
+                }
+                if (otherSteps > LAST_ON_TRACK) {
+                    return false;                             // in its own lane
+                }
+                const distance = (where - trackIndex(other, otherSteps) + TRACK) % TRACK;
+                return distance >= 1 && distance <= 6 && otherSteps + distance <= LAST_ON_TRACK;
+            });
+        });
+    }
+
+    // --- Showing the board ---------------------------------------------------
+
+    function update() {
+        show();
+        if (isComputersTurn()) {
+            computerTimer = setTimeout(computerStep, COMPUTER_DELAY);
+        }
+    }
+
+    function show() {
+        const color = current();
+        const humanMoves = !isComputersTurn() && dice !== null;
+
+        cells.flat().forEach(function (cell) {
+            cell.innerHTML = "";
+            cell.classList.remove("many");
+        });
+        players.forEach(function (who) {
+            pieces[who].forEach(function (steps, index) {
+                const [row, col] = squareOf(who, index);
+                const piece = document.createElement("div");
+                piece.className = "piece " + who;
+                if (humanMoves && who === color && canMove(who, index, dice)) {
+                    piece.classList.add("movable");
+                }
+                cells[row][col].appendChild(piece);
+                if (cells[row][col].children.length > 1) {
+                    cells[row][col].classList.add("many");
+                }
+            });
+        });
+
+        rollButton.className = color;
+        rollButton.disabled = Boolean(winner) || isComputersTurn() || dice !== null;
+        if (winner) {
+            statusText.textContent = NAMES[winner] + " wins!";
+        } else if (isComputersTurn()) {
+            statusText.textContent = NAMES[color] + " is playing...";
+        } else if (dice === null) {
+            statusText.textContent = NAMES[color] + "'s turn: roll the die.";
+        } else {
+            statusText.textContent = NAMES[color] + " rolled " + dice + ": click a piece to move.";
+        }
+    }
+
+    // --- Building the board --------------------------------------------------
+
+    // What every square is, as class names: "base red", "track", "lane red"...
+    function squareClasses() {
+        const classes = [];
+        for (let row = 0; row < SIZE; row++) {
+            classes.push(new Array(SIZE).fill("middle"));
+        }
+        COLORS.forEach(function (color, quarter) {
+            for (let row = 0; row < 6; row++) {
+                for (let col = 0; col < 6; col++) {
+                    const [r, c] = turn([row, col], quarter);
+                    classes[r][c] = "base " + color;
+                }
+            }
+            RED_BASE.forEach(function (square) {
+                const [r, c] = turn(square, quarter);
+                classes[r][c] += " slot";
+            });
+            RED_TRACK.forEach(function (square) {
+                const [r, c] = turn(square, quarter);
+                classes[r][c] = "track";
+            });
+            RED_LANE.forEach(function (square) {
+                const [r, c] = turn(square, quarter);
+                classes[r][c] = "lane " + color;
+            });
+            const [r, c] = turn(RED_TRACK[0], quarter);
+            classes[r][c] = "track start " + color;
+        });
+        return classes;
+    }
+
+    function newGame() {
+        // A computer move that is waiting to happen belongs to the old game.
+        clearTimeout(computerTimer);
+
+        players = COLORS.filter(function (color) {
+            return MODES[modeSelect.value][color];
+        });
+        pieces = {};
+        players.forEach(function (color) {
+            pieces[color] = [BASE, BASE, BASE, BASE];
+        });
+        turnIndex = 0;
+        winner = null;
+        dieElement.textContent = DIE_FACES[5];
+        dieElement.className = "";
+        messageText.textContent = "";
+        startTurn();
+    }
+
+    function buildBoard() {
+        const classes = squareClasses();
+        for (let row = 0; row < SIZE; row++) {
+            cells.push([]);
+            for (let col = 0; col < SIZE; col++) {
+                const cell = document.createElement("div");
+                cell.className = "cell " + classes[row][col];
+                cell.addEventListener("click", function () {
+                    clickSquare(row, col);
+                });
+                boardElement.appendChild(cell);
+                cells[row].push(cell);
+            }
+        }
+    }
+
+    // Move the current player's piece on the square, if one there can move.
+    function clickSquare(row, col) {
+        if (isComputersTurn() || dice === null) {
+            return;
+        }
+        const color = current();
+        const index = movablePieces(color, dice).find(function (i) {
+            const [r, c] = squareOf(color, i);
+            return r === row && c === col;
+        });
+        if (index !== undefined) {
+            move(index);
+        }
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    rollButton.addEventListener("click", roll);
+    restartButton.addEventListener("click", newGame);
+    modeSelect.addEventListener("change", newGame);
+
+    buildBoard();
+    newGame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,893 @@
+---
+layout: default
+title: Ludo
+permalink: /tutorials/ludo/
+chapter: "05"
+chapter_title: "Board Games"
+keywords: [javascript, game, board game, ludo, fia, dice, computer player, ai, random, score, rotation, css grid, setTimeout]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Ludo</h1>
+  <p>Two or four players each have four pieces in their base, in a corner of the board. Roll the die and move a piece that many squares clockwise around the board, and then up your own colored lane into the middle. You need a 6 to bring a piece out. If you land on another player's piece, it is knocked back to its base. A 6 gives you another roll, and you need the exact number to reach the middle. The first player with all four pieces in the middle wins. In Sweden the game is called Fia, or Fia med knuff.</p>
+  <p>The board is a grid of squares like in <a href="/tutorials/reversi/">Reversi</a>, and the computer takes turns like in <a href="/tutorials/reversi-ai/">Reversi vs computer</a>. The new parts are a board made from one quarter that is turned around, keeping track of a piece with a single number, and a computer for a game with dice. You can't look ahead with minimax when you don't know what the dice will show, so the hard computer gives each move points instead.</p>
+  <p><a href="/assets/tutorials/ludo.html">Open the finished game</a></p>
+
+  <h2>Step 1: The page</h2>
+  <p>Create <code>ludo.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
+  <pre><code class="language-html">&lt;h1&gt;Ludo&lt;/h1&gt;
+&lt;div id="board"&gt;&lt;/div&gt;
+&lt;div class="dice-row"&gt;
+  &lt;span id="die" aria-hidden="true"&gt;&lt;/span&gt;
+  &lt;button type="button" id="roll"&gt;Roll&lt;/button&gt;
+&lt;/div&gt;
+&lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+&lt;p id="message"&gt;&lt;/p&gt;
+&lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+&lt;p&gt;
+  &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+  &lt;select id="mode"&gt;
+    &lt;option value="easy" selected&gt;Three computers (easy)&lt;/option&gt;
+    &lt;option value="hard"&gt;Three computers (hard)&lt;/option&gt;
+    &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+    &lt;option value="pvp4"&gt;Three friends&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/p&gt;</code></pre>
+  <p>The die is a single character. Unicode has one for each side of a die: ⚀ ⚁ ⚂ ⚃ ⚄ ⚅. <code>aria-hidden</code> hides it from screen readers, since the status text says what was rolled.</p>
+
+  <h2>Step 2: One quarter of the board</h2>
+  <p>The board is 15 by 15 squares. Each color has a 6 by 6 base in a corner, and the track goes around the cross in the middle. Writing down all 52 track squares by hand is slow and easy to get wrong. But the board looks the same from every side: turn it a quarter, and red's part lands exactly on green's. So we only write down red's part:</p>
+  <pre><code class="language-javascript">const RED_TRACK = [
+    [6, 1], [6, 2], [6, 3], [6, 4], [6, 5],           // out from the start
+    [5, 6], [4, 6], [3, 6], [2, 6], [1, 6], [0, 6],   // up
+    [0, 7], [0, 8]                                    // across the top
+];
+const RED_LANE = [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6]];
+const RED_BASE = [[1, 1], [1, 4], [4, 1], [4, 4]];</code></pre>
+  <p>Each square is <code>[row, col]</code>. Red starts at row 6, column 1, and goes right and then up. <code>RED_LANE</code> is red's own lane into the middle, and <code>RED_BASE</code> the four places in the base where the pieces wait.</p>
+  <p>Turning a square a quarter clockwise around the middle of the board is one line:</p>
+  <pre><code class="language-javascript">function turn([row, col], times) {
+    for (let i = 0; i &lt; times; i++) {
+        [row, col] = [col, SIZE - 1 - row];
+    }
+    return [row, col];
+}</code></pre>
+  <p>Try it on red's start square: <code>turn([6, 1], 1)</code> is <code>[1, 8]</code>, green's start at the top. The column becomes the row, and the row, counted from the other side, becomes the column. Now the whole track is red's 13 squares, turned 0, 1, 2 and 3 times:</p>
+  <pre><code class="language-javascript">const TRACK_SQUARES = [];
+for (let quarter = 0; quarter &lt; 4; quarter++) {
+    RED_TRACK.forEach(function (square) {
+        TRACK_SQUARES.push(turn(square, quarter));
+    });
+}</code></pre>
+  <p>The colors are listed clockwise: <code>const COLORS = ["red", "green", "yellow", "blue"]</code>. So a color's place in that list is also how many quarters its part of the board is turned: 0 for red, 1 for green, and so on.</p>
+
+  <h2>Step 3: Drawing the board</h2>
+  <p>As in Reversi, the board is a CSS grid of <code>&lt;div&gt;</code> squares, here 15 columns with a thin gap:</p>
+  <pre><code class="language-css">#board {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    gap: 1px;
+    width: min(450px, 100%);
+    margin: 0 auto;
+    padding: 1px;
+    background-color: #555555;
+    box-sizing: border-box;
+}</code></pre>
+  <p>Every square gets class names that say what it is, like <code>"base red"</code>, <code>"track"</code> or <code>"lane green"</code>. <code>squareClasses()</code> starts with every square as <code>"middle"</code>, and then paints each color's base, track, lane and start square on top, turned to that color's quarter:</p>
+  <pre><code class="language-javascript">COLORS.forEach(function (color, quarter) {
+    for (let row = 0; row &lt; 6; row++) {
+        for (let col = 0; col &lt; 6; col++) {
+            const [r, c] = turn([row, col], quarter);
+            classes[r][c] = "base " + color;
+        }
+    }
+    // ...the same for RED_BASE, RED_TRACK and RED_LANE
+});</code></pre>
+  <p>What is left as <code>"middle"</code> are the squares in the very center. The CSS gives the colors: light for the bases and lanes, strong for the start squares.</p>
+  <pre><code class="language-css">.base.red, .lane.red { background-color: #f4b4b4; }
+.start.red { background-color: #d93a3a; }
+.middle { background-color: #444444; }</code></pre>
+  <p>The places in the base get a white circle. A <code>radial-gradient</code> that goes from white to transparent draws a circle without any extra elements:</p>
+  <pre><code class="language-css">.slot {
+    background-image: radial-gradient(circle, #ffffff 60%, transparent 62%);
+}</code></pre>
+
+  <h2>Step 4: A piece is just a number</h2>
+  <pre><code class="language-javascript">const TRACK = 52;             // squares in the track around the board
+const LAST_ON_TRACK = 50;     // a piece goes 50 steps on the track,
+const HOME = 56;              // then 6 more up its lane, into the middle
+const BASE = -1;              // a piece that hasn't come out yet
+
+let pieces = {};      // pieces.red = [BASE, BASE, BASE, BASE]: steps gone</code></pre>
+  <p>We don't store where a piece is on the board. We store how many steps it has gone from its own start square: -1 in the base, 0 on the start square, 50 on the last track square before its lane, and 56 in the middle. This makes the rules simple: moving is adding the die, and a piece is home when it is at 56.</p>
+  <p>Only <code>squareOf</code> needs to know where that is on the board:</p>
+  <pre><code class="language-javascript">function trackIndex(color, steps) {
+    return (quarterOf(color) * RED_TRACK.length + steps) % TRACK;
+}
+
+function squareOf(color, index) {
+    const steps = pieces[color][index];
+    if (steps === BASE) {
+        return turn(RED_BASE[index], quarterOf(color));
+    }
+    if (steps &lt;= LAST_ON_TRACK) {
+        return TRACK_SQUARES[trackIndex(color, steps)];
+    }
+    return turn(RED_LANE[steps - LAST_ON_TRACK - 1], quarterOf(color));
+}</code></pre>
+  <p><code>trackIndex</code> turns a color's steps into a square on the shared track. Green starts 13 squares after red, so green's step 0 is track square 13. The <code>% TRACK</code> wraps around after square 51 back to 0. Two pieces of different colors are on the same square when their <code>trackIndex</code> is the same, and that is how we find a piece to knock out.</p>
+
+  <h2>Step 5: Which pieces can move?</h2>
+  <pre><code class="language-javascript">function canMove(color, index, number) {
+    const steps = pieces[color][index];
+    if (steps === BASE) {
+        return number === 6;
+    }
+    return steps + number &lt;= HOME;   // you need the exact number to get home
+}
+
+function movablePieces(color, number) {
+    return [0, 1, 2, 3].filter(function (index) {
+        return canMove(color, index, number);
+    });
+}</code></pre>
+  <p>A piece in the base needs a 6. Any other piece can move as long as it doesn't go past the middle. A piece that is home, at 56, can never move again, since 56 plus anything is more than 56.</p>
+
+  <h2>Step 6: Rolling the die</h2>
+  <pre><code class="language-javascript">function roll() {
+    if (winner || dice !== null) {
+        return;
+    }
+    const color = current();
+    const number = Math.floor(Math.random() * 6) + 1;
+    dieElement.textContent = DIE_FACES[number - 1];
+    dieElement.className = color;
+    triesLeft--;
+    messageText.textContent = "";
+    if (movablePieces(color, number).length &gt; 0) {
+        dice = number;
+        update();
+    } else if (triesLeft &gt; 0) {
+        messageText.textContent = NAMES[color] + " rolled " + number + ". Try again!";
+        update();
+    } else {
+        messageText.textContent = NAMES[color] + " rolled " + number + " and can't move.";
+        nextPlayer();
+    }
+}</code></pre>
+  <p><code>dice</code> is the number waiting to be moved. It is <code>null</code> when it is time to roll, so you can't roll twice. If no piece can move, the turn is over. But at the start, with all your pieces in the base, waiting for a 6 takes a long time. So a player with nothing on the board gets three tries:</p>
+  <pre><code class="language-javascript">function startTurn() {
+    dice = null;
+    triesLeft = onlyInBase(current()) ? 3 : 1;
+    update();
+}</code></pre>
+
+  <h2>Step 7: Moving and knocking out</h2>
+  <pre><code class="language-javascript">function move(index) {
+    const color = current();
+    if (winner || dice === null || !canMove(color, index, dice)) {
+        return;
+    }
+    const steps = pieces[color][index];
+    const to = steps === BASE ? 0 : steps + dice;
+    pieces[color][index] = to;
+    messageText.textContent = "";
+
+    // Knock out the other players' pieces on the square.
+    if (to &lt;= LAST_ON_TRACK) {
+        piecesOn(trackIndex(color, to), color).forEach(function ([other, otherIndex]) {
+            pieces[other][otherIndex] = BASE;
+            messageText.textContent = NAMES[color] + " knocks " + NAMES[other] + " back to base!";
+        });
+    }
+
+    if (pieces[color].every(function (s) { return s === HOME; })) {
+        winner = color;
+        dice = null;
+        update();
+    } else if (dice === 6) {
+        messageText.textContent += " " + NAMES[color] + " rolled a 6 and goes again.";
+        messageText.textContent = messageText.textContent.trim();
+        startTurn();
+    } else {
+        nextPlayer();
+    }
+}</code></pre>
+  <p>A piece from the base goes to step 0, its start square. Every other piece adds the die. <code>piecesOn</code> finds the other players' pieces with the same <code>trackIndex</code>, and they go back to <code>BASE</code>. Pieces in a lane are never knocked out, since only one color can get there. After a 6, <code>startTurn()</code> without <code>nextPlayer()</code> gives the same player a new roll.</p>
+  <p>To move, you click a square. <code>clickSquare</code> looks for one of your pieces that can move and is on that square:</p>
+  <pre><code class="language-javascript">const index = movablePieces(color, dice).find(function (i) {
+    const [r, c] = squareOf(color, i);
+    return r === row &amp;&amp; c === col;
+});</code></pre>
+
+  <h2>Step 8: Showing the pieces</h2>
+  <p><code>show()</code> empties every square and puts a <code>&lt;div class="piece red"&gt;</code> on the square of each piece. The pieces you may move also get the class <code>movable</code>, which makes them blink:</p>
+  <pre><code class="language-css">.piece.movable {
+    cursor: pointer;
+    box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #222222;
+    animation: blink 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes blink {
+    to { box-shadow: 0 0 0 1px #ffffff, 0 0 0 2px #222222; }
+}</code></pre>
+  <p>Two of your own pieces may stand on the same square. The square then gets the class <code>many</code>, which makes the pieces smaller. With <code>flex-wrap</code> on the square, up to four fit as two rows of two.</p>
+
+  <h2>Step 9: Who plays which color</h2>
+  <pre><code class="language-javascript">const MODES = {
+    easy: { red: "human", green: "easy", yellow: "easy", blue: "easy" },
+    hard: { red: "human", green: "hard", yellow: "hard", blue: "hard" },
+    pvp: { red: "human", yellow: "human" },
+    pvp4: { red: "human", green: "human", yellow: "human", blue: "human" }
+};</code></pre>
+  <p>Every choice in the drop-down list says who plays each color. A color that isn't listed is not in the game. Two friends play red and yellow, which face each other. <code>newGame</code> picks the players from the list:</p>
+  <pre><code class="language-javascript">players = COLORS.filter(function (color) {
+    return MODES[modeSelect.value][color];
+});</code></pre>
+  <p>Adding another kind of game, say two humans against two computers, is one more line here and one more option in the list.</p>
+
+  <h2>Step 10: The computer takes its turn</h2>
+  <pre><code class="language-javascript">function update() {
+    show();
+    if (isComputersTurn()) {
+        computerTimer = setTimeout(computerStep, COMPUTER_DELAY);
+    }
+}
+
+function computerStep() {
+    if (dice === null) {
+        roll();
+        return;
+    }
+    // ...pick a piece and move it
+}</code></pre>
+  <p>In Reversi the computer did its whole turn at once. In Ludo a turn has two steps: roll, then move. And after a 6 there is another roll. So the computer does one step at a time. Everything that changes the game ends with <code>update()</code>, and as long as it is the computer's turn, <code>update()</code> sets a timer for the next step. That way you can see each roll and each move. As before, <code>newGame</code> starts with <code>clearTimeout(computerTimer)</code>.</p>
+  <p>The easy computer moves a random piece:</p>
+  <pre><code class="language-javascript">const choices = movablePieces(color, dice);
+let best = choices[Math.floor(Math.random() * choices.length)];</code></pre>
+
+  <h2>Step 11: The hard computer</h2>
+  <p>In Reversi the hard computer looked ahead with minimax. That doesn't work well here: the next move depends on a die nobody knows yet. So the hard computer looks at each move it can make right now, and gives it points:</p>
+  <pre><code class="language-javascript">function scoreMove(color, index) {
+    const from = pieces[color][index];
+    const to = from === BASE ? 0 : from + dice;
+    let score = to;                       // further along is better
+    if (from === BASE) {
+        score += 40;                      // a new piece out
+    }
+    if (to === HOME) {
+        score += 50;                      // a piece home
+    }
+    if (from &lt;= LAST_ON_TRACK &amp;&amp; to &gt; LAST_ON_TRACK) {
+        score += 30;                      // into the lane, nobody can hit it there
+    }
+    if (to &lt;= LAST_ON_TRACK) {
+        score += 60 * piecesOn(trackIndex(color, to), color).length;   // knock out
+        if (canBeHit(color, to)) {
+            score -= 40;                  // don't stop where you can be hit
+        }
+    }
+    if (from !== BASE &amp;&amp; from &lt;= LAST_ON_TRACK &amp;&amp; canBeHit(color, from)) {
+        score += 20;                      // run away
+    }
+    return score;
+}</code></pre>
+  <p>The move with the most points wins. The numbers are a guess at what matters, and you can change them to make the computer play differently.</p>
+  <p><code>canBeHit</code> checks if another player could land on a square with one roll. For each of their pieces on the track, it counts how many squares behind the square it is:</p>
+  <pre><code class="language-javascript">const distance = (where - trackIndex(other, otherSteps) + TRACK) % TRACK;
+return distance &gt;= 1 &amp;&amp; distance &lt;= 6 &amp;&amp; otherSteps + distance &lt;= LAST_ON_TRACK;</code></pre>
+  <p>1 to 6 squares behind means one roll can reach it. Adding <code>TRACK</code> before <code>%</code> keeps the number positive when the track wraps from square 51 to 0. The last part checks that the piece wouldn't have turned into its own lane before getting there. A piece still in the base can hit its own start square with a 6, so that counts too.</p>
+  <p>To test it, let red move a random piece against three hard computers. Red then wins about 1 game in 25, instead of 1 in 4.</p>
+
+  <h2>Step 12: Test it</h2>
+  <ul>
+    <li>Roll until you get a 6, and see that a piece comes out and you roll again.</li>
+    <li>With all pieces in the base, see that you get three tries.</li>
+    <li>Land on a computer's piece, and see it go back to its base.</li>
+    <li>Get a piece close to the middle and roll too much: it can't move.</li>
+    <li>Choose A friend: only red and yellow play.</li>
+    <li>Press New game while a computer is playing.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>ludo.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Ludo&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+        text-align: center;
+    }
+
+    #board {
+        display: grid;
+        grid-template-columns: repeat(15, 1fr);
+        gap: 1px;
+        width: min(450px, 100%);
+        margin: 0 auto;
+        padding: 1px;
+        background-color: #555555;
+        box-sizing: border-box;
+    }
+
+    .cell {
+        aspect-ratio: 1;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        align-content: center;
+        background-color: #ffffff;
+    }
+
+    /* The colors: the bases and lanes are light, the start squares strong. */
+    .base.red, .lane.red { background-color: #f4b4b4; }
+    .base.green, .lane.green { background-color: #b4e0c0; }
+    .base.yellow, .lane.yellow { background-color: #f6e3a1; }
+    .base.blue, .lane.blue { background-color: #b4caf0; }
+    .start.red { background-color: #d93a3a; }
+    .start.green { background-color: #2e9e4f; }
+    .start.yellow { background-color: #e8b923; }
+    .start.blue { background-color: #2f6fd6; }
+    .middle { background-color: #444444; }
+
+    /* A white circle where each piece waits in its base. */
+    .slot {
+        background-image: radial-gradient(circle, #ffffff 60%, transparent 62%);
+    }
+
+    .piece {
+        width: 78%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 2px solid #222222;
+        box-sizing: border-box;
+    }
+
+    /* Two or more pieces on one square: make them smaller. */
+    .cell.many .piece {
+        width: 45%;
+        border-width: 1px;
+    }
+
+    .piece.red { background-color: #d93a3a; }
+    .piece.green { background-color: #2e9e4f; }
+    .piece.yellow { background-color: #e8b923; }
+    .piece.blue { background-color: #2f6fd6; }
+
+    /* The pieces you may move: a white ring that blinks. */
+    .piece.movable {
+        cursor: pointer;
+        box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #222222;
+        animation: blink 0.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes blink {
+        to { box-shadow: 0 0 0 1px #ffffff, 0 0 0 2px #222222; }
+    }
+
+    .dice-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    #die {
+        font-size: 64px;
+        line-height: 1;
+    }
+
+    #die.red { color: #d93a3a; }
+    #die.green { color: #2e9e4f; }
+    #die.yellow { color: #c99a0e; }
+    #die.blue { color: #2f6fd6; }
+
+    #status {
+        font-size: 18px;
+        margin-top: 16px;
+    }
+
+    #message {
+        color: #c25e00;
+        min-height: 1.5em;
+    }
+
+    #roll.red { background-color: #d93a3a; }
+    #roll.green { background-color: #2e9e4f; }
+    #roll.yellow { background-color: #c99a0e; }
+    #roll.blue { background-color: #2f6fd6; }
+
+    #roll {
+        padding: 10px 24px;
+        font-size: 18px;
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+    }
+
+    #roll:disabled {
+        opacity: 0.5;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Ludo&lt;/h1&gt;
+  &lt;div id="board"&gt;&lt;/div&gt;
+  &lt;div class="dice-row"&gt;
+    &lt;span id="die" aria-hidden="true"&gt;&lt;/span&gt;
+    &lt;button type="button" id="roll"&gt;Roll&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;p id="message"&gt;&lt;/p&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+  &lt;p&gt;
+    &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+    &lt;select id="mode"&gt;
+      &lt;option value="easy" selected&gt;Three computers (easy)&lt;/option&gt;
+      &lt;option value="hard"&gt;Three computers (hard)&lt;/option&gt;
+      &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+      &lt;option value="pvp4"&gt;Three friends&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Ludo: two or four players race their four pieces around the board and up
+     * their own lane into the middle. Roll a 6 to bring a piece out. Land on
+     * another player's piece to knock it back to its base. The first player
+     * with all four pieces in the middle wins.
+     *
+     * The other players can be played by the computer:
+     *
+     *   Easy: moves a random piece.
+     *   Hard: gives every move points: knocking someone out, getting a piece
+     *         home or out of base, and not stopping where it can be hit.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const COLORS = ["red", "green", "yellow", "blue"];   // in turn order
+    const NAMES = { red: "Red", green: "Green", yellow: "Yellow", blue: "Blue" };
+    const SIZE = 15;              // the board is 15 by 15 squares
+    const TRACK = 52;             // squares in the track around the board
+    const LAST_ON_TRACK = 50;     // a piece goes 50 steps on the track,
+    const HOME = 56;              // then 6 more up its lane, into the middle
+    const BASE = -1;              // a piece that hasn't come out yet
+    const COMPUTER_DELAY = 600;   // ms between the computer's actions
+    const DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+    // Who plays each color, for every choice in the drop-down list.
+    // A color that isn't listed is not in the game.
+    const MODES = {
+        easy: { red: "human", green: "easy", yellow: "easy", blue: "easy" },
+        hard: { red: "human", green: "hard", yellow: "hard", blue: "hard" },
+        pvp: { red: "human", yellow: "human" },
+        pvp4: { red: "human", green: "human", yellow: "human", blue: "human" }
+    };
+
+    // Red's quarter of the board, as [row, col]. The other three colors have
+    // the same squares, turned a quarter, a half and three quarters around.
+    const RED_TRACK = [
+        [6, 1], [6, 2], [6, 3], [6, 4], [6, 5],           // out from the start
+        [5, 6], [4, 6], [3, 6], [2, 6], [1, 6], [0, 6],   // up
+        [0, 7], [0, 8]                                    // across the top
+    ];
+    const RED_LANE = [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6]];
+    const RED_BASE = [[1, 1], [1, 4], [4, 1], [4, 4]];
+
+    // Turn a square a quarter clockwise around the middle of the board, "times"
+    // times.
+    function turn([row, col], times) {
+        for (let i = 0; i &lt; times; i++) {
+            [row, col] = [col, SIZE - 1 - row];
+        }
+        return [row, col];
+    }
+
+    // All 52 track squares, starting at red's start square and going clockwise.
+    const TRACK_SQUARES = [];
+    for (let quarter = 0; quarter &lt; 4; quarter++) {
+        RED_TRACK.forEach(function (square) {
+            TRACK_SQUARES.push(turn(square, quarter));
+        });
+    }
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const dieElement = document.getElementById("die");
+    const rollButton = document.getElementById("roll");
+    const statusText = document.getElementById("status");
+    const messageText = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+    const modeSelect = document.getElementById("mode");
+
+    // --- State ---------------------------------------------------------------
+
+    let cells = [];       // cells[row][col]: the &lt;div&gt; for each square
+    let players = [];     // the colors in this game
+    let pieces = {};      // pieces.red = [BASE, BASE, BASE, BASE]: steps gone
+    let turnIndex = 0;    // players[turnIndex] is the one to play
+    let dice = null;      // the number to move, or null when it's time to roll
+    let triesLeft = 0;    // rolls left this turn
+    let winner = null;
+    let computerTimer = null;
+
+    // --- Where things are ----------------------------------------------------
+
+    function current() {
+        return players[turnIndex];
+    }
+
+    // How many quarters a color's part of the board is turned from red's.
+    function quarterOf(color) {
+        return COLORS.indexOf(color);
+    }
+
+    // The track square (0-51) a piece is on, counted from red's start.
+    function trackIndex(color, steps) {
+        return (quarterOf(color) * RED_TRACK.length + steps) % TRACK;
+    }
+
+    // The [row, col] on the board where a color's piece number "index" is.
+    function squareOf(color, index) {
+        const steps = pieces[color][index];
+        if (steps === BASE) {
+            return turn(RED_BASE[index], quarterOf(color));
+        }
+        if (steps &lt;= LAST_ON_TRACK) {
+            return TRACK_SQUARES[trackIndex(color, steps)];
+        }
+        return turn(RED_LANE[steps - LAST_ON_TRACK - 1], quarterOf(color));
+    }
+
+    // --- Rules ---------------------------------------------------------------
+
+    function canMove(color, index, number) {
+        const steps = pieces[color][index];
+        if (steps === BASE) {
+            return number === 6;
+        }
+        return steps + number &lt;= HOME;   // you need the exact number to get home
+    }
+
+    // The numbers (0-3) of the pieces that can move.
+    function movablePieces(color, number) {
+        return [0, 1, 2, 3].filter(function (index) {
+            return canMove(color, index, number);
+        });
+    }
+
+    // The other players' pieces on the track square "where": [color, index].
+    function piecesOn(where, color) {
+        const found = [];
+        players.forEach(function (other) {
+            if (other === color) {
+                return;
+            }
+            pieces[other].forEach(function (steps, index) {
+                if (steps !== BASE &amp;&amp; steps &lt;= LAST_ON_TRACK &amp;&amp; trackIndex(other, steps) === where) {
+                    found.push([other, index]);
+                }
+            });
+        });
+        return found;
+    }
+
+    // With nothing on the board, you get three tries to roll a 6.
+    function onlyInBase(color) {
+        return pieces[color].every(function (steps) {
+            return steps === BASE || steps === HOME;
+        });
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function startTurn() {
+        dice = null;
+        triesLeft = onlyInBase(current()) ? 3 : 1;
+        update();
+    }
+
+    function nextPlayer() {
+        turnIndex = (turnIndex + 1) % players.length;
+        startTurn();
+    }
+
+    function roll() {
+        if (winner || dice !== null) {
+            return;
+        }
+        const color = current();
+        const number = Math.floor(Math.random() * 6) + 1;
+        dieElement.textContent = DIE_FACES[number - 1];
+        dieElement.className = color;
+        triesLeft--;
+        messageText.textContent = "";
+        if (movablePieces(color, number).length &gt; 0) {
+            dice = number;
+            update();
+        } else if (triesLeft &gt; 0) {
+            messageText.textContent = NAMES[color] + " rolled " + number + ". Try again!";
+            update();
+        } else {
+            messageText.textContent = NAMES[color] + " rolled " + number + " and can't move.";
+            nextPlayer();
+        }
+    }
+
+    function move(index) {
+        const color = current();
+        if (winner || dice === null || !canMove(color, index, dice)) {
+            return;
+        }
+        const steps = pieces[color][index];
+        const to = steps === BASE ? 0 : steps + dice;
+        pieces[color][index] = to;
+        messageText.textContent = "";
+
+        // Knock out the other players' pieces on the square.
+        if (to &lt;= LAST_ON_TRACK) {
+            piecesOn(trackIndex(color, to), color).forEach(function ([other, otherIndex]) {
+                pieces[other][otherIndex] = BASE;
+                messageText.textContent = NAMES[color] + " knocks " + NAMES[other] + " back to base!";
+            });
+        }
+
+        if (pieces[color].every(function (s) { return s === HOME; })) {
+            winner = color;
+            dice = null;
+            update();
+        } else if (dice === 6) {
+            messageText.textContent += " " + NAMES[color] + " rolled a 6 and goes again.";
+            messageText.textContent = messageText.textContent.trim();
+            startTurn();
+        } else {
+            nextPlayer();
+        }
+    }
+
+    // --- The computer --------------------------------------------------------
+
+    function playerType(color) {
+        return MODES[modeSelect.value][color];
+    }
+
+    function isComputersTurn() {
+        return !winner &amp;&amp; playerType(current()) !== "human";
+    }
+
+    // One step at a time: roll, or move a piece. update() calls this again
+    // until it is a human's turn.
+    function computerStep() {
+        if (dice === null) {
+            roll();
+            return;
+        }
+        const color = current();
+        const choices = movablePieces(color, dice);
+        let best = choices[Math.floor(Math.random() * choices.length)];
+        if (playerType(color) === "hard") {
+            let bestScore = -Infinity;
+            choices.forEach(function (index) {
+                const score = scoreMove(color, index);
+                if (score &gt; bestScore) {
+                    bestScore = score;
+                    best = index;
+                }
+            });
+        }
+        move(best);
+    }
+
+    // Points for moving piece "index" the number on the die.
+    function scoreMove(color, index) {
+        const from = pieces[color][index];
+        const to = from === BASE ? 0 : from + dice;
+        let score = to;                       // further along is better
+        if (from === BASE) {
+            score += 40;                      // a new piece out
+        }
+        if (to === HOME) {
+            score += 50;                      // a piece home
+        }
+        if (from &lt;= LAST_ON_TRACK &amp;&amp; to &gt; LAST_ON_TRACK) {
+            score += 30;                      // into the lane, nobody can hit it there
+        }
+        if (to &lt;= LAST_ON_TRACK) {
+            score += 60 * piecesOn(trackIndex(color, to), color).length;   // knock out
+            if (canBeHit(color, to)) {
+                score -= 40;                  // don't stop where you can be hit
+            }
+        }
+        if (from !== BASE &amp;&amp; from &lt;= LAST_ON_TRACK &amp;&amp; canBeHit(color, from)) {
+            score += 20;                      // run away
+        }
+        return score;
+    }
+
+    // Can another player reach the square "steps" along color's way, with one
+    // roll?
+    function canBeHit(color, steps) {
+        const where = trackIndex(color, steps);
+        return players.some(function (other) {
+            if (other === color) {
+                return false;
+            }
+            return pieces[other].some(function (otherSteps) {
+                if (otherSteps === BASE) {
+                    return trackIndex(other, 0) === where;   // comes out on a 6
+                }
+                if (otherSteps &gt; LAST_ON_TRACK) {
+                    return false;                             // in its own lane
+                }
+                const distance = (where - trackIndex(other, otherSteps) + TRACK) % TRACK;
+                return distance &gt;= 1 &amp;&amp; distance &lt;= 6 &amp;&amp; otherSteps + distance &lt;= LAST_ON_TRACK;
+            });
+        });
+    }
+
+    // --- Showing the board ---------------------------------------------------
+
+    function update() {
+        show();
+        if (isComputersTurn()) {
+            computerTimer = setTimeout(computerStep, COMPUTER_DELAY);
+        }
+    }
+
+    function show() {
+        const color = current();
+        const humanMoves = !isComputersTurn() &amp;&amp; dice !== null;
+
+        cells.flat().forEach(function (cell) {
+            cell.innerHTML = "";
+            cell.classList.remove("many");
+        });
+        players.forEach(function (who) {
+            pieces[who].forEach(function (steps, index) {
+                const [row, col] = squareOf(who, index);
+                const piece = document.createElement("div");
+                piece.className = "piece " + who;
+                if (humanMoves &amp;&amp; who === color &amp;&amp; canMove(who, index, dice)) {
+                    piece.classList.add("movable");
+                }
+                cells[row][col].appendChild(piece);
+                if (cells[row][col].children.length &gt; 1) {
+                    cells[row][col].classList.add("many");
+                }
+            });
+        });
+
+        rollButton.className = color;
+        rollButton.disabled = Boolean(winner) || isComputersTurn() || dice !== null;
+        if (winner) {
+            statusText.textContent = NAMES[winner] + " wins!";
+        } else if (isComputersTurn()) {
+            statusText.textContent = NAMES[color] + " is playing...";
+        } else if (dice === null) {
+            statusText.textContent = NAMES[color] + "'s turn: roll the die.";
+        } else {
+            statusText.textContent = NAMES[color] + " rolled " + dice + ": click a piece to move.";
+        }
+    }
+
+    // --- Building the board --------------------------------------------------
+
+    // What every square is, as class names: "base red", "track", "lane red"...
+    function squareClasses() {
+        const classes = [];
+        for (let row = 0; row &lt; SIZE; row++) {
+            classes.push(new Array(SIZE).fill("middle"));
+        }
+        COLORS.forEach(function (color, quarter) {
+            for (let row = 0; row &lt; 6; row++) {
+                for (let col = 0; col &lt; 6; col++) {
+                    const [r, c] = turn([row, col], quarter);
+                    classes[r][c] = "base " + color;
+                }
+            }
+            RED_BASE.forEach(function (square) {
+                const [r, c] = turn(square, quarter);
+                classes[r][c] += " slot";
+            });
+            RED_TRACK.forEach(function (square) {
+                const [r, c] = turn(square, quarter);
+                classes[r][c] = "track";
+            });
+            RED_LANE.forEach(function (square) {
+                const [r, c] = turn(square, quarter);
+                classes[r][c] = "lane " + color;
+            });
+            const [r, c] = turn(RED_TRACK[0], quarter);
+            classes[r][c] = "track start " + color;
+        });
+        return classes;
+    }
+
+    function newGame() {
+        // A computer move that is waiting to happen belongs to the old game.
+        clearTimeout(computerTimer);
+
+        players = COLORS.filter(function (color) {
+            return MODES[modeSelect.value][color];
+        });
+        pieces = {};
+        players.forEach(function (color) {
+            pieces[color] = [BASE, BASE, BASE, BASE];
+        });
+        turnIndex = 0;
+        winner = null;
+        dieElement.textContent = DIE_FACES[5];
+        dieElement.className = "";
+        messageText.textContent = "";
+        startTurn();
+    }
+
+    function buildBoard() {
+        const classes = squareClasses();
+        for (let row = 0; row &lt; SIZE; row++) {
+            cells.push([]);
+            for (let col = 0; col &lt; SIZE; col++) {
+                const cell = document.createElement("div");
+                cell.className = "cell " + classes[row][col];
+                cell.addEventListener("click", function () {
+                    clickSquare(row, col);
+                });
+                boardElement.appendChild(cell);
+                cells[row].push(cell);
+            }
+        }
+    }
+
+    // Move the current player's piece on the square, if one there can move.
+    function clickSquare(row, col) {
+        if (isComputersTurn() || dice === null) {
+            return;
+        }
+        const color = current();
+        const index = movablePieces(color, dice).find(function (i) {
+            const [r, c] = squareOf(color, i);
+            return r === row &amp;&amp; c === col;
+        });
+        if (index !== undefined) {
+            move(index);
+        }
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    rollButton.addEventListener("click", roll);
+    restartButton.addEventListener("click", newGame);
+    modeSelect.addEventListener("change", newGame);
+
+    buildBoard();
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Many rules have safe squares, often marked with a star, where nobody can be knocked out. Add a list of safe track squares and check it in <code>move</code> and <code>canBeHit</code>.</li>
+    <li>In some rules three 6s in a row send your piece back to base. Count the 6s in <code>move</code>.</li>
+    <li>Make the hard computer avoid leaving a piece alone right in front of another player's base.</li>
+    <li>Add a mode with two humans against two computers.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>Ludo needs no keyboard, so it works well on a phone. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension. The game on this site is made into both by adding one line to each list.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

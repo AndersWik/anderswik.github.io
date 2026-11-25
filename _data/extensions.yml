@@ -32,6 +32,7 @@
 - { slug: four-in-a-row, page: pages/games/four-in-a-row.html, name: Connect Four, emoji: "🔴" }
 - { slug: hangman, page: pages/games/hangman.html, emoji: "🪢" }
 - { slug: kvarn, page: pages/games/kvarn.html, emoji: "⚪", label: "9" }
+- { slug: ludo, page: pages/games/ludo.html, emoji: "🎲", label: LUDO, open: tab }
 - { slug: memory, page: pages/games/memory.html, name: Memory, emoji: "🧠" }
 - { slug: quiz, page: pages/games/quiz.html, emoji: "❓" }
 - { slug: reversi, page: pages/games/reversi.html, name: Reversi, emoji: "🌗" }

@@ -1,0 +1,142 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  text-align: center;
+  max-width: 520px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.game h1 {
+  text-shadow: 2px 2px #747474;
+}
+
+.game #board {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 1px;
+  width: min(450px, 100%);
+  margin: 0 auto;
+  padding: 1px;
+  background-color: #555555;
+  box-sizing: border-box;
+}
+
+.game .cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  background-color: #ffffff;
+}
+
+/* The colors: the bases and lanes are light, the start squares strong. */
+.game .base.red, .game .lane.red { background-color: #f4b4b4; }
+.game .base.green, .game .lane.green { background-color: #b4e0c0; }
+.game .base.yellow, .game .lane.yellow { background-color: #f6e3a1; }
+.game .base.blue, .game .lane.blue { background-color: #b4caf0; }
+.game .start.red { background-color: #d93a3a; }
+.game .start.green { background-color: #2e9e4f; }
+.game .start.yellow { background-color: #e8b923; }
+.game .start.blue { background-color: #2f6fd6; }
+.game .middle { background-color: #444444; }
+
+/* A white circle where each piece waits in its base. */
+.game .slot {
+  background-image: radial-gradient(circle, #ffffff 60%, transparent 62%);
+}
+
+.game .piece {
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid #222222;
+  box-sizing: border-box;
+}
+
+/* Two or more pieces on one square: make them smaller. */
+.game .cell.many .piece {
+  width: 45%;
+  border-width: 1px;
+}
+
+.game .piece.red { background-color: #d93a3a; }
+.game .piece.green { background-color: #2e9e4f; }
+.game .piece.yellow { background-color: #e8b923; }
+.game .piece.blue { background-color: #2f6fd6; }
+
+/* The pieces you may move: a white ring that blinks. */
+.game .piece.movable {
+  cursor: pointer;
+  box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #222222;
+  animation: blink 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes blink {
+  to { box-shadow: 0 0 0 1px #ffffff, 0 0 0 2px #222222; }
+}
+
+.game .dice-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.game #die {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.game #die.red { color: #d93a3a; }
+.game #die.green { color: #2e9e4f; }
+.game #die.yellow { color: #c99a0e; }
+.game #die.blue { color: #2f6fd6; }
+
+.game #status {
+  font-size: 18px;
+  margin-top: 16px;
+}
+
+.game #message {
+  color: #c25e00;
+  min-height: 1.5em;
+}
+
+.game button {
+  padding: 15px 30px;
+  font-size: 18px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game #roll.red { background-color: #d93a3a; }
+.game #roll.green { background-color: #2e9e4f; }
+.game #roll.yellow { background-color: #c99a0e; }
+.game #roll.blue { background-color: #2f6fd6; }
+
+.game #roll:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.game select {
+  margin-top: 16px;
+  padding: 6px;
+  font-size: 16px;
+}

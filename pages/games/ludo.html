@@ -1,0 +1,31 @@
+---
+layout: game
+title: Ludo
+permalink: /games/ludo/
+nonav: true
+css:
+  - /assets/ludo/ludo.css
+js:
+  - /assets/ludo/ludo.js
+---
+<div class="container">
+  <h1>Ludo</h1>
+  <div id="board"></div>
+  <div class="dice-row">
+    <span id="die" aria-hidden="true"></span>
+    <button type="button" id="roll">Roll</button>
+  </div>
+  <p id="status" aria-live="polite"></p>
+  <p id="message"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="easy" selected>Three computers (easy)</option>
+      <option value="hard">Three computers (hard)</option>
+      <option value="pvp">A friend</option>
+      <option value="pvp4">Three friends</option>
+    </select>
+  </p>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/ludo/">How to build this game</a></p>
