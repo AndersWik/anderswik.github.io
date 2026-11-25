@@ -386,7 +386,7 @@ function cardElement(card, faceDown) {
 // Give the cards that move a delay each, in the order they were dealt, so
 // they come in one at a time. Returns when the last one is done, in seconds.
 function staggerCards() {
-    const moving = Array.from(document.querySelectorAll(".game .slot")).filter(function (slot) {
+    const moving = Array.from(document.querySelectorAll(".slot")).filter(function (slot) {
         return slot.classList.contains("deal") || slot.querySelector(".turn");
     });
     moving.sort(function (a, b) {

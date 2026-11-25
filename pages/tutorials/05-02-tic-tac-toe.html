@@ -4,7 +4,7 @@ title: Tic Tac Toe
 permalink: /tutorials/tic-tac-toe/
 chapter: "05"
 chapter_title: "Board Games"
-keywords: [javascript, game, board game, computer player, lines, find, every, querySelectorAll, buttons]
+keywords: [javascript, game, board game, computer player, lines, find, every, querySelectorAll, buttons, classList, text-stroke, text-shadow, color-mix, pseudo-element, repeating-linear-gradient]
 ---
 
 <div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
@@ -36,6 +36,7 @@ keywords: [javascript, game, board game, computer player, lines, find, every, qu
     &lt;option value="smart" selected&gt;The computer (smart)&lt;/option&gt;
   &lt;/select&gt;
 &lt;/p&gt;</code></pre>
+  <p>The board is a dark grid with a small <code>gap</code> between the white squares: the dark color that shows through the gaps draws the lines.</p>
   <pre><code class="language-css">body {
     font-family: sans-serif;
     max-width: 800px;
@@ -47,22 +48,40 @@ body {
     text-align: center;
 }
 
+/* The board: the dark gaps between the squares are the lines. */
 .board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 4px;
     max-width: 300px;
     margin: 0 auto;
+    padding: 4px;
+    background-color: #333333;
+    border-radius: 8px;
 }
 
 .square {
+    position: relative;
     aspect-ratio: 1;
-    font-size: 48px;
+    padding: 0;
+    background-color: #ffffff;
+    color: #222222;
+    border: none;
+    border-radius: 4px;
+    font-family: "Ubuntu", Arial, sans-serif;
+    font-size: 64px;
     font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
 }
 
+.square:hover {
+    background-color: #f0f0f0;
+}
+
+/* The three in a row. */
 .square.winning {
-    background-color: #99e883;
+    background-color: #f6e3a1;
 }
 
 #status {
@@ -84,7 +103,7 @@ let board = [];        // "", "X" or "O" for each square</code></pre>
         });
     });
 }</code></pre>
-  <p>Find a line where every square has <code>who</code>'s mark. <code>find</code> gives the line, or <code>undefined</code> if there is none. The line is useful: it tells us which squares to color green.</p>
+  <p>Find a line where every square has <code>who</code>'s mark. <code>find</code> gives the line, or <code>undefined</code> if there is none. The line is useful: it tells us which squares to light up.</p>
   <h2>Step 3: Playing</h2>
   <pre><code class="language-javascript">function play(index) {
     if (gameOver || board[index] !== "") {
@@ -92,6 +111,7 @@ let board = [];        // "", "X" or "O" for each square</code></pre>
     }
     board[index] = player;
     squares[index].textContent = player;
+    squares[index].classList.add(player.toLowerCase());   // "x" or "o", for the color
 
     const line = winningLine(player);
     if (line) {
@@ -120,7 +140,44 @@ let board = [];        // "", "X" or "O" for each square</code></pre>
         }
     });
 });</code></pre>
-  <h2>Step 4: The smart computer</h2>
+  <h2>Step 4: X and O in crayon</h2>
+  <p>CSS can't see what is written in a square, so it can't color an X differently from an O by itself. <code>play</code> gives the square a class as well as the text: <code>player.toLowerCase()</code> turns "X" into "x". <code>newGame</code> takes the classes away again:</p>
+  <pre><code class="language-javascript">square.classList.remove("winning", "x", "o");</code></pre>
+  <p>Now each mark can have its own color:</p>
+  <pre><code class="language-css">/* X and O look drawn with a crayon: a thick stroke, rough edges from a few
+   shadows, and light streaks on top, like wax on paper. */
+.square.x {
+    color: #2e9e4f;
+}
+
+.square.o {
+    color: #2f6fd6;
+}</code></pre>
+  <p>To make them look drawn with a crayon, three tricks work together:</p>
+  <pre><code class="language-css">.square.x,
+.square.o {
+    -webkit-text-stroke: 4px currentColor;
+    text-shadow:
+        1px 2px 0 color-mix(in srgb, currentColor 45%, transparent),
+        -2px -1px 0 color-mix(in srgb, currentColor 35%, transparent),
+        2px -2px 0 color-mix(in srgb, currentColor 25%, transparent);
+}</code></pre>
+  <p><code>-webkit-text-stroke</code> draws a line around every letter, which makes it thicker. <code>currentColor</code> is the text color, so the same rule works for both marks. Each shadow is a copy of the letter moved a pixel or two, in the same color but partly see-through: <code>color-mix(in srgb, currentColor 45%, transparent)</code> is 45% of the color. Together they give the rough, uneven edge of a crayon.</p>
+  <pre><code class="language-css">.square.x::after,
+.square.o::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(-60deg,
+        transparent 0 3px,
+        rgba(255, 255, 255, 0.5) 3px 4px,
+        transparent 4px 6px,
+        rgba(255, 255, 255, 0.25) 6px 7px);
+}</code></pre>
+  <p>The last trick is wax: thin white lines on top of the mark, where the crayon didn't quite cover the paper. <code>::after</code> adds an empty box that covers the whole square, because the square has <code>position: relative</code>. <code>repeating-linear-gradient</code> fills it with stripes: transparent, white, transparent, a little white, again and again, at an angle. On the white square the white lines can't be seen, only on the mark. <code>pointer-events: none</code> lets clicks go through the stripes to the button.</p>
+  <h2>Step 5: The smart computer</h2>
   <p>First, a helper: is there a line where <code>who</code> has two marks and the third square is free?</p>
   <pre><code class="language-javascript">function winningSquare(who) {
     for (const line of LINES) {
@@ -159,9 +216,10 @@ let board = [];        // "", "X" or "O" for each square</code></pre>
 }</code></pre>
   <p>Win if possible, block if needed, then take the middle, which is part of four lines, then a corner, part of three. These are the same rules as the easy computer in Connect Four vs computer. They are enough to make Tic Tac Toe hard to win, but not impossible: if you threaten two lines at once (a <strong>fork</strong>), it can only block one.</p>
   <p>In the first version, the middle and corner rules used a variable called <code>board</code> that didn't exist. As soon as the computer had nothing to win or block, it crashed, and since "smart" was the default, the game stopped after a couple of moves.</p>
-  <h2>Step 5: Test it</h2>
+  <h2>Step 6: Test it</h2>
   <ul>
-    <li>Win across, down and diagonally. The three squares should turn green.</li>
+    <li>Win across, down and diagonally. The three squares should turn yellow.</li>
+    <li>X should be green and O blue, also after New game.</li>
     <li>Fill the board without a winner. It should say it's a draw.</li>
     <li>Against the smart computer, start in a corner and see that it takes the middle.</li>
     <li>Make two threats at once and win.</li>
@@ -186,22 +244,73 @@ let board = [];        // "", "X" or "O" for each square</code></pre>
         text-align: center;
     }
 
+    /* The board: the dark gaps between the squares are the lines. */
     .board {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
+        gap: 4px;
         max-width: 300px;
         margin: 0 auto;
+        padding: 4px;
+        background-color: #333333;
+        border-radius: 8px;
     }
 
     .square {
+        position: relative;
         aspect-ratio: 1;
-        font-size: 48px;
+        padding: 0;
+        background-color: #ffffff;
+        color: #222222;
+        border: none;
+        border-radius: 4px;
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-size: 64px;
         font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
     }
 
+    .square:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* X and O look drawn with a crayon: a thick stroke, rough edges from a few
+       shadows, and light streaks on top, like wax on paper. */
+    .square.x {
+        color: #2e9e4f;
+    }
+
+    .square.o {
+        color: #2f6fd6;
+    }
+
+    .square.x,
+    .square.o {
+        -webkit-text-stroke: 4px currentColor;
+        text-shadow:
+            1px 2px 0 color-mix(in srgb, currentColor 45%, transparent),
+            -2px -1px 0 color-mix(in srgb, currentColor 35%, transparent),
+            2px -2px 0 color-mix(in srgb, currentColor 25%, transparent);
+    }
+
+    .square.x::after,
+    .square.o::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        background-image: repeating-linear-gradient(-60deg,
+            transparent 0 3px,
+            rgba(255, 255, 255, 0.5) 3px 4px,
+            transparent 4px 6px,
+            rgba(255, 255, 255, 0.25) 6px 7px);
+    }
+
+    /* The three in a row. */
     .square.winning {
-        background-color: #99e883;
+        background-color: #f6e3a1;
     }
 
     #status {
@@ -306,6 +415,7 @@ let board = [];        // "", "X" or "O" for each square</code></pre>
         }
         board[index] = player;
         squares[index].textContent = player;
+        squares[index].classList.add(player.toLowerCase());   // "x" or "o", for the color
 
         const line = winningLine(player);
         if (line) {
@@ -381,7 +491,7 @@ let board = [];        // "", "X" or "O" for each square</code></pre>
         board = ["", "", "", "", "", "", "", "", ""];
         squares.forEach(function (square) {
             square.textContent = "";
-            square.classList.remove("winning");
+            square.classList.remove("winning", "x", "o");
         });
         player = "X";
         gameOver = false;

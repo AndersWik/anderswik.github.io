@@ -4,7 +4,7 @@ title: Blackjack
 permalink: /tutorials/blackjack/
 chapter: "04"
 chapter_title: "Casino games"
-keywords: [javascript, game, cards, deck, shuffle, fisher-yates, state, render, disabled buttons]
+keywords: [javascript, game, cards, deck, shuffle, fisher-yates, state, render, disabled buttons, 3d transform, rotateY, backface-visibility, perspective, animation-delay, css variables]
 ---
 
 <div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
@@ -25,122 +25,325 @@ keywords: [javascript, game, cards, deck, shuffle, fisher-yates, state, render, 
   <h2>Step 1: The page</h2>
   <p>Create <code>blackjack.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
   <pre><code class="language-html">&lt;h1&gt;Blackjack&lt;/h1&gt;
-
-&lt;div class="hand"&gt;
-  Dealer &lt;span id="dealer-score"&gt;&lt;/span&gt;
-  &lt;div id="dealer-cards" class="cards"&gt;&lt;/div&gt;
+&lt;div class="table"&gt;
+  &lt;div class="hand"&gt;
+    &lt;p class="label"&gt;Dealer &lt;span id="dealer-score"&gt;&lt;/span&gt;&lt;/p&gt;
+    &lt;div id="dealer-cards" class="cards"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div id="result" aria-live="polite"&gt;&lt;/div&gt;
+  &lt;div class="hand"&gt;
+    &lt;p class="label"&gt;You&lt;/p&gt;
+    &lt;div id="player-hands"&gt;&lt;/div&gt;
+  &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="hand"&gt;
-  You
-  &lt;div id="player-hands"&gt;&lt;/div&gt;
+&lt;div id="bank"&gt;
+  Balance: $&lt;span id="balance"&gt;1000&lt;/span&gt; &amp;middot; Bet: $&lt;span id="current-bet"&gt;0&lt;/span&gt;
 &lt;/div&gt;
-
-&lt;div id="result" aria-live="polite"&gt;&lt;/div&gt;
-&lt;p&gt;Balance: $&lt;span id="balance"&gt;1000&lt;/span&gt; | Bet: $&lt;span id="current-bet"&gt;0&lt;/span&gt;&lt;/p&gt;
-
-&lt;div&gt;
-  &lt;button type="button" id="placeBet10"&gt;$10&lt;/button&gt;
-  &lt;button type="button" id="placeBet50"&gt;$50&lt;/button&gt;
-  &lt;button type="button" id="placeBet100"&gt;$100&lt;/button&gt;
-  &lt;button type="button" id="clearBet"&gt;Clear&lt;/button&gt;
+&lt;div id="chip-buttons"&gt;
+  &lt;button type="button" id="placeBet10" class="chip chip-10"&gt;$10&lt;/button&gt;
+  &lt;button type="button" id="placeBet50" class="chip chip-50"&gt;$50&lt;/button&gt;
+  &lt;button type="button" id="placeBet100" class="chip chip-100"&gt;$100&lt;/button&gt;
+  &lt;button type="button" id="clearBet" class="clear"&gt;Clear&lt;/button&gt;
 &lt;/div&gt;
-&lt;div&gt;
+&lt;div id="controls"&gt;
   &lt;button type="button" id="startGame"&gt;Deal&lt;/button&gt;
   &lt;button type="button" id="hit"&gt;Hit&lt;/button&gt;
   &lt;button type="button" id="stand"&gt;Stand&lt;/button&gt;
 &lt;/div&gt;
-&lt;div&gt;
-  &lt;button type="button" id="doubleDown"&gt;Double down&lt;/button&gt;
+&lt;div id="extra-controls"&gt;
+  &lt;button type="button" id="doubleDown"&gt;Double Down&lt;/button&gt;
   &lt;button type="button" id="split"&gt;Split&lt;/button&gt;
   &lt;button type="button" id="takeInsurance"&gt;Insurance&lt;/button&gt;
 &lt;/div&gt;</code></pre>
-  <p>The card areas start empty. JavaScript fills them.</p>
+  <p>The card areas start empty. JavaScript fills them. Everything that is on the card table goes in <code>&lt;div class="table"&gt;</code>: the dealer's cards at the top, yours at the bottom, and the result in the middle. The chips have a class each, for their color.</p>
   <h2>Step 2: The CSS</h2>
-  <pre><code class="language-css">body {
-    font-family: sans-serif;
-    max-width: 800px;
-    margin: 40px auto;
-    padding: 0 16px;
+  <pre><code class="language-css">.table {
+    margin-top: 16px;
+    padding: 12px 10px;
+    color: #ffffff;
+    background: radial-gradient(ellipse at 50% 40%, #2f8a5b, #1b5a3a 75%);
+    border: 8px solid #6b4423;
+    border-radius: 24px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 
-body {
-    color: white;
-    background-color: #35654d;
-    text-align: center;
-}
-
-.cards {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    min-height: 90px;
-    margin: 10px 0 20px;
-}
-
-.card {
-    width: 60px;
-    height: 90px;
-    border: 1px solid #333333;
-    border-radius: 8px;
-    color: black;
-    background-color: white;
-    font-size: 18px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.card.red {
-    color: red;
-}
-
-/* The back of a card: blue stripes made with a CSS gradient. */
-.card.hidden {
-    background: repeating-linear-gradient(45deg, #1d4e89, #1d4e89 6px, #ffffff 6px, #ffffff 9px);
-}
-
-/* New cards slide in from above. */
-.card.new {
-    animation: deal 0.3s;
-}
-
-@keyframes deal {
-    from {
-        transform: translateY(-30px);
-        opacity: 0;
-    }
-}
-
-.player-hand {
-    display: inline-block;
-    margin: 0 10px;
-    padding: 0 10px;
-    border-radius: 8px;
-}
-
-.player-hand.active {
-    outline: 3px solid #f7931a;
+.label {
+    margin: 0 0 8px;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 #result {
     min-height: 3em;
+    margin: 6px 0;
     font-size: 20px;
+    font-weight: bold;
+    color: #f6d77a;
     white-space: pre-line;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#bank {
+    margin: 16px 0 6px;
+    font-size: 18px;
 }
 
 button {
-    margin: 4px;
-    padding: 10px 16px;
-    font-size: 16px;
-}</code></pre>
-  <p>Two tricks:</p>
+    padding: 12px 24px;
+    margin: 5px;
+    font-size: 17px;
+    background-color: #000000;
+    color: #ffffff;
+    border: 5px solid #3d3b3b;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.chip {
+    width: 62px;
+    height: 62px;
+    padding: 0;
+    border: 5px dashed rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    font-size: 15px;
+    font-weight: bold;
+    box-shadow: 0 0 0 3px var(--chip), 0 3px 6px rgba(0, 0, 0, 0.35);
+    background-color: var(--chip);
+}
+
+.chip-10 { --chip: #2f6fd6; }
+.chip-50 { --chip: #c8102e; }
+.chip-100 { --chip: #222222; }</code></pre>
+  <p>This is the table and the money. The cards get their own steps next.</p>
   <ul>
-    <li>The back of a card is a <code>repeating-linear-gradient</code>: blue and white stripes at 45 degrees, made with CSS, without a picture.</li>
-    <li>Cards with the class <code>new</code> slide in with an animation. <code>@keyframes deal</code> only gives a <code>from</code>, so the card goes from 30 pixels up and see-through to where it normally is.</li>
+    <li>The felt is a <code>radial-gradient</code>: lighter green in the middle, darker towards the edges, like a lamp over the table. The wooden rail is just a thick brown <code>border</code> with round corners, and <code>box-shadow: inset</code> darkens the felt along the inside of the rail.</li>
+    <li>A chip is a round button with a <strong>dashed</strong> white border, which gives the stripes along the edge of a casino chip. Its color is a <strong>CSS variable</strong>: <code>--chip</code> is set by <code>.chip-10</code>, <code>.chip-50</code> and <code>.chip-100</code>, and <code>var(--chip)</code> uses it for both the background and the ring outside the stripes. One rule, three colors.</li>
+    <li>A button that can't be used right now is <code>:disabled</code>, and gets faded.</li>
   </ul>
   <p><code>white-space: pre-line</code> on the result makes <code>\n</code> in the text start a new line, so we can show one line per hand.</p>
-  <h2>Step 3: The state</h2>
+  <h2>Step 3: A playing card</h2>
+  <p>A real card has its value and suit in two corners, one of them upside down, and a big suit in the middle. And it has a back. We make both sides, and put them back to back in one element:</p>
+  <pre><code class="language-javascript">function cardElement(card, faceDown) {
+    const slot = document.createElement("div");
+    slot.className = "slot";
+    const element = document.createElement("div");
+    element.className = "card";
+    if (card.suit === "♥" || card.suit === "♦") {
+        element.classList.add("red");
+    }
+    element.setAttribute("role", "img");
+
+    const front = document.createElement("div");
+    front.className = "face front";
+    front.innerHTML =
+        '&lt;span class="corner top"&gt;' + card.value + "&lt;br&gt;" + card.suit + "&lt;/span&gt;" +
+        '&lt;span class="pip"&gt;' + card.suit + "&lt;/span&gt;" +
+        '&lt;span class="corner bottom"&gt;' + card.value + "&lt;br&gt;" + card.suit + "&lt;/span&gt;";
+    const back = document.createElement("div");
+    back.className = "face back";
+    element.append(front, back);
+    ...</code></pre>
+  <p>The front is three <code>&lt;span&gt;</code>s: the corner at the top, the big suit, and the corner at the bottom. <code>&lt;br&gt;</code> puts the suit under the value, like on a real card.</p>
+  <pre><code class="language-css">.face {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    backface-visibility: hidden;
+    box-shadow: -1px 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+.front {
+    background-color: #ffffff;
+    border: 1px solid #c9c9c9;
+    color: #1a1a1a;
+    font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
+}
+
+.card.red .front {
+    color: #c8102e;
+}
+
+.corner {
+    position: absolute;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1;
+    text-align: center;
+}
+
+.corner.top {
+    top: 4px;
+    left: 4px;
+}
+
+.corner.bottom {
+    bottom: 4px;
+    right: 4px;
+    transform: rotate(180deg);
+}
+
+.pip {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+}
+
+.back {
+    transform: rotateY(180deg);
+    background-color: #b3202a;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px),
+      repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px);
+    border: 4px solid #ffffff;
+    outline: 1px solid #c9c9c9;
+    box-sizing: border-box;
+}</code></pre>
+  <ul>
+    <li>Both faces have <code>position: absolute; inset: 0</code>, so they lie exactly on top of each other.</li>
+    <li>The bottom corner is the same as the top one, turned with <code>rotate(180deg)</code>, so it reads the right way when the card is upside down.</li>
+    <li>The back is red with a white edge. The diamond pattern is two <code>repeating-linear-gradient</code>s of thin white lines, one at 45 degrees and one at -45 degrees, laid over each other. No picture needed.</li>
+    <li>The card gets <code>role="img"</code> and an <code>aria-label</code> like "Q of hearts" or "face down card", so a screen reader reads the card, not the three spans.</li>
+  </ul>
+  <p>The cards in a hand overlap, like cards you hold in a fan. The value is in the top left corner, so it can always be seen:</p>
+  <pre><code class="language-css">.slot + .slot {
+    margin-left: -30px;
+}</code></pre>
+  <p><code>+</code> means "a slot that comes right after another slot", so every card but the first moves 30 pixels to the left, on top of the one before. What a slot is comes next.</p>
+  <h2>Step 4: Turning a card</h2>
+  <p>A face down card is a card turned half a turn around its up-down line, so we see its back. Turning it over is turning it back. CSS can turn things in 3D:</p>
+  <pre><code class="language-css">.slot {
+    flex: none;
+    perspective: 600px;
+}
+
+.card {
+    position: relative;
+    width: 64px;
+    height: 92px;
+    transform-style: preserve-3d;
+}
+
+.card.down {
+    transform: rotateY(180deg);
+}</code></pre>
+  <ul>
+    <li><code>rotateY(180deg)</code> turns the card half a turn around the Y axis, the line from top to bottom.</li>
+    <li><code>transform-style: preserve-3d</code> keeps the two faces as two real sides in 3D, instead of a flat picture.</li>
+    <li><code>perspective: 600px</code> is how far away we look at the card from. Without it, a turning card would only get narrower; with it, the near edge gets bigger, as in real life.</li>
+    <li><code>backface-visibility: hidden</code> on both faces (in Step 3) hides a face when it is turned away from us. The back is turned half a turn from the start, so when the card is face up, we see the front, and when the card is turned, we see the back.</li>
+  </ul>
+  <p>The animations:</p>
+  <pre><code class="language-css">.slot.deal {
+    animation: slide 0.3s ease-out both;
+}
+
+@keyframes slide {
+    from { opacity: 0; transform: translateY(-40px); }
+}
+
+.card.turn {
+    animation: turn 0.45s ease-out both;
+}
+
+@keyframes turn {
+    from { transform: rotateY(180deg); }
+    to { transform: rotateY(0deg); }
+}</code></pre>
+  <p>Why is the card inside a <code>slot</code>? The first try put both animations on the card: slide in, fade in, and turn. In Firefox, the hidden card then showed its front, mirrored, instead of its back. Making something see-through with <code>opacity</code> flattens it, and a flat card has no back side to hide. So the slot slides and fades the card in, and the card inside it only turns. Each element does one job. <code>both</code> at the end of the animations shows the first frame while the animation waits, so a card that is about to be dealt can't be seen yet, and a card that is about to turn shows its back.</p>
+  <p><code>render()</code> draws the whole page again after every change, so the code must know which cards are new. Each card object remembers how it was shown last time, in <code>card.state</code>:</p>
+  <pre><code class="language-javascript">    // How the card moves: a new card slides in (and turns over if it is face
+    // up), and the dealer's hidden card turns over when it is shown. Cards
+    // that were already on the table stay still.
+    const isNew = card.state === undefined;
+    if (isNew) {
+        slot.classList.add("deal");
+    }
+    if (!faceDown &amp;&amp; card.state !== "up") {
+        element.classList.add("turn");
+    }
+    // The hidden card turns over before the dealer draws more.
+    slot.dataset.number = card.state === "down" &amp;&amp; !faceDown ? 0 : card.number;
+    card.state = faceDown ? "down" : "up";
+    return slot;
+}</code></pre>
+  <p>A card that has never been shown slides in. A card that is shown face up, and wasn't face up before, turns over: a new card you get, or the dealer's hidden card at the end of the round. Cards that were already on the table stay still, so they don't jump every time you hit.</p>
+  <h2>Step 5: One card at a time</h2>
+  <p>If all four cards of a deal turned over at the same time, it would look like a magic trick, not a dealer. So the cards come in one at a time, in the order they were dealt. To know that order, every card gets a number when it is taken from the deck:</p>
+  <pre><code class="language-javascript">// The next card from the deck. Every card gets a number in the order it is
+// dealt, so the cards can come in on the table in the same order.
+function draw() {
+    const card = deck.pop();
+    drawn++;
+    card.number = drawn;
+    return card;
+}</code></pre>
+  <p>Everywhere the game takes a card, it uses <code>draw()</code> instead of <code>deck.pop()</code>. A deal goes round the table as in a casino: you, the dealer, you, the dealer:</p>
+  <pre><code class="language-javascript">deck = newDeck();
+drawn = 0;
+// One card at a time, as at a real table: you, the dealer, you, the dealer.
+const first = draw();
+const hidden = draw();
+const second = draw();
+const up = draw();
+hands = [{ cards: [first, second], bet: bet }];
+dealer = [hidden, up];</code></pre>
+  <p>After <code>render()</code> has made the cards, <code>staggerCards()</code> finds the ones that move, sorts them by their number, and gives each one a delay, 0.35 seconds after the one before. A card that slides in and turns over starts to turn when it has slid in:</p>
+  <pre><code class="language-javascript">// Give the cards that move a delay each, in the order they were dealt, so
+// they come in one at a time. Returns when the last one is done, in seconds.
+function staggerCards() {
+    const moving = Array.from(document.querySelectorAll(".slot")).filter(function (slot) {
+        return slot.classList.contains("deal") || slot.querySelector(".turn");
+    });
+    moving.sort(function (a, b) {
+        return Number(a.dataset.number) - Number(b.dataset.number);
+    });
+    let done = 0;
+    moving.forEach(function (slot, index) {
+        const start = index * DEAL_GAP;
+        const slides = slot.classList.contains("deal");
+        const turn = slot.querySelector(".turn");
+        slot.style.animationDelay = start + "s";
+        let end = start + (slides ? SLIDE_TIME : 0);
+        if (turn) {
+            turn.style.animationDelay = end + "s";
+            end += TURN_TIME;
+        }
+        done = Math.max(done, end);
+    });
+    return done;
+}</code></pre>
+  <p>When the dealer's hidden card turns over at the end, it gets number 0, so it turns first, before any cards the dealer draws. Just as at a real table.</p>
+  <p>The function returns when the last card is done. Then the result waits for it, so you don't read "Dealer has blackjack" before you have seen the card:</p>
+  <pre><code class="language-javascript">// The cards come in one at a time, and the result waits for them.
+const done = staggerCards();
+if (message !== shownMessage) {
+    resultText.textContent = message;
+    shownMessage = message;
+    reveal(resultText, done);
+}
+if (!playing &amp;&amp; dealer.length &gt; 0 &amp;&amp; done &gt; 0) {
+    reveal(dealerScoreText, done);
+}
+
+// Restart the fade-in on an element, after "delay" seconds.
+function reveal(element, delay) {
+    element.classList.remove("reveal");
+    void element.offsetWidth;   // let the browser see the class is gone
+    element.style.animationDelay = delay + "s";
+    element.classList.add("reveal");
+}</code></pre>
+  <p>Removing and adding the class starts the fade-in again. Reading <code>offsetWidth</code> in between makes the browser notice that the class was gone, the same trick as for the bubble in <a href="/tutorials/pop-and-bump/">Pop and Bump</a>.</p>
+  <h2>Step 6: The state</h2>
   <pre><code class="language-javascript">let balance = START_BALANCE;
 let bet = 0;              // the bet being placed before Deal
 let playing = false;      // true while the player is playing a hand
@@ -150,9 +353,11 @@ let hands = [];           // the player's hands: { cards, bet }
 let active = 0;           // which hand the player is playing
 let insurance = 0;
 let peeked = false;       // has the dealer looked for blackjack?
+let drawn = 0;            // cards dealt this round, to number them
+let shownMessage = "";    // the message on the page now
 let message = "Click the chips to place a bet.";</code></pre>
   <p>The player's cards are a <strong>list of hands</strong>, even though there is usually only one. That way splitting is easy: one hand becomes two, and the rest of the code doesn't change. A card is an object like <code>{ suit: "♥", value: "Q" }</code>.</p>
-  <h2>Step 4: Making and shuffling a deck</h2>
+  <h2>Step 7: Making and shuffling a deck</h2>
   <p>Two loops, one inside the other, make all 52 cards. Then we shuffle with the <strong>Fisher-Yates shuffle</strong>: go from the last card to the first, and swap each card with a random card at or before it.</p>
   <pre><code class="language-javascript">function newDeck() {
     const cards = [];
@@ -168,8 +373,8 @@ let message = "Click the chips to place a bet.";</code></pre>
     return cards;
 }</code></pre>
   <p><code>[a, b] = [b, a]</code> swaps two values in one line. The shuffle is short, but it is easy to get wrong. A common mistake is to swap each card with any card in the whole deck. That looks random, but some orders come up more often than others. Fisher-Yates makes every order equally likely.</p>
-  <p>Cards are dealt with <code>deck.pop()</code>, which takes the last card off the list.</p>
-  <h2>Step 5: Counting a hand</h2>
+  <p>Cards are dealt with <code>draw()</code> from Step 5, which takes the last card off the list with <code>deck.pop()</code>.</p>
+  <h2>Step 8: Counting a hand</h2>
   <p>The ace is the tricky card. We count every ace as 11 first. Then, while the total is over 21 and there is still an ace counted as 11, we change it to 1 by subtracting 10:</p>
   <pre><code class="language-javascript">function score(cards) {
     let total = 0;
@@ -187,7 +392,7 @@ let message = "Click the chips to place a bet.";</code></pre>
     return total;
 }</code></pre>
   <p>A, A, 9 gives 31, then 21. A, K gives 21 straight away.</p>
-  <h2>Step 6: Betting</h2>
+  <h2>Step 9: Betting</h2>
   <p>Chips move money from the balance to the bet, and Clear moves it back. The money leaves the balance when you bet, so a win pays the bet back plus the win, and a push (a tie) pays back only the bet.</p>
   <pre><code class="language-javascript">function addChip(chip) {
     if (playing || balance &lt; chip) {
@@ -198,10 +403,9 @@ let message = "Click the chips to place a bet.";</code></pre>
     message = "";
     render();
 }</code></pre>
-  <h2>Step 7: Dealing, and the dealer's peek</h2>
+  <h2>Step 10: Dealing, and the dealer's peek</h2>
   <pre><code class="language-javascript">deck = newDeck();
-hands = [{ cards: [deck.pop(), deck.pop()], bet: bet }];
-dealer = [deck.pop(), deck.pop()];
+// ...the four cards, as in Step 5...
 
 const upCard = dealer[1];
 if (isBlackjack(hand().cards)) {
@@ -229,28 +433,28 @@ function hit() {
         render();
         return;
     }
-    hand().cards.push(deck.pop());
+    hand().cards.push(draw());
     if (score(hand().cards) &gt;= 21) {
         nextHand();
     }
     render();
 }</code></pre>
   <p><code>peeked</code> makes sure it only happens once per round.</p>
-  <h2>Step 8: Double down and split</h2>
+  <h2>Step 11: Double down and split</h2>
   <p>Double down needs one more bet, not two. Then you get exactly one card, and the hand is done:</p>
   <pre><code class="language-javascript">balance -= hand().bet;
 hand().bet *= 2;
-hand().cards.push(deck.pop());
+hand().cards.push(draw());
 nextHand();</code></pre>
   <p>Split turns one hand into two, each with one of the cards and a new card:</p>
   <pre><code class="language-javascript">const [first, second] = hand().cards;
 balance -= hand().bet;
 hands = [
-    { cards: [first, deck.pop()], bet: hand().bet },
-    { cards: [second, deck.pop()], bet: hand().bet }
+    { cards: [first, draw()], bet: hand().bet },
+    { cards: [second, draw()], bet: hand().bet }
 ];</code></pre>
   <p>After each hand, <code>nextHand()</code> moves on to the next hand, or lets the dealer play after the last one. The dealer doesn't draw at all if every hand is bust, because there is nothing left to beat.</p>
-  <h2>Step 9: Paying out</h2>
+  <h2>Step 12: Paying out</h2>
   <p><code>finishRound()</code> compares each hand with the dealer and pays. The order of the checks matters. Bust loses even if the dealer also goes bust, and blackjack against blackjack is a tie:</p>
   <pre><code class="language-javascript">if (playerScore &gt; 21) {
     result = "Bust";
@@ -272,20 +476,19 @@ hands = [
     payout = h.bet;
 }</code></pre>
   <p>21 after a split isn't blackjack. <code>isBlackjack()</code> checks that there is only one hand.</p>
-  <h2>Step 10: Buttons that know when they can be used</h2>
+  <h2>Step 13: Buttons that know when they can be used</h2>
   <p>Instead of telling the user "you can't do that" afterwards, we turn off buttons that can't be used. <code>render()</code> works out each one from the state:</p>
   <pre><code class="language-javascript">doubleButton.disabled = !twoCards || balance &lt; current.bet;
 splitButton.disabled = !twoCards || hands.length &gt; 1 ||
     cardValue(current.cards[0]) !== cardValue(current.cards[1]) ||
     balance &lt; current.bet;</code></pre>
-  <p>Because this runs after every change, the buttons can never be wrong for long. The same idea makes the hidden card simple: it is face down while <code>playing</code> is true, and shown as soon as the round is over.</p>
-  <p>Cards slide in only the first time they are drawn. Each card object gets <code>shown = true</code> the first time, and only cards without it get the class <code>new</code>. Otherwise every card on the table would slide in again each time you hit.</p>
-  <h2>Step 11: Test it</h2>
-  <p>Random cards make testing slow, so in the console you can replace <code>newDeck</code> with a deck you choose. <code>pop()</code> takes cards from the end, so the last card in the list is dealt first: your first card, your second, the dealer's hidden card, the dealer's visible card, then any extra cards.</p>
+  <p>Because this runs after every change, the buttons can never be wrong for long. The same idea makes the hidden card simple: it is face down while <code>playing</code> is true, and as soon as the round is over, <code>render()</code> draws it face up, and it turns over, see Step 4.</p>
+  <h2>Step 14: Test it</h2>
+  <p>Random cards make testing slow, so in the console you can replace <code>newDeck</code> with a deck you choose. <code>pop()</code> takes cards from the end, so the last card in the list is dealt first: your first card, the dealer's hidden card, your second card, the dealer's visible card, then any extra cards.</p>
   <pre><code class="language-javascript">function c(value) { return { value: value, suit: "♠" }; }
 
 // You: A, K (blackjack). Dealer: 7 hidden, 9 showing.
-newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
+newDeck = function () { return [c("9"), c("K"), c("7"), c("A")]; };</code></pre>
   <p>Bet $10 and press Deal. You should win $15. Try other decks:</p>
   <ul>
     <li>Split: you 8, 8. Then play one hand to a win and bust the other.</li>
@@ -303,112 +506,266 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
   &lt;style&gt;
     body {
         font-family: sans-serif;
-        max-width: 800px;
+        max-width: 560px;
         margin: 40px auto;
         padding: 0 16px;
-    }
-
-    body {
-        color: white;
-        background-color: #35654d;
         text-align: center;
     }
 
-    .cards {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        min-height: 90px;
-        margin: 10px 0 20px;
+    /* --- The table ---------------------------------------------------------- */
+
+    /* Green felt, lighter in the middle, with a wooden rail around it. */
+    .table {
+        margin-top: 16px;
+        padding: 12px 10px;
+        color: #ffffff;
+        background: radial-gradient(ellipse at 50% 40%, #2f8a5b, #1b5a3a 75%);
+        border: 8px solid #6b4423;
+        border-radius: 24px;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3);
     }
 
-    .card {
-        width: 60px;
-        height: 90px;
-        border: 1px solid #333333;
-        border-radius: 8px;
-        color: black;
-        background-color: white;
-        font-size: 18px;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .hand {
+        margin: 8px 0;
     }
 
-    .card.red {
-        color: red;
-    }
-
-    /* The back of a card: blue stripes made with a CSS gradient. */
-    .card.hidden {
-        background: repeating-linear-gradient(45deg, #1d4e89, #1d4e89 6px, #ffffff 6px, #ffffff 9px);
-    }
-
-    /* New cards slide in from above. */
-    .card.new {
-        animation: deal 0.3s;
-    }
-
-    @keyframes deal {
-        from {
-            transform: translateY(-30px);
-            opacity: 0;
-        }
-    }
-
-    .player-hand {
-        display: inline-block;
-        margin: 0 10px;
-        padding: 0 10px;
-        border-radius: 8px;
-    }
-
-    .player-hand.active {
-        outline: 3px solid #f7931a;
+    .label {
+        margin: 0 0 8px;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.85);
     }
 
     #result {
         min-height: 3em;
+        margin: 6px 0;
         font-size: 20px;
+        font-weight: bold;
+        color: #f6d77a;
         white-space: pre-line;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    /* The result and the dealer's score wait until the cards have turned. */
+    .reveal {
+        animation: reveal 0.4s both;
+    }
+
+    @keyframes reveal {
+        from { opacity: 0; transform: scale(0.9); }
+    }
+
+    .player-hand {
+        display: inline-block;
+        margin: 0 6px;
+        padding: 4px 8px 10px;
+        border-radius: 10px;
+    }
+
+    .player-hand p {
+        margin: 0 0 8px;
+        font-size: 14px;
+    }
+
+    .player-hand.active {
+        outline: 2px solid #e8b455;
+        background-color: rgba(0, 0, 0, 0.12);
+    }
+
+    /* --- The cards ---------------------------------------------------------- */
+
+    .cards {
+        display: flex;
+        justify-content: center;
+        min-height: 92px;
+    }
+
+    /* The cards in a hand overlap, like cards held in a fan. The corner with
+         the value is on the left, so it is always seen. */
+    .slot {
+        flex: none;
+        perspective: 600px;
+    }
+
+    .slot + .slot {
+        margin-left: -30px;
+    }
+
+    /* A card has two faces back to back. Turning it is turning the card. */
+    .card {
+        position: relative;
+        width: 64px;
+        height: 92px;
+        transform-style: preserve-3d;
+    }
+
+    .card.down {
+        transform: rotateY(180deg);
+    }
+
+    .face {
+        position: absolute;
+        inset: 0;
+        border-radius: 6px;
+        backface-visibility: hidden;
+        box-shadow: -1px 1px 4px rgba(0, 0, 0, 0.45);
+    }
+
+    .front {
+        background-color: #ffffff;
+        border: 1px solid #c9c9c9;
+        color: #1a1a1a;
+        font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
+    }
+
+    .card.red .front {
+        color: #c8102e;
+    }
+
+    /* The value and suit in the corners. The bottom one is upside down. */
+    .corner {
+        position: absolute;
+        font-size: 15px;
+        font-weight: bold;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .corner.top {
+        top: 4px;
+        left: 4px;
+    }
+
+    .corner.bottom {
+        bottom: 4px;
+        right: 4px;
+        transform: rotate(180deg);
+    }
+
+    .pip {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+    }
+
+    /* The back: red, a white edge and a fine white diamond pattern. */
+    .back {
+        transform: rotateY(180deg);
+        background-color: #b3202a;
+        background-image:
+            repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px),
+            repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px);
+        border: 4px solid #ffffff;
+        outline: 1px solid #c9c9c9;
+        box-sizing: border-box;
+    }
+
+    /* A new card slides onto the table... */
+    .slot.deal {
+        animation: slide 0.3s ease-out both;
+    }
+
+    @keyframes slide {
+        from { opacity: 0; transform: translateY(-40px); }
+    }
+
+    /* ...and a card that is shown turns over, from its back to its front. */
+    .card.turn {
+        animation: turn 0.45s ease-out both;
+    }
+
+    @keyframes turn {
+        from { transform: rotateY(180deg); }
+        to { transform: rotateY(0deg); }
+    }
+
+    /* --- Money and buttons -------------------------------------------------- */
+
+    #bank {
+        margin: 16px 0 6px;
+        font-size: 18px;
     }
 
     button {
-        margin: 4px;
-        padding: 10px 16px;
-        font-size: 16px;
+        padding: 12px 24px;
+        margin: 5px;
+        font-size: 17px;
+        background-color: #000000;
+        color: #ffffff;
+        border: 5px solid #3d3b3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+    /* Casino chips: a colored disc with a dashed white edge. */
+    .chip {
+        width: 62px;
+        height: 62px;
+        padding: 0;
+        border: 5px dashed rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        font-size: 15px;
+        font-weight: bold;
+        box-shadow: 0 0 0 3px var(--chip), 0 3px 6px rgba(0, 0, 0, 0.35);
+        background-color: var(--chip);
+    }
+
+    .chip-10 { --chip: #2f6fd6; }
+    .chip-50 { --chip: #c8102e; }
+    .chip-100 { --chip: #222222; }
+
+    .chip:not(:disabled):hover {
+        transform: translateY(-2px);
+    }
+
+    .clear {
+        padding: 8px 14px;
+        font-size: 15px;
+        background-color: #ffffff;
+        color: #222222;
+        border: 2px solid #222222;
+        vertical-align: middle;
     }
   &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
   &lt;h1&gt;Blackjack&lt;/h1&gt;
-
-  &lt;div class="hand"&gt;
-    Dealer &lt;span id="dealer-score"&gt;&lt;/span&gt;
-    &lt;div id="dealer-cards" class="cards"&gt;&lt;/div&gt;
+  &lt;div class="table"&gt;
+    &lt;div class="hand"&gt;
+      &lt;p class="label"&gt;Dealer &lt;span id="dealer-score"&gt;&lt;/span&gt;&lt;/p&gt;
+      &lt;div id="dealer-cards" class="cards"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div id="result" aria-live="polite"&gt;&lt;/div&gt;
+    &lt;div class="hand"&gt;
+      &lt;p class="label"&gt;You&lt;/p&gt;
+      &lt;div id="player-hands"&gt;&lt;/div&gt;
+    &lt;/div&gt;
   &lt;/div&gt;
-  &lt;div class="hand"&gt;
-    You
-    &lt;div id="player-hands"&gt;&lt;/div&gt;
+  &lt;div id="bank"&gt;
+    Balance: $&lt;span id="balance"&gt;1000&lt;/span&gt; &amp;middot; Bet: $&lt;span id="current-bet"&gt;0&lt;/span&gt;
   &lt;/div&gt;
-
-  &lt;div id="result" aria-live="polite"&gt;&lt;/div&gt;
-  &lt;p&gt;Balance: $&lt;span id="balance"&gt;1000&lt;/span&gt; | Bet: $&lt;span id="current-bet"&gt;0&lt;/span&gt;&lt;/p&gt;
-
-  &lt;div&gt;
-    &lt;button type="button" id="placeBet10"&gt;$10&lt;/button&gt;
-    &lt;button type="button" id="placeBet50"&gt;$50&lt;/button&gt;
-    &lt;button type="button" id="placeBet100"&gt;$100&lt;/button&gt;
-    &lt;button type="button" id="clearBet"&gt;Clear&lt;/button&gt;
+  &lt;div id="chip-buttons"&gt;
+    &lt;button type="button" id="placeBet10" class="chip chip-10"&gt;$10&lt;/button&gt;
+    &lt;button type="button" id="placeBet50" class="chip chip-50"&gt;$50&lt;/button&gt;
+    &lt;button type="button" id="placeBet100" class="chip chip-100"&gt;$100&lt;/button&gt;
+    &lt;button type="button" id="clearBet" class="clear"&gt;Clear&lt;/button&gt;
   &lt;/div&gt;
-  &lt;div&gt;
+  &lt;div id="controls"&gt;
     &lt;button type="button" id="startGame"&gt;Deal&lt;/button&gt;
     &lt;button type="button" id="hit"&gt;Hit&lt;/button&gt;
     &lt;button type="button" id="stand"&gt;Stand&lt;/button&gt;
   &lt;/div&gt;
-  &lt;div&gt;
-    &lt;button type="button" id="doubleDown"&gt;Double down&lt;/button&gt;
+  &lt;div id="extra-controls"&gt;
+    &lt;button type="button" id="doubleDown"&gt;Double Down&lt;/button&gt;
     &lt;button type="button" id="split"&gt;Split&lt;/button&gt;
     &lt;button type="button" id="takeInsurance"&gt;Insurance&lt;/button&gt;
   &lt;/div&gt;
@@ -439,6 +796,10 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
     const SUITS = ["♠", "♥", "♦", "♣"];
     const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
     const CHIPS = [10, 50, 100];
+    const SUIT_NAMES = { "♠": "spades", "♥": "hearts", "♦": "diamonds", "♣": "clubs" };
+    const DEAL_GAP = 0.35;    // seconds between two cards being dealt
+    const SLIDE_TIME = 0.3;   // seconds for a card to slide onto the table
+    const TURN_TIME = 0.45;   // seconds for a card to turn over
 
     // --- Elements on the page ------------------------------------------------
 
@@ -474,6 +835,8 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
     let active = 0;           // which hand the player is playing
     let insurance = 0;
     let peeked = false;       // has the dealer looked for blackjack?
+    let drawn = 0;            // cards dealt this round, to number them
+    let shownMessage = "";    // the message on the page now
     let message = "Click the chips to place a bet.";
 
     // --- Cards ---------------------------------------------------------------
@@ -492,6 +855,15 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
             [cards[i], cards[j]] = [cards[j], cards[i]];
         }
         return cards;
+    }
+
+    // The next card from the deck. Every card gets a number in the order it is
+    // dealt, so the cards can come in on the table in the same order.
+    function draw() {
+        const card = deck.pop();
+        drawn++;
+        card.number = drawn;
+        return card;
     }
 
     function cardValue(card) {
@@ -567,8 +939,14 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
         }
 
         deck = newDeck();
-        hands = [{ cards: [deck.pop(), deck.pop()], bet: bet }];
-        dealer = [deck.pop(), deck.pop()];
+        drawn = 0;
+        // One card at a time, as at a real table: you, the dealer, you, the dealer.
+        const first = draw();
+        const hidden = draw();
+        const second = draw();
+        const up = draw();
+        hands = [{ cards: [first, second], bet: bet }];
+        dealer = [hidden, up];
         bet = 0;
         active = 0;
         insurance = 0;
@@ -617,7 +995,7 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
             render();
             return;
         }
-        hand().cards.push(deck.pop());
+        hand().cards.push(draw());
         if (score(hand().cards) &gt;= 21) {
             nextHand();     // bust, or 21: nothing more to do
         }
@@ -638,7 +1016,7 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
         }
         balance -= hand().bet;
         hand().bet *= 2;
-        hand().cards.push(deck.pop());
+        hand().cards.push(draw());
         nextHand();
         render();
     }
@@ -651,8 +1029,8 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
         const [first, second] = hand().cards;
         balance -= hand().bet;
         hands = [
-            { cards: [first, deck.pop()], bet: hand().bet },
-            { cards: [second, deck.pop()], bet: hand().bet }
+            { cards: [first, draw()], bet: hand().bet },
+            { cards: [second, draw()], bet: hand().bet }
         ];
         message = "Playing hand 1.";
         render();
@@ -675,7 +1053,7 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
         // The dealer only draws if there is a hand left to beat.
         if (!allBust) {
             while (score(dealer) &lt; 17) {
-                dealer.push(deck.pop());
+                dealer.push(draw());
             }
         }
         finishRound();
@@ -729,25 +1107,86 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
 
     // --- Drawing -------------------------------------------------------------
 
+    // A card is two faces back to back: the front with the value and suit, and
+    // the back. A face down card is turned half a turn, so the back shows.
+    // The card sits in a "slot" that slides it onto the table; the card itself
+    // only turns. Fading and turning the same element would flatten the card,
+    // and then its back would show through.
     function cardElement(card, faceDown) {
+        const slot = document.createElement("div");
+        slot.className = "slot";
         const element = document.createElement("div");
         element.className = "card";
+        if (card.suit === "♥" || card.suit === "♦") {
+            element.classList.add("red");
+        }
+        element.setAttribute("role", "img");
+
+        const front = document.createElement("div");
+        front.className = "face front";
+        front.innerHTML =
+            '&lt;span class="corner top"&gt;' + card.value + "&lt;br&gt;" + card.suit + "&lt;/span&gt;" +
+            '&lt;span class="pip"&gt;' + card.suit + "&lt;/span&gt;" +
+            '&lt;span class="corner bottom"&gt;' + card.value + "&lt;br&gt;" + card.suit + "&lt;/span&gt;";
+        const back = document.createElement("div");
+        back.className = "face back";
+        element.append(front, back);
+        slot.appendChild(element);
 
         if (faceDown) {
-            element.classList.add("hidden");
+            element.classList.add("down");
             element.setAttribute("aria-label", "face down card");
         } else {
-            element.textContent = card.value + card.suit;
-            if (card.suit === "♥" || card.suit === "♦") {
-                element.classList.add("red");
+            element.setAttribute("aria-label", card.value + " of " + SUIT_NAMES[card.suit]);
+        }
+
+        // How the card moves: a new card slides in (and turns over if it is face
+        // up), and the dealer's hidden card turns over when it is shown. Cards
+        // that were already on the table stay still.
+        const isNew = card.state === undefined;
+        if (isNew) {
+            slot.classList.add("deal");
+        }
+        if (!faceDown &amp;&amp; card.state !== "up") {
+            element.classList.add("turn");
+        }
+        // The hidden card turns over before the dealer draws more.
+        slot.dataset.number = card.state === "down" &amp;&amp; !faceDown ? 0 : card.number;
+        card.state = faceDown ? "down" : "up";
+        return slot;
+    }
+
+    // Give the cards that move a delay each, in the order they were dealt, so
+    // they come in one at a time. Returns when the last one is done, in seconds.
+    function staggerCards() {
+        const moving = Array.from(document.querySelectorAll(".slot")).filter(function (slot) {
+            return slot.classList.contains("deal") || slot.querySelector(".turn");
+        });
+        moving.sort(function (a, b) {
+            return Number(a.dataset.number) - Number(b.dataset.number);
+        });
+        let done = 0;
+        moving.forEach(function (slot, index) {
+            const start = index * DEAL_GAP;
+            const slides = slot.classList.contains("deal");
+            const turn = slot.querySelector(".turn");
+            slot.style.animationDelay = start + "s";
+            let end = start + (slides ? SLIDE_TIME : 0);
+            if (turn) {
+                turn.style.animationDelay = end + "s";
+                end += TURN_TIME;
             }
-        }
-        // Only new cards slide in; cards that were already shown stay still.
-        if (!card.shown) {
-            element.classList.add("new");
-            card.shown = true;
-        }
-        return element;
+            done = Math.max(done, end);
+        });
+        return done;
+    }
+
+    // Restart the fade-in on an element, after "delay" seconds.
+    function reveal(element, delay) {
+        element.classList.remove("reveal");
+        void element.offsetWidth;   // let the browser see the class is gone
+        element.style.animationDelay = delay + "s";
+        element.classList.add("reveal");
     }
 
     function render() {
@@ -785,7 +1224,16 @@ newDeck = function () { return [c("9"), c("7"), c("K"), c("A")]; };</code></pre>
             playerHands.appendChild(box);
         });
 
-        resultText.textContent = message;
+        // The cards come in one at a time, and the result waits for them.
+        const done = staggerCards();
+        if (message !== shownMessage) {
+            resultText.textContent = message;
+            shownMessage = message;
+            reveal(resultText, done);
+        }
+        if (!playing &amp;&amp; dealer.length &gt; 0 &amp;&amp; done &gt; 0) {
+            reveal(dealerScoreText, done);
+        }
         balanceText.textContent = balance;
         betText.textContent = bet;
 
