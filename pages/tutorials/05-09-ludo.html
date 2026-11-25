@@ -67,7 +67,8 @@ for (let quarter = 0; quarter &lt; 4; quarter++) {
     display: grid;
     grid-template-columns: repeat(15, 1fr);
     gap: 1px;
-    width: min(450px, 100%);
+    width: 450px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 1px;
     background-color: #555555;
@@ -310,7 +311,8 @@ return distance &gt;= 1 &amp;&amp; distance &lt;= 6 &amp;&amp; otherSteps + dist
         display: grid;
         grid-template-columns: repeat(15, 1fr);
         gap: 1px;
-        width: min(450px, 100%);
+        width: 450px;
+        max-width: 100%;
         margin: 0 auto;
         padding: 1px;
         background-color: #555555;

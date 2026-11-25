@@ -1,0 +1,437 @@
+/*
+ * Pop and Bump: race your four pieces once around the ring and into your
+ * four home holes in the middle. Pop the bubble to roll the die. You need
+ * a 6 to come out, and a 6 gives you another pop. Land on another player's
+ * piece to bump it back to its base. Every hole holds one piece, so you can
+ * never land on your own. The first player with all four pieces home wins.
+ *
+ * The rules and the computer players are the ones from Ludo, on a round
+ * board with a shorter track.
+ *
+ *   Easy: moves a random piece.
+ *   Hard: gives every move points: bumping someone, getting a piece home
+ *         or out of base, and not stopping where it can be bumped.
+ */
+
+// --- Settings ------------------------------------------------------------
+
+const COLORS = ["red", "green", "yellow", "blue"];   // in turn order
+const NAMES = { red: "Red", green: "Green", yellow: "Yellow", blue: "Blue" };
+const TRACK = 28;             // holes in the ring
+const QUARTER = TRACK / 4;    // holes from one start hole to the next
+const LAST_ON_TRACK = 27;     // a piece goes 27 steps around the ring,
+const LAST = 31;              // then into its home holes: steps 28 to 31
+const BASE = -1;              // a piece that hasn't come out yet
+const COMPUTER_DELAY = 600;   // ms between the computer's actions
+const DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+// Who plays each color, for every choice in the drop-down list.
+// A color that isn't listed is not in the game.
+const MODES = {
+    easy: { red: "human", green: "easy", yellow: "easy", blue: "easy" },
+    hard: { red: "human", green: "hard", yellow: "hard", blue: "hard" },
+    pvp: { red: "human", yellow: "human" },
+    pvp4: { red: "human", green: "human", yellow: "human", blue: "human" }
+};
+
+// Where the holes are, in percent of the board from its top left corner.
+// Angles are in degrees: 0 is to the right, and they go clockwise.
+const RED_ANGLE = 225;                // red's corner, the top left
+const RING = 38;                      // how far the ring is from the middle
+const HOME_HOLES = [31, 24.5, 18, 11.5];   // and the four home holes
+const RED_BASE = [[5, 5], [13, 5], [5, 13], [13, 13]];   // [x, y]
+
+// The point "radius" percent from the middle, in the direction "angle".
+function pointAt(angle, radius) {
+    const radians = angle * Math.PI / 180;
+    return [50 + radius * Math.cos(radians), 50 + radius * Math.sin(radians)];
+}
+
+// Turn a point a quarter clockwise around the middle, "times" times.
+function turn([x, y], times) {
+    for (let i = 0; i < times; i++) {
+        [x, y] = [100 - y, x];
+    }
+    return [x, y];
+}
+
+// --- Elements on the page ------------------------------------------------
+
+const boardElement = document.getElementById("board");
+const bubble = document.getElementById("roll");
+const statusText = document.getElementById("status");
+const messageText = document.getElementById("message");
+const restartButton = document.getElementById("restart");
+const modeSelect = document.getElementById("mode");
+
+// --- State ---------------------------------------------------------------
+
+let trackHoles = [];  // the 28 holes in the ring, from red's start
+let homeHoles = {};   // homeHoles.red: red's four home holes
+let baseHoles = {};   // baseHoles.red: where red's pieces wait
+let players = [];     // the colors in this game
+let pieces = {};      // pieces.red = [BASE, BASE, BASE, BASE]: steps gone
+let turnIndex = 0;    // players[turnIndex] is the one to play
+let dice = null;      // the number to move, or null when it's time to roll
+let triesLeft = 0;    // rolls left this turn
+let winner = null;
+let computerTimer = null;
+
+// --- Where things are ----------------------------------------------------
+
+function current() {
+    return players[turnIndex];
+}
+
+// How many quarters a color's part of the board is turned from red's.
+function quarterOf(color) {
+    return COLORS.indexOf(color);
+}
+
+// The hole in the ring (0-27) a piece is in, counted from red's start.
+function trackIndex(color, steps) {
+    return (quarterOf(color) * QUARTER + steps) % TRACK;
+}
+
+// The hole a piece is in, for a number of steps gone.
+function holeAt(color, index, steps) {
+    if (steps === BASE) {
+        return baseHoles[color][index];
+    }
+    if (steps <= LAST_ON_TRACK) {
+        return trackHoles[trackIndex(color, steps)];
+    }
+    return homeHoles[color][steps - LAST_ON_TRACK - 1];
+}
+
+function holeOf(color, index) {
+    return holeAt(color, index, pieces[color][index]);
+}
+
+// --- Rules ---------------------------------------------------------------
+
+function stepsAfter(color, index, number) {
+    const steps = pieces[color][index];
+    return steps === BASE ? 0 : steps + number;
+}
+
+function canMove(color, index, number) {
+    const steps = pieces[color][index];
+    if (steps === BASE && number !== 6) {
+        return false;
+    }
+    const to = stepsAfter(color, index, number);
+    if (to > LAST) {
+        return false;                    // past the last home hole
+    }
+    // Every hole holds one piece: you can't land on your own.
+    return !pieces[color].includes(to);
+}
+
+// The numbers (0-3) of the pieces that can move.
+function movablePieces(color, number) {
+    return [0, 1, 2, 3].filter(function (index) {
+        return canMove(color, index, number);
+    });
+}
+
+// The other players' pieces in ring hole "where": [color, index].
+function piecesOn(where, color) {
+    const found = [];
+    players.forEach(function (other) {
+        if (other === color) {
+            return;
+        }
+        pieces[other].forEach(function (steps, index) {
+            if (steps !== BASE && steps <= LAST_ON_TRACK && trackIndex(other, steps) === where) {
+                found.push([other, index]);
+            }
+        });
+    });
+    return found;
+}
+
+function isHome(steps) {
+    return steps > LAST_ON_TRACK;
+}
+
+// With nothing on the ring, you get three tries to roll a 6.
+function onlyInBase(color) {
+    return pieces[color].every(function (steps) {
+        return steps === BASE || isHome(steps);
+    });
+}
+
+// --- Playing -------------------------------------------------------------
+
+function startTurn() {
+    dice = null;
+    triesLeft = onlyInBase(current()) ? 3 : 1;
+    update();
+}
+
+function nextPlayer() {
+    turnIndex = (turnIndex + 1) % players.length;
+    startTurn();
+}
+
+function roll() {
+    if (winner || dice !== null) {
+        return;
+    }
+    const color = current();
+    const number = Math.floor(Math.random() * 6) + 1;
+    pop(number);
+    triesLeft--;
+    messageText.textContent = "";
+    if (movablePieces(color, number).length > 0) {
+        dice = number;
+        update();
+    } else if (triesLeft > 0) {
+        messageText.textContent = NAMES[color] + " rolled " + number + ". Try again!";
+        update();
+    } else {
+        messageText.textContent = NAMES[color] + " rolled " + number + " and can't move.";
+        nextPlayer();
+    }
+}
+
+// Show the number, and make the bubble jump.
+function pop(number) {
+    bubble.textContent = DIE_FACES[number - 1];
+    bubble.classList.remove("pop");
+    void bubble.offsetWidth;   // let the browser see the class is gone...
+    bubble.classList.add("pop");   // ...so the animation starts again
+}
+
+function move(index) {
+    const color = current();
+    if (winner || dice === null || !canMove(color, index, dice)) {
+        return;
+    }
+    const to = stepsAfter(color, index, dice);
+    pieces[color][index] = to;
+    messageText.textContent = "";
+
+    // Bump the other players' pieces in the hole.
+    if (to <= LAST_ON_TRACK) {
+        piecesOn(trackIndex(color, to), color).forEach(function ([other, otherIndex]) {
+            pieces[other][otherIndex] = BASE;
+            messageText.textContent = NAMES[color] + " bumps " + NAMES[other] + " back to base!";
+        });
+    }
+
+    if (pieces[color].every(isHome)) {
+        winner = color;
+        dice = null;
+        update();
+    } else if (dice === 6) {
+        messageText.textContent += " " + NAMES[color] + " rolled a 6 and pops again.";
+        messageText.textContent = messageText.textContent.trim();
+        startTurn();
+    } else {
+        nextPlayer();
+    }
+}
+
+// --- The computer --------------------------------------------------------
+
+function playerType(color) {
+    return MODES[modeSelect.value][color];
+}
+
+function isComputersTurn() {
+    return !winner && playerType(current()) !== "human";
+}
+
+// One step at a time: roll, or move a piece. update() calls this again
+// until it is a human's turn.
+function computerStep() {
+    if (dice === null) {
+        roll();
+        return;
+    }
+    const color = current();
+    const choices = movablePieces(color, dice);
+    let best = choices[Math.floor(Math.random() * choices.length)];
+    if (playerType(color) === "hard") {
+        let bestScore = -Infinity;
+        choices.forEach(function (index) {
+            const score = scoreMove(color, index);
+            if (score > bestScore) {
+                bestScore = score;
+                best = index;
+            }
+        });
+    }
+    move(best);
+}
+
+// Points for moving piece "index" the number on the die.
+function scoreMove(color, index) {
+    const from = pieces[color][index];
+    const to = stepsAfter(color, index, dice);
+    if (isHome(from)) {
+        return 1;                         // moving up inside home can wait
+    }
+    let score = to;                       // further along is better
+    if (from === BASE) {
+        score += 40;                      // a new piece out
+    }
+    if (isHome(to)) {
+        score += 50;                      // home, nobody can bump it there
+    } else {
+        score += 60 * piecesOn(trackIndex(color, to), color).length;   // bump
+        if (canBeHit(color, to)) {
+            score -= 40;                  // don't stop where you can be bumped
+        }
+    }
+    if (from !== BASE && canBeHit(color, from)) {
+        score += 20;                      // run away
+    }
+    return score;
+}
+
+// Can another player reach the hole "steps" along color's way, with one
+// roll?
+function canBeHit(color, steps) {
+    const where = trackIndex(color, steps);
+    return players.some(function (other) {
+        if (other === color) {
+            return false;
+        }
+        return pieces[other].some(function (otherSteps) {
+            if (otherSteps === BASE) {
+                return trackIndex(other, 0) === where;   // comes out on a 6
+            }
+            if (isHome(otherSteps)) {
+                return false;
+            }
+            const distance = (where - trackIndex(other, otherSteps) + TRACK) % TRACK;
+            return distance >= 1 && distance <= 6 && otherSteps + distance <= LAST_ON_TRACK;
+        });
+    });
+}
+
+// --- Showing the board ---------------------------------------------------
+
+function update() {
+    show();
+    if (isComputersTurn()) {
+        computerTimer = setTimeout(computerStep, COMPUTER_DELAY);
+    }
+}
+
+function show() {
+    const color = current();
+    const humanMoves = !isComputersTurn() && dice !== null;
+
+    boardElement.querySelectorAll(".piece").forEach(function (piece) {
+        piece.remove();
+    });
+    players.forEach(function (who) {
+        pieces[who].forEach(function (steps, index) {
+            const piece = document.createElement("div");
+            piece.className = "piece " + who;
+            if (humanMoves && who === color && canMove(who, index, dice)) {
+                piece.classList.add("movable");
+            }
+            holeOf(who, index).appendChild(piece);
+        });
+    });
+
+    // The bubble gets the color of the player to pop it.
+    bubble.classList.remove(...COLORS);
+    bubble.classList.add(color);
+    bubble.disabled = Boolean(winner) || isComputersTurn() || dice !== null;
+    if (winner) {
+        statusText.textContent = NAMES[winner] + " wins!";
+    } else if (isComputersTurn()) {
+        statusText.textContent = NAMES[color] + " is playing...";
+    } else if (dice === null) {
+        statusText.textContent = NAMES[color] + "'s turn: pop the bubble.";
+    } else {
+        statusText.textContent = NAMES[color] + " rolled " + dice + ": click a piece to move.";
+    }
+}
+
+// --- Building the board --------------------------------------------------
+
+// A round hole at [x, y] percent, with class names like "home red".
+function addHole([x, y], classes) {
+    const hole = document.createElement("div");
+    hole.className = "hole " + classes;
+    hole.style.left = x + "%";
+    hole.style.top = y + "%";
+    hole.addEventListener("click", function () {
+        clickHole(hole);
+    });
+    boardElement.appendChild(hole);
+    return hole;
+}
+
+function buildBoard() {
+    // The ring: every hole a little further clockwise. The half step puts
+    // each color's home holes right between two holes of the ring.
+    for (let i = 0; i < TRACK; i++) {
+        const angle = RED_ANGLE + (i + 0.5) * 360 / TRACK;
+        const start = i % QUARTER === 0 ? "start " + COLORS[i / QUARTER] : "";
+        trackHoles.push(addHole(pointAt(angle, RING), start));
+    }
+    COLORS.forEach(function (color, quarter) {
+        homeHoles[color] = HOME_HOLES.map(function (radius) {
+            return addHole(pointAt(RED_ANGLE + 90 * quarter, radius), "home-hole " + color);
+        });
+        baseHoles[color] = RED_BASE.map(function (point) {
+            return addHole(turn(point, quarter), "base " + color);
+        });
+    });
+}
+
+function newGame() {
+    // A computer move that is waiting to happen belongs to the old game.
+    clearTimeout(computerTimer);
+
+    players = COLORS.filter(function (color) {
+        return MODES[modeSelect.value][color];
+    });
+    pieces = {};
+    players.forEach(function (color) {
+        pieces[color] = [BASE, BASE, BASE, BASE];
+    });
+    turnIndex = 0;
+    winner = null;
+    bubble.textContent = DIE_FACES[5];
+    bubble.classList.remove("pop");
+    messageText.textContent = "";
+    startTurn();
+}
+
+// Move the current player's piece in the hole, if it can move.
+function clickHole(hole) {
+    if (isComputersTurn() || dice === null) {
+        return;
+    }
+    const color = current();
+    const index = movablePieces(color, dice).find(function (i) {
+        return holeOf(color, i) === hole;
+    });
+    if (index !== undefined) {
+        move(index);
+    }
+}
+
+// --- Connect the page ----------------------------------------------------
+
+bubble.addEventListener("click", roll);
+// When the pop is over, let the bubble breathe again.
+bubble.addEventListener("animationend", function (event) {
+    if (event.animationName === "pop") {
+        bubble.classList.remove("pop");
+    }
+});
+restartButton.addEventListener("click", newGame);
+modeSelect.addEventListener("change", newGame);
+
+buildBoard();
+newGame();

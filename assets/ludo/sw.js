@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "ludo-10220ae57f";
+const CACHE = "ludo-98517920c0";
 
 const FILES = [
     "/assets/ludo/app.html",

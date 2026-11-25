@@ -1,0 +1,166 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  text-align: center;
+  width: 490px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.game h1 {
+  text-shadow: 2px 2px #747474;
+}
+
+/* The board is a square, and every hole is placed on it in percent. */
+.game #board {
+  position: relative;
+  width: 450px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  background-color: #23364a;
+  border-radius: 8%;
+  container-type: inline-size;
+}
+
+/* A line through the ring of holes. */
+.game #board::before {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border: 2px solid #3e5873;
+  border-radius: 50%;
+}
+
+.game .hole {
+  position: absolute;
+  width: 6.4%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #10202f;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* Bases and home holes are tinted, start holes have a colored ring. */
+.game .base.red, .game .home-hole.red { background-color: #6b2a2a; }
+.game .base.green, .game .home-hole.green { background-color: #1f5232; }
+.game .base.yellow, .game .home-hole.yellow { background-color: #6b5714; }
+.game .base.blue, .game .home-hole.blue { background-color: #233f73; }
+.game .start.red { box-shadow: 0 0 0 3px #e04848; }
+.game .start.green { box-shadow: 0 0 0 3px #36b35c; }
+.game .start.yellow { box-shadow: 0 0 0 3px #f0c330; }
+.game .start.blue { box-shadow: 0 0 0 3px #4c86e8; }
+
+/* A round piece with a light spot, so it looks like a ball. */
+.game .piece {
+  width: 85%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-image: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.7), transparent 45%);
+}
+
+.game .piece.red { background-color: #e04848; }
+.game .piece.green { background-color: #36b35c; }
+.game .piece.yellow { background-color: #f0c330; }
+.game .piece.blue { background-color: #4c86e8; }
+
+/* The pieces you may move: a white ring that blinks. */
+.game .piece.movable {
+  cursor: pointer;
+  box-shadow: 0 0 0 3px #ffffff;
+  animation: blink 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes blink {
+  to { box-shadow: 0 0 0 1px #ffffff; }
+}
+
+/* The bubble in the middle, with the die inside. */
+.game #roll {
+  position: absolute;
+  left: 42%;
+  top: 42%;
+  width: 16%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 11cqw;
+  line-height: 1;
+  color: #ffffff;
+  background-image: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.15) 40%, rgba(255, 255, 255, 0.05) 70%);
+  background-color: transparent;
+  box-shadow: 0 0 0 4px #ffffff;
+  cursor: pointer;
+}
+
+.game #roll.red { box-shadow: 0 0 0 4px #e04848; }
+.game #roll.green { box-shadow: 0 0 0 4px #36b35c; }
+.game #roll.yellow { box-shadow: 0 0 0 4px #f0c330; }
+.game #roll.blue { box-shadow: 0 0 0 4px #4c86e8; }
+
+.game #roll:disabled {
+  cursor: default;
+}
+
+/* Waiting for a pop: the bubble breathes. */
+.game #roll:not(:disabled) {
+  animation: breathe 1s ease-in-out infinite alternate;
+}
+
+@keyframes breathe {
+  to { transform: scale(1.08); }
+}
+
+/* Popped: squash, jump and settle. */
+.game #roll.pop {
+  animation: pop 0.4s ease-out;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.8, 1.2); }
+  60% { transform: scale(1.2, 0.85); }
+  100% { transform: scale(1); }
+}
+
+.game #status {
+  font-size: 18px;
+  margin-top: 16px;
+}
+
+.game #message {
+  color: #c25e00;
+  min-height: 1.5em;
+}
+
+.game button {
+  padding: 15px 30px;
+  font-size: 18px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game select {
+  margin-top: 16px;
+  padding: 6px;
+  font-size: 16px;
+}

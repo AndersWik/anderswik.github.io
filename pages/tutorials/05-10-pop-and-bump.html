@@ -1,0 +1,817 @@
+---
+layout: default
+title: Pop and Bump
+permalink: /tutorials/pop-and-bump/
+chapter: "05"
+chapter_title: "Board Games"
+keywords: [javascript, game, board game, dice, computer player, ai, circle, sin, cos, angles, position absolute, percent, css animation, animationend, reflow, container query units]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Pop and Bump</h1>
+  <p>Our own game in the same family as <a href="/tutorials/ludo/">Ludo</a>. Each player races four pieces once around a ring of 28 holes and into four home holes in the middle. Instead of rolling a die, you pop a bubble in the middle of the board. You need a 6 to come out, a 6 gives you another pop, and landing on another player's piece bumps it back to its base. The new rule: every hole holds one piece, so you can never land on your own piece. The first player with all four pieces home wins.</p>
+  <p>Start from your Ludo page. Taking turns, rolling, moving, bumping and the computer players are almost the same. This tutorial is about what is new: a round board placed with <code>Math.cos</code> and <code>Math.sin</code>, holes that are elements instead of grid squares, and a bubble that pops with a CSS animation.</p>
+  <p><a href="/assets/tutorials/pop-and-bump.html">Open the finished game</a></p>
+
+  <h2>Step 1: The page</h2>
+  <pre><code class="language-html">&lt;h1&gt;Pop and Bump&lt;/h1&gt;
+&lt;div id="board"&gt;
+  &lt;button type="button" id="roll" aria-label="Pop the bubble to roll the die"&gt;&lt;/button&gt;
+&lt;/div&gt;
+&lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+&lt;p id="message"&gt;&lt;/p&gt;
+&lt;button type="button" id="restart"&gt;New game&lt;/button&gt;</code></pre>
+  <p>Add the same drop-down list as in Ludo under the New game button. The die and the Roll button are now one thing: the bubble, a <code>&lt;button&gt;</code> in the middle of the board. Being a button, it can be reached with Tab and pressed with Enter or Space. <code>aria-label</code> tells screen readers what it is for, since all it shows is a die.</p>
+
+  <h2>Step 2: Placing things in percent</h2>
+  <p>Ludo's board was a grid, and every square had a row and a column. A ring of holes doesn't fit in a grid. Instead, every hole gets its own place on the board, as <code>[x, y]</code> in percent from the top left corner:</p>
+  <pre><code class="language-css">#board {
+    position: relative;
+    width: 450px;
+    max-width: 100%;
+    aspect-ratio: 1;
+    margin: 0 auto;
+    background-color: #23364a;
+    border-radius: 8%;
+    container-type: inline-size;
+}
+
+.hole {
+    position: absolute;
+    width: 6.4%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #10202f;
+    box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.6);
+}</code></pre>
+  <p><code>position: relative</code> on the board makes <code>left</code> and <code>top</code> on the holes count from the board's corner. In percent, the board can be any size: on a phone everything simply gets smaller. <code>left</code> and <code>top</code> place a hole's top left corner, and <code>translate(-50%, -50%)</code> moves it back half its own size, so the point we give is the middle of the hole.</p>
+  <pre><code class="language-javascript">function addHole([x, y], classes) {
+    const hole = document.createElement("div");
+    hole.className = "hole " + classes;
+    hole.style.left = x + "%";
+    hole.style.top = y + "%";
+    hole.addEventListener("click", function () {
+        clickHole(hole);
+    });
+    boardElement.appendChild(hole);
+    return hole;
+}</code></pre>
+
+  <h2>Step 3: A circle with cos and sin</h2>
+  <p>To find a point on a circle, you need the angle and the distance from the middle. <code>Math.cos</code> gives how far to go sideways, and <code>Math.sin</code> how far to go down, for a circle of size 1:</p>
+  <pre><code class="language-javascript">function pointAt(angle, radius) {
+    const radians = angle * Math.PI / 180;
+    return [50 + radius * Math.cos(radians), 50 + radius * Math.sin(radians)];
+}</code></pre>
+  <p>JavaScript wants the angle in radians, where a whole turn is <code>2 * Math.PI</code> instead of 360 degrees. Angle 0 points to the right. On a screen, y grows downwards, so a bigger angle goes clockwise: 90 is straight down and 225 is towards the top left corner. The middle of the board is <code>[50, 50]</code>.</p>
+  <p>Now the ring is 28 holes, each a 28th of a turn further on:</p>
+  <pre><code class="language-javascript">const RED_ANGLE = 225;                // red's corner, the top left
+const RING = 38;                      // how far the ring is from the middle
+const HOME_HOLES = [31, 24.5, 18, 11.5];   // and the four home holes
+
+for (let i = 0; i &lt; TRACK; i++) {
+    const angle = RED_ANGLE + (i + 0.5) * 360 / TRACK;
+    const start = i % QUARTER === 0 ? "start " + COLORS[i / QUARTER] : "";
+    trackHoles.push(addHole(pointAt(angle, RING), start));
+}</code></pre>
+  <p>Each color's home holes go in a straight line from its corner towards the middle: the same angle, but closer and closer. The <code>+ 0.5</code> moves the ring half a step, so the home holes come out right between two holes of the ring, instead of on top of one. Every 7th hole is a start hole, and gets a colored ring.</p>
+  <p>The bases use <code>turn</code> from Ludo. With <code>[x, y]</code> in percent, a quarter turn clockwise is <code>[100 - y, x]</code>:</p>
+  <pre><code class="language-javascript">COLORS.forEach(function (color, quarter) {
+    homeHoles[color] = HOME_HOLES.map(function (radius) {
+        return addHole(pointAt(RED_ANGLE + 90 * quarter, radius), "home-hole " + color);
+    });
+    baseHoles[color] = RED_BASE.map(function (point) {
+        return addHole(turn(point, quarter), "base " + color);
+    });
+});</code></pre>
+  <p>The line through the ring is just CSS: a circle with a border, 12% in from every side, which is a radius of 38%.</p>
+  <pre><code class="language-css">#board::before {
+    content: "";
+    position: absolute;
+    inset: 12%;
+    border: 2px solid #3e5873;
+    border-radius: 50%;
+}</code></pre>
+
+  <h2>Step 4: Holes instead of squares</h2>
+  <p>In Ludo, <code>squareOf</code> gave a <code>[row, col]</code>. Here the holes are kept in lists when they are made, so we can give back the hole itself:</p>
+  <pre><code class="language-javascript">function holeAt(color, index, steps) {
+    if (steps === BASE) {
+        return baseHoles[color][index];
+    }
+    if (steps &lt;= LAST_ON_TRACK) {
+        return trackHoles[trackIndex(color, steps)];
+    }
+    return homeHoles[color][steps - LAST_ON_TRACK - 1];
+}</code></pre>
+  <p>Showing a piece is <code>holeOf(who, index).appendChild(piece)</code>. And when you click a hole, we look for a piece in that very hole. Two elements are the same if <code>===</code> says so:</p>
+  <pre><code class="language-javascript">const index = movablePieces(color, dice).find(function (i) {
+    return holeOf(color, i) === hole;
+});</code></pre>
+
+  <h2>Step 5: A shorter track</h2>
+  <pre><code class="language-javascript">const TRACK = 28;             // holes in the ring
+const QUARTER = TRACK / 4;    // holes from one start hole to the next
+const LAST_ON_TRACK = 27;     // a piece goes 27 steps around the ring,
+const LAST = 31;              // then into its home holes: steps 28 to 31</code></pre>
+  <p>A piece is still just the number of steps it has gone. Steps 0 to 27 are in the ring, and 28 to 31 are the four home holes. <code>trackIndex</code> is the same as in Ludo, with <code>QUARTER</code> holes between two start holes. A piece is home as soon as it is in any home hole:</p>
+  <pre><code class="language-javascript">function isHome(steps) {
+    return steps &gt; LAST_ON_TRACK;
+}</code></pre>
+  <p>So you win with <code>pieces[color].every(isHome)</code>. You can pass a function by its name to <code>every</code>, no need to write a new one.</p>
+
+  <h2>Step 6: One piece per hole</h2>
+  <pre><code class="language-javascript">function stepsAfter(color, index, number) {
+    const steps = pieces[color][index];
+    return steps === BASE ? 0 : steps + number;
+}
+
+function canMove(color, index, number) {
+    const steps = pieces[color][index];
+    if (steps === BASE &amp;&amp; number !== 6) {
+        return false;
+    }
+    const to = stepsAfter(color, index, number);
+    if (to &gt; LAST) {
+        return false;                    // past the last home hole
+    }
+    // Every hole holds one piece: you can't land on your own.
+    return !pieces[color].includes(to);
+}</code></pre>
+  <p>Two of your pieces are in the same hole exactly when they have gone the same number of steps. So "is one of my pieces already there?" is <code>pieces[color].includes(to)</code>. This also stops a piece from coming out while your start hole is taken, and fills the four home holes one piece each. The other players' pieces are still bumped, as in Ludo.</p>
+  <p>The new rule makes the end of the game a little puzzle: the first piece home should go all the way to the last hole, or it is in the way of the others.</p>
+
+  <h2>Step 7: The bubble pops</h2>
+  <p>The bubble is a round button with a shiny <code>radial-gradient</code> and a colored ring for the player whose turn it is. While it waits to be popped, it slowly grows and shrinks:</p>
+  <pre><code class="language-css">#roll:not(:disabled) {
+    animation: breathe 1s ease-in-out infinite alternate;
+}
+
+@keyframes breathe {
+    to { transform: scale(1.08); }
+}
+
+#roll.pop {
+    animation: pop 0.4s ease-out;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    30% { transform: scale(0.8, 1.2); }
+    60% { transform: scale(1.2, 0.85); }
+    100% { transform: scale(1); }
+}</code></pre>
+  <p><code>scale(0.8, 1.2)</code> makes it narrow and tall, and <code>scale(1.2, 0.85)</code> wide and flat, so it squashes like a bubble. The bubble is placed with <code>left: 42%; top: 42%; width: 16%</code> rather than with <code>translate</code>, because the animation's <code>transform</code> would replace the translate and the bubble would jump.</p>
+  <p>A pop is adding the class <code>pop</code>. But an animation only starts when the class is added. If it is already there from the last pop, nothing happens:</p>
+  <pre><code class="language-javascript">function pop(number) {
+    bubble.textContent = DIE_FACES[number - 1];
+    bubble.classList.remove("pop");
+    void bubble.offsetWidth;   // let the browser see the class is gone...
+    bubble.classList.add("pop");   // ...so the animation starts again
+}</code></pre>
+  <p>Reading <code>offsetWidth</code> makes the browser work out the page right now, without the class. Then adding it again is a change it notices. <code>void</code> just says we don't need the number. When the pop is over, we take the class away, so the bubble can breathe again:</p>
+  <pre><code class="language-javascript">bubble.addEventListener("animationend", function (event) {
+    if (event.animationName === "pop") {
+        bubble.classList.remove("pop");
+    }
+});</code></pre>
+  <p>The die inside the bubble should grow with the board. <code>container-type: inline-size</code> on the board makes it a container, and then <code>font-size: 11cqw</code> on the bubble means 11% of the board's width.</p>
+
+  <h2>Step 8: The rest is Ludo</h2>
+  <p><code>roll</code>, <code>move</code>, <code>startTurn</code>, <code>nextPlayer</code>, <code>MODES</code>, <code>update</code> and the easy computer are the same as in Ludo. <code>roll</code> calls <code>pop(number)</code> instead of setting the die, and the messages say "bump" and "pop".</p>
+  <p>The hard computer gives points the same way, with one change. A piece in a home hole may still move further in, but that can wait:</p>
+  <pre><code class="language-javascript">if (isHome(from)) {
+    return 1;                         // moving up inside home can wait
+}</code></pre>
+  <p>Without this, moving 29 to 31 inside home would get more points than most moves on the ring, since further along is better. On a short track the dice decide more, so the hard computer wins less often than in Ludo. If red moves a random piece against three hard computers, red wins about 1 game in 7, instead of 1 in 4.</p>
+
+  <h2>Step 9: Test it</h2>
+  <ul>
+    <li>Pop until you get a 6. A piece comes out, and you pop again.</li>
+    <li>With a piece on your start hole, roll a 6: that piece can move, but no new one can come out.</li>
+    <li>Get a piece home to the first home hole, then try to move another piece there.</li>
+    <li>Bump a computer's piece, and get bumped.</li>
+    <li>Make the window narrow, and see the board, the holes and the die get smaller together.</li>
+    <li>Use Tab and Enter to pop the bubble.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>pop-and-bump.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Pop and Bump&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+        text-align: center;
+    }
+
+    /* The board is a square, and every hole is placed on it in percent. */
+    #board {
+        position: relative;
+        width: 450px;
+        max-width: 100%;
+        aspect-ratio: 1;
+        margin: 0 auto;
+        background-color: #23364a;
+        border-radius: 8%;
+        container-type: inline-size;
+    }
+
+    /* A line through the ring of holes. */
+    #board::before {
+        content: "";
+        position: absolute;
+        inset: 12%;
+        border: 2px solid #3e5873;
+        border-radius: 50%;
+    }
+
+    .hole {
+        position: absolute;
+        width: 6.4%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #10202f;
+        box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Bases and home holes are tinted, start holes have a colored ring. */
+    .base.red, .home-hole.red { background-color: #6b2a2a; }
+    .base.green, .home-hole.green { background-color: #1f5232; }
+    .base.yellow, .home-hole.yellow { background-color: #6b5714; }
+    .base.blue, .home-hole.blue { background-color: #233f73; }
+    .start.red { box-shadow: 0 0 0 3px #e04848; }
+    .start.green { box-shadow: 0 0 0 3px #36b35c; }
+    .start.yellow { box-shadow: 0 0 0 3px #f0c330; }
+    .start.blue { box-shadow: 0 0 0 3px #4c86e8; }
+
+    /* A round piece with a light spot, so it looks like a ball. */
+    .piece {
+        width: 85%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background-image: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.7), transparent 45%);
+    }
+
+    .piece.red { background-color: #e04848; }
+    .piece.green { background-color: #36b35c; }
+    .piece.yellow { background-color: #f0c330; }
+    .piece.blue { background-color: #4c86e8; }
+
+    /* The pieces you may move: a white ring that blinks. */
+    .piece.movable {
+        cursor: pointer;
+        box-shadow: 0 0 0 3px #ffffff;
+        animation: blink 0.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes blink {
+        to { box-shadow: 0 0 0 1px #ffffff; }
+    }
+
+    /* The bubble in the middle, with the die inside. */
+    #roll {
+        position: absolute;
+        left: 42%;
+        top: 42%;
+        width: 16%;
+        aspect-ratio: 1;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        font-size: 11cqw;
+        line-height: 1;
+        color: #ffffff;
+        background-image: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.15) 40%, rgba(255, 255, 255, 0.05) 70%);
+        background-color: transparent;
+        box-shadow: 0 0 0 4px #ffffff;
+        cursor: pointer;
+    }
+
+    #roll.red { box-shadow: 0 0 0 4px #e04848; }
+    #roll.green { box-shadow: 0 0 0 4px #36b35c; }
+    #roll.yellow { box-shadow: 0 0 0 4px #f0c330; }
+    #roll.blue { box-shadow: 0 0 0 4px #4c86e8; }
+
+    /* Waiting for a pop: the bubble breathes. */
+    #roll:not(:disabled) {
+        animation: breathe 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes breathe {
+        to { transform: scale(1.08); }
+    }
+
+    /* Popped: squash, jump and settle. */
+    #roll.pop {
+        animation: pop 0.4s ease-out;
+    }
+
+    @keyframes pop {
+        0% { transform: scale(1); }
+        30% { transform: scale(0.8, 1.2); }
+        60% { transform: scale(1.2, 0.85); }
+        100% { transform: scale(1); }
+    }
+
+    #status {
+        font-size: 18px;
+        margin-top: 16px;
+    }
+
+    #message {
+        color: #c25e00;
+        min-height: 1.5em;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Pop and Bump&lt;/h1&gt;
+  &lt;div id="board"&gt;
+    &lt;button type="button" id="roll" aria-label="Pop the bubble to roll the die"&gt;&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;p id="message"&gt;&lt;/p&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+  &lt;p&gt;
+    &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+    &lt;select id="mode"&gt;
+      &lt;option value="easy" selected&gt;Three computers (easy)&lt;/option&gt;
+      &lt;option value="hard"&gt;Three computers (hard)&lt;/option&gt;
+      &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+      &lt;option value="pvp4"&gt;Three friends&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/p&gt;
+
+  &lt;script&gt;
+    /*
+     * Pop and Bump: race your four pieces once around the ring and into your
+     * four home holes in the middle. Pop the bubble to roll the die. You need
+     * a 6 to come out, and a 6 gives you another pop. Land on another player's
+     * piece to bump it back to its base. Every hole holds one piece, so you can
+     * never land on your own. The first player with all four pieces home wins.
+     *
+     * The rules and the computer players are the ones from Ludo, on a round
+     * board with a shorter track.
+     *
+     *   Easy: moves a random piece.
+     *   Hard: gives every move points: bumping someone, getting a piece home
+     *         or out of base, and not stopping where it can be bumped.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const COLORS = ["red", "green", "yellow", "blue"];   // in turn order
+    const NAMES = { red: "Red", green: "Green", yellow: "Yellow", blue: "Blue" };
+    const TRACK = 28;             // holes in the ring
+    const QUARTER = TRACK / 4;    // holes from one start hole to the next
+    const LAST_ON_TRACK = 27;     // a piece goes 27 steps around the ring,
+    const LAST = 31;              // then into its home holes: steps 28 to 31
+    const BASE = -1;              // a piece that hasn't come out yet
+    const COMPUTER_DELAY = 600;   // ms between the computer's actions
+    const DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+    // Who plays each color, for every choice in the drop-down list.
+    // A color that isn't listed is not in the game.
+    const MODES = {
+        easy: { red: "human", green: "easy", yellow: "easy", blue: "easy" },
+        hard: { red: "human", green: "hard", yellow: "hard", blue: "hard" },
+        pvp: { red: "human", yellow: "human" },
+        pvp4: { red: "human", green: "human", yellow: "human", blue: "human" }
+    };
+
+    // Where the holes are, in percent of the board from its top left corner.
+    // Angles are in degrees: 0 is to the right, and they go clockwise.
+    const RED_ANGLE = 225;                // red's corner, the top left
+    const RING = 38;                      // how far the ring is from the middle
+    const HOME_HOLES = [31, 24.5, 18, 11.5];   // and the four home holes
+    const RED_BASE = [[5, 5], [13, 5], [5, 13], [13, 13]];   // [x, y]
+
+    // The point "radius" percent from the middle, in the direction "angle".
+    function pointAt(angle, radius) {
+        const radians = angle * Math.PI / 180;
+        return [50 + radius * Math.cos(radians), 50 + radius * Math.sin(radians)];
+    }
+
+    // Turn a point a quarter clockwise around the middle, "times" times.
+    function turn([x, y], times) {
+        for (let i = 0; i &lt; times; i++) {
+            [x, y] = [100 - y, x];
+        }
+        return [x, y];
+    }
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const bubble = document.getElementById("roll");
+    const statusText = document.getElementById("status");
+    const messageText = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+    const modeSelect = document.getElementById("mode");
+
+    // --- State ---------------------------------------------------------------
+
+    let trackHoles = [];  // the 28 holes in the ring, from red's start
+    let homeHoles = {};   // homeHoles.red: red's four home holes
+    let baseHoles = {};   // baseHoles.red: where red's pieces wait
+    let players = [];     // the colors in this game
+    let pieces = {};      // pieces.red = [BASE, BASE, BASE, BASE]: steps gone
+    let turnIndex = 0;    // players[turnIndex] is the one to play
+    let dice = null;      // the number to move, or null when it's time to roll
+    let triesLeft = 0;    // rolls left this turn
+    let winner = null;
+    let computerTimer = null;
+
+    // --- Where things are ----------------------------------------------------
+
+    function current() {
+        return players[turnIndex];
+    }
+
+    // How many quarters a color's part of the board is turned from red's.
+    function quarterOf(color) {
+        return COLORS.indexOf(color);
+    }
+
+    // The hole in the ring (0-27) a piece is in, counted from red's start.
+    function trackIndex(color, steps) {
+        return (quarterOf(color) * QUARTER + steps) % TRACK;
+    }
+
+    // The hole a piece is in, for a number of steps gone.
+    function holeAt(color, index, steps) {
+        if (steps === BASE) {
+            return baseHoles[color][index];
+        }
+        if (steps &lt;= LAST_ON_TRACK) {
+            return trackHoles[trackIndex(color, steps)];
+        }
+        return homeHoles[color][steps - LAST_ON_TRACK - 1];
+    }
+
+    function holeOf(color, index) {
+        return holeAt(color, index, pieces[color][index]);
+    }
+
+    // --- Rules ---------------------------------------------------------------
+
+    function stepsAfter(color, index, number) {
+        const steps = pieces[color][index];
+        return steps === BASE ? 0 : steps + number;
+    }
+
+    function canMove(color, index, number) {
+        const steps = pieces[color][index];
+        if (steps === BASE &amp;&amp; number !== 6) {
+            return false;
+        }
+        const to = stepsAfter(color, index, number);
+        if (to &gt; LAST) {
+            return false;                    // past the last home hole
+        }
+        // Every hole holds one piece: you can't land on your own.
+        return !pieces[color].includes(to);
+    }
+
+    // The numbers (0-3) of the pieces that can move.
+    function movablePieces(color, number) {
+        return [0, 1, 2, 3].filter(function (index) {
+            return canMove(color, index, number);
+        });
+    }
+
+    // The other players' pieces in ring hole "where": [color, index].
+    function piecesOn(where, color) {
+        const found = [];
+        players.forEach(function (other) {
+            if (other === color) {
+                return;
+            }
+            pieces[other].forEach(function (steps, index) {
+                if (steps !== BASE &amp;&amp; steps &lt;= LAST_ON_TRACK &amp;&amp; trackIndex(other, steps) === where) {
+                    found.push([other, index]);
+                }
+            });
+        });
+        return found;
+    }
+
+    function isHome(steps) {
+        return steps &gt; LAST_ON_TRACK;
+    }
+
+    // With nothing on the ring, you get three tries to roll a 6.
+    function onlyInBase(color) {
+        return pieces[color].every(function (steps) {
+            return steps === BASE || isHome(steps);
+        });
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function startTurn() {
+        dice = null;
+        triesLeft = onlyInBase(current()) ? 3 : 1;
+        update();
+    }
+
+    function nextPlayer() {
+        turnIndex = (turnIndex + 1) % players.length;
+        startTurn();
+    }
+
+    function roll() {
+        if (winner || dice !== null) {
+            return;
+        }
+        const color = current();
+        const number = Math.floor(Math.random() * 6) + 1;
+        pop(number);
+        triesLeft--;
+        messageText.textContent = "";
+        if (movablePieces(color, number).length &gt; 0) {
+            dice = number;
+            update();
+        } else if (triesLeft &gt; 0) {
+            messageText.textContent = NAMES[color] + " rolled " + number + ". Try again!";
+            update();
+        } else {
+            messageText.textContent = NAMES[color] + " rolled " + number + " and can't move.";
+            nextPlayer();
+        }
+    }
+
+    // Show the number, and make the bubble jump.
+    function pop(number) {
+        bubble.textContent = DIE_FACES[number - 1];
+        bubble.classList.remove("pop");
+        void bubble.offsetWidth;   // let the browser see the class is gone...
+        bubble.classList.add("pop");   // ...so the animation starts again
+    }
+
+    function move(index) {
+        const color = current();
+        if (winner || dice === null || !canMove(color, index, dice)) {
+            return;
+        }
+        const to = stepsAfter(color, index, dice);
+        pieces[color][index] = to;
+        messageText.textContent = "";
+
+        // Bump the other players' pieces in the hole.
+        if (to &lt;= LAST_ON_TRACK) {
+            piecesOn(trackIndex(color, to), color).forEach(function ([other, otherIndex]) {
+                pieces[other][otherIndex] = BASE;
+                messageText.textContent = NAMES[color] + " bumps " + NAMES[other] + " back to base!";
+            });
+        }
+
+        if (pieces[color].every(isHome)) {
+            winner = color;
+            dice = null;
+            update();
+        } else if (dice === 6) {
+            messageText.textContent += " " + NAMES[color] + " rolled a 6 and pops again.";
+            messageText.textContent = messageText.textContent.trim();
+            startTurn();
+        } else {
+            nextPlayer();
+        }
+    }
+
+    // --- The computer --------------------------------------------------------
+
+    function playerType(color) {
+        return MODES[modeSelect.value][color];
+    }
+
+    function isComputersTurn() {
+        return !winner &amp;&amp; playerType(current()) !== "human";
+    }
+
+    // One step at a time: roll, or move a piece. update() calls this again
+    // until it is a human's turn.
+    function computerStep() {
+        if (dice === null) {
+            roll();
+            return;
+        }
+        const color = current();
+        const choices = movablePieces(color, dice);
+        let best = choices[Math.floor(Math.random() * choices.length)];
+        if (playerType(color) === "hard") {
+            let bestScore = -Infinity;
+            choices.forEach(function (index) {
+                const score = scoreMove(color, index);
+                if (score &gt; bestScore) {
+                    bestScore = score;
+                    best = index;
+                }
+            });
+        }
+        move(best);
+    }
+
+    // Points for moving piece "index" the number on the die.
+    function scoreMove(color, index) {
+        const from = pieces[color][index];
+        const to = stepsAfter(color, index, dice);
+        if (isHome(from)) {
+            return 1;                         // moving up inside home can wait
+        }
+        let score = to;                       // further along is better
+        if (from === BASE) {
+            score += 40;                      // a new piece out
+        }
+        if (isHome(to)) {
+            score += 50;                      // home, nobody can bump it there
+        } else {
+            score += 60 * piecesOn(trackIndex(color, to), color).length;   // bump
+            if (canBeHit(color, to)) {
+                score -= 40;                  // don't stop where you can be bumped
+            }
+        }
+        if (from !== BASE &amp;&amp; canBeHit(color, from)) {
+            score += 20;                      // run away
+        }
+        return score;
+    }
+
+    // Can another player reach the hole "steps" along color's way, with one
+    // roll?
+    function canBeHit(color, steps) {
+        const where = trackIndex(color, steps);
+        return players.some(function (other) {
+            if (other === color) {
+                return false;
+            }
+            return pieces[other].some(function (otherSteps) {
+                if (otherSteps === BASE) {
+                    return trackIndex(other, 0) === where;   // comes out on a 6
+                }
+                if (isHome(otherSteps)) {
+                    return false;
+                }
+                const distance = (where - trackIndex(other, otherSteps) + TRACK) % TRACK;
+                return distance &gt;= 1 &amp;&amp; distance &lt;= 6 &amp;&amp; otherSteps + distance &lt;= LAST_ON_TRACK;
+            });
+        });
+    }
+
+    // --- Showing the board ---------------------------------------------------
+
+    function update() {
+        show();
+        if (isComputersTurn()) {
+            computerTimer = setTimeout(computerStep, COMPUTER_DELAY);
+        }
+    }
+
+    function show() {
+        const color = current();
+        const humanMoves = !isComputersTurn() &amp;&amp; dice !== null;
+
+        boardElement.querySelectorAll(".piece").forEach(function (piece) {
+            piece.remove();
+        });
+        players.forEach(function (who) {
+            pieces[who].forEach(function (steps, index) {
+                const piece = document.createElement("div");
+                piece.className = "piece " + who;
+                if (humanMoves &amp;&amp; who === color &amp;&amp; canMove(who, index, dice)) {
+                    piece.classList.add("movable");
+                }
+                holeOf(who, index).appendChild(piece);
+            });
+        });
+
+        // The bubble gets the color of the player to pop it.
+        bubble.classList.remove(...COLORS);
+        bubble.classList.add(color);
+        bubble.disabled = Boolean(winner) || isComputersTurn() || dice !== null;
+        if (winner) {
+            statusText.textContent = NAMES[winner] + " wins!";
+        } else if (isComputersTurn()) {
+            statusText.textContent = NAMES[color] + " is playing...";
+        } else if (dice === null) {
+            statusText.textContent = NAMES[color] + "'s turn: pop the bubble.";
+        } else {
+            statusText.textContent = NAMES[color] + " rolled " + dice + ": click a piece to move.";
+        }
+    }
+
+    // --- Building the board --------------------------------------------------
+
+    // A round hole at [x, y] percent, with class names like "home red".
+    function addHole([x, y], classes) {
+        const hole = document.createElement("div");
+        hole.className = "hole " + classes;
+        hole.style.left = x + "%";
+        hole.style.top = y + "%";
+        hole.addEventListener("click", function () {
+            clickHole(hole);
+        });
+        boardElement.appendChild(hole);
+        return hole;
+    }
+
+    function buildBoard() {
+        // The ring: every hole a little further clockwise. The half step puts
+        // each color's home holes right between two holes of the ring.
+        for (let i = 0; i &lt; TRACK; i++) {
+            const angle = RED_ANGLE + (i + 0.5) * 360 / TRACK;
+            const start = i % QUARTER === 0 ? "start " + COLORS[i / QUARTER] : "";
+            trackHoles.push(addHole(pointAt(angle, RING), start));
+        }
+        COLORS.forEach(function (color, quarter) {
+            homeHoles[color] = HOME_HOLES.map(function (radius) {
+                return addHole(pointAt(RED_ANGLE + 90 * quarter, radius), "home-hole " + color);
+            });
+            baseHoles[color] = RED_BASE.map(function (point) {
+                return addHole(turn(point, quarter), "base " + color);
+            });
+        });
+    }
+
+    function newGame() {
+        // A computer move that is waiting to happen belongs to the old game.
+        clearTimeout(computerTimer);
+
+        players = COLORS.filter(function (color) {
+            return MODES[modeSelect.value][color];
+        });
+        pieces = {};
+        players.forEach(function (color) {
+            pieces[color] = [BASE, BASE, BASE, BASE];
+        });
+        turnIndex = 0;
+        winner = null;
+        bubble.textContent = DIE_FACES[5];
+        bubble.classList.remove("pop");
+        messageText.textContent = "";
+        startTurn();
+    }
+
+    // Move the current player's piece in the hole, if it can move.
+    function clickHole(hole) {
+        if (isComputersTurn() || dice === null) {
+            return;
+        }
+        const color = current();
+        const index = movablePieces(color, dice).find(function (i) {
+            return holeOf(color, i) === hole;
+        });
+        if (index !== undefined) {
+            move(index);
+        }
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    bubble.addEventListener("click", roll);
+    // When the pop is over, let the bubble breathe again.
+    bubble.addEventListener("animationend", function (event) {
+        if (event.animationName === "pop") {
+            bubble.classList.remove("pop");
+        }
+    });
+    restartButton.addEventListener("click", newGame);
+    modeSelect.addEventListener("change", newGame);
+
+    buildBoard();
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Change <code>TRACK</code> to 40. <code>QUARTER</code> follows by itself. Does the ring still fit, or do the holes need to be smaller?</li>
+    <li>Add shortcut holes: landing on one moves you to the next shortcut hole across the ring.</li>
+    <li>Let pieces in home only move into the holes in front of them, not jump over their own pieces.</li>
+    <li>Animate a piece moving hole by hole, with a <code>setTimeout</code> for each step.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>Pop and Bump needs no keyboard, so it works well on a phone. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

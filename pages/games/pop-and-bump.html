@@ -1,0 +1,29 @@
+---
+layout: game
+title: Pop and Bump
+permalink: /games/pop-and-bump/
+nonav: true
+css:
+  - /assets/pop-and-bump/pop-and-bump.css
+js:
+  - /assets/pop-and-bump/pop-and-bump.js
+---
+<div class="container">
+  <h1>Pop and Bump</h1>
+  <div id="board">
+    <button type="button" id="roll" aria-label="Pop the bubble to roll the die"></button>
+  </div>
+  <p id="status" aria-live="polite"></p>
+  <p id="message"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="easy" selected>Three computers (easy)</option>
+      <option value="hard">Three computers (hard)</option>
+      <option value="pvp">A friend</option>
+      <option value="pvp4">Three friends</option>
+    </select>
+  </p>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/pop-and-bump/">How to build this game</a></p>

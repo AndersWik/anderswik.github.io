@@ -8,7 +8,9 @@
 
 .game .container {
   text-align: center;
-  max-width: 520px;
+  width: 490px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
   padding: 20px;
   background-color: #ffffff;
   border-radius: 10px;
@@ -24,7 +26,8 @@
   display: grid;
   grid-template-columns: repeat(15, 1fr);
   gap: 1px;
-  width: min(450px, 100%);
+  width: 450px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 1px;
   background-color: #555555;
