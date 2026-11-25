@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "tic-tac-toe-b97e063845";
+const CACHE = "tic-tac-toe-4623dbc485";
 
 const FILES = [
     "/assets/tic-tac-toe/app.html",

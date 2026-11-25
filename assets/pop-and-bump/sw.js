@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "pop-and-bump-6a9fd66b6a";
+const CACHE = "pop-and-bump-0d7d44644c";
 
 const FILES = [
     "/assets/pop-and-bump/app.html",

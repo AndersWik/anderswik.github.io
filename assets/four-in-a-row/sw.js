@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "four-in-a-row-2e05c4ae33";
+const CACHE = "four-in-a-row-b134415041";
 
 const FILES = [
     "/assets/four-in-a-row/app.html",

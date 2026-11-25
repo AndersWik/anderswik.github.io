@@ -70,6 +70,7 @@ function play(index) {
     }
     board[index] = player;
     squares[index].textContent = player;
+    squares[index].classList.add(player.toLowerCase());   // "x" or "o", for the color
 
     const line = winningLine(player);
     if (line) {
@@ -145,7 +146,7 @@ function newGame() {
     board = ["", "", "", "", "", "", "", "", ""];
     squares.forEach(function (square) {
         square.textContent = "";
-        square.classList.remove("winning");
+        square.classList.remove("winning", "x", "o");
     });
     player = "X";
     gameOver = false;

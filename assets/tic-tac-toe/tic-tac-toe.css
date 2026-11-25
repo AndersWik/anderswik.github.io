@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #000;
+  background-color: #f0f0f0;
 }
 
 .game .container {
@@ -11,45 +11,53 @@
   text-align: center;
   width: min(100% - 40px, 420px);
   padding: 20px;
-  background-color: #000;
-  border: 5px solid #00ff00;
+  background-color: #ffffff;
   border-radius: 10px;
-  box-shadow: 0 0 50px rgba(0, 255, 0, 0.500);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   margin: 20px;
 }
 
+/* The title: the site's font, and a short gold line under it. */
 .game h1 {
-  color: #4caf50;
-  text-shadow: 0px 0px 10px #caf6cc;
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
 }
 
 .game button {
   padding: 15px 30px;
   font-size: 18px;
-  background-color: #4caf50;
-  color: #fff;
-  border: 5px solid #caf6cc;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
   border-radius: 5px;
   cursor: pointer;
 }
 
-.game button:hover {
-  box-shadow: 0px 0px 10px #45a049;
-}
-
+/* The board: the dark gaps between the squares are the lines. */
 .game .board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  gap: 5px;
+  gap: 4px;
   width: 100%;
   aspect-ratio: 1;
   box-sizing: border-box;
   margin: 20px auto;
-  background-color: #4caf50;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 0 50px rgba(0, 255, 0, 0.500);
+  background-color: #333333;
+  padding: 4px;
+  border-radius: 8px;
 }
 
 .game .square {
@@ -61,44 +69,74 @@
   min-width: 0;
   aspect-ratio: 1;
   padding: 0;
-  background-color: #caf6cc;
-  color: #4caf50;
+  background-color: #ffffff;
+  color: #222222;
   border: none;
-  border-radius: 5px;
-  font-size: clamp(28px, 12vw, 64px);
-  font-weight: 900;
+  border-radius: 4px;
+  font-size: clamp(36px, 16vw, 80px);
+  font-weight: bold;
   line-height: 1;
   cursor: pointer;
 }
 
 .game .square:hover {
-  background-color: #a2fea6;
-  box-shadow: none;
+  background-color: #f0f0f0;
+}
+
+/* X and O look drawn with a crayon: a thick stroke, rough edges from a few
+   shadows, and light streaks on top, like wax on paper. */
+.game .square {
+  position: relative;
+  font-family: "Ubuntu", Arial, sans-serif;
+}
+
+.game .square.x {
+  color: #2e9e4f;
+}
+
+.game .square.o {
+  color: #2f6fd6;
+}
+
+.game .square.x,
+.game .square.o {
+  -webkit-text-stroke: 4px currentColor;
+  text-shadow:
+    1px 2px 0 color-mix(in srgb, currentColor 45%, transparent),
+    -2px -1px 0 color-mix(in srgb, currentColor 35%, transparent),
+    2px -2px 0 color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.game .square.x::after,
+.game .square.o::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(-60deg,
+    transparent 0 3px,
+    rgba(255, 255, 255, 0.5) 3px 4px,
+    transparent 4px 6px,
+    rgba(255, 255, 255, 0.25) 6px 7px);
+}
+
+/* The three in a row. */
+.game .square.winning {
+  background-color: #f6e3a1;
 }
 
 .game .status {
   margin-top: 20px;
   margin-bottom: 10px;
   font-size: 18px;
-  color: #caf6cc;
-}
-
-.game .square.winning {
-  background-color: #ffffff;
-  color: #e53935;
 }
 
 .game .controls {
   margin-top: 16px;
-  color: #caf6cc;
 }
 
 .game select {
   padding: 6px;
   font-size: 16px;
-}
-
-.game + p a,
-.game a {
-  color: #caf6cc;
 }

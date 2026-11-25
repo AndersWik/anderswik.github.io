@@ -16,8 +16,22 @@
   margin: 20px;
 }
 
+/* The title: the site's font, and a short gold line under it. */
 .game h1 {
-  text-shadow: 2px 2px #747474;
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
 }
 
 .game canvas {
