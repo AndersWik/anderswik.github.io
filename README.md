@@ -49,6 +49,19 @@ $ python3 _scripts/make-icons.py --force fia  # draw over the old ones
 
 It never draws over icons that are there, unless you add `--force`.
 
+### Game thumbnails
+
+The pictures on the Games page are `assets/images/games/<slug>.webp`, 240 x 180.
+To take one again, from the game as it looks now (needs Firefox):
+
+```bash
+$ python3 _scripts/make-thumbnail.py fia              # one game
+$ python3 _scripts/make-thumbnail.py ludo fia reversi # several games
+$ python3 _scripts/make-thumbnail.py tic-tac-toe --moves "document.getElementById('mode').value = 'pvp'; [0, 4, 1, 3, 2].forEach(i => document.querySelectorAll('.square')[i].click())"
+```
+
+`--moves` is JavaScript that runs before the screenshot, so the board isn't empty.
+
 ### Progressive Web Apps
 
 The apps in `_data/pwa.yml` can be installed. After changing an app or the list:
