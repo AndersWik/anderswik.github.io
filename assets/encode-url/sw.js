@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "encode-url-7946832c35";
+const CACHE = "encode-url-40c3099418";
 
 const FILES = [
     "/assets/encode-url/app.html",

@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "kvarn-3e3495a011";
+const CACHE = "kvarn-c4ab50e911";
 
 const FILES = [
     "/assets/kvarn/app.html",
@@ -15,6 +15,7 @@ const FILES = [
     "/assets/kvarn/images/icon-192.png",
     "/assets/kvarn/images/icon-512.png",
     "/assets/kvarn/images/icon-maskable-512.png",
+    "/assets/kvarn/images/kvarn.svg",
     "/assets/kvarn/images/star.svg",
     "/assets/kvarn/kvarn.css",
     "/assets/kvarn/kvarn.js",

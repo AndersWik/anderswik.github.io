@@ -16,14 +16,14 @@ keywords: [pwa, make-pwa.py, script, python, automate, generate, pwa.yml, jekyll
 #   page        the page the app is made from
 #   name        full name (default: the page title)
 #   short_name  name under the icon on a home screen, max about 12 characters
-#   emoji       icon picture
+#   emoji       picture for the placeholder icon
 #   label       optional short text under the emoji, for apps with the same emoji
 
 - { slug: coin-flip, page: pages/games/coin-flip.html, short_name: Coin Flip, emoji: "🪙" }
 - { slug: calculator, page: pages/utils/calculator.html, short_name: Calculator, emoji: "🧮" }
 - { slug: encode-url, page: pages/utils/encode-url.html, name: Url encode / decode, short_name: URL Encode, emoji: "🔁", label: URL }</code></pre>
   <h2>Run it</h2>
-  <pre><code class="language-bash">$ sudo apt install python3-yaml python3-pil fonts-noto-color-emoji
+  <pre><code class="language-bash">$ sudo apt install python3-yaml
 $ python3 _scripts/make-pwa.py              # All apps
 $ python3 _scripts/make-pwa.py coin-flip    # Only some apps
 coin-flip                   16 files  Coin Flip</code></pre>
@@ -32,7 +32,7 @@ coin-flip                   16 files  Coin Flip</code></pre>
   <ol>
     <li><strong>Reads the page.</strong> Splits the Jekyll page into front matter and HTML. The <code>css</code> and <code>js</code> lists in the front matter say which files the app needs.</li>
     <li><strong>Cleans the HTML.</strong> Removes the link to the tutorial and <code>{% raw %}{{ site.baseurl }}{% endraw %}</code>. If any other Liquid tag is left it stops with an error, since it can not run Jekyll.</li>
-    <li><strong>Draws the icons</strong> from the emoji, see <a href="/pwa/icons/">Icons</a>.</li>
+    <li><strong>Checks the icons.</strong> They are the ones in <code>assets/&lt;slug&gt;/images/</code>, and the script never changes them. If one is missing it stops, and tells you to draw it or to make a placeholder with <code>make-icons.py</code>, see <a href="/pwa/icons/">Icons</a>.</li>
     <li><strong>Writes app.html</strong> with the head, the cleaned HTML, the scripts and the service worker registration. Bootstrap's JavaScript is only added if the HTML uses it, like an accordion.</li>
     <li><strong>Writes manifest.webmanifest.</strong></li>
     <li><strong>Writes sw.js</strong> with every file in the app's folder, the page's CSS and JavaScript, and the site files every app uses. It checks that each file exists, so a typo is found now and not when a user is offline.</li>
@@ -62,6 +62,7 @@ for href in local:
   <ol>
     <li>Make sure the app works on a phone without a keyboard, and that all its files are listed in the page's front matter or are in its folder in <code>assets/</code>.</li>
     <li>Add a line to <code>_data/pwa.yml</code> with a slug that matches its folder, and pick an emoji.</li>
+    <li>Run <code>python3 _scripts/make-icons.py &lt;slug&gt;</code> for placeholder icons, or put your own in <code>assets/&lt;slug&gt;/images/</code>.</li>
     <li>Run <code>python3 _scripts/make-pwa.py &lt;slug&gt;</code>.</li>
     <li>Open <code>/assets/&lt;slug&gt;/app.html</code> on localhost, install it and test it offline, see <a href="/pwa/devtools/">DevTools</a>.</li>
   </ol>

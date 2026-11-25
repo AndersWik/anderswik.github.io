@@ -10,7 +10,7 @@ For every app it writes a folder and a zip into _extensions/:
         index.html               the app's page, without the site header and footer
         background.js            only for apps that open in a tab
         game-keys.js             only for games, stops arrow keys from scrolling
-        icons/icon-*.png         toolbar and add-on icons, an emoji on a dark tile
+        icons/icon-*.png         toolbar and add-on icons, made from the app's icon
         assets/..., css/...      copies of the site files the app uses
         vendor/bootstrap...      Bootstrap, extensions may not load it from a CDN
     _extensions/<slug>.zip       upload this to addons.mozilla.org
@@ -26,12 +26,15 @@ Run this script again after changing a page, an app's files or the list:
     python3 _scripts/make-extension.py            all apps
     python3 _scripts/make-extension.py 8-ball     only some apps
 
+The icons are made from assets/<slug>/images/icon-512.png, the same picture
+as the PWA uses. Draw your own, or make a placeholder from the app's emoji
+with _scripts/make-icons.py.
+
 Extensions are stricter than web pages. The script stops with an error for
 things Firefox would block: inline <script> blocks, onclick="..." attributes,
 eval(), and scripts or styles loaded from other sites.
 
-Needs the same as make-pwa.py: Python 3, PyYAML and Pillow
-(apt install python3-yaml python3-pil fonts-noto-color-emoji).
+Needs: Python 3, PyYAML and Pillow (apt install python3-yaml python3-pil).
 The first run downloads Bootstrap once into _extensions/vendor/.
 """
 
@@ -46,11 +49,13 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+from PIL import Image
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "_extensions"
 VENDOR = OUT / "vendor"
 
-# Reuse the page reading, cleaning and icon drawing from the PWA script.
+# Reuse the page reading and cleaning from the PWA script.
 # No __pycache__ folder in _scripts/ for it.
 sys.dont_write_bytecode = True
 _spec = importlib.util.spec_from_file_location("make_pwa", ROOT / "_scripts/make-pwa.py")
@@ -244,13 +249,16 @@ def build(app):
     if uses_bootstrap_js:
         shutil.copy2(vendor_file(*pwa.BOOTSTRAP_JS), folder / "vendor/bootstrap.bundle.min.js")
 
-    # Icons
+    # Icons: the app's own icon, made smaller.
+    source_icon = ROOT / "assets" / slug / "images" / "icon-512.png"
+    if not source_icon.is_file():
+        sys.exit(f"{slug}: no assets/{slug}/images/icon-512.png, "
+                 f"draw your own or run: python3 _scripts/make-icons.py {slug}")
     (folder / "icons").mkdir()
-    for size in ICON_SIZES:
-        # The smallest toolbar icons get a bigger emoji, or it can't be seen.
-        scale = 0.78 if size <= 32 else 0.62
-        pwa.make_icon(app["emoji"], None if size <= 32 else app.get("label"), size, True, scale) \
-            .save(folder / f"icons/icon-{size}.png", optimize=True)
+    with Image.open(source_icon) as picture:
+        picture = picture.convert("RGBA")
+        for size in ICON_SIZES:
+            picture.resize((size, size), Image.LANCZOS).save(folder / f"icons/icon-{size}.png", optimize=True)
 
     # index.html and the small scripts
     (folder / "index.html").write_text(

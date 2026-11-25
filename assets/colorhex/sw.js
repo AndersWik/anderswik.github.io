@@ -6,13 +6,15 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "colorhex-8736b71f34";
+const CACHE = "colorhex-515cfeedd8";
 
 const FILES = [
     "/assets/colorhex/app.html",
     "/assets/colorhex/colorhex.css",
     "/assets/colorhex/colorhex.js",
     "/assets/colorhex/images/apple-touch-icon.png",
+    "/assets/colorhex/images/colorhex.svg",
+    "/assets/colorhex/images/favicon.svg",
     "/assets/colorhex/images/icon-192.png",
     "/assets/colorhex/images/icon-512.png",
     "/assets/colorhex/images/icon-maskable-512.png",

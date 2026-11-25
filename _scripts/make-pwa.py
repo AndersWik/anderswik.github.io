@@ -7,7 +7,10 @@ For every app it writes into assets/<slug>/:
     app.html               the app's page, without the site header and footer
     manifest.webmanifest   name, icons and colors, makes the page installable
     sw.js                  service worker, saves the files so the app works offline
-    images/icon-*.png      app icons, an emoji on a dark tile
+
+The icons are the ones already in assets/<slug>/images/: icon-192.png,
+icon-512.png, icon-maskable-512.png and apple-touch-icon.png. Draw your own,
+or make placeholders from the app's emoji with _scripts/make-icons.py.
 
 app.html is made from the app's normal page (front matter css and js, and the
 HTML after the front matter), so the page stays the one place to edit.
@@ -19,8 +22,7 @@ Run this script again after changing a page, an app's files or the list:
 The cache name in sw.js is a hash of the app's files. When a file changes the
 name changes, and installed apps download the new version by themselves.
 
-Needs: Python 3, PyYAML and Pillow (apt install python3-yaml python3-pil),
-and the Noto Color Emoji font (apt install fonts-noto-color-emoji).
+Needs: Python 3 and PyYAML (apt install python3-yaml).
 """
 
 import hashlib
@@ -30,15 +32,9 @@ import sys
 from pathlib import Path
 
 import yaml
-from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 
-EMOJI_FONT = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
-LABEL_FONT = ROOT / "assets/fonts/Ubuntu/Ubuntu-Bold.ttf"
-
-TILE_COLOR = (27, 29, 33, 255)      # the site's dark header color
-LABEL_COLOR = (232, 180, 85, 255)   # the site's accent color
 THEME_COLOR = "#1b1d21"
 BACKGROUND_COLOR = "#f3f4f6"
 
@@ -59,15 +55,8 @@ SITE_FILES = [
 # Files in an app folder that are not part of the app.
 SKIP_FILES = {"sw.js", "standalone.html", "favicon.ico"}
 
-ICONS = {
-    # file name: (size, tile with rounded corners?, emoji size)
-    "icon-192.png": (192, True, 0.62),
-    "icon-512.png": (512, True, 0.62),
-    # Android cuts maskable icons to its own shape, so no corners and more room.
-    "icon-maskable-512.png": (512, False, 0.5),
-    # iPhone rounds the corners itself and needs a tile without transparency.
-    "apple-touch-icon.png": (180, False, 0.58),
-}
+# The icons every app needs in assets/<slug>/images/.
+ICONS = ["icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png"]
 
 
 # --- Reading the page -------------------------------------------------------
@@ -93,40 +82,6 @@ def app_body(path, front, html):
     if front.get("layout") == "game":
         html = '<div class="game">\n' + html + "\n</div>"
     return html
-
-
-# --- Icons ------------------------------------------------------------------
-
-def make_icon(emoji, label, size, rounded, scale):
-    """An emoji, and optionally a short label below it, on a dark tile."""
-    icon = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(icon)
-    if rounded:
-        draw.rounded_rectangle((0, 0, size - 1, size - 1), radius=int(size * 0.22), fill=TILE_COLOR)
-    else:
-        draw.rectangle((0, 0, size, size), fill=TILE_COLOR)
-
-    # Color emoji only exist in size 109, so draw it there and scale it.
-    picture = Image.new("RGBA", (160, 160), (0, 0, 0, 0))
-    ImageDraw.Draw(picture).text((80, 80), emoji, font=ImageFont.truetype(EMOJI_FONT, 109),
-                                 embedded_color=True, anchor="mm")
-    box = picture.getbbox()
-    if box is None:
-        sys.exit(f"emoji {emoji!r} is not in the emoji font")
-    picture = picture.crop(box)
-
-    largest = size * scale * (0.8 if label else 1)
-    ratio = largest / max(picture.size)
-    picture = picture.resize((round(picture.width * ratio), round(picture.height * ratio)), Image.LANCZOS)
-    center_y = size * (0.42 if label else 0.5)
-    icon.alpha_composite(picture, (round((size - picture.width) / 2), round(center_y - picture.height / 2)))
-
-    if label:
-        font = ImageFont.truetype(str(LABEL_FONT), round(size * scale * 0.27))
-        draw.text((size / 2, center_y + largest * 0.5 + size * scale * 0.3), label,
-                  font=font, fill=LABEL_COLOR, anchor="ms")
-
-    return icon if rounded else icon.convert("RGB")
 
 
 # --- Writing the app --------------------------------------------------------
@@ -239,10 +194,11 @@ def build(app):
     body = app_body(page_path, front, html)
     uses_bootstrap_js = bool(re.search(r"data-bs-|accordion|collapse", body))
 
-    # Icons
-    (folder / "images").mkdir(parents=True, exist_ok=True)
-    for file_name, (size, rounded, scale) in ICONS.items():
-        make_icon(app["emoji"], app.get("label"), size, rounded, scale).save(folder / "images" / file_name, optimize=True)
+    # Icons: use the ones in the app's folder, never draw over them.
+    missing = [name for name in ICONS if not (folder / "images" / name).is_file()]
+    if missing:
+        sys.exit(f"{slug}: no {', '.join(missing)} in assets/{slug}/images/, "
+                 f"draw your own or run: python3 _scripts/make-icons.py {slug}")
 
     # app.html
     page = "\n".join([

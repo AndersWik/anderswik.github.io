@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "make-request-ed992a7f5f";
+const CACHE = "make-request-9c9ff05c2e";
 
 const FILES = [
     "/assets/make-request/app.html",

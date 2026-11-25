@@ -8,14 +8,17 @@
 #
 # After changing this list or any of the apps, run:
 #   python3 _scripts/make-pwa.py
-# It writes app.html, manifest.webmanifest, sw.js and icons into assets/<slug>/.
+# It writes app.html, manifest.webmanifest and sw.js into assets/<slug>/.
+# The icons are the ones in assets/<slug>/images/. A new app has none: draw
+# your own, or make placeholders from its emoji with:
+#   python3 _scripts/make-icons.py <slug>
 # _layouts/default.html uses this list to show "Install as an app" on the page.
 #
 #   slug        folder in assets/ (and the app's id)
 #   page        the page the app is made from
 #   name        full name (default: the page title)
 #   short_name  name under the icon on a home screen, max about 12 characters
-#   emoji       icon picture
+#   emoji       picture for the placeholder icon, see make-icons.py
 #   label       optional short text under the emoji, for apps with the same emoji
 
 - { slug: 8-ball, page: pages/games/8-ball.html, name: Magic 8 Ball, short_name: 8 Ball, emoji: "🎱" }

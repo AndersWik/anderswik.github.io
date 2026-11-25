@@ -51,3 +51,26 @@
   padding: 6px;
   font-size: 16px;
 }
+
+/* The rules: click "How to play" to open them. */
+.game .rules {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #dddddd;
+  text-align: left;
+}
+
+.game .rules summary {
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.game .rules ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.game .rules li {
+  margin-bottom: 6px;
+}

@@ -3,6 +3,9 @@
 # After changing this list or any of the apps, run:
 #   python3 _scripts/make-extension.py
 # It writes a folder and a zip for every app into _extensions/.
+# The icons are made from assets/<slug>/images/icon-512.png. A new app has
+# none: draw your own, or make a placeholder from its emoji with:
+#   python3 _scripts/make-icons.py <slug>
 # Test a folder in Firefox: about:debugging, This Firefox, Load Temporary
 # Add-on, and pick its manifest.json. Upload the zip to addons.mozilla.org.
 #
@@ -10,7 +13,7 @@
 #                (never change it after the add-on is published)
 #   page         the page the app is made from
 #   name         full name (default: the page title)
-#   emoji        icon picture
+#   emoji        picture for the placeholder icon, see make-icons.py
 #   label        optional short text under the emoji, for apps with the same emoji
 #   version      raise it for every new upload to addons.mozilla.org (default 1.0)
 #   description  text on the add-on page (default: "<name> from anderswik.se.")

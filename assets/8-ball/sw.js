@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "8-ball-35e7b9fa4f";
+const CACHE = "8-ball-876b0e3bcc";
 
 const FILES = [
     "/assets/8-ball/8-ball.css",

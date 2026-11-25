@@ -6,13 +6,14 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "chore-wheel-c104470fbd";
+const CACHE = "chore-wheel-dca260cd7a";
 
 const FILES = [
     "/assets/chore-wheel/app.html",
     "/assets/chore-wheel/chore-wheel.css",
     "/assets/chore-wheel/chore-wheel.js",
     "/assets/chore-wheel/images/apple-touch-icon.png",
+    "/assets/chore-wheel/images/chore-wheel.svg",
     "/assets/chore-wheel/images/favicon.svg",
     "/assets/chore-wheel/images/icon-192.png",
     "/assets/chore-wheel/images/icon-512.png",

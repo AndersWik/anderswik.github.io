@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "coin-flip-67c3fa9821";
+const CACHE = "coin-flip-302fa06ce6";
 
 const FILES = [
     "/assets/coin-flip/app.html",

@@ -27,9 +27,10 @@ keywords: [pwa, icons, png, maskable, apple-touch-icon, iphone, favicon, pillow,
   <pre><code class="language-html">&lt;link rel="apple-touch-icon" href="images/apple-touch-icon.png"&gt;
 &lt;meta name="apple-mobile-web-app-title" content="Calculator"&gt;</code></pre>
   <h2>How the icons on this site are made</h2>
-  <p>Drawing four icons for each of 30 apps is a lot of work. Instead <code>_scripts/make-pwa.py</code> draws every app's emoji from <code>_data/pwa.yml</code> on a dark tile, with Python and Pillow. The tile is rounded for the normal icons, and square with a smaller emoji for the maskable and Apple icons.</p>
+  <p>Every app keeps its four icons in its own folder, <code>assets/&lt;slug&gt;/images/</code>, and <code>_scripts/make-pwa.py</code> uses whatever is there. Many of them are drawn by hand. A new app starts with placeholders: <code>_scripts/make-icons.py</code> draws the app's emoji from <code>_data/pwa.yml</code> on a dark tile, with Python and Pillow. The tile is rounded for the normal icons, and square with a smaller emoji for the maskable and Apple icons.</p>
   <pre><code class="language-bash">$ sudo apt install python3-yaml python3-pil fonts-noto-color-emoji
-$ python3 _scripts/make-pwa.py calculator</code></pre>
+$ python3 _scripts/make-icons.py calculator</code></pre>
+  <p>It never draws over icons that are already there, unless you add <code>--force</code>. So you can replace a placeholder with your own picture, and no script will ever take it away.</p>
   <p>The important part of the script draws the emoji in the only size the color emoji font has, 109, and then scales it to fit the icon:</p>
   <pre><code class="language-python">picture = Image.new("RGBA", (160, 160), (0, 0, 0, 0))
 ImageDraw.Draw(picture).text((80, 80), emoji, font=ImageFont.truetype(EMOJI_FONT, 109),

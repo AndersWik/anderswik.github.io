@@ -34,6 +34,21 @@ $ JEKYLL_ENV=production jekyll build
 
 This uses `url` from `_config.yml` (https://www.anderswik.se). `jekyll serve` overrides it with the local address, so never deploy a `_site` built by `serve`.
 
+### App icons
+
+The PWAs and the Firefox extensions use the icons in `assets/<slug>/images/`
+(`icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`).
+A new app has none. Draw your own, or make placeholders from the app's emoji in
+the lists:
+
+```bash
+$ python3 _scripts/make-icons.py              # every app that has no icons yet
+$ python3 _scripts/make-icons.py fia          # only some apps
+$ python3 _scripts/make-icons.py --force fia  # draw over the old ones
+```
+
+It never draws over icons that are there, unless you add `--force`.
+
 ### Progressive Web Apps
 
 The apps in `_data/pwa.yml` can be installed. After changing an app or the list:

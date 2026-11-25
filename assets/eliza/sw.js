@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "eliza-0e063f8115";
+const CACHE = "eliza-2c59a1e707";
 
 const FILES = [
     "/assets/eliza/app.html",
@@ -18,6 +18,8 @@ const FILES = [
     "/assets/eliza/eliza.css",
     "/assets/eliza/eliza.js",
     "/assets/eliza/images/apple-touch-icon.png",
+    "/assets/eliza/images/eliza.svg",
+    "/assets/eliza/images/favicon.svg",
     "/assets/eliza/images/icon-192.png",
     "/assets/eliza/images/icon-512.png",
     "/assets/eliza/images/icon-maskable-512.png",

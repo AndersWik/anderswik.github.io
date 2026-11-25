@@ -6,13 +6,14 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "blackjack-9b762ebc77";
+const CACHE = "blackjack-32acad6366";
 
 const FILES = [
     "/assets/blackjack/app.html",
     "/assets/blackjack/blackjack.css",
     "/assets/blackjack/blackjack.js",
     "/assets/blackjack/images/apple-touch-icon.png",
+    "/assets/blackjack/images/blackjack.svg",
     "/assets/blackjack/images/cardback.svg",
     "/assets/blackjack/images/favicon.svg",
     "/assets/blackjack/images/icon-192.png",

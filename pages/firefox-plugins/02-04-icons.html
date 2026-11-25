@@ -30,12 +30,12 @@ keywords: [firefox, extension, icons, png, svg, toolbar icon, default_icon, emoj
   <h2>Small icons need big pictures</h2>
   <p>At 16 pixels there is no room for detail. Use one simple shape that fills most of the icon. A thin outline or small text disappears.</p>
   <h2>How ours are made</h2>
-  <p><code>_scripts/make-extension.py</code> draws every app's emoji from <code>_data/extensions.yml</code> on a dark tile, using the icon code from <code>make-pwa.py</code>, see <a href="/pwa/icons/">PWA icons</a>. For the two smallest sizes the emoji is made bigger, and the optional label under it, like "AI" or "64", is left out since it can not be read.</p>
-  <pre><code class="language-python">for size in ICON_SIZES:                     # 16, 32, 48, 96, 128
-    # The smallest toolbar icons get a bigger emoji, or it can't be seen.
-    scale = 0.78 if size &lt;= 32 else 0.62
-    pwa.make_icon(app["emoji"], None if size &lt;= 32 else app.get("label"), size, True, scale) \
-        .save(folder / f"icons/icon-{size}.png", optimize=True)</code></pre>
+  <p>An extension uses the same icon as the app's PWA: <code>assets/&lt;slug&gt;/images/icon-512.png</code>. <code>_scripts/make-extension.py</code> makes it smaller for every size, with Pillow:</p>
+  <pre><code class="language-python">with Image.open(source_icon) as picture:
+    picture = picture.convert("RGBA")
+    for size in ICON_SIZES:                 # 16, 32, 48, 96, 128
+        picture.resize((size, size), Image.LANCZOS).save(folder / f"icons/icon-{size}.png", optimize=True)</code></pre>
+  <p>So there is one picture per app to draw, and the site, the PWA and the extension look the same. An app without an icon gets a placeholder from <code>_scripts/make-icons.py</code>: its emoji from the list on a dark tile, see <a href="/pwa/icons/">PWA icons</a>. If your icon is hard to see at 16 pixels, make it simpler, as above.</p>
   <h2>Dark and light toolbars</h2>
   <p>The toolbar can be light or dark depending on the theme. An icon on its own tile, like ours, looks the same on both. A transparent icon with a dark picture can disappear on a dark theme. Firefox can use different icons per theme with <code>theme_icons</code> in <code>action</code>.</p>
   <h2>More about icons</h2>

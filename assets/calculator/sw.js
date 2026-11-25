@@ -6,13 +6,15 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "calculator-2a1a0259dc";
+const CACHE = "calculator-faabba3731";
 
 const FILES = [
     "/assets/calculator/app.html",
     "/assets/calculator/calculator.css",
     "/assets/calculator/calculator.js",
     "/assets/calculator/images/apple-touch-icon.png",
+    "/assets/calculator/images/calculator.svg",
+    "/assets/calculator/images/favicon.svg",
     "/assets/calculator/images/icon-192.png",
     "/assets/calculator/images/icon-512.png",
     "/assets/calculator/images/icon-maskable-512.png",

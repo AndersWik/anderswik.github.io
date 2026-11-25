@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "sudoku-c7298b2b86";
+const CACHE = "sudoku-042b4dad1b";
 
 const FILES = [
     "/assets/sudoku/app.html",
@@ -15,6 +15,7 @@ const FILES = [
     "/assets/sudoku/images/icon-192.png",
     "/assets/sudoku/images/icon-512.png",
     "/assets/sudoku/images/icon-maskable-512.png",
+    "/assets/sudoku/images/sudoku.svg",
     "/assets/sudoku/manifest.webmanifest",
     "/assets/sudoku/sudoku.css",
     "/assets/sudoku/sudoku.js",

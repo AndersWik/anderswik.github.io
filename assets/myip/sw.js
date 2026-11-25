@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "myip-04d33c0a81";
+const CACHE = "myip-5db57973ab";
 
 const FILES = [
     "/assets/myip/app.html",

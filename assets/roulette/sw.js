@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "roulette-b4e5538194";
+const CACHE = "roulette-ddc79646fc";
 
 const FILES = [
     "/assets/roulette/app.html",
@@ -15,6 +15,7 @@ const FILES = [
     "/assets/roulette/images/icon-192.png",
     "/assets/roulette/images/icon-512.png",
     "/assets/roulette/images/icon-maskable-512.png",
+    "/assets/roulette/images/roulette.svg",
     "/assets/roulette/manifest.webmanifest",
     "/assets/roulette/roulette.css",
     "/assets/roulette/roulette.js",

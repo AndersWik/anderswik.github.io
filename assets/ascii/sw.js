@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "ascii-bdf8a2bcf7";
+const CACHE = "ascii-6fa232cdbf";
 
 const FILES = [
     "/assets/ascii/app.html",

@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "pomodoro-timer-f0d64f28f8";
+const CACHE = "pomodoro-timer-e619703938";
 
 const FILES = [
     "/assets/pomodoro-timer/app.html",

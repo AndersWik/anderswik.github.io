@@ -9,13 +9,13 @@ keywords: [firefox, extension, make-extension.py, script, python, automate, exte
 
 <div class="firefox-plugins container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Many apps at once</h1>
-  <p>Porting the 8-ball by hand took seven steps. For the 45 games and apps on this site, a Python script does the same steps from a list: <code>_scripts/make-extension.py</code>. It reuses the page reading and icon drawing from the <a href="/pwa/make-pwa/">PWA script</a>.</p>
+  <p>Porting the 8-ball by hand took seven steps. For the 45 games and apps on this site, a Python script does the same steps from a list: <code>_scripts/make-extension.py</code>. It reuses the page reading from the <a href="/pwa/make-pwa/">PWA script</a>, and the icons from the PWA.</p>
   <h2>The list</h2>
   <p><code>_data/extensions.yml</code> has one line for every app.</p>
   <pre><code class="language-bash">#   slug         folder in assets/, and the add-on id &lt;slug&gt;@anderswik.se
 #   page         the page the app is made from
 #   name         full name (default: the page title)
-#   emoji        icon picture
+#   emoji        picture for the placeholder icon
 #   label        optional short text under the emoji
 #   version      raise it for every new upload to addons.mozilla.org (default 1.0)
 #   description  text on the add-on page
@@ -42,7 +42,7 @@ $ python3 _scripts/make-extension.py 8-ball    # Only some apps
     <li><strong>Copies the files</strong> with the same paths as on the site: the app's folder, the page's CSS and JavaScript, <code>style.css</code> and the fonts.</li>
     <li><strong>Finds more files</strong> by looking for paths like <code>/assets/...</code> in the HTML, CSS and JavaScript it copied. That is how the Vagrant templates and the Memory card pictures come along.</li>
     <li><strong>Downloads Bootstrap</strong> once into <code>_extensions/vendor/</code>, checks it against its integrity hash, and copies it in.</li>
-    <li><strong>Draws the icons</strong>, writes <code>index.html</code> and <code>manifest.json</code>, and for tab apps <code>background.js</code>.</li>
+    <li><strong>Makes the icons</strong> from <code>assets/&lt;slug&gt;/images/icon-512.png</code>, writes <code>index.html</code> and <code>manifest.json</code>, and for tab apps <code>background.js</code>.</li>
     <li><strong>Zips the folder</strong> with <code>manifest.json</code> at the top.</li>
   </ol>
   <h2>Keep the paths</h2>
@@ -61,6 +61,7 @@ $ firefox --headless --no-remote --profile /tmp/ff --window-size=800,1000 \
   <ol>
     <li>Make sure all its files are in its folder in <code>assets/</code> or listed in the page's front matter.</li>
     <li>Add a line to <code>_data/extensions.yml</code>.</li>
+    <li>If the app has no <code>assets/&lt;slug&gt;/images/icon-512.png</code>, draw one, or run <code>python3 _scripts/make-icons.py &lt;slug&gt;</code> for a placeholder.</li>
     <li>Run <code>python3 _scripts/make-extension.py &lt;slug&gt;</code>.</li>
     <li>Load <code>_extensions/&lt;slug&gt;/manifest.json</code> in <code>about:debugging</code> and test it.</li>
   </ol>

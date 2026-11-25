@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "reversi-87d252b290";
+const CACHE = "reversi-0c786dde34";
 
 const FILES = [
     "/assets/reversi/app.html",

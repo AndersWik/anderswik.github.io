@@ -6,13 +6,15 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "egg-clock-5416bfade9";
+const CACHE = "egg-clock-1538d5095c";
 
 const FILES = [
     "/assets/egg-clock/app.html",
     "/assets/egg-clock/egg-clock.css",
     "/assets/egg-clock/egg-clock.js",
     "/assets/egg-clock/images/apple-touch-icon.png",
+    "/assets/egg-clock/images/egg-clock.svg",
+    "/assets/egg-clock/images/favicon.svg",
     "/assets/egg-clock/images/icon-192.png",
     "/assets/egg-clock/images/icon-512.png",
     "/assets/egg-clock/images/icon-maskable-512.png",

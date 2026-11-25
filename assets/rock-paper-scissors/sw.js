@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "rock-paper-scissors-bfbc7900b5";
+const CACHE = "rock-paper-scissors-48ca5e9e3a";
 
 const FILES = [
     "/assets/rock-paper-scissors/app.html",
@@ -18,6 +18,7 @@ const FILES = [
     "/assets/rock-paper-scissors/images/icon-192.png",
     "/assets/rock-paper-scissors/images/icon-512.png",
     "/assets/rock-paper-scissors/images/icon-maskable-512.png",
+    "/assets/rock-paper-scissors/images/rock-paper-scissors.svg",
     "/assets/rock-paper-scissors/manifest.webmanifest",
     "/assets/rock-paper-scissors/rock-paper-scissors.css",
     "/assets/rock-paper-scissors/rock-paper-scissors.js",

@@ -6,13 +6,15 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "data-conversion-7b0970b240";
+const CACHE = "data-conversion-84e84a72fb";
 
 const FILES = [
     "/assets/data-conversion/app.html",
     "/assets/data-conversion/data-conversion.css",
     "/assets/data-conversion/data-conversion.js",
     "/assets/data-conversion/images/apple-touch-icon.png",
+    "/assets/data-conversion/images/data-conversion.svg",
+    "/assets/data-conversion/images/favicon.svg",
     "/assets/data-conversion/images/icon-192.png",
     "/assets/data-conversion/images/icon-512.png",
     "/assets/data-conversion/images/icon-maskable-512.png",

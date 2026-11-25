@@ -6,14 +6,16 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "unix-timestamp-convertor-a2d7cd660e";
+const CACHE = "unix-timestamp-convertor-35557f4429";
 
 const FILES = [
     "/assets/unix-timestamp-convertor/app.html",
     "/assets/unix-timestamp-convertor/images/apple-touch-icon.png",
+    "/assets/unix-timestamp-convertor/images/favicon.svg",
     "/assets/unix-timestamp-convertor/images/icon-192.png",
     "/assets/unix-timestamp-convertor/images/icon-512.png",
     "/assets/unix-timestamp-convertor/images/icon-maskable-512.png",
+    "/assets/unix-timestamp-convertor/images/unix-timestamp-convertor.svg",
     "/assets/unix-timestamp-convertor/manifest.webmanifest",
     "/assets/unix-timestamp-convertor/unix-timestamp-convertor.css",
     "/assets/unix-timestamp-convertor/unix-timestamp-convertor.js",

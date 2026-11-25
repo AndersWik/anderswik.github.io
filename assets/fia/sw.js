@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "fia-14eda18627";
+const CACHE = "fia-645077516f";
 
 const FILES = [
     "/assets/fia/app.html",
