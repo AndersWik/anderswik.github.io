@@ -35,6 +35,7 @@
 - { slug: five-in-a-row, page: pages/games/five-in-a-row.html, emoji: "⚫", label: "5", open: tab }
 - { slug: four-in-a-row, page: pages/games/four-in-a-row.html, name: Connect Four, emoji: "🔴" }
 - { slug: fia, page: pages/games/fia.html, emoji: "➕", label: FIA, open: tab }
+- { slug: hi-lo-counter, page: pages/games/hi-lo-counter.html, emoji: "🎴", label: HI-LO, open: tab }
 - { slug: hangman, page: pages/games/hangman.html, emoji: "🪢" }
 - { slug: kvarn, page: pages/games/kvarn.html, emoji: "⚪", label: "9" }
 - { slug: ludo, page: pages/games/ludo.html, emoji: "🎲", label: LUDO, open: tab }

@@ -1,0 +1,85 @@
+---
+layout: game
+title: Hi-Lo Counter
+permalink: /games/hi-lo-counter/
+nonav: true
+css:
+  - /assets/hi-lo-counter/hi-lo-counter.css
+js:
+  - /assets/hi-lo-counter/hi-lo-counter.js
+---
+<div class="container">
+  <h1>Hi-Lo Counter</h1>
+
+  <form id="setup" class="setup">
+    <label>Mode
+      <select id="mode">
+        <option value="easy" selected>Easy: a new count every round</option>
+        <option value="hard">Hard: a running count</option>
+      </select>
+    </label>
+    <label>Rounds
+      <select id="rounds">
+        <option value="5" selected>5</option>
+        <option value="8">8</option>
+        <option value="10">10</option>
+      </select>
+    </label>
+    <label>Speed
+      <select id="speed">
+        <option value="0.5">0.5 seconds a card</option>
+        <option value="1">1 second a card</option>
+        <option value="2" selected>2 seconds a card</option>
+        <option value="5">5 seconds a card</option>
+      </select>
+    </label>
+    <button type="submit">Start</button>
+  </form>
+
+  <div id="play" class="table" hidden>
+    <p id="round" class="label"></p>
+    <div id="deal" class="deal"></div>
+    <p id="status" aria-live="polite"></p>
+
+    <form id="guess-form" class="guess" hidden>
+      <p>What is the count?</p>
+      <div class="stepper">
+        <button type="button" id="minus" aria-label="One less">−</button>
+        <input type="number" id="guess" value="0" step="1" aria-label="Your count">
+        <button type="button" id="plus" aria-label="One more">+</button>
+      </div>
+      <button type="submit" class="check">Check</button>
+    </form>
+
+    <div id="review" class="review" hidden>
+      <p id="verdict" class="verdict"></p>
+      <div id="review-cards" class="review-cards"></div>
+      <p id="review-count"></p>
+      <button type="button" id="next">Next round</button>
+    </div>
+  </div>
+
+  <div id="end" class="end" hidden>
+    <p id="score" class="score"></p>
+    <ul id="stats" class="stats"></ul>
+    <table id="rounds-table" class="rounds-table"></table>
+    <button type="button" id="again">Play again</button>
+  </div>
+
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>Cards are shown one at a time. Keep a count in your head, with the Hi-Lo values below. When the cards stop, say what the count is.</li>
+      <li><strong>Easy:</strong> every round starts at 0, with a new deck.</li>
+      <li><strong>Hard:</strong> the count keeps running from round to round, like at a real table. Say the total so far.</li>
+      <li>Card counters use the count in blackjack: a high count means many tens and aces are left, which is good for the player.</li>
+    </ul>
+    <table class="cheat-sheet">
+      <tr><th>Cards</th><th>Count</th></tr>
+      <tr><td>2, 3, 4, 5, 6</td><td>+1</td></tr>
+      <tr><td>7, 8, 9</td><td>0</td></tr>
+      <tr><td>10, J, Q, K, A</td><td>−1</td></tr>
+    </table>
+  </details>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/hi-lo-counter/">How to build this game</a></p>

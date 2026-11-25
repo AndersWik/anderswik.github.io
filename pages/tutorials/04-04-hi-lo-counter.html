@@ -1,0 +1,1021 @@
+---
+layout: default
+title: Hi-Lo Counter
+permalink: /tutorials/hi-lo-counter/
+chapter: "04"
+chapter_title: "Casino games"
+keywords: [javascript, game, cards, card counting, hi-lo, blackjack, setTimeout, form, submit, preventDefault, input number, splice, reduce, em, hidden]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Hi-Lo Counter</h1>
+  <p>Practice counting cards, the way blackjack players do. Cards are shown one at a time, and you keep a count in your head. When the cards stop, you say what the count is. Each round has 5 to 10 cards, and after each guess you see every card with its value, so you can find where you went wrong. At the end you see how often you were right.</p>
+  <p>The cards are the ones from <a href="/tutorials/blackjack/">Blackjack</a>, with the same front, back and turning animation. The new parts are showing cards one by one with a timer, a number input with big + and - buttons, and adding up the results.</p>
+  <p><a href="/assets/tutorials/hi-lo-counter.html">Open the finished game</a></p>
+
+  <h2>The Hi-Lo count</h2>
+  <p>Low cards are good for the dealer and high cards are good for the player. So a card counter adds 1 for every low card that has been played, and takes away 1 for every high card:</p>
+  <table class="table table-sm w-auto">
+    <tr><th>Cards</th><th>Count</th></tr>
+    <tr><td>2, 3, 4, 5, 6</td><td>+1</td></tr>
+    <tr><td>7, 8, 9</td><td>0</td></tr>
+    <tr><td>10, J, Q, K, A</td><td>-1</td></tr>
+  </table>
+  <p>A whole deck has 20 low cards and 20 high cards, so it adds up to 0. When the count is high, more high cards are left in the deck, and the player has a better chance.</p>
+  <p>The game has two modes. In <strong>easy</strong> mode every round starts at 0, with a new deck. In <strong>hard</strong> mode the count keeps running from round to round, like at a real table, and you say the total so far.</p>
+
+  <h2>Step 1: The page</h2>
+  <pre><code class="language-html">&lt;h1&gt;Hi-Lo Counter&lt;/h1&gt;
+
+&lt;form id="setup" class="setup"&gt;
+  &lt;label&gt;Mode
+    &lt;select id="mode"&gt;
+      &lt;option value="easy" selected&gt;Easy: a new count every round&lt;/option&gt;
+      &lt;option value="hard"&gt;Hard: a running count&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/label&gt;
+  &lt;label&gt;Rounds
+    &lt;select id="rounds"&gt;
+      &lt;option value="5" selected&gt;5&lt;/option&gt;
+      &lt;option value="8"&gt;8&lt;/option&gt;
+      &lt;option value="10"&gt;10&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/label&gt;
+  &lt;label&gt;Speed
+    &lt;select id="speed"&gt;
+      &lt;option value="0.5"&gt;0.5 seconds a card&lt;/option&gt;
+      &lt;option value="1"&gt;1 second a card&lt;/option&gt;
+      &lt;option value="2" selected&gt;2 seconds a card&lt;/option&gt;
+      &lt;option value="5"&gt;5 seconds a card&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/label&gt;
+  &lt;button type="submit"&gt;Start&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;div id="play" class="table" hidden&gt;
+  &lt;p id="round" class="label"&gt;&lt;/p&gt;
+  &lt;div id="deal" class="deal"&gt;&lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+
+  &lt;form id="guess-form" class="guess" hidden&gt;
+    &lt;p&gt;What is the count?&lt;/p&gt;
+    &lt;div class="stepper"&gt;
+      &lt;button type="button" id="minus" aria-label="One less"&gt;−&lt;/button&gt;
+      &lt;input type="number" id="guess" value="0" step="1" aria-label="Your count"&gt;
+      &lt;button type="button" id="plus" aria-label="One more"&gt;+&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;button type="submit" class="check"&gt;Check&lt;/button&gt;
+  &lt;/form&gt;
+
+  &lt;div id="review" class="review" hidden&gt;
+    &lt;p id="verdict" class="verdict"&gt;&lt;/p&gt;
+    &lt;div id="review-cards" class="review-cards"&gt;&lt;/div&gt;
+    &lt;p id="review-count"&gt;&lt;/p&gt;
+    &lt;button type="button" id="next"&gt;Next round&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="end" class="end" hidden&gt;
+  &lt;p id="score" class="score"&gt;&lt;/p&gt;
+  &lt;ul id="stats" class="stats"&gt;&lt;/ul&gt;
+  &lt;table id="rounds-table" class="rounds-table"&gt;&lt;/table&gt;
+  &lt;button type="button" id="again"&gt;Play again&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+  <p>The page has four parts, and only one or two are shown at a time: the settings, the table with the cards, the guess and the review on the table, and the end. The others have <code>hidden</code>. The settings and the guess are each a <code>&lt;form&gt;</code>, so pressing Enter works as well as clicking the button.</p>
+  <pre><code class="language-css">[hidden] {
+    display: none !important;
+}</code></pre>
+  <p>A box with <code>display: flex</code> or <code>display: grid</code> in the CSS would still show when it has <code>hidden</code>, because the CSS wins over the browser's own rule. This one rule puts <code>hidden</code> back in charge everywhere.</p>
+
+  <h2>Step 2: The value of a card</h2>
+  <pre><code class="language-javascript">// The Hi-Lo value of a card: low cards +1, middle cards 0, high cards -1.
+function hiLo(card) {
+    if (["2", "3", "4", "5", "6"].includes(card.value)) {
+        return 1;
+    }
+    if (["7", "8", "9"].includes(card.value)) {
+        return 0;
+    }
+    return -1;
+}
+
+// A count with its sign, like +2, 0 and −1.
+function signed(n) {
+    if (n &gt; 0) {
+        return "+" + n;
+    }
+    return n &lt; 0 ? "−" + Math.abs(n) : "0";
+}</code></pre>
+  <p><code>includes</code> asks if the card's value is in the list. A count is shown with its sign, like +2 or −1, because that is how counters say it. <code>Math.abs</code> takes away the minus sign, and a real minus sign (−) is put in its place, which is a little longer than the hyphen on the keyboard.</p>
+
+  <h2>Step 3: A shuffled deck</h2>
+  <pre><code class="language-javascript">// A shuffled deck, made of "decks" full decks (the Fisher-Yates shuffle).
+function newDeck(decks) {
+    const list = [];
+    for (let d = 0; d &lt; decks; d++) {
+        for (const suit of SUITS) {
+            for (const value of VALUES) {
+                list.push({ suit: suit, value: value });
+            }
+        }
+    }
+    for (let i = list.length - 1; i &gt; 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+}</code></pre>
+  <p>This is the deck and the Fisher-Yates shuffle from Blackjack, with one change: it can make more than one deck. Easy mode takes a new deck of 52 every round. Hard mode takes two decks, 104 cards, at the start of the game, and never shuffles them again. 10 rounds of at most 10 cards need 100, so the cards never run out.</p>
+
+  <h2>Step 4: A round</h2>
+  <pre><code class="language-javascript">function nextRound() {
+    round++;
+    if (mode === "easy") {
+        deck = newDeck(1);
+        count = 0;
+    }
+    countBefore = count;
+    const amount = MIN_CARDS + Math.floor(Math.random() * (MAX_CARDS - MIN_CARDS + 1));
+    cards = deck.splice(0, amount);
+    cards.forEach(function (card) {
+        count += hiLo(card);
+    });
+
+    roundText.textContent = "Round " + round + " of " + rounds;
+    if (mode === "hard" &amp;&amp; round &gt; 1) {
+        statusText.textContent = "Keep counting from where you were.";
+    } else {
+        statusText.textContent = "Count the cards.";
+    }
+    guessForm.hidden = true;
+    reviewBox.hidden = true;
+    dealBox.hidden = false;
+    dealBox.innerHTML = "";
+    showCard(0);
+}</code></pre>
+  <p>The number of cards is random: <code>Math.random()</code> times 6, rounded down, is 0 to 5, so <code>amount</code> is 5 to 10. <code>splice(0, amount)</code> takes the cards off the top of the deck, so in hard mode the next round goes on with the cards that are left. The right count is worked out at once, before any card is shown. <code>countBefore</code> remembers where the round started, for the review.</p>
+
+  <h2>Step 5: One card at a time</h2>
+  <pre><code class="language-javascript">// Show card number "index", and the next one after "speed" seconds. Each
+// card takes the place of the one before, so you can't count them again.
+function showCard(index) {
+    if (index === cards.length) {
+        dealBox.innerHTML = "";
+        askForCount();
+        return;
+    }
+    const slot = cardElement(cards[index], "big");
+    // The card comes in and turns over in under half of its time.
+    const animation = Math.min(0.45, speed * 0.4);
+    slot.style.animationDuration = animation * 0.4 + "s";
+    slot.firstChild.style.animationDuration = animation * 0.6 + "s";
+    slot.firstChild.style.animationDelay = animation * 0.4 + "s";
+    dealBox.innerHTML = "";
+    dealBox.appendChild(slot);
+    dealTimer = setTimeout(function () {
+        showCard(index + 1);
+    }, speed * 1000);
+}</code></pre>
+  <p><code>showCard</code> shows one card, and asks <code>setTimeout</code> to call it again with the next number after <code>speed</code> seconds. When the number reaches the end of the list, the cards are done, and it is time to guess. Each new card takes the place of the one before, so you can't go back and count them again.</p>
+  <p>The card comes in and turns over just like in Blackjack. At 0.5 seconds a card, Blackjack's animation would be too slow, so the times are set for each card: never more than 40% of the time the card is shown.</p>
+  <p>The same card is shown big when it is dealt, and small in the review. Everything on it is measured in <code>em</code>, which means "times the font size", so the font size alone sets the size of the whole card:</p>
+  <pre><code class="language-css">.slot.big {
+    font-size: 24px;
+}
+
+.slot.small {
+    font-size: 11px;
+}
+
+.card {
+    position: relative;
+    width: 4.6em;
+    height: 6.6em;
+    transform-style: preserve-3d;
+}</code></pre>
+
+  <h2>Step 6: The guess</h2>
+  <pre><code class="language-javascript">function askForCount() {
+    statusText.textContent = "";
+    dealBox.hidden = true;
+    // In hard mode the answer is the running count, so start from the count
+    // before this round. The review of the last round showed it.
+    guessInput.value = countBefore;
+    guessForm.hidden = false;
+    guessInput.focus();
+}
+
+function changeGuess(step) {
+    guessInput.value = (Number(guessInput.value) || 0) + step;
+}</code></pre>
+  <p>The number is an <code>&lt;input type="number"&gt;</code>, so you can type it, but on a phone it is much quicker to press the big − and + buttons. <code>Number(guessInput.value) || 0</code> turns the text in the box into a number, and gives 0 if the box is empty. In hard mode the box starts at the count before the round, so you only have to step it up or down with the new cards.</p>
+  <pre><code class="language-javascript">function checkGuess(event) {
+    event.preventDefault();
+    const guess = Math.round(Number(guessInput.value) || 0);
+    const right = guess === count;
+    ...</code></pre>
+  <p>A form is sent when you press Enter or click its submit button, and normally the browser then loads a new page. <code>event.preventDefault()</code> stops that, so we can check the guess ourselves. <code>Math.round</code> makes sure a guess like 2.5 counts as a whole number.</p>
+  <p>The forms are connected like this:</p>
+  <pre><code class="language-javascript">setupForm.addEventListener("submit", startGame);
+guessForm.addEventListener("submit", checkGuess);</code></pre>
+
+  <h2>Step 7: The review</h2>
+  <pre><code class="language-javascript">    // The round's cards, small, with the value of each under it.
+    reviewCards.innerHTML = "";
+    cards.forEach(function (card) {
+        const item = document.createElement("div");
+        item.className = "review-card";
+        item.appendChild(cardElement(card, "small"));
+        const value = document.createElement("span");
+        value.className = "value";
+        value.textContent = signed(hiLo(card));
+        item.appendChild(value);
+        reviewCards.appendChild(item);
+    });</code></pre>
+  <p>After each guess, all the cards of the round are shown small, with their value under each one. When you were wrong, it is easy to see which card you missed. In hard mode the review also says what the count was before the round.</p>
+
+  <h2>Step 8: How did you do?</h2>
+  <p>Every guess is saved in <code>history</code>, with the right count. At the end, the results come from that list. The percent is the number of right guesses divided by the number of rounds, times 100. Two more:</p>
+  <pre><code class="language-javascript">    // How far off the guesses were, and the longest run of right answers.
+    const totalMiss = history.reduce(function (sum, h) {
+        return sum + Math.abs(h.guess - h.count);
+    }, 0);
+    let streak = 0;
+    let bestStreak = 0;
+    history.forEach(function (h) {
+        streak = h.right ? streak + 1 : 0;
+        bestStreak = Math.max(bestStreak, streak);
+    });</code></pre>
+  <p><code>reduce</code> goes through the list and adds up how far off each guess was. <code>Math.abs</code> makes a miss of -2 count as 2, so misses in both directions add up. The streak counts up for each right guess and starts again at 0 for a wrong one, and <code>bestStreak</code> remembers the highest it got.</p>
+  <p>Last, a table with one row per round: the number of cards, your guess, the right count, and ✓ or ✗.</p>
+
+  <h2>Step 9: Test it</h2>
+  <ul>
+    <li>Count a round right and a round wrong. The review should show each card's value, and they should add up to the count.</li>
+    <li>Play hard mode. The count should go on from round to round, and the guess box should start at the count before the round.</li>
+    <li>Type a number and press Enter, instead of clicking Check.</li>
+    <li>Try every speed. At 0.5 seconds the cards should still turn over before the next one comes.</li>
+    <li>Play 10 rounds and check the percent, the average miss and the best streak by hand.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>hi-lo-counter.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Hi-Lo Counter&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+        text-align: center;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    /* A form, a box or a table with display: flex or grid would still show
+         when it is hidden, so hide them for real. */
+    [hidden] {
+        display: none !important;
+    }
+
+    /* --- The settings ------------------------------------------------------- */
+
+    .setup {
+        display: grid;
+        gap: 12px;
+        max-width: 320px;
+        margin: 16px auto 0;
+        text-align: left;
+    }
+
+    .setup label {
+        display: grid;
+        gap: 4px;
+        font-weight: bold;
+    }
+
+    .setup button {
+        justify-self: center;
+        margin-top: 8px;
+    }
+
+    /* --- The table ---------------------------------------------------------- */
+
+    /* Green felt with a wooden rail, as in Blackjack. */
+    .table {
+        margin-top: 16px;
+        padding: 12px 10px;
+        color: #ffffff;
+        background: radial-gradient(ellipse at 50% 40%, #2f8a5b, #1b5a3a 75%);
+        border: 8px solid #6b4423;
+        border-radius: 24px;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .label {
+        margin: 0 0 8px;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    #status {
+        min-height: 1.4em;
+        margin: 10px 0 0;
+    }
+
+    /* The card being shown, big, in the middle of the table. */
+    .deal {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 170px;
+    }
+
+    /* --- The cards, as in Blackjack ----------------------------------------- */
+
+    /* The size is set with font-size, and everything on the card is in em, so
+         one number makes a big or a small card. */
+    .slot {
+        flex: none;
+        perspective: 600px;
+    }
+
+    .slot.big {
+        font-size: 24px;
+    }
+
+    .slot.small {
+        font-size: 11px;
+    }
+
+    .card {
+        position: relative;
+        width: 4.6em;
+        height: 6.6em;
+        transform-style: preserve-3d;
+    }
+
+    .face {
+        position: absolute;
+        inset: 0;
+        border-radius: 6px;
+        backface-visibility: hidden;
+        box-shadow: -1px 1px 4px rgba(0, 0, 0, 0.45);
+    }
+
+    .front {
+        background-color: #ffffff;
+        border: 1px solid #c9c9c9;
+        color: #1a1a1a;
+        font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
+    }
+
+    .card.red .front {
+        color: #c8102e;
+    }
+
+    .back {
+        transform: rotateY(180deg);
+        background-color: #b3202a;
+        background-image:
+            repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px),
+            repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px);
+        border: 4px solid #ffffff;
+        outline: 1px solid #c9c9c9;
+        box-sizing: border-box;
+    }
+
+    .corner {
+        position: absolute;
+        font-size: 0.95em;
+        font-weight: bold;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .corner.top {
+        top: 0.25em;
+        left: 0.25em;
+    }
+
+    .corner.bottom {
+        bottom: 0.25em;
+        right: 0.25em;
+        transform: rotate(180deg);
+    }
+
+    .pip {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.3em;
+    }
+
+    /* The card being shown slides onto the table... */
+    .slot.big {
+        animation: slide 0.3s ease-out both;
+    }
+
+    @keyframes slide {
+        from { opacity: 0; transform: translateY(-40px); }
+    }
+
+    /* ...and turns over, from its back to its front. */
+    .slot.big .card {
+        animation: turn 0.45s ease-out both;
+    }
+
+    @keyframes turn {
+        from { transform: rotateY(180deg); }
+        to { transform: rotateY(0deg); }
+    }
+
+    /* --- The guess ---------------------------------------------------------- */
+
+    .guess p {
+        margin: 10px 0;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .stepper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .stepper button {
+        width: 56px;
+        height: 56px;
+        padding: 0;
+        font-size: 28px;
+        line-height: 1;
+        color: #222222;
+        background-color: #ffffff;
+        border: 3px solid #6b4423;
+        border-radius: 50%;
+    }
+
+    .stepper input {
+        width: 90px;
+        padding: 8px;
+        font-size: 28px;
+        font-weight: bold;
+        text-align: center;
+        border: 3px solid #6b4423;
+        border-radius: 8px;
+    }
+
+    /* No small up and down arrows in the box: there are big buttons for that. */
+    .stepper input {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+
+    .stepper input::-webkit-outer-spin-button,
+    .stepper input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .check {
+        background-color: #e8b455;
+        color: #222222;
+        border-color: #c99a3b;
+    }
+
+    /* --- The review --------------------------------------------------------- */
+
+    .verdict {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .verdict.right {
+        color: #9be6a8;
+    }
+
+    .verdict.wrong {
+        color: #ffb3b3;
+    }
+
+    .review-cards {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .review-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .review-card .value {
+        font-weight: bold;
+        color: #f6d77a;
+    }
+
+    .review button {
+        margin-top: 4px;
+    }
+
+    /* --- The end ------------------------------------------------------------ */
+
+    .score {
+        margin: 20px 0 8px;
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-size: 30px;
+        font-weight: bold;
+    }
+
+    .stats {
+        padding: 0;
+        list-style: none;
+        color: #555555;
+    }
+
+    .rounds-table {
+        margin: 12px auto 20px;
+        border-collapse: collapse;
+    }
+
+    .rounds-table th,
+    .rounds-table td {
+        padding: 4px 10px;
+        border-bottom: 1px solid #e3e3e3;
+    }
+
+    .rounds-table tr.right td:last-child {
+        color: #2e9e4f;
+        font-weight: bold;
+    }
+
+    .rounds-table tr.wrong td:last-child {
+        color: #d93a3a;
+        font-weight: bold;
+    }
+
+    /* --- The rules ---------------------------------------------------------- */
+
+    /* The rules: click "How to play" to open them. */
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+
+    .cheat-sheet {
+        margin: 8px auto 4px;
+        border-collapse: collapse;
+    }
+
+    .cheat-sheet th,
+    .cheat-sheet td {
+        padding: 4px 14px;
+        border-bottom: 1px solid #e3e3e3;
+        text-align: center;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hi-Lo Counter&lt;/h1&gt;
+
+  &lt;form id="setup" class="setup"&gt;
+    &lt;label&gt;Mode
+      &lt;select id="mode"&gt;
+        &lt;option value="easy" selected&gt;Easy: a new count every round&lt;/option&gt;
+        &lt;option value="hard"&gt;Hard: a running count&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+    &lt;label&gt;Rounds
+      &lt;select id="rounds"&gt;
+        &lt;option value="5" selected&gt;5&lt;/option&gt;
+        &lt;option value="8"&gt;8&lt;/option&gt;
+        &lt;option value="10"&gt;10&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+    &lt;label&gt;Speed
+      &lt;select id="speed"&gt;
+        &lt;option value="0.5"&gt;0.5 seconds a card&lt;/option&gt;
+        &lt;option value="1"&gt;1 second a card&lt;/option&gt;
+        &lt;option value="2" selected&gt;2 seconds a card&lt;/option&gt;
+        &lt;option value="5"&gt;5 seconds a card&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+    &lt;button type="submit"&gt;Start&lt;/button&gt;
+  &lt;/form&gt;
+
+  &lt;div id="play" class="table" hidden&gt;
+    &lt;p id="round" class="label"&gt;&lt;/p&gt;
+    &lt;div id="deal" class="deal"&gt;&lt;/div&gt;
+    &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+
+    &lt;form id="guess-form" class="guess" hidden&gt;
+      &lt;p&gt;What is the count?&lt;/p&gt;
+      &lt;div class="stepper"&gt;
+        &lt;button type="button" id="minus" aria-label="One less"&gt;−&lt;/button&gt;
+        &lt;input type="number" id="guess" value="0" step="1" aria-label="Your count"&gt;
+        &lt;button type="button" id="plus" aria-label="One more"&gt;+&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;button type="submit" class="check"&gt;Check&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;div id="review" class="review" hidden&gt;
+      &lt;p id="verdict" class="verdict"&gt;&lt;/p&gt;
+      &lt;div id="review-cards" class="review-cards"&gt;&lt;/div&gt;
+      &lt;p id="review-count"&gt;&lt;/p&gt;
+      &lt;button type="button" id="next"&gt;Next round&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div id="end" class="end" hidden&gt;
+    &lt;p id="score" class="score"&gt;&lt;/p&gt;
+    &lt;ul id="stats" class="stats"&gt;&lt;/ul&gt;
+    &lt;table id="rounds-table" class="rounds-table"&gt;&lt;/table&gt;
+    &lt;button type="button" id="again"&gt;Play again&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;details class="rules"&gt;
+    &lt;summary&gt;How to play&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Cards are shown one at a time. Keep a count in your head, with the Hi-Lo values below. When the cards stop, say what the count is.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Easy:&lt;/strong&gt; every round starts at 0, with a new deck.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Hard:&lt;/strong&gt; the count keeps running from round to round, like at a real table. Say the total so far.&lt;/li&gt;
+      &lt;li&gt;Card counters use the count in blackjack: a high count means many tens and aces are left, which is good for the player.&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;table class="cheat-sheet"&gt;
+      &lt;tr&gt;&lt;th&gt;Cards&lt;/th&gt;&lt;th&gt;Count&lt;/th&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;2, 3, 4, 5, 6&lt;/td&gt;&lt;td&gt;+1&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;7, 8, 9&lt;/td&gt;&lt;td&gt;0&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;10, J, Q, K, A&lt;/td&gt;&lt;td&gt;−1&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &lt;/details&gt;
+
+  &lt;script&gt;
+    /*
+     * Hi-Lo Counter: practice counting cards, the way blackjack players do.
+     *
+     * Cards are shown one at a time. Keep a count in your head:
+     *
+     *   2 3 4 5 6     +1
+     *   7 8 9          0
+     *   10 J Q K A    -1
+     *
+     * When the cards stop, say what the count is. Each round has 5 to 10
+     * cards, picked at random.
+     *
+     *   Easy: every round starts at 0, with a new deck.
+     *   Hard: the count keeps running from round to round, like at a real
+     *         table, and the deck is not shuffled again until the game is over.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SUITS = ["♠", "♥", "♦", "♣"];
+    const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const SUIT_NAMES = { "♠": "spades", "♥": "hearts", "♦": "diamonds", "♣": "clubs" };
+    const MIN_CARDS = 5;
+    const MAX_CARDS = 10;
+    const HARD_DECKS = 2;    // 104 cards: enough for 10 rounds of 10 cards
+
+    // --- Elements on the page ------------------------------------------------
+
+    function byId(id) {
+        return document.getElementById(id);
+    }
+
+    const setupForm = byId("setup");
+    const modeSelect = byId("mode");
+    const roundsSelect = byId("rounds");
+    const speedSelect = byId("speed");
+    const playBox = byId("play");
+    const roundText = byId("round");
+    const dealBox = byId("deal");
+    const statusText = byId("status");
+    const guessForm = byId("guess-form");
+    const guessInput = byId("guess");
+    const reviewBox = byId("review");
+    const verdictText = byId("verdict");
+    const reviewCards = byId("review-cards");
+    const reviewCountText = byId("review-count");
+    const nextButton = byId("next");
+    const endBox = byId("end");
+    const scoreText = byId("score");
+    const statsList = byId("stats");
+    const roundsTable = byId("rounds-table");
+    const againButton = byId("again");
+
+    // --- State ---------------------------------------------------------------
+
+    let mode = "easy";
+    let rounds = 5;       // rounds in this game
+    let speed = 2;        // seconds a card is shown
+    let deck = [];
+    let round = 0;        // the round being played, from 1
+    let cards = [];       // the cards of this round
+    let countBefore = 0;  // the count when the round started (0 in easy mode)
+    let count = 0;        // the right count after this round's cards
+    let history = [];     // { guess, count, cards, right } for each round
+    let dealTimer = null;
+
+    // --- Cards ---------------------------------------------------------------
+
+    // A shuffled deck, made of "decks" full decks (the Fisher-Yates shuffle).
+    function newDeck(decks) {
+        const list = [];
+        for (let d = 0; d &lt; decks; d++) {
+            for (const suit of SUITS) {
+                for (const value of VALUES) {
+                    list.push({ suit: suit, value: value });
+                }
+            }
+        }
+        for (let i = list.length - 1; i &gt; 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [list[i], list[j]] = [list[j], list[i]];
+        }
+        return list;
+    }
+
+    // The Hi-Lo value of a card: low cards +1, middle cards 0, high cards -1.
+    function hiLo(card) {
+        if (["2", "3", "4", "5", "6"].includes(card.value)) {
+            return 1;
+        }
+        if (["7", "8", "9"].includes(card.value)) {
+            return 0;
+        }
+        return -1;
+    }
+
+    // A count with its sign, like +2, 0 and −1.
+    function signed(n) {
+        if (n &gt; 0) {
+            return "+" + n;
+        }
+        return n &lt; 0 ? "−" + Math.abs(n) : "0";
+    }
+
+    // A card with a front and a back, as in Blackjack. It sits in a "slot"
+    // that slides it in, and the card itself turns over.
+    function cardElement(card, size) {
+        const slot = document.createElement("div");
+        slot.className = "slot " + size;
+        const element = document.createElement("div");
+        element.className = "card";
+        if (card.suit === "♥" || card.suit === "♦") {
+            element.classList.add("red");
+        }
+        element.setAttribute("role", "img");
+        element.setAttribute("aria-label", card.value + " of " + SUIT_NAMES[card.suit]);
+
+        const front = document.createElement("div");
+        front.className = "face front";
+        front.innerHTML =
+            '&lt;span class="corner top"&gt;' + card.value + "&lt;br&gt;" + card.suit + "&lt;/span&gt;" +
+            '&lt;span class="pip"&gt;' + card.suit + "&lt;/span&gt;" +
+            '&lt;span class="corner bottom"&gt;' + card.value + "&lt;br&gt;" + card.suit + "&lt;/span&gt;";
+        const back = document.createElement("div");
+        back.className = "face back";
+        element.append(front, back);
+        slot.appendChild(element);
+        return slot;
+    }
+
+    // --- The game ------------------------------------------------------------
+
+    function startGame(event) {
+        event.preventDefault();
+        mode = modeSelect.value;
+        rounds = Number(roundsSelect.value);
+        speed = Number(speedSelect.value);
+        deck = newDeck(mode === "hard" ? HARD_DECKS : 1);
+        history = [];
+        round = 0;
+        count = 0;
+        setupForm.hidden = true;
+        endBox.hidden = true;
+        playBox.hidden = false;
+        nextRound();
+    }
+
+    function nextRound() {
+        round++;
+        if (mode === "easy") {
+            deck = newDeck(1);
+            count = 0;
+        }
+        countBefore = count;
+        const amount = MIN_CARDS + Math.floor(Math.random() * (MAX_CARDS - MIN_CARDS + 1));
+        cards = deck.splice(0, amount);
+        cards.forEach(function (card) {
+            count += hiLo(card);
+        });
+
+        roundText.textContent = "Round " + round + " of " + rounds;
+        if (mode === "hard" &amp;&amp; round &gt; 1) {
+            statusText.textContent = "Keep counting from where you were.";
+        } else {
+            statusText.textContent = "Count the cards.";
+        }
+        guessForm.hidden = true;
+        reviewBox.hidden = true;
+        dealBox.hidden = false;
+        dealBox.innerHTML = "";
+        showCard(0);
+    }
+
+    // Show card number "index", and the next one after "speed" seconds. Each
+    // card takes the place of the one before, so you can't count them again.
+    function showCard(index) {
+        if (index === cards.length) {
+            dealBox.innerHTML = "";
+            askForCount();
+            return;
+        }
+        const slot = cardElement(cards[index], "big");
+        // The card comes in and turns over in under half of its time.
+        const animation = Math.min(0.45, speed * 0.4);
+        slot.style.animationDuration = animation * 0.4 + "s";
+        slot.firstChild.style.animationDuration = animation * 0.6 + "s";
+        slot.firstChild.style.animationDelay = animation * 0.4 + "s";
+        dealBox.innerHTML = "";
+        dealBox.appendChild(slot);
+        dealTimer = setTimeout(function () {
+            showCard(index + 1);
+        }, speed * 1000);
+    }
+
+    function askForCount() {
+        statusText.textContent = "";
+        dealBox.hidden = true;
+        // In hard mode the answer is the running count, so start from the count
+        // before this round. The review of the last round showed it.
+        guessInput.value = countBefore;
+        guessForm.hidden = false;
+        guessInput.focus();
+    }
+
+    function changeGuess(step) {
+        guessInput.value = (Number(guessInput.value) || 0) + step;
+    }
+
+    function checkGuess(event) {
+        event.preventDefault();
+        const guess = Math.round(Number(guessInput.value) || 0);
+        const right = guess === count;
+        history.push({ guess: guess, count: count, cards: cards, right: right });
+
+        guessForm.hidden = true;
+        if (right) {
+            verdictText.textContent = "Right! The count is " + signed(count) + ".";
+            verdictText.className = "verdict right";
+        } else {
+            verdictText.textContent = "Not quite: you said " + signed(guess) + ", the count is " + signed(count) + ".";
+            verdictText.className = "verdict wrong";
+        }
+
+        // The round's cards, small, with the value of each under it.
+        reviewCards.innerHTML = "";
+        cards.forEach(function (card) {
+            const item = document.createElement("div");
+            item.className = "review-card";
+            item.appendChild(cardElement(card, "small"));
+            const value = document.createElement("span");
+            value.className = "value";
+            value.textContent = signed(hiLo(card));
+            item.appendChild(value);
+            reviewCards.appendChild(item);
+        });
+        if (mode === "hard") {
+            reviewCountText.textContent = "The count was " + signed(countBefore) +
+                " before this round, and these cards add " + signed(count - countBefore) + ".";
+        } else {
+            reviewCountText.textContent = "These cards add up to " + signed(count) + ".";
+        }
+        nextButton.textContent = round &lt; rounds ? "Next round" : "See how you did";
+        reviewBox.hidden = false;
+        nextButton.focus();
+    }
+
+    function next() {
+        if (round &lt; rounds) {
+            nextRound();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        playBox.hidden = true;
+        endBox.hidden = false;
+
+        const rightCount = history.filter(function (h) { return h.right; }).length;
+        const percent = Math.round(rightCount / history.length * 100);
+        scoreText.textContent = rightCount + " of " + history.length + " right (" + percent + "%)";
+
+        // How far off the guesses were, and the longest run of right answers.
+        const totalMiss = history.reduce(function (sum, h) {
+            return sum + Math.abs(h.guess - h.count);
+        }, 0);
+        let streak = 0;
+        let bestStreak = 0;
+        history.forEach(function (h) {
+            streak = h.right ? streak + 1 : 0;
+            bestStreak = Math.max(bestStreak, streak);
+        });
+        statsList.innerHTML = "";
+        [
+            "Average miss: " + (totalMiss / history.length).toFixed(1),
+            "Best streak: " + bestStreak + " right in a row",
+            "Mode: " + (mode === "hard" ? "hard, running count" : "easy, new count every round") +
+                ", " + speed + " s a card"
+        ].forEach(function (text) {
+            const item = document.createElement("li");
+            item.textContent = text;
+            statsList.appendChild(item);
+        });
+
+        roundsTable.innerHTML = "&lt;tr&gt;&lt;th&gt;Round&lt;/th&gt;&lt;th&gt;Cards&lt;/th&gt;&lt;th&gt;You said&lt;/th&gt;&lt;th&gt;Count&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;";
+        history.forEach(function (h, index) {
+            const row = document.createElement("tr");
+            [index + 1, h.cards.length, signed(h.guess), signed(h.count), h.right ? "✓" : "✗"].forEach(function (text) {
+                const cell = document.createElement("td");
+                cell.textContent = text;
+                row.appendChild(cell);
+            });
+            row.className = h.right ? "right" : "wrong";
+            roundsTable.appendChild(row);
+        });
+        againButton.focus();
+    }
+
+    function playAgain() {
+        clearTimeout(dealTimer);
+        endBox.hidden = true;
+        playBox.hidden = true;
+        setupForm.hidden = false;
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    setupForm.addEventListener("submit", startGame);
+    guessForm.addEventListener("submit", checkGuess);
+    byId("minus").addEventListener("click", function () { changeGuess(-1); });
+    byId("plus").addEventListener("click", function () { changeGuess(1); });
+    nextButton.addEventListener("click", next);
+    againButton.addEventListener("click", playAgain);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Show the cards two or three at a time, like a real deal.</li>
+    <li>Add a "true count": the running count divided by the number of decks that are left. That is what counters really use to decide how much to bet.</li>
+    <li>Save the best result for each speed in <code>localStorage</code>.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>The Hi-Lo Counter needs no keyboard, so it works well on a phone. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
