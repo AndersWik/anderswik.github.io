@@ -1,0 +1,31 @@
+---
+layout: game
+title: Fia
+permalink: /games/fia/
+nonav: true
+css:
+  - /assets/fia/fia.css
+js:
+  - /assets/fia/fia.js
+---
+<div class="container">
+  <h1>Fia</h1>
+  <div id="board"></div>
+  <div class="dice-row">
+    <span id="die" aria-hidden="true"></span>
+    <button type="button" id="roll">Roll</button>
+  </div>
+  <p id="status" aria-live="polite"></p>
+  <p id="message"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="easy" selected>Three computers (easy)</option>
+      <option value="hard">Three computers (hard)</option>
+      <option value="pvp">A friend</option>
+      <option value="pvp4">Three friends</option>
+    </select>
+  </p>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/fia/">How to build this game</a></p>

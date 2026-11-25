@@ -30,6 +30,7 @@
 - { slug: chore-wheel, page: pages/games/chore-wheel.html, emoji: "🧹" }
 - { slug: coin-flip, page: pages/games/coin-flip.html, emoji: "🪙" }
 - { slug: four-in-a-row, page: pages/games/four-in-a-row.html, name: Connect Four, emoji: "🔴" }
+- { slug: fia, page: pages/games/fia.html, emoji: "➕", label: FIA, open: tab }
 - { slug: hangman, page: pages/games/hangman.html, emoji: "🪢" }
 - { slug: kvarn, page: pages/games/kvarn.html, emoji: "⚪", label: "9" }
 - { slug: ludo, page: pages/games/ludo.html, emoji: "🎲", label: LUDO, open: tab }

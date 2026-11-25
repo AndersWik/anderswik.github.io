@@ -1,0 +1,139 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  text-align: center;
+  width: 490px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.game h1 {
+  text-shadow: 2px 2px #747474;
+}
+
+.game #board {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 3px;
+  width: 450px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 10px;
+  background-color: #f3dfa8;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+.game .cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The circles on the board. The other squares stay empty. */
+.game .circle {
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 2px solid #5a4a2a;
+  box-sizing: border-box;
+}
+
+/* Bases, home circles and start circles in the player's color. */
+.game .circle.red { background-color: #d93a3a; }
+.game .circle.blue { background-color: #2f6fd6; }
+.game .circle.green { background-color: #2e9e4f; }
+.game .circle.yellow { background-color: #e8b923; }
+.game .circle.middle { background-color: #222222; }
+
+/* A piece is a ball with a light spot. */
+.game .piece {
+  width: 75%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  background-image: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.6), transparent 45%);
+}
+
+.game .piece.red { background-color: #d93a3a; }
+.game .piece.blue { background-color: #2f6fd6; }
+.game .piece.green { background-color: #2e9e4f; }
+.game .piece.yellow { background-color: #e8b923; }
+
+/* The pieces you may move: a dark ring that blinks. */
+.game .piece.movable {
+  cursor: pointer;
+  box-shadow: 0 0 0 3px #222222;
+  animation: blink 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes blink {
+  to { box-shadow: 0 0 0 1px #222222; }
+}
+
+.game .dice-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.game #die {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.game #die.red { color: #d93a3a; }
+.game #die.blue { color: #2f6fd6; }
+.game #die.green { color: #2e9e4f; }
+.game #die.yellow { color: #c99a0e; }
+
+.game #status {
+  font-size: 18px;
+  margin-top: 16px;
+}
+
+.game #message {
+  color: #c25e00;
+  min-height: 1.5em;
+}
+
+.game button {
+  padding: 15px 30px;
+  font-size: 18px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game #roll.red { background-color: #d93a3a; }
+.game #roll.blue { background-color: #2f6fd6; }
+.game #roll.green { background-color: #2e9e4f; }
+.game #roll.yellow { background-color: #c99a0e; }
+
+.game #roll:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.game select {
+  margin-top: 16px;
+  padding: 6px;
+  font-size: 16px;
+}
