@@ -17,12 +17,12 @@ keywords: [javascript, game, memory, cards, pairs, shuffle, images, objects, set
   <pre><code class="language-plaintext">memory/
     memory.html
     images/
-        card.svg
-        blue-star.svg
+        card-back.svg
+        apple.svg
         ...</code></pre>
   <p>Download these into <code>images</code> (right-click a link and save it):</p>
-  <p><a href="/assets/memory/images/card.svg">card.svg</a>, <a href="/assets/memory/images/blue-star.svg">blue-star.svg</a>, <a href="/assets/memory/images/green-star.svg">green-star.svg</a>, <a href="/assets/memory/images/purple-star.svg">purple-star.svg</a>, <a href="/assets/memory/images/yellow-star.svg">yellow-star.svg</a>, <a href="/assets/memory/images/blue-triangel.svg">blue-triangel.svg</a>, <a href="/assets/memory/images/green-triangel.svg">green-triangel.svg</a>, <a href="/assets/memory/images/purple-triangel.svg">purple-triangel.svg</a>, <a href="/assets/memory/images/yellow-triangel.svg">yellow-triangel.svg</a>, <a href="/assets/memory/images/blue-square.svg">blue-square.svg</a>, <a href="/assets/memory/images/green-square.svg">green-square.svg</a>, <a href="/assets/memory/images/purple-square.svg">purple-square.svg</a>, <a href="/assets/memory/images/yellow-square.svg">yellow-square.svg</a></p>
-  <p><code>card.svg</code> is the back of the cards. The others are the pictures on the front.</p>
+  <p><a href="/assets/memory/images/card-back.svg">card-back.svg</a>, <a href="/assets/memory/images/apple.svg">apple.svg</a>, <a href="/assets/memory/images/banana.svg">banana.svg</a>, <a href="/assets/memory/images/grapes.svg">grapes.svg</a>, <a href="/assets/memory/images/kiwi.svg">kiwi.svg</a>, <a href="/assets/memory/images/watermelon.svg">watermelon.svg</a>, <a href="/assets/memory/images/orange.svg">orange.svg</a>, <a href="/assets/memory/images/pear.svg">pear.svg</a>, <a href="/assets/memory/images/cherries.svg">cherries.svg</a>, <a href="/assets/memory/images/strawberry.svg">strawberry.svg</a>, <a href="/assets/memory/images/lemon.svg">lemon.svg</a>, <a href="/assets/memory/images/pineapple.svg">pineapple.svg</a>, <a href="/assets/memory/images/peach.svg">peach.svg</a></p>
+  <p><code>card-back.svg</code> is the back of the cards: blue, with a white pattern. The others are the fruit on the front. They are SVG files, pictures made of shapes, so they are sharp in every size. Open one in a text editor: an apple is a red path, a brown line for the stem and a green leaf.</p>
   <h2>Step 1: The page</h2>
   <p>Create <code>memory.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
   <pre><code class="language-html">&lt;h1&gt;Memory&lt;/h1&gt;
@@ -51,7 +51,7 @@ body {
 
 #board {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     max-width: 440px;
     margin: 0 auto;
@@ -59,20 +59,24 @@ body {
 
 .card {
     aspect-ratio: 1;
-    padding: 6px;
-    background: #dddddd;
-    border: none;
-    border-radius: 8px;
+    box-sizing: border-box;
+    padding: 8px;
+    background: #ffffff;
+    border: 1px solid #d6d6d6;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     cursor: pointer;
 }
 
 .card img {
+    display: block;
     width: 100%;
     height: 100%;
 }
 
 .card.down {
-    background: black url("images/card.svg") center / cover no-repeat;
+    background: #1d4f9c url("images/card-back.svg") center / cover no-repeat;
+    border-color: #1d4f9c;
 }
 
 .card.down img {
@@ -82,15 +86,17 @@ body {
 #status {
     font-size: 18px;
 }</code></pre>
+  <p><code>minmax(0, 1fr)</code> means an equal share of the width, like <code>1fr</code>, but a column may get narrower than the picture in it. With plain <code>1fr</code> the big SVG pictures would push the columns wider than the board.</p>
   <p>Every card is a button with its picture inside. A card lying face down has the class <code>down</code>. Then the back of the card is shown as the button's background, and the picture is hidden with <code>visibility: hidden</code>. Turning a card is just adding or removing <code>down</code>.</p>
-  <p><code>background: black url(...) center / cover no-repeat</code> is a short way to write five background settings at once: the color, the picture, its position, its size (<code>cover</code> fills the whole button) and that it should not repeat.</p>
+  <p><code>background: #1d4f9c url(...) center / cover no-repeat</code> is a short way to write five background settings at once: the color, the picture, its position, its size (<code>cover</code> fills the whole button) and that it should not repeat.</p>
   <h2>Step 2: The deck</h2>
   <pre><code class="language-javascript">const IMAGE_FOLDER = "images/";
 
+// The most different ones first, so the small games have no look-alikes.
 const PICTURES = [
-    "blue-star", "green-star", "purple-star", "yellow-star",
-    "blue-triangel", "green-triangel", "purple-triangel", "yellow-triangel",
-    "blue-square", "green-square", "purple-square", "yellow-square"
+    "apple", "banana", "grapes", "kiwi",
+    "watermelon", "orange", "pear", "cherries",
+    "strawberry", "lemon", "pineapple", "peach"
 ];
 
 const pairs = Number(sizeSelect.value);
@@ -105,7 +111,7 @@ const deck = shuffle(names.concat(names));</code></pre>
     element.className = "card down";
     const image = document.createElement("img");
     image.src = IMAGE_FOLDER + name + ".svg";
-    image.alt = name.replace("-", " ");
+    image.alt = name;
     element.appendChild(image);
     board.appendChild(element);
 
@@ -117,7 +123,7 @@ const deck = shuffle(names.concat(names));</code></pre>
 });</code></pre>
   <p>For each name in the deck, we make a button with the picture in it, and an object for the card: its <code>name</code>, its button <code>element</code>, and if it is <code>up</code>. <code>map</code> collects the objects into the list <code>cards</code>.</p>
   <p>The click handler gets the card object itself, not just the button. The first version kept the data in <code>data-</code> attributes on the buttons, and had to read them back as text all the time. With an object, <code>card.name</code> and <code>card.up</code> are just there.</p>
-  <p><code>alt</code> is the text a screen reader reads. <code>"blue-star".replace("-", " ")</code> gives "blue star". A face down card has its picture hidden with <code>visibility</code>, which hides it from screen readers too, so the alt text doesn't give the game away.</p>
+  <p><code>alt</code> is the text a screen reader reads: the name of the fruit, like "apple". A face down card has its picture hidden with <code>visibility</code>, which hides it from screen readers too, so the alt text doesn't give the game away.</p>
   <h2>Step 4: Turning cards</h2>
   <pre><code class="language-javascript">function turnUp(card) {
     if (open.length === 2 || card.up) {
@@ -183,7 +189,7 @@ const deck = shuffle(names.concat(names));</code></pre>
 
     #board {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 10px;
         max-width: 440px;
         margin: 0 auto;
@@ -191,20 +197,24 @@ const deck = shuffle(names.concat(names));</code></pre>
 
     .card {
         aspect-ratio: 1;
-        padding: 6px;
-        background: #dddddd;
-        border: none;
-        border-radius: 8px;
+        box-sizing: border-box;
+        padding: 8px;
+        background: #ffffff;
+        border: 1px solid #d6d6d6;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         cursor: pointer;
     }
 
     .card img {
+        display: block;
         width: 100%;
         height: 100%;
     }
 
     .card.down {
-        background: black url("images/card.svg") center / cover no-repeat;
+        background: #1d4f9c url("images/card-back.svg") center / cover no-repeat;
+        border-color: #1d4f9c;
     }
 
     .card.down img {
@@ -242,10 +252,11 @@ const deck = shuffle(names.concat(names));</code></pre>
     // Where the pictures are: a folder called "images" next to this page.
     const IMAGE_FOLDER = "images/";
 
+    // The most different ones first, so the small games have no look-alikes.
     const PICTURES = [
-        "blue-star", "green-star", "purple-star", "yellow-star",
-        "blue-triangel", "green-triangel", "purple-triangel", "yellow-triangel",
-        "blue-square", "green-square", "purple-square", "yellow-square"
+        "apple", "banana", "grapes", "kiwi",
+        "watermelon", "orange", "pear", "cherries",
+        "strawberry", "lemon", "pineapple", "peach"
     ];
     const TURN_BACK_TIME = 800;   // ms to look at two cards that don't match
 
@@ -303,7 +314,7 @@ const deck = shuffle(names.concat(names));</code></pre>
             element.className = "card down";
             const image = document.createElement("img");
             image.src = IMAGE_FOLDER + name + ".svg";
-            image.alt = name.replace("-", " ");
+            image.alt = name;
             element.appendChild(image);
             board.appendChild(element);
 

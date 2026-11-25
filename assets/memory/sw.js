@@ -6,29 +6,29 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "memory-db0ade52a9";
+const CACHE = "memory-eb6f53a561";
 
 const FILES = [
     "/assets/memory/app.html",
     "/assets/memory/images/apple-touch-icon.png",
-    "/assets/memory/images/blue-square.svg",
-    "/assets/memory/images/blue-star.svg",
-    "/assets/memory/images/blue-triangel.svg",
-    "/assets/memory/images/card.svg",
+    "/assets/memory/images/apple.svg",
+    "/assets/memory/images/banana.svg",
+    "/assets/memory/images/card-back.svg",
+    "/assets/memory/images/cherries.svg",
     "/assets/memory/images/favicon.svg",
-    "/assets/memory/images/green-square.svg",
-    "/assets/memory/images/green-star.svg",
-    "/assets/memory/images/green-triangel.svg",
+    "/assets/memory/images/grapes.svg",
     "/assets/memory/images/icon-192.png",
     "/assets/memory/images/icon-512.png",
     "/assets/memory/images/icon-maskable-512.png",
-    "/assets/memory/images/purple-square.svg",
-    "/assets/memory/images/purple-star.svg",
-    "/assets/memory/images/purple-triangel.svg",
+    "/assets/memory/images/kiwi.svg",
+    "/assets/memory/images/lemon.svg",
+    "/assets/memory/images/orange.svg",
+    "/assets/memory/images/peach.svg",
+    "/assets/memory/images/pear.svg",
+    "/assets/memory/images/pineapple.svg",
     "/assets/memory/images/star.svg",
-    "/assets/memory/images/yellow-square.svg",
-    "/assets/memory/images/yellow-star.svg",
-    "/assets/memory/images/yellow-triangel.svg",
+    "/assets/memory/images/strawberry.svg",
+    "/assets/memory/images/watermelon.svg",
     "/assets/memory/manifest.webmanifest",
     "/assets/memory/memory.css",
     "/assets/memory/memory.js",

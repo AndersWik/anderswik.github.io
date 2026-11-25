@@ -8,6 +8,9 @@
 
 .game .container {
   text-align: center;
+  width: 480px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
   padding: 20px;
   background-color: white;
   border-radius: 10px;
@@ -15,35 +18,54 @@
   margin: 20px;
 }
 
+/* The title: the site's font, and a short gold line under it. */
 .game h1 {
-  color: #f7931a;
-  text-shadow: 2px 2px #d67e00;
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
 }
 
 .game #board {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* minmax(0, 1fr): a column may be narrower than the picture in it. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  width: min(440px, 100%);
+  width: 440px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
 .game .card {
   aspect-ratio: 1;
-  padding: 6px;
-  background: #dddddd;
-  border: none;
-  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #d6d6d6;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   cursor: pointer;
 }
 
 .game .card img {
+  display: block;
   width: 100%;
   height: 100%;
 }
 
 .game .card.down {
-  background: black url("images/card.svg") center / cover no-repeat;
+  background: #1d4f9c url("images/card-back.svg") center / cover no-repeat;
+  border-color: #1d4f9c;
 }
 
 .game .card.down img {

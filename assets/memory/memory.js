@@ -9,10 +9,11 @@
 // Where the pictures are. On a page of your own: "images/".
 const IMAGE_FOLDER = "/assets/memory/images/";
 
+// The most different ones first, so the small games have no look-alikes.
 const PICTURES = [
-    "blue-star", "green-star", "purple-star", "yellow-star",
-    "blue-triangel", "green-triangel", "purple-triangel", "yellow-triangel",
-    "blue-square", "green-square", "purple-square", "yellow-square"
+    "apple", "banana", "grapes", "kiwi",
+    "watermelon", "orange", "pear", "cherries",
+    "strawberry", "lemon", "pineapple", "peach"
 ];
 const TURN_BACK_TIME = 800;   // ms to look at two cards that don't match
 
@@ -70,7 +71,7 @@ function newGame() {
         element.className = "card down";
         const image = document.createElement("img");
         image.src = IMAGE_FOLDER + name + ".svg";
-        image.alt = name.replace("-", " ");
+        image.alt = name;
         element.appendChild(image);
         board.appendChild(element);
 

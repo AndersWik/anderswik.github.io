@@ -18,7 +18,7 @@
 
     #board {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 10px;
         max-width: 440px;
         margin: 0 auto;
@@ -26,20 +26,24 @@
 
     .card {
         aspect-ratio: 1;
-        padding: 6px;
-        background: #dddddd;
-        border: none;
-        border-radius: 8px;
+        box-sizing: border-box;
+        padding: 8px;
+        background: #ffffff;
+        border: 1px solid #d6d6d6;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         cursor: pointer;
     }
 
     .card img {
+        display: block;
         width: 100%;
         height: 100%;
     }
 
     .card.down {
-        background: black url("images/card.svg") center / cover no-repeat;
+        background: #1d4f9c url("images/card-back.svg") center / cover no-repeat;
+        border-color: #1d4f9c;
     }
 
     .card.down img {
@@ -77,10 +81,11 @@
     // Where the pictures are: a folder called "images" next to this page.
     const IMAGE_FOLDER = "images/";
 
+    // The most different ones first, so the small games have no look-alikes.
     const PICTURES = [
-        "blue-star", "green-star", "purple-star", "yellow-star",
-        "blue-triangel", "green-triangel", "purple-triangel", "yellow-triangel",
-        "blue-square", "green-square", "purple-square", "yellow-square"
+        "apple", "banana", "grapes", "kiwi",
+        "watermelon", "orange", "pear", "cherries",
+        "strawberry", "lemon", "pineapple", "peach"
     ];
     const TURN_BACK_TIME = 800;   // ms to look at two cards that don't match
 
@@ -138,7 +143,7 @@
             element.className = "card down";
             const image = document.createElement("img");
             image.src = IMAGE_FOLDER + name + ".svg";
-            image.alt = name.replace("-", " ");
+            image.alt = name;
             element.appendChild(image);
             board.appendChild(element);
 
