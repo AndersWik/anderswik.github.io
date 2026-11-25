@@ -23,8 +23,7 @@
 - { slug: choose-dice, page: pages/games/choose-dice.html, short_name: Dice, emoji: "🎲" }
 - { slug: chore-wheel, page: pages/games/chore-wheel.html, short_name: Chore Wheel, emoji: "🧹" }
 - { slug: coin-flip, page: pages/games/coin-flip.html, short_name: Coin Flip, emoji: "🪙" }
-- { slug: four-in-a-row, page: pages/games/four-in-a-row.html, short_name: Connect 4, emoji: "🔴" }
-- { slug: four-in-a-row-ai, page: pages/games/four-in-a-row-ai.html, short_name: Connect 4 AI, emoji: "🔴", label: AI }
+- { slug: four-in-a-row, page: pages/games/four-in-a-row.html, name: Connect Four, short_name: Connect 4, emoji: "🔴" }
 - { slug: hangman, page: pages/games/hangman.html, short_name: Hangman, emoji: "🪢" }
 - { slug: kvarn, page: pages/games/kvarn.html, short_name: Kvarn, emoji: "⚪", label: "9" }
 - { slug: memory, page: pages/games/memory.html, name: Memory, short_name: Memory, emoji: "🧠" }

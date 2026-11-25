@@ -1,7 +1,10 @@
 /*
- * Connect Four: two players take turns dropping a piece into one of the
- * seven columns. It falls to the lowest free row. The first with four in a
- * row (across, down or diagonal) wins.
+ * Connect Four against the computer: the same game as Connect Four for two
+ * players, but yellow can be played by the computer.
+ *
+ *   Easy: win if it can, block you if you are about to win, otherwise play
+ *         as near the middle as it can.
+ *   Hard: tries every move 5 moves ahead (minimax) and picks the best.
  */
 
 // --- Settings ------------------------------------------------------------
@@ -9,6 +12,11 @@
 const ROWS = 6;
 const COLS = 7;
 const NAMES = { 1: "Red", 2: "Yellow" };
+const HUMAN = 1;
+const COMPUTER = 2;
+const DEPTH = 5;                            // moves the hard computer looks ahead
+const COMPUTER_DELAY = 500;                 // ms before the computer moves
+const MIDDLE_FIRST = [3, 2, 4, 1, 5, 0, 6]; // columns, best first
 
 const DIRECTIONS = [
     [0, 1],   // across
@@ -22,6 +30,7 @@ const DIRECTIONS = [
 const boardElement = document.getElementById("board");
 const statusText = document.getElementById("status");
 const restartButton = document.getElementById("restart");
+const modeSelect = document.getElementById("mode");
 
 // --- State ---------------------------------------------------------------
 
@@ -30,10 +39,14 @@ let cells = [];         // cells[row][col]: the <div> for each place
 let player = 1;         // whose turn it is
 let moves = 0;
 let gameOver = false;
+let computerTimer = null;
 
 // --- The board -----------------------------------------------------------
 
 function newGame() {
+    // A computer move that is waiting to happen belongs to the old game.
+    clearTimeout(computerTimer);
+
     grid = [];
     cells = [];
     boardElement.innerHTML = "";
@@ -46,7 +59,9 @@ function newGame() {
             const cell = document.createElement("div");
             cell.className = "cell";
             cell.addEventListener("click", function () {
-                play(col);
+                if (!isComputersTurn()) {
+                    play(col);
+                }
             });
             boardElement.appendChild(cell);
             grid[row].push(0);
@@ -57,7 +72,19 @@ function newGame() {
     player = 1;
     moves = 0;
     gameOver = false;
-    statusText.textContent = NAMES[player] + "'s turn";
+    showTurn();
+}
+
+function isComputersTurn() {
+    return modeSelect.value !== "pvp" && player === COMPUTER;
+}
+
+function showTurn() {
+    if (isComputersTurn()) {
+        statusText.textContent = NAMES[player] + " is thinking...";
+    } else {
+        statusText.textContent = NAMES[player] + "'s turn";
+    }
 }
 
 // The lowest empty row in a column, or -1 if the column is full.
@@ -129,12 +156,158 @@ function play(col) {
         gameOver = true;
     } else {
         player = player === 1 ? 2 : 1;
-        statusText.textContent = NAMES[player] + "'s turn";
+        showTurn();
+        if (isComputersTurn()) {
+            computerTimer = setTimeout(computerMove, COMPUTER_DELAY);
+        }
     }
+}
+
+// --- The computer --------------------------------------------------------
+
+function computerMove() {
+    const col = modeSelect.value === "easy" ? easyMove() : hardMove();
+    play(col);
+}
+
+// Would dropping a piece for "who" in this column win? The piece is put in,
+// tested and taken out again.
+function winsIn(col, who) {
+    const row = freeRow(col);
+    if (row === -1) {
+        return false;
+    }
+    grid[row][col] = who;
+    const wins = findWin(row, col) !== null;
+    grid[row][col] = 0;
+    return wins;
+}
+
+function easyMove() {
+    const open = MIDDLE_FIRST.filter(function (col) {
+        return freeRow(col) !== -1;
+    });
+    // 1. Win if we can.
+    const win = open.find(function (col) {
+        return winsIn(col, COMPUTER);
+    });
+    if (win !== undefined) {
+        return win;
+    }
+    // 2. Stop the human from winning.
+    const block = open.find(function (col) {
+        return winsIn(col, HUMAN);
+    });
+    if (block !== undefined) {
+        return block;
+    }
+    // 3. As near the middle as possible.
+    return open[0];
+}
+
+function hardMove() {
+    let bestCol = -1;
+    let bestScore = -Infinity;
+    for (const col of MIDDLE_FIRST) {
+        const row = freeRow(col);
+        if (row === -1) {
+            continue;
+        }
+        grid[row][col] = COMPUTER;
+        const score = minimax(row, col, DEPTH - 1);
+        grid[row][col] = 0;
+        if (score > bestScore) {
+            bestScore = score;
+            bestCol = col;
+        }
+    }
+    return bestCol;
+}
+
+// How good is the board for the computer, right after a piece was dropped at
+// (row, col)? Big is good for the computer, small is good for the human.
+// depth is how many more moves to look ahead.
+function minimax(row, col, depth) {
+    const who = grid[row][col];
+    if (findWin(row, col)) {
+        // + depth: a win in fewer moves is better, a loss in more moves is
+        // less bad.
+        return who === COMPUTER ? 1000 + depth : -1000 - depth;
+    }
+    if (depth === 0) {
+        return scoreBoard();
+    }
+
+    // Now it is the other player's turn. The computer picks the biggest
+    // score, and expects the human to pick the smallest.
+    const next = who === COMPUTER ? HUMAN : COMPUTER;
+    let best = next === COMPUTER ? -Infinity : Infinity;
+    let anyMove = false;
+    for (let c = 0; c < COLS; c++) {
+        const r = freeRow(c);
+        if (r === -1) {
+            continue;
+        }
+        anyMove = true;
+        grid[r][c] = next;
+        const score = minimax(r, c, depth - 1);
+        grid[r][c] = 0;
+        best = next === COMPUTER ? Math.max(best, score) : Math.min(best, score);
+    }
+    return anyMove ? best : 0; // the board is full: a draw
+}
+
+// A guess at how good the board is, when nobody has won yet. Look at every
+// line of four places on the board.
+function scoreBoard() {
+    let score = 0;
+    for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+            for (const [dRow, dCol] of DIRECTIONS) {
+                const endRow = row + 3 * dRow;
+                const endCol = col + 3 * dCol;
+                if (endRow < 0 || endRow >= ROWS || endCol < 0 || endCol >= COLS) {
+                    continue; // the line would go off the board
+                }
+                let mine = 0;
+                let theirs = 0;
+                for (let i = 0; i < 4; i++) {
+                    const piece = grid[row + i * dRow][col + i * dCol];
+                    if (piece === COMPUTER) {
+                        mine++;
+                    } else if (piece === HUMAN) {
+                        theirs++;
+                    }
+                }
+                score += scoreLine(mine, theirs);
+            }
+        }
+    }
+    return score;
+}
+
+function scoreLine(mine, theirs) {
+    if (mine > 0 && theirs > 0) {
+        return 0; // both colors in it: nobody can win with this line
+    }
+    if (mine === 3) {
+        return 5;
+    }
+    if (mine === 2) {
+        return 2;
+    }
+    if (theirs === 3) {
+        return -5;
+    }
+    if (theirs === 2) {
+        return -2;
+    }
+    return 0;
 }
 
 // --- Connect the page ----------------------------------------------------
 
 restartButton.addEventListener("click", newGame);
+modeSelect.addEventListener("change", newGame);
 
 newGame();

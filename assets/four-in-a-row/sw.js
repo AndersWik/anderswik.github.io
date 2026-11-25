@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "four-in-a-row-25433e7324";
+const CACHE = "four-in-a-row-27346a824f";
 
 const FILES = [
     "/assets/four-in-a-row/app.html",
@@ -14,6 +14,7 @@ const FILES = [
     "/assets/four-in-a-row/four-in-a-row.js",
     "/assets/four-in-a-row/images/apple-touch-icon.png",
     "/assets/four-in-a-row/images/favicon.svg",
+    "/assets/four-in-a-row/images/four-in-a-row.svg",
     "/assets/four-in-a-row/images/icon-192.png",
     "/assets/four-in-a-row/images/icon-512.png",
     "/assets/four-in-a-row/images/icon-maskable-512.png",
