@@ -10,109 +10,236 @@
         max-width: 800px;
         margin: 40px auto;
         padding: 0 16px;
-    }
-
-    body {
         text-align: center;
     }
 
-    #question {
-        font-size: 22px;
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
     }
 
+    /* The topic, in a gold label. */
+    .topic {
+        display: inline-block;
+        min-height: 1.2em;
+        margin: 8px 0 16px;
+        padding: 5px 14px;
+        font-size: 14px;
+        font-weight: bold;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6b4f12;
+        background-color: #f6e3a1;
+        border-radius: 999px;
+    }
+
+    .topic:empty {
+        visibility: hidden;
+    }
+
+    .status {
+        display: flex;
+        justify-content: space-between;
+        font-size: 15px;
+        color: #666666;
+    }
+
+    /* display: flex would show the row even when it is hidden. */
+    .status[hidden] {
+        display: none;
+    }
+
+    /* One dot per question: green for right, red for wrong. */
+    .dots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 12px 0 4px;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #dddddd;
+    }
+
+    .dot.now {
+        background-color: #ffffff;
+        box-shadow: 0 0 0 2px #222222;
+    }
+
+    .dot.right {
+        background-color: #2e9e4f;
+    }
+
+    .dot.wrong {
+        background-color: #d93a3a;
+    }
+
+    #question {
+        min-height: 3em;
+        margin: 16px 0;
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-size: clamp(19px, 5vw, 23px);
+        font-weight: 500;
+        color: #222222;
+        overflow-wrap: anywhere;
+    }
+
+    /* At the end there is no question, so let the score move up. */
+    #question:empty {
+        display: none;
+    }
+
+    /* The answers: white cards, two by two. */
     #answers {
         display: grid;
-        grid-template-columns: 1fr 1fr;
         gap: 10px;
-        max-width: 500px;
-        margin: 0 auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 400px) {
+        #answers {
+            grid-template-columns: 1fr;
+        }
     }
 
     #answers button {
-        padding: 15px;
-        font-size: 18px;
+        padding: 14px 12px;
+        font-size: clamp(15px, 4.2vw, 17px);
+        color: #222222;
+        background-color: #ffffff;
+        border: 2px solid #d6d6d6;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+        overflow-wrap: anywhere;
+        transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    #answers button:hover:enabled {
+        border-color: #222222;
+        background-color: #f7f7f7;
+    }
+
+    #answers button:disabled {
+        color: #999999;
+        cursor: default;
     }
 
     #answers button.correct {
-        background-color: #99e883;
+        color: #ffffff;
+        background-color: #2e9e4f;
+        border-color: #2e9e4f;
     }
 
     #answers button.wrong {
-        background-color: #d47575;
+        color: #ffffff;
+        background-color: #d93a3a;
+        border-color: #d93a3a;
     }
 
+    /* The end of the game: the score, big. */
     #result {
+        margin: 8px 0 16px;
         font-size: 20px;
         font-weight: bold;
+        color: #222222;
+        white-space: pre-line;
+    }
+
+    #result .big {
+        display: block;
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-size: 56px;
+        line-height: 1.1;
+    }
+
+    #restart {
+        padding: 15px 30px;
+        font-size: 18px;
+        background-color: #000000;
+        color: #ffffff;
+        border: 5px solid #3d3b3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* The rules: click "How to play" to open them. */
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
     }
   </style>
 </head>
 <body>
-  <h1>Quiz!</h1>
-  <p>Score: <span id="score">0</span></p>
-  <p id="progress"></p>
+  <h1>Quiz</h1>
+  <p id="topic" class="topic"></p>
+  <div id="status" class="status">
+    <span id="progress"></span>
+    <span>Score: <span id="score">0</span></span>
+  </div>
+  <div id="dots" class="dots"></div>
   <p id="question"></p>
   <div id="answers"></div>
   <p id="result" aria-live="polite"></p>
   <button type="button" id="restart" hidden>Play again</button>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>Every game has a topic, picked at random: animals, space, the human body, food and drink, around the world, science and inventions, the ocean, or sports and games.</li>
+      <li>You get five questions about the topic. Click the answer you think is right.</li>
+      <li>The right answer turns green. If you picked a wrong one, it turns red.</li>
+      <li>Each topic has 50 questions, and you won't get the same question again until you have seen them all.</li>
+    </ul>
+  </details>
 
   <script>
     /*
-     * Quiz: five questions about animals, picked at random. Click an answer to
-     * see if it was right, and the next question comes by itself.
+     * Quiz: every game has a topic picked at random, and five questions about
+     * it. Click an answer to see if it was right, and the next question comes
+     * by itself.
+     *
+     * The questions are in questions.json: 8 topics with 50 questions each.
+     * Each topic deals its questions like a deck of cards, so you don't get the
+     * same question again until you have seen them all.
      */
 
     // --- Settings ------------------------------------------------------------
 
-    const QUESTIONS = [
-        {
-            question: "How many years can a snail sleep for?",
-            answers: ["Four", "Five", "Three", "One"],
-            correct: 2
-        },
-        {
-            question: "What is the largest bird in the world?",
-            answers: ["Swan", "Emperor penguin", "Ostrich", "Albatross"],
-            correct: 2
-        },
-        {
-            question: "What do you call a group of kangaroos?",
-            answers: ["A band", "A troop", "A gang", "A crowd"],
-            correct: 1
-        },
-        {
-            question: "What is the largest mammal in the world?",
-            answers: ["African elephant", "Blue whale", "Giraffe", "Hippopotamus"],
-            correct: 1
-        },
-        {
-            question: "What is the tallest species of penguin?",
-            answers: ["King penguin", "Humboldt penguin", "Royal penguin", "Emperor penguin"],
-            correct: 3
-        },
-        {
-            question: "How long does it take for a sloth to digest its food?",
-            answers: ["30 days", "20 days", "10 days", "40 days"],
-            correct: 0
-        },
-        {
-            question: "How many compartments does a cow's stomach have?",
-            answers: ["Four", "Three", "Two", "One"],
-            correct: 0
-        },
-        {
-            question: "Which mammal has the lowest heart rate?",
-            answers: ["Hippopotamus", "Brown bear", "African elephant", "Blue whale"],
-            correct: 3
-        }
-    ];
+    // Where the questions are. On a page of your own: "questions.json".
+    const QUESTIONS_FILE = "/assets/quiz/questions.json";
     const QUESTIONS_PER_GAME = 5;
     const NEXT_TIME = 1200;    // ms to show the right answer before going on
 
     // --- Elements on the page ------------------------------------------------
 
+    const topicText = document.getElementById("topic");
+    const statusRow = document.getElementById("status");
     const scoreText = document.getElementById("score");
     const progressText = document.getElementById("progress");
+    const dotsBox = document.getElementById("dots");
     const questionText = document.getElementById("question");
     const answersBox = document.getElementById("answers");
     const resultText = document.getElementById("result");
@@ -120,7 +247,11 @@
 
     // --- State ---------------------------------------------------------------
 
+    let topics = [];       // from questions.json: { name, questions }
+    let decks = {};        // the questions left to deal, for each topic
+    let topic = null;      // the topic of this game
     let questions = [];    // the questions for this game
+    let results = [];      // true or false for each question answered
     let current = 0;       // index of the question showing
     let score = 0;
     let answered = false;  // true once the question showing has been answered
@@ -140,16 +271,76 @@
         return copy;
     }
 
+    function randomItem(list) {
+        return list[Math.floor(Math.random() * list.length)];
+    }
+
+    // --- Loading the questions -----------------------------------------------
+
+    async function loadQuestions() {
+        questionText.textContent = "Loading the questions...";
+        try {
+            const response = await fetch(QUESTIONS_FILE);
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+            const data = await response.json();
+            topics = data.topics;
+            newGame();
+        } catch (error) {
+            questionText.textContent = "The questions could not be loaded (" + error.message + ").";
+        }
+    }
+
+    // --- Topics and questions ------------------------------------------------
+
+    // A random topic, but not the same as last game.
+    function pickTopic() {
+        const others = topics.filter(function (t) {
+            return t !== topic;
+        });
+        return randomItem(others.length > 0 ? others : topics);
+    }
+
+    // The next questions from the topic's deck. When the deck runs low, the
+    // whole topic is shuffled into a new deck.
+    function dealQuestions(t) {
+        if (!decks[t.name] || decks[t.name].length < QUESTIONS_PER_GAME) {
+            decks[t.name] = shuffle(t.questions);
+        }
+        return decks[t.name].splice(0, QUESTIONS_PER_GAME);
+    }
+
     // --- The game ------------------------------------------------------------
 
     function newGame() {
-        questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);
+        topic = pickTopic();
+        questions = dealQuestions(topic);
+        results = [];
         current = 0;
         score = 0;
+        topicText.textContent = topic.name;
         scoreText.textContent = score;
+        statusRow.hidden = false;
         resultText.textContent = "";
         restartButton.hidden = true;
         showQuestion();
+    }
+
+    function showDots() {
+        dotsBox.innerHTML = "";
+        questions.forEach(function (q, index) {
+            const dot = document.createElement("span");
+            dot.className = "dot";
+            if (results[index] === true) {
+                dot.classList.add("right");
+            } else if (results[index] === false) {
+                dot.classList.add("wrong");
+            } else if (index === current) {
+                dot.classList.add("now");
+            }
+            dotsBox.appendChild(dot);
+        });
     }
 
     function showQuestion() {
@@ -157,20 +348,24 @@
         answered = false;
         progressText.textContent = "Question " + (current + 1) + " of " + questions.length;
         questionText.textContent = q.question;
+        showDots();
 
+        // The answers in a new order every time, so the right one moves around.
+        // Each button remembers which answer it is with data-index.
         answersBox.innerHTML = "";
-        q.answers.forEach(function (text, index) {
+        shuffle([0, 1, 2, 3]).forEach(function (index) {
             const button = document.createElement("button");
             button.type = "button";
-            button.textContent = text;
+            button.textContent = q.answers[index];
+            button.dataset.index = index;
             button.addEventListener("click", function () {
-                answer(index);
+                answer(index, button);
             });
             answersBox.appendChild(button);
         });
     }
 
-    function answer(index) {
+    function answer(index, clicked) {
         // Only the first click counts.
         if (answered) {
             return;
@@ -178,19 +373,23 @@
         answered = true;
 
         const q = questions[current];
-        const buttons = answersBox.querySelectorAll("button");
-        buttons.forEach(function (button) {
-            button.disabled = true;
-        });
+        const right = index === q.correct;
+        results[current] = right;
 
         // Always show the right answer in green. A wrong click goes red.
-        buttons[q.correct].classList.add("correct");
-        if (index === q.correct) {
+        answersBox.querySelectorAll("button").forEach(function (button) {
+            button.disabled = true;
+            if (Number(button.dataset.index) === q.correct) {
+                button.classList.add("correct");
+            }
+        });
+        if (right) {
             score++;
             scoreText.textContent = score;
         } else {
-            buttons[index].classList.add("wrong");
+            clicked.classList.add("wrong");
         }
+        showDots();
 
         setTimeout(nextQuestion, NEXT_TIME);
     }
@@ -205,14 +404,27 @@
     }
 
     function endGame() {
+        // The score is shown big at the end, so the row with it can go.
+        statusRow.hidden = true;
         progressText.textContent = "";
         questionText.textContent = "";
         answersBox.innerHTML = "";
+        showDots();
+
+        let words;
         if (score === questions.length) {
-            resultText.textContent = "Amazing! You got all " + score + " right!";
+            words = "Amazing! All of them right!";
+        } else if (score >= questions.length - 2) {
+            words = "Well done!";
         } else {
-            resultText.textContent = "You got " + score + " of " + questions.length + " right.";
+            words = "Better luck with the next topic!";
         }
+        // The score big, and the words under it.
+        resultText.innerHTML = "";
+        const big = document.createElement("span");
+        big.className = "big";
+        big.textContent = score + " / " + questions.length;
+        resultText.append(big, words);
         restartButton.hidden = false;
     }
 
@@ -220,7 +432,7 @@
 
     restartButton.addEventListener("click", newGame);
 
-    newGame();
+    loadQuestions();
   </script>
 </body>
 </html>

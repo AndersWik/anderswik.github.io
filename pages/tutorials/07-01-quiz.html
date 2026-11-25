@@ -4,82 +4,131 @@ title: Quiz
 permalink: /tutorials/quiz/
 chapter: "07"
 chapter_title: "Trivia and Puzzle games"
-keywords: [javascript, game, quiz, objects, list of objects, shuffle, fisher-yates, slice, setTimeout, buttons, hidden]
+keywords: [javascript, game, quiz, json, fetch, async, await, objects, list of objects, shuffle, fisher-yates, splice, dataset, setTimeout, buttons, hidden]
 ---
 
 <div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
   <h1>Quiz</h1>
-  <p>Five questions about animals, picked at random from a longer list. Click an answer and the page shows at once if it was right: the right answer turns green, and a wrong click turns red. After a moment the next question comes by itself.</p>
-  <p>The new parts are keeping the questions as a list of objects, shuffling a list properly, and stopping a second click from counting.</p>
+  <p>Every game has a topic, picked at random: animals, space, the human body, food and drink, around the world, science and inventions, the ocean, or sports and games. You get five questions about it. Click an answer and the page shows at once if it was right: the right answer turns green, and a wrong click turns red. After a moment the next question comes by itself.</p>
+  <p>The new parts are keeping the questions in a JSON file and loading it with <code>fetch</code>, shuffling a list properly, dealing questions like cards so they don't repeat, and stopping a second click from counting.</p>
   <p><a href="/assets/tutorials/quiz.html">Open the finished game</a></p>
   <h2>Step 1: The page</h2>
-  <p>Create <code>quiz.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>:</p>
-  <pre><code class="language-html">&lt;h1&gt;Quiz!&lt;/h1&gt;
-&lt;p&gt;Score: &lt;span id="score"&gt;0&lt;/span&gt;&lt;/p&gt;
-&lt;p id="progress"&gt;&lt;/p&gt;
+  <p>Create a folder for the game with <code>quiz.html</code>, made from the <a href="/tutorials/utility-page/">skeleton</a>, and <code>questions.json</code> next to it:</p>
+  <pre><code class="language-plaintext">quiz/
+    quiz.html
+    questions.json</code></pre>
+  <pre><code class="language-html">&lt;h1&gt;Quiz&lt;/h1&gt;
+&lt;p id="topic" class="topic"&gt;&lt;/p&gt;
+&lt;div id="status" class="status"&gt;
+  &lt;span id="progress"&gt;&lt;/span&gt;
+  &lt;span&gt;Score: &lt;span id="score"&gt;0&lt;/span&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div id="dots" class="dots"&gt;&lt;/div&gt;
 &lt;p id="question"&gt;&lt;/p&gt;
 &lt;div id="answers"&gt;&lt;/div&gt;
 &lt;p id="result" aria-live="polite"&gt;&lt;/p&gt;
 &lt;button type="button" id="restart" hidden&gt;Play again&lt;/button&gt;</code></pre>
-  <p>The answer buttons are made by the code for each question. The Play again button is <code>hidden</code> until the quiz is over.</p>
-  <pre><code class="language-css">body {
-    font-family: sans-serif;
-    max-width: 800px;
-    margin: 40px auto;
-    padding: 0 16px;
+  <p>The answer buttons and the dots are made by the code for each question. The Play again button is <code>hidden</code> until the quiz is over.</p>
+  <pre><code class="language-css">.topic {
+    display: inline-block;
+    min-height: 1.2em;
+    margin: 8px 0 16px;
+    padding: 5px 14px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b4f12;
+    background-color: #f6e3a1;
+    border-radius: 999px;
 }
 
-body {
-    text-align: center;
+.topic:empty {
+    visibility: hidden;
 }
 
-#question {
-    font-size: 22px;
+.status[hidden] {
+    display: none;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #dddddd;
+}
+
+.dot.now {
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px #222222;
+}
+
+.dot.right {
+    background-color: #2e9e4f;
+}
+
+.dot.wrong {
+    background-color: #d93a3a;
 }
 
 #answers {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 10px;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-#answers button {
-    padding: 15px;
-    font-size: 18px;
-}
-
-#answers button.correct {
-    background-color: #99e883;
-}
-
-#answers button.wrong {
-    background-color: #d47575;
-}
-
-#result {
-    font-size: 20px;
-    font-weight: bold;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }</code></pre>
-  <p><code>grid-template-columns: 1fr 1fr</code> puts the four answers in two columns of the same width, two by two.</p>
-  <h2>Step 2: The questions</h2>
-  <pre><code class="language-javascript">const QUESTIONS = [
+  <p>The topic is a label with round ends: <code>border-radius: 999px</code> is more than half its height, so the ends become half circles. <code>:empty</code> matches an element with no text in it, so the label doesn't show before the questions are loaded. The row with the question number and the score is a flex box, and <code>display: flex</code> would show it even when it is <code>hidden</code>, so <code>.status[hidden]</code> says to hide it after all. <code>repeat(2, minmax(0, 1fr))</code> puts the four answers in two columns of the same width, two by two.</p>
+  <h2>Step 2: The questions in a JSON file</h2>
+  <p>400 questions would make the code very long. So they live in their own file, <code>questions.json</code>, and the code only reads it. Download <a href="/assets/quiz/questions.json">questions.json</a>, or start your own like this:</p>
+  <pre><code class="language-json">{
+  "topics": [
     {
-        question: "How many years can a snail sleep for?",
-        answers: ["Four", "Five", "Three", "One"],
-        correct: 2
+      "name": "Animals",
+      "questions": [
+        { "question": "How many years can a snail sleep for?", "answers": ["Five", "One", "Four", "Three"], "correct": 3 },
+        { "question": "What is the largest bird in the world?", "answers": ["Ostrich", "Albatross", "Emperor penguin", "Swan"], "correct": 0 },
+        ...
+      ]
     },
     {
-        question: "What is the largest bird in the world?",
-        answers: ["Swan", "Emperor penguin", "Ostrich", "Albatross"],
-        correct: 2
-    },
-    ...
-];</code></pre>
-  <p>Each question is an object with three parts: the question, a list of answers, and <code>correct</code>, the index of the right answer. 2 is the third answer, because lists count from 0. Keeping everything about one question together makes it easy to add more: copy one object and change the text.</p>
-  <h2>Step 3: Shuffling</h2>
-  <p>To pick five different questions at random, we shuffle the whole list and take the first five:</p>
+      "name": "Space",
+      "questions": [ ... ]
+    }
+  ]
+}</code></pre>
+  <p>JSON looks like JavaScript objects and lists, with two rules: every name is in double quotes, and there is no comma after the last item. The file has a list of <code>topics</code>, and each topic has a <code>name</code> and a list of <code>questions</code>.</p>
+  <p>Each question is an object with three parts: the question, a list of answers, and <code>correct</code>, the index of the right answer. 3 is the fourth answer, because lists count from 0. Keeping everything about one question together makes it easy to add more: copy a line and change the text. Then anyone can add questions without touching the code.</p>
+  <h2>Step 3: Loading the file</h2>
+  <pre><code class="language-javascript">const QUESTIONS_FILE = "/assets/quiz/questions.json";
+
+async function loadQuestions() {
+    questionText.textContent = "Loading the questions...";
+    try {
+        const response = await fetch(QUESTIONS_FILE);
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+        const data = await response.json();
+        topics = data.topics;
+        newGame();
+    } catch (error) {
+        questionText.textContent = "The questions could not be loaded (" + error.message + ").";
+    }
+}</code></pre>
+  <p>This is the same <code>fetch</code>, <code>async</code> and <code>await</code> as in <a href="/tutorials/my-ip/">My IP</a>, but for a file next to the page instead of a web service. <code>response.json()</code> turns the text of the file into real objects and lists. If the file is missing, <code>response.ok</code> is false, and the page says so instead of showing nothing. On the site the file is at <code>/assets/quiz/questions.json</code>; on a page of your own, set <code>QUESTIONS_FILE</code> to <code>"questions.json"</code>.</p>
+  <p><strong>One catch:</strong> browsers don't let <code>fetch</code> read files when a page is opened straight from your disk, with an address that starts with <code>file://</code>. You get "The questions could not be loaded". Start a small web server in the game's folder instead, and open the page from it:</p>
+  <pre><code class="language-bash">$ cd quiz
+$ python3 -m http.server 8000</code></pre>
+  <p>Then open <code>http://localhost:8000/quiz.html</code>. (<a href="/tutorials/eliza/">Eliza</a> keeps its script in a <code>.js</code> file for this reason, so it also works from disk.)</p>
+  <h2>Step 4: A topic</h2>
+  <pre><code class="language-javascript">// A random topic, but not the same as last game.
+function pickTopic() {
+    const others = topics.filter(function (t) {
+        return t !== topic;
+    });
+    return randomItem(others.length &gt; 0 ? others : topics);
+}</code></pre>
+  <p><code>filter</code> keeps every topic except the one we just played, and <code>randomItem</code> picks one of them. The very first game has no topic yet, so <code>others</code> is all of them.</p>
+  <h2>Step 5: Shuffling</h2>
   <pre><code class="language-javascript">function shuffle(list) {
     const copy = list.slice();
     for (let i = copy.length - 1; i &gt; 0; i--) {
@@ -89,71 +138,99 @@ body {
         copy[j] = temp;
     }
     return copy;
-}
-
-questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);</code></pre>
+}</code></pre>
   <p>This is the <strong>Fisher-Yates shuffle</strong>. Start at the last item and swap it with a random item at or before it, maybe itself. Then do the same with the second to last, and so on to the front. Every order is just as likely, which is not true for most home-made ways of shuffling.</p>
-  <p>The three lines with <code>temp</code> swap two items: save one in <code>temp</code>, copy the other over it, then put <code>temp</code> back in the other's place.</p>
-  <p><code>list.slice()</code> with nothing between the brackets makes a copy, so the shuffle doesn't mix up <code>QUESTIONS</code> itself. <code>slice(0, 5)</code> gives the items from index 0 up to, but not including, 5.</p>
-  <h2>Step 4: Showing a question</h2>
+  <p>The three lines with <code>temp</code> swap two items: save one in <code>temp</code>, copy the other over it, then put <code>temp</code> back in the other's place. <code>list.slice()</code> with nothing between the brackets makes a copy, so the shuffle doesn't mix up the list it was given.</p>
+  <h2>Step 6: Dealing the questions</h2>
+  <p>The first version took five random questions every game. With only a few questions, you saw the same ones again and again. Even with 50, picking at random gives repeats sooner than you'd think. So each topic deals its questions like a deck of cards:</p>
+  <pre><code class="language-javascript">// The next questions from the topic's deck. When the deck runs low, the
+// whole topic is shuffled into a new deck.
+function dealQuestions(t) {
+    if (!decks[t.name] || decks[t.name].length &lt; QUESTIONS_PER_GAME) {
+        decks[t.name] = shuffle(t.questions);
+    }
+    return decks[t.name].splice(0, QUESTIONS_PER_GAME);
+}</code></pre>
+  <p><code>decks</code> has one pile for each topic, by its name. The first time, or when there are fewer than five left, the whole topic is shuffled into a new pile. <code>splice(0, 5)</code> takes the first five questions out of the pile and gives them back, so the next game gets the next five. You don't see a question again until you have seen all 50 of that topic.</p>
+  <h2>Step 7: Showing a question</h2>
   <pre><code class="language-javascript">function showQuestion() {
     const q = questions[current];
     answered = false;
     progressText.textContent = "Question " + (current + 1) + " of " + questions.length;
     questionText.textContent = q.question;
+    showDots();
 
+    // The answers in a new order every time, so the right one moves around.
+    // Each button remembers which answer it is with data-index.
     answersBox.innerHTML = "";
-    q.answers.forEach(function (text, index) {
+    shuffle([0, 1, 2, 3]).forEach(function (index) {
         const button = document.createElement("button");
         button.type = "button";
-        button.textContent = text;
+        button.textContent = q.answers[index];
+        button.dataset.index = index;
         button.addEventListener("click", function () {
-            answer(index);
+            answer(index, button);
         });
         answersBox.appendChild(button);
     });
 }</code></pre>
-  <p><code>current</code> counts from 0, but people count from 1, so the page shows <code>current + 1</code>. The old buttons are thrown away with <code>innerHTML = ""</code>, and four new ones are made, like the letter buttons in <a href="/tutorials/hangman/">Hangman</a>. Each one calls <code>answer</code> with its own index.</p>
-  <h2>Step 5: Answering</h2>
-  <pre><code class="language-javascript">function answer(index) {
+  <p>In the file, the right answer is always at the same place for a question. Shuffling the numbers 0 to 3 shows the answers in a new order every time. Each button still has to know which answer it is, so it gets it in <code>data-index</code>: <code>button.dataset.index = index</code> sets the attribute, and <code>answer</code> can read it back. Each button also passes itself to <code>answer</code>, so it can be colored red.</p>
+  <h2>Step 8: Answering</h2>
+  <pre><code class="language-javascript">function answer(index, clicked) {
+    // Only the first click counts.
     if (answered) {
         return;
     }
     answered = true;
 
     const q = questions[current];
-    const buttons = answersBox.querySelectorAll("button");
-    buttons.forEach(function (button) {
-        button.disabled = true;
-    });
+    const right = index === q.correct;
+    results[current] = right;
 
-    buttons[q.correct].classList.add("correct");
-    if (index === q.correct) {
+    // Always show the right answer in green. A wrong click goes red.
+    answersBox.querySelectorAll("button").forEach(function (button) {
+        button.disabled = true;
+        if (Number(button.dataset.index) === q.correct) {
+            button.classList.add("correct");
+        }
+    });
+    if (right) {
         score++;
         scoreText.textContent = score;
     } else {
-        buttons[index].classList.add("wrong");
+        clicked.classList.add("wrong");
     }
+    showDots();
 
     setTimeout(nextQuestion, NEXT_TIME);
 }</code></pre>
   <p>The page waits <code>NEXT_TIME</code> (1.2 seconds) before the next question, so there is time to see the colors. During that time the buttons are still there, and a fast double click could give two points for one question. So the first click sets <code>answered</code>, and every click after that returns at once. The buttons are also disabled, so they look finished.</p>
-  <p>The right answer always turns green, also when you clicked a wrong one. That way you learn something even when you miss.</p>
-  <h2>Step 6: The next question, or the end</h2>
-  <pre><code class="language-javascript">function nextQuestion() {
-    current++;
-    if (current &lt; questions.length) {
-        showQuestion();
-    } else {
-        endGame();
-    }
+  <p>The right answer always turns green, also when you clicked a wrong one: the button whose <code>data-index</code> is <code>q.correct</code>. <code>dataset</code> values are always text, so <code>Number()</code> makes it a number before comparing. That way you learn something even when you miss.</p>
+  <h2>Step 9: The dots, and the end</h2>
+  <pre><code class="language-javascript">function showDots() {
+    dotsBox.innerHTML = "";
+    questions.forEach(function (q, index) {
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        if (results[index] === true) {
+            dot.classList.add("right");
+        } else if (results[index] === false) {
+            dot.classList.add("wrong");
+        } else if (index === current) {
+            dot.classList.add("now");
+        }
+        dotsBox.appendChild(dot);
+    });
 }</code></pre>
-  <p><code>endGame</code> clears the question and the buttons, shows the result, and shows Play again by setting <code>restartButton.hidden = false</code>. Play again calls <code>newGame</code>, which shuffles new questions, sets <code>current</code> and <code>score</code> back to 0 and hides the button again.</p>
-  <h2>Step 7: Test it</h2>
+  <p><code>results</code> has <code>true</code> or <code>false</code> for each question answered, so far. A question not answered yet is <code>undefined</code>, neither true nor false, and its dot stays grey, or gets a ring if it is the question showing now.</p>
+  <p>When the last question is answered, <code>endGame</code> hides the row with the question number and the score, shows the score big instead, with a few words under it, and shows Play again by setting <code>restartButton.hidden = false</code>. Play again calls <code>newGame</code>, which picks a new topic and deals five new questions.</p>
+  <h2>Step 10: Test it</h2>
   <ul>
-    <li>Answer right and wrong. Green and red should show, and only right answers should count.</li>
+    <li>Answer right and wrong. Green and red should show, in the buttons and the dots, and only right answers should count.</li>
     <li>Double click an answer fast. The score should only go up by one.</li>
-    <li>Play two games. The questions should come in a new order.</li>
+    <li>Play a few games. The topic should change every time, and the answers come in a new order.</li>
+    <li>Rename <code>questions.json</code> for a moment. The page should say that the questions could not be loaded.</li>
+    <li>Add a question of your own to the file, with a mistake like a missing comma. The page can't load it either: JSON is strict.</li>
   </ul>
   <h2>The complete page</h2>
   <p><strong>quiz.html</strong></p>
@@ -169,109 +246,236 @@ questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);</code></pre>
         max-width: 800px;
         margin: 40px auto;
         padding: 0 16px;
-    }
-
-    body {
         text-align: center;
     }
 
-    #question {
-        font-size: 22px;
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
     }
 
+    /* The topic, in a gold label. */
+    .topic {
+        display: inline-block;
+        min-height: 1.2em;
+        margin: 8px 0 16px;
+        padding: 5px 14px;
+        font-size: 14px;
+        font-weight: bold;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6b4f12;
+        background-color: #f6e3a1;
+        border-radius: 999px;
+    }
+
+    .topic:empty {
+        visibility: hidden;
+    }
+
+    .status {
+        display: flex;
+        justify-content: space-between;
+        font-size: 15px;
+        color: #666666;
+    }
+
+    /* display: flex would show the row even when it is hidden. */
+    .status[hidden] {
+        display: none;
+    }
+
+    /* One dot per question: green for right, red for wrong. */
+    .dots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 12px 0 4px;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #dddddd;
+    }
+
+    .dot.now {
+        background-color: #ffffff;
+        box-shadow: 0 0 0 2px #222222;
+    }
+
+    .dot.right {
+        background-color: #2e9e4f;
+    }
+
+    .dot.wrong {
+        background-color: #d93a3a;
+    }
+
+    #question {
+        min-height: 3em;
+        margin: 16px 0;
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-size: clamp(19px, 5vw, 23px);
+        font-weight: 500;
+        color: #222222;
+        overflow-wrap: anywhere;
+    }
+
+    /* At the end there is no question, so let the score move up. */
+    #question:empty {
+        display: none;
+    }
+
+    /* The answers: white cards, two by two. */
     #answers {
         display: grid;
-        grid-template-columns: 1fr 1fr;
         gap: 10px;
-        max-width: 500px;
-        margin: 0 auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 400px) {
+        #answers {
+            grid-template-columns: 1fr;
+        }
     }
 
     #answers button {
-        padding: 15px;
-        font-size: 18px;
+        padding: 14px 12px;
+        font-size: clamp(15px, 4.2vw, 17px);
+        color: #222222;
+        background-color: #ffffff;
+        border: 2px solid #d6d6d6;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+        overflow-wrap: anywhere;
+        transition: border-color 0.15s, background-color 0.15s;
+    }
+
+    #answers button:hover:enabled {
+        border-color: #222222;
+        background-color: #f7f7f7;
+    }
+
+    #answers button:disabled {
+        color: #999999;
+        cursor: default;
     }
 
     #answers button.correct {
-        background-color: #99e883;
+        color: #ffffff;
+        background-color: #2e9e4f;
+        border-color: #2e9e4f;
     }
 
     #answers button.wrong {
-        background-color: #d47575;
+        color: #ffffff;
+        background-color: #d93a3a;
+        border-color: #d93a3a;
     }
 
+    /* The end of the game: the score, big. */
     #result {
+        margin: 8px 0 16px;
         font-size: 20px;
         font-weight: bold;
+        color: #222222;
+        white-space: pre-line;
+    }
+
+    #result .big {
+        display: block;
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-size: 56px;
+        line-height: 1.1;
+    }
+
+    #restart {
+        padding: 15px 30px;
+        font-size: 18px;
+        background-color: #000000;
+        color: #ffffff;
+        border: 5px solid #3d3b3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* The rules: click "How to play" to open them. */
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
     }
   &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
-  &lt;h1&gt;Quiz!&lt;/h1&gt;
-  &lt;p&gt;Score: &lt;span id="score"&gt;0&lt;/span&gt;&lt;/p&gt;
-  &lt;p id="progress"&gt;&lt;/p&gt;
+  &lt;h1&gt;Quiz&lt;/h1&gt;
+  &lt;p id="topic" class="topic"&gt;&lt;/p&gt;
+  &lt;div id="status" class="status"&gt;
+    &lt;span id="progress"&gt;&lt;/span&gt;
+    &lt;span&gt;Score: &lt;span id="score"&gt;0&lt;/span&gt;&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div id="dots" class="dots"&gt;&lt;/div&gt;
   &lt;p id="question"&gt;&lt;/p&gt;
   &lt;div id="answers"&gt;&lt;/div&gt;
   &lt;p id="result" aria-live="polite"&gt;&lt;/p&gt;
   &lt;button type="button" id="restart" hidden&gt;Play again&lt;/button&gt;
+  &lt;details class="rules"&gt;
+    &lt;summary&gt;How to play&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Every game has a topic, picked at random: animals, space, the human body, food and drink, around the world, science and inventions, the ocean, or sports and games.&lt;/li&gt;
+      &lt;li&gt;You get five questions about the topic. Click the answer you think is right.&lt;/li&gt;
+      &lt;li&gt;The right answer turns green. If you picked a wrong one, it turns red.&lt;/li&gt;
+      &lt;li&gt;Each topic has 50 questions, and you won't get the same question again until you have seen them all.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
 
   &lt;script&gt;
     /*
-     * Quiz: five questions about animals, picked at random. Click an answer to
-     * see if it was right, and the next question comes by itself.
+     * Quiz: every game has a topic picked at random, and five questions about
+     * it. Click an answer to see if it was right, and the next question comes
+     * by itself.
+     *
+     * The questions are in questions.json: 8 topics with 50 questions each.
+     * Each topic deals its questions like a deck of cards, so you don't get the
+     * same question again until you have seen them all.
      */
 
     // --- Settings ------------------------------------------------------------
 
-    const QUESTIONS = [
-        {
-            question: "How many years can a snail sleep for?",
-            answers: ["Four", "Five", "Three", "One"],
-            correct: 2
-        },
-        {
-            question: "What is the largest bird in the world?",
-            answers: ["Swan", "Emperor penguin", "Ostrich", "Albatross"],
-            correct: 2
-        },
-        {
-            question: "What do you call a group of kangaroos?",
-            answers: ["A band", "A troop", "A gang", "A crowd"],
-            correct: 1
-        },
-        {
-            question: "What is the largest mammal in the world?",
-            answers: ["African elephant", "Blue whale", "Giraffe", "Hippopotamus"],
-            correct: 1
-        },
-        {
-            question: "What is the tallest species of penguin?",
-            answers: ["King penguin", "Humboldt penguin", "Royal penguin", "Emperor penguin"],
-            correct: 3
-        },
-        {
-            question: "How long does it take for a sloth to digest its food?",
-            answers: ["30 days", "20 days", "10 days", "40 days"],
-            correct: 0
-        },
-        {
-            question: "How many compartments does a cow's stomach have?",
-            answers: ["Four", "Three", "Two", "One"],
-            correct: 0
-        },
-        {
-            question: "Which mammal has the lowest heart rate?",
-            answers: ["Hippopotamus", "Brown bear", "African elephant", "Blue whale"],
-            correct: 3
-        }
-    ];
+    // Where the questions are. On a page of your own: "questions.json".
+    const QUESTIONS_FILE = "/assets/quiz/questions.json";
     const QUESTIONS_PER_GAME = 5;
     const NEXT_TIME = 1200;    // ms to show the right answer before going on
 
     // --- Elements on the page ------------------------------------------------
 
+    const topicText = document.getElementById("topic");
+    const statusRow = document.getElementById("status");
     const scoreText = document.getElementById("score");
     const progressText = document.getElementById("progress");
+    const dotsBox = document.getElementById("dots");
     const questionText = document.getElementById("question");
     const answersBox = document.getElementById("answers");
     const resultText = document.getElementById("result");
@@ -279,7 +483,11 @@ questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);</code></pre>
 
     // --- State ---------------------------------------------------------------
 
+    let topics = [];       // from questions.json: { name, questions }
+    let decks = {};        // the questions left to deal, for each topic
+    let topic = null;      // the topic of this game
     let questions = [];    // the questions for this game
+    let results = [];      // true or false for each question answered
     let current = 0;       // index of the question showing
     let score = 0;
     let answered = false;  // true once the question showing has been answered
@@ -299,16 +507,76 @@ questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);</code></pre>
         return copy;
     }
 
+    function randomItem(list) {
+        return list[Math.floor(Math.random() * list.length)];
+    }
+
+    // --- Loading the questions -----------------------------------------------
+
+    async function loadQuestions() {
+        questionText.textContent = "Loading the questions...";
+        try {
+            const response = await fetch(QUESTIONS_FILE);
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+            const data = await response.json();
+            topics = data.topics;
+            newGame();
+        } catch (error) {
+            questionText.textContent = "The questions could not be loaded (" + error.message + ").";
+        }
+    }
+
+    // --- Topics and questions ------------------------------------------------
+
+    // A random topic, but not the same as last game.
+    function pickTopic() {
+        const others = topics.filter(function (t) {
+            return t !== topic;
+        });
+        return randomItem(others.length &gt; 0 ? others : topics);
+    }
+
+    // The next questions from the topic's deck. When the deck runs low, the
+    // whole topic is shuffled into a new deck.
+    function dealQuestions(t) {
+        if (!decks[t.name] || decks[t.name].length &lt; QUESTIONS_PER_GAME) {
+            decks[t.name] = shuffle(t.questions);
+        }
+        return decks[t.name].splice(0, QUESTIONS_PER_GAME);
+    }
+
     // --- The game ------------------------------------------------------------
 
     function newGame() {
-        questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);
+        topic = pickTopic();
+        questions = dealQuestions(topic);
+        results = [];
         current = 0;
         score = 0;
+        topicText.textContent = topic.name;
         scoreText.textContent = score;
+        statusRow.hidden = false;
         resultText.textContent = "";
         restartButton.hidden = true;
         showQuestion();
+    }
+
+    function showDots() {
+        dotsBox.innerHTML = "";
+        questions.forEach(function (q, index) {
+            const dot = document.createElement("span");
+            dot.className = "dot";
+            if (results[index] === true) {
+                dot.classList.add("right");
+            } else if (results[index] === false) {
+                dot.classList.add("wrong");
+            } else if (index === current) {
+                dot.classList.add("now");
+            }
+            dotsBox.appendChild(dot);
+        });
     }
 
     function showQuestion() {
@@ -316,20 +584,24 @@ questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);</code></pre>
         answered = false;
         progressText.textContent = "Question " + (current + 1) + " of " + questions.length;
         questionText.textContent = q.question;
+        showDots();
 
+        // The answers in a new order every time, so the right one moves around.
+        // Each button remembers which answer it is with data-index.
         answersBox.innerHTML = "";
-        q.answers.forEach(function (text, index) {
+        shuffle([0, 1, 2, 3]).forEach(function (index) {
             const button = document.createElement("button");
             button.type = "button";
-            button.textContent = text;
+            button.textContent = q.answers[index];
+            button.dataset.index = index;
             button.addEventListener("click", function () {
-                answer(index);
+                answer(index, button);
             });
             answersBox.appendChild(button);
         });
     }
 
-    function answer(index) {
+    function answer(index, clicked) {
         // Only the first click counts.
         if (answered) {
             return;
@@ -337,19 +609,23 @@ questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);</code></pre>
         answered = true;
 
         const q = questions[current];
-        const buttons = answersBox.querySelectorAll("button");
-        buttons.forEach(function (button) {
-            button.disabled = true;
-        });
+        const right = index === q.correct;
+        results[current] = right;
 
         // Always show the right answer in green. A wrong click goes red.
-        buttons[q.correct].classList.add("correct");
-        if (index === q.correct) {
+        answersBox.querySelectorAll("button").forEach(function (button) {
+            button.disabled = true;
+            if (Number(button.dataset.index) === q.correct) {
+                button.classList.add("correct");
+            }
+        });
+        if (right) {
             score++;
             scoreText.textContent = score;
         } else {
-            buttons[index].classList.add("wrong");
+            clicked.classList.add("wrong");
         }
+        showDots();
 
         setTimeout(nextQuestion, NEXT_TIME);
     }
@@ -364,14 +640,27 @@ questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);</code></pre>
     }
 
     function endGame() {
+        // The score is shown big at the end, so the row with it can go.
+        statusRow.hidden = true;
         progressText.textContent = "";
         questionText.textContent = "";
         answersBox.innerHTML = "";
+        showDots();
+
+        let words;
         if (score === questions.length) {
-            resultText.textContent = "Amazing! You got all " + score + " right!";
+            words = "Amazing! All of them right!";
+        } else if (score &gt;= questions.length - 2) {
+            words = "Well done!";
         } else {
-            resultText.textContent = "You got " + score + " of " + questions.length + " right.";
+            words = "Better luck with the next topic!";
         }
+        // The score big, and the words under it.
+        resultText.innerHTML = "";
+        const big = document.createElement("span");
+        big.className = "big";
+        big.textContent = score + " / " + questions.length;
+        resultText.append(big, words);
         restartButton.hidden = false;
     }
 
@@ -379,13 +668,13 @@ questions = shuffle(QUESTIONS).slice(0, QUESTIONS_PER_GAME);</code></pre>
 
     restartButton.addEventListener("click", newGame);
 
-    newGame();
+    loadQuestions();
   &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
   <h2>Try this</h2>
   <ul>
-    <li>Shuffle the answers too, so the right answer isn't always in the same place. (Remember that <code>correct</code> has to follow it.)</li>
+    <li>Let the player choose the topic from a list, instead of a random one.</li>
     <li>Add a timer: 10 seconds per question, and a question without an answer counts as wrong.</li>
     <li>Save the best score in <code>localStorage</code>, so it is still there next time.</li>
   </ul>

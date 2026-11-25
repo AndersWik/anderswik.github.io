@@ -9,35 +9,108 @@
 .game .container {
   box-sizing: border-box;
   text-align: center;
-  width: min(100% - 40px, 500px);
+  width: 520px;
+  max-width: calc(100% - 40px);
   padding: 20px;
-  background-color: white;
+  background-color: #ffffff;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   margin: 20px;
 }
 
+/* The title: the site's font, and a short gold line under it. */
 .game h1 {
-  color: #4caf50;
-  text-shadow: 2px 2px #5da360;
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
 }
 
-.game .info {
-  font-size: 1.2rem;
-  color: #333;
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
 }
 
-.game #progress {
-  color: #777;
-  margin: 0;
+/* The topic, in a gold label. */
+.game .topic {
+  display: inline-block;
+  min-height: 1.2em;
+  margin: 8px 0 16px;
+  padding: 5px 14px;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b4f12;
+  background-color: #f6e3a1;
+  border-radius: 999px;
+}
+
+.game .topic:empty {
+  visibility: hidden;
+}
+
+.game .status {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  color: #666666;
+}
+
+/* display: flex would show the row even when it is hidden. */
+.game .status[hidden] {
+  display: none;
+}
+
+/* One dot per question: green for right, red for wrong. */
+.game .dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.game .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #dddddd;
+}
+
+.game .dot.now {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px #222222;
+}
+
+.game .dot.right {
+  background-color: #2e9e4f;
+}
+
+.game .dot.wrong {
+  background-color: #d93a3a;
 }
 
 .game #question {
-  padding: 1rem;
-  font-size: clamp(18px, 5vw, 22px);
+  min-height: 3em;
+  margin: 16px 0;
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-size: clamp(19px, 5vw, 23px);
+  font-weight: 500;
+  color: #222222;
   overflow-wrap: anywhere;
 }
 
+/* At the end there is no question, so let the score move up. */
+.game #question:empty {
+  display: none;
+}
+
+/* The answers: white cards, two by two. */
 .game #answers {
   display: grid;
   gap: 10px;
@@ -50,42 +123,86 @@
   }
 }
 
-.game button {
-  padding: 15px 20px;
-  font-size: clamp(16px, 4.5vw, 18px);
-  background-color: #4caf50;
-  color: #fff;
-  border: 5px solid #45a049;
-  border-radius: 5px;
+.game #answers button {
+  padding: 14px 12px;
+  font-size: clamp(15px, 4.2vw, 17px);
+  color: #222222;
+  background-color: #ffffff;
+  border: 2px solid #d6d6d6;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   overflow-wrap: anywhere;
+  transition: border-color 0.15s, background-color 0.15s;
 }
 
-.game button:hover:enabled {
-  box-shadow: 0px 0px 10px #45a049;
+.game #answers button:hover:enabled {
+  border-color: #222222;
+  background-color: #f7f7f7;
 }
 
 .game #answers button:disabled {
-  background-color: #cccccc;
-  border-color: #bbbbbb;
-  color: #555555;
+  color: #999999;
   cursor: default;
 }
 
 .game #answers button.correct {
-  background-color: #2e9e3e;
-  border-color: #1f7a2c;
   color: #ffffff;
+  background-color: #2e9e4f;
+  border-color: #2e9e4f;
 }
 
 .game #answers button.wrong {
-  background-color: #d94343;
-  border-color: #b02f2f;
   color: #ffffff;
+  background-color: #d93a3a;
+  border-color: #d93a3a;
 }
 
+/* The end of the game: the score, big. */
 .game #result {
-  font-size: 1.3rem;
+  margin: 8px 0 16px;
+  font-size: 20px;
   font-weight: bold;
-  color: #333;
+  color: #222222;
+  white-space: pre-line;
+}
+
+.game #result .big {
+  display: block;
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-size: 56px;
+  line-height: 1.1;
+}
+
+.game #restart {
+  padding: 15px 30px;
+  font-size: 18px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* The rules: click "How to play" to open them. */
+.game .rules {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #dddddd;
+  text-align: left;
+}
+
+.game .rules summary {
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.game .rules ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.game .rules li {
+  margin-bottom: 6px;
 }

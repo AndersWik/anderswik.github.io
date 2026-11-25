@@ -8,6 +8,11 @@ as assets/images/games/<slug>.webp (240 x 180).
     python3 _scripts/make-thumbnail.py ludo fia reversi     several games
     python3 _scripts/make-thumbnail.py tic-tac-toe --moves "[0, 4, 1, 3, 2].forEach(i => document.querySelectorAll('.square')[i].click())"
 
+--width is how wide a part of the card to keep, in pixels (default 460).
+Use more for a game with text near the edges of its card, like the quiz:
+
+    python3 _scripts/make-thumbnail.py quiz --width 516
+
 --moves is JavaScript that runs after the game has started, before the
 screenshot, so the board doesn't have to be empty. It can use the game's own
 functions, like play(row, col).
@@ -130,7 +135,7 @@ def screenshot(slug, moves, folder):
     return png
 
 
-def crop(png):
+def crop(png, wanted_width=CROP_WIDTH):
     """Cut out the title and the top of the board, 240 x 180."""
     image = Image.open(png).convert("RGB")
     width, height = image.size
@@ -151,7 +156,7 @@ def crop(png):
 
     # Never wider than the card, or the grey page and the card's soft edge
     # show at the sides.
-    crop_width = min(CROP_WIDTH, right - left + 1 - 4)
+    crop_width = min(wanted_width, right - left + 1 - 4)
     center = (left + right) // 2
     box = (center - crop_width // 2, top + CROP_TOP,
            center + crop_width // 2, top + CROP_TOP + crop_width * THUMBNAIL[1] // THUMBNAIL[0])
@@ -162,6 +167,8 @@ def main():
     parser = argparse.ArgumentParser(description="Take the Games page thumbnail for one or more games.")
     parser.add_argument("slugs", nargs="+", help="games, as in pages/games/<slug>.html")
     parser.add_argument("--moves", help="JavaScript to run before the screenshot, for one game")
+    parser.add_argument("--width", type=int, default=CROP_WIDTH,
+                        help=f"how wide a part of the card to keep, in pixels (default {CROP_WIDTH})")
     args = parser.parse_args()
     if args.moves and len(args.slugs) > 1:
         sys.exit("--moves is for one game at a time")
@@ -172,7 +179,7 @@ def main():
         read_page(slug)   # stop early on a wrong slug
         with tempfile.TemporaryDirectory() as folder:
             png = screenshot(slug, args.moves, Path(folder))
-            thumbnail = crop(png)
+            thumbnail = crop(png, args.width)
         target = OUT / f"{slug}.webp"
         thumbnail.save(target, quality=85)
         print(f"{slug:26} {target.relative_to(ROOT)}")

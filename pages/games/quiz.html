@@ -9,12 +9,25 @@ js:
   - /assets/quiz/quiz.js
 ---
 <div class="container">
-  <h1>Quiz!</h1>
-  <p class="info">Score: <span id="score">0</span></p>
-  <p id="progress"></p>
+  <h1>Quiz</h1>
+  <p id="topic" class="topic"></p>
+  <div id="status" class="status">
+    <span id="progress"></span>
+    <span>Score: <span id="score">0</span></span>
+  </div>
+  <div id="dots" class="dots"></div>
   <p id="question"></p>
   <div id="answers"></div>
   <p id="result" aria-live="polite"></p>
   <button type="button" id="restart" hidden>Play again</button>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>Every game has a topic, picked at random: animals, space, the human body, food and drink, around the world, science and inventions, the ocean, or sports and games.</li>
+      <li>You get five questions about the topic. Click the answer you think is right.</li>
+      <li>The right answer turns green. If you picked a wrong one, it turns red.</li>
+      <li>Each topic has 50 questions, and you won't get the same question again until you have seen them all.</li>
+    </ul>
+  </details>
 </div>
 <p class="text-center mt-4"><a href="/tutorials/quiz/">How to build this game</a></p>

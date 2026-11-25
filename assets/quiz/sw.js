@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "quiz-b51303652c";
+const CACHE = "quiz-89e0d9874b";
 
 const FILES = [
     "/assets/quiz/app.html",
@@ -18,6 +18,7 @@ const FILES = [
     "/assets/quiz/images/quiz.svg",
     "/assets/quiz/images/star.svg",
     "/assets/quiz/manifest.webmanifest",
+    "/assets/quiz/questions.json",
     "/assets/quiz/quiz.css",
     "/assets/quiz/quiz.js",
     "/css/style.css",

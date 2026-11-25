@@ -61,6 +61,7 @@ $ python3 _scripts/make-thumbnail.py tic-tac-toe --moves "document.getElementByI
 ```
 
 `--moves` is JavaScript that runs before the screenshot, so the board isn't empty.
+`--width 516` keeps more of the card, for a game with text near its edges, like the quiz.
 
 ### Progressive Web Apps
 
