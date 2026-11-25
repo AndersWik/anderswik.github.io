@@ -1,124 +1,284 @@
 .game {
-  font-family: sans-serif;
-  text-align: center;
-  background: #35654d;
-  color: white;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
 }
 
-.game .hand {
+.game .container {
+  text-align: center;
+  width: 520px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   margin: 20px;
 }
 
-.game button {
-  padding: 15px 30px;
-  margin-top: 20px;
-  font-size: 18px;
-  background-color: #f7931a;
-  color: #fff;
-  border: 5px solid #d67e00;
-  border-radius: 5px;
-  cursor: pointer;
+/* The title: the site's font, and a short gold line under it. */
+.game h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
 }
 
-.game button:hover {
-  box-shadow: 0px 0px 10px #f7931a;
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
 }
 
-.game button:disabled, .game button[disabled]{
-  border: 1px solid #999999;
-  background-color: #cccccc;
-  color: #666666;
+/* --- The table ---------------------------------------------------------- */
+
+/* Green felt, lighter in the middle, with a wooden rail around it. */
+.game .table {
+  margin-top: 16px;
+  padding: 12px 10px;
+  color: #ffffff;
+  background: radial-gradient(ellipse at 50% 40%, #2f8a5b, #1b5a3a 75%);
+  border: 8px solid #6b4423;
+  border-radius: 24px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 
-.game .cards {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
+.game .hand {
+  margin: 8px 0;
 }
 
-.game .card {
-  width: 60px;
-  height: 90px;
-  background: white;
-  color: black;
-  border: 1px solid #333;
-  border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  font-size: 18px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
-}
-
-.game .card.new {
-  transform: translateY(-30px);
-  opacity: 0;
-  animation: deal 0.3s forwards;
-}
-
-.game .card.red {
-  color: red;
-}
-
-@keyframes deal {
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.game .label {
+  margin: 0 0 8px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .game #result {
   min-height: 3em;
+  margin: 6px 0;
   font-size: 20px;
+  font-weight: bold;
+  color: #f6d77a;
   white-space: pre-line;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* The result and the dealer's score wait until the cards have turned. */
+.game .reveal {
+  animation: reveal 0.4s both;
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: scale(0.9); }
 }
 
 .game .player-hand {
   display: inline-block;
-  margin: 0 10px;
-  padding: 0 10px 10px;
-  border-radius: 8px;
+  margin: 0 6px;
+  padding: 4px 8px 10px;
+  border-radius: 10px;
+}
+
+.game .player-hand p {
+  margin: 0 0 8px;
+  font-size: 14px;
 }
 
 .game .player-hand.active {
-  outline: 3px solid #f7931a;
+  outline: 2px solid #e8b455;
+  background-color: rgba(0, 0, 0, 0.12);
 }
 
-.game #chip-buttons .clear {
-  border-radius: 8px;
-  width: auto;
-  padding: 0 12px;
+/* --- The cards ---------------------------------------------------------- */
+
+.game .cards {
+  display: flex;
+  justify-content: center;
+  min-height: 92px;
 }
+
+/* The cards in a hand overlap, like cards held in a fan. The corner with
+   the value is on the left, so it is always seen. */
+.game .slot {
+  flex: none;
+  perspective: 600px;
+}
+
+.game .slot + .slot {
+  margin-left: -30px;
+}
+
+/* A card has two faces back to back. Turning it is turning the card. */
+.game .card {
+  position: relative;
+  width: 64px;
+  height: 92px;
+  transform-style: preserve-3d;
+}
+
+.game .card.down {
+  transform: rotateY(180deg);
+}
+
+.game .face {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  backface-visibility: hidden;
+  box-shadow: -1px 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+.game .front {
+  background-color: #ffffff;
+  border: 1px solid #c9c9c9;
+  color: #1a1a1a;
+  font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
+}
+
+.game .card.red .front {
+  color: #c8102e;
+}
+
+/* The value and suit in the corners. The bottom one is upside down. */
+.game .corner {
+  position: absolute;
+  font-size: 15px;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+}
+
+.game .corner.top {
+  top: 4px;
+  left: 4px;
+}
+
+.game .corner.bottom {
+  bottom: 4px;
+  right: 4px;
+  transform: rotate(180deg);
+}
+
+.game .pip {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+}
+
+/* The back: red, a white edge and a fine white diamond pattern. */
+.game .back {
+  transform: rotateY(180deg);
+  background-color: #b3202a;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px);
+  border: 4px solid #ffffff;
+  outline: 1px solid #c9c9c9;
+  box-sizing: border-box;
+}
+
+/* A new card slides onto the table... */
+.game .slot.deal {
+  animation: slide 0.3s ease-out both;
+}
+
+@keyframes slide {
+  from { opacity: 0; transform: translateY(-40px); }
+}
+
+/* ...and a card that is shown turns over, from its back to its front. */
+.game .card.turn {
+  animation: turn 0.45s ease-out both;
+}
+
+@keyframes turn {
+  from { transform: rotateY(180deg); }
+  to { transform: rotateY(0deg); }
+}
+
+/* --- Money and buttons -------------------------------------------------- */
 
 .game #bank {
+  margin: 16px 0 6px;
   font-size: 18px;
-  margin: 10px;
 }
 
-.game #chip-buttons button {
-  background-color: #f4a261;
-  padding: 0px 0px;
-  border: none;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
+.game button {
+  padding: 12px 24px;
   margin: 5px;
-  font-weight: bold;
-  font-size: 16px;
+  font-size: 17px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
   cursor: pointer;
 }
 
-.game #controls button,
-.game #extra-controls button {
-  margin: 5px;
+.game button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
-.game .hidden {
-  background: url("images/cardback.svg");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 95%;
-  background-color: #fff;
+/* Casino chips: a colored disc with a dashed white edge. */
+.game .chip {
+  width: 62px;
+  height: 62px;
+  padding: 0;
+  border: 5px dashed rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: bold;
+  box-shadow: 0 0 0 3px var(--chip), 0 3px 6px rgba(0, 0, 0, 0.35);
+  background-color: var(--chip);
+}
+
+.game .chip-10 { --chip: #2f6fd6; }
+.game .chip-50 { --chip: #c8102e; }
+.game .chip-100 { --chip: #222222; }
+
+.game .chip:not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+.game .clear {
+  padding: 8px 14px;
+  font-size: 15px;
+  background-color: #ffffff;
+  color: #222222;
+  border: 2px solid #222222;
+  vertical-align: middle;
+}
+
+/* The rules: click "How to play" to open them. */
+.game .rules {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #dddddd;
+  text-align: left;
+}
+
+.game .rules summary {
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.game .rules ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.game .rules li {
+  margin-bottom: 6px;
 }

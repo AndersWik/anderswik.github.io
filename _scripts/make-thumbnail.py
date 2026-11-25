@@ -78,7 +78,12 @@ def test_page(slug, moves):
     ]
     lines += [f'  <link rel="stylesheet" href="{href}">' for href in front.get("css") or []]
     lines += [
-        f"  <style>body {{ margin: 0; background-color: {PAGE_COLOR}; }}</style>",
+        f"  <style>body {{ margin: 0; background-color: {PAGE_COLOR}; }}",
+        "    /* Firefox takes the screenshot as soon as the page has loaded, so",
+        "       every animation jumps to its end, like cards that are dealt. */",
+        "    *, *::before, *::after { animation-delay: 0s !important;",
+        "      animation-duration: 0s !important; transition: none !important; }",
+        "  </style>",
         "</head>",
         "<body>",
         '<div class="game">',

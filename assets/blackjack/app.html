@@ -23,41 +23,51 @@
 </head>
 <body>
 <div class="game">
-<h1>Blackjack</h1>
-<div class="hand">
-  Dealer <span id="dealer-score"></span>
-  <div id="dealer-cards" class="cards"></div>
-</div>
-<div class="hand">
-  You
-  <div id="player-hands"></div>
-</div>
-<div id="result" aria-live="polite"></div>
-<div id="bank">
-  Balance: $<span id="balance">1000</span> | Bet: $<span id="current-bet">0</span>
-</div>
-
-<div id="chip-buttons">
-  <button type="button" id="placeBet10">$10</button>
-  <button type="button" id="placeBet50">$50</button>
-  <button type="button" id="placeBet100">$100</button>
-  <button type="button" id="clearBet" class="clear">Clear</button>
-</div>
-<div id="controls">
-  <button type="button" id="startGame">Deal</button>
-  <button type="button" id="hit">Hit</button>
-  <button type="button" id="stand">Stand</button>
-</div>
-<div id="extra-controls">
-  <button type="button" id="doubleDown">Double Down</button>
-  <button type="button" id="split">Split</button>
-  <button type="button" id="takeInsurance">Insurance</button>
-</div>
-
-<div class="rules">
-  <p>Blackjack pays 3 to 2. The dealer draws to 17.</p>
-  <p>You can split once if your two cards have the same value.</p>
-  <p>You can double down on any two cards if you can afford it.</p>
+<div class="container">
+  <h1>Blackjack</h1>
+  <div class="table">
+    <div class="hand">
+      <p class="label">Dealer <span id="dealer-score"></span></p>
+      <div id="dealer-cards" class="cards"></div>
+    </div>
+    <div id="result" aria-live="polite"></div>
+    <div class="hand">
+      <p class="label">You</p>
+      <div id="player-hands"></div>
+    </div>
+  </div>
+  <div id="bank">
+    Balance: $<span id="balance">1000</span> &middot; Bet: $<span id="current-bet">0</span>
+  </div>
+  <div id="chip-buttons">
+    <button type="button" id="placeBet10" class="chip chip-10">$10</button>
+    <button type="button" id="placeBet50" class="chip chip-50">$50</button>
+    <button type="button" id="placeBet100" class="chip chip-100">$100</button>
+    <button type="button" id="clearBet" class="clear">Clear</button>
+  </div>
+  <div id="controls">
+    <button type="button" id="startGame">Deal</button>
+    <button type="button" id="hit">Hit</button>
+    <button type="button" id="stand">Stand</button>
+  </div>
+  <div id="extra-controls">
+    <button type="button" id="doubleDown">Double Down</button>
+    <button type="button" id="split">Split</button>
+    <button type="button" id="takeInsurance">Insurance</button>
+  </div>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>Get closer to 21 than the dealer, without going over. Number cards count their number, J, Q and K count 10, and an ace counts 11 or 1.</li>
+      <li><strong>Betting:</strong> click the chips to place a bet, then Deal. You get two cards, and the dealer gets one face up and one face down.</li>
+      <li><strong>Hit</strong> takes another card, <strong>Stand</strong> keeps what you have. Over 21 is bust, and you lose the bet.</li>
+      <li><strong>The dealer</strong> turns the hidden card, and draws until 17 or more.</li>
+      <li><strong>Blackjack</strong>, 21 with your first two cards, pays 3 to 2. Other wins pay 1 to 1, and a tie gives your bet back.</li>
+      <li><strong>Double down:</strong> double your bet on your first two cards, and get exactly one more card.</li>
+      <li><strong>Split:</strong> two cards of the same value become two hands, each with the same bet. Once per round.</li>
+      <li><strong>Insurance:</strong> when the dealer shows an ace, bet half your bet that the dealer has blackjack. It pays 2 to 1.</li>
+    </ul>
+  </details>
 </div>
 </div>
 

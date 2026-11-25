@@ -23,6 +23,10 @@ const START_BALANCE = 1000;
 const SUITS = ["♠", "♥", "♦", "♣"];
 const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 const CHIPS = [10, 50, 100];
+const SUIT_NAMES = { "♠": "spades", "♥": "hearts", "♦": "diamonds", "♣": "clubs" };
+const DEAL_GAP = 0.35;    // seconds between two cards being dealt
+const SLIDE_TIME = 0.3;   // seconds for a card to slide onto the table
+const TURN_TIME = 0.45;   // seconds for a card to turn over
 
 // --- Elements on the page ------------------------------------------------
 
@@ -58,6 +62,8 @@ let hands = [];           // the player's hands: { cards, bet }
 let active = 0;           // which hand the player is playing
 let insurance = 0;
 let peeked = false;       // has the dealer looked for blackjack?
+let drawn = 0;            // cards dealt this round, to number them
+let shownMessage = "";    // the message on the page now
 let message = "Click the chips to place a bet.";
 
 // --- Cards ---------------------------------------------------------------
@@ -76,6 +82,15 @@ function newDeck() {
         [cards[i], cards[j]] = [cards[j], cards[i]];
     }
     return cards;
+}
+
+// The next card from the deck. Every card gets a number in the order it is
+// dealt, so the cards can come in on the table in the same order.
+function draw() {
+    const card = deck.pop();
+    drawn++;
+    card.number = drawn;
+    return card;
 }
 
 function cardValue(card) {
@@ -151,8 +166,14 @@ function deal() {
     }
 
     deck = newDeck();
-    hands = [{ cards: [deck.pop(), deck.pop()], bet: bet }];
-    dealer = [deck.pop(), deck.pop()];
+    drawn = 0;
+    // One card at a time, as at a real table: you, the dealer, you, the dealer.
+    const first = draw();
+    const hidden = draw();
+    const second = draw();
+    const up = draw();
+    hands = [{ cards: [first, second], bet: bet }];
+    dealer = [hidden, up];
     bet = 0;
     active = 0;
     insurance = 0;
@@ -201,7 +222,7 @@ function hit() {
         render();
         return;
     }
-    hand().cards.push(deck.pop());
+    hand().cards.push(draw());
     if (score(hand().cards) >= 21) {
         nextHand();     // bust, or 21: nothing more to do
     }
@@ -222,7 +243,7 @@ function doubleDown() {
     }
     balance -= hand().bet;
     hand().bet *= 2;
-    hand().cards.push(deck.pop());
+    hand().cards.push(draw());
     nextHand();
     render();
 }
@@ -235,8 +256,8 @@ function split() {
     const [first, second] = hand().cards;
     balance -= hand().bet;
     hands = [
-        { cards: [first, deck.pop()], bet: hand().bet },
-        { cards: [second, deck.pop()], bet: hand().bet }
+        { cards: [first, draw()], bet: hand().bet },
+        { cards: [second, draw()], bet: hand().bet }
     ];
     message = "Playing hand 1.";
     render();
@@ -259,7 +280,7 @@ function dealerPlays() {
     // The dealer only draws if there is a hand left to beat.
     if (!allBust) {
         while (score(dealer) < 17) {
-            dealer.push(deck.pop());
+            dealer.push(draw());
         }
     }
     finishRound();
@@ -313,25 +334,86 @@ function finishRound() {
 
 // --- Drawing -------------------------------------------------------------
 
+// A card is two faces back to back: the front with the value and suit, and
+// the back. A face down card is turned half a turn, so the back shows.
+// The card sits in a "slot" that slides it onto the table; the card itself
+// only turns. Fading and turning the same element would flatten the card,
+// and then its back would show through.
 function cardElement(card, faceDown) {
+    const slot = document.createElement("div");
+    slot.className = "slot";
     const element = document.createElement("div");
     element.className = "card";
+    if (card.suit === "♥" || card.suit === "♦") {
+        element.classList.add("red");
+    }
+    element.setAttribute("role", "img");
+
+    const front = document.createElement("div");
+    front.className = "face front";
+    front.innerHTML =
+        '<span class="corner top">' + card.value + "<br>" + card.suit + "</span>" +
+        '<span class="pip">' + card.suit + "</span>" +
+        '<span class="corner bottom">' + card.value + "<br>" + card.suit + "</span>";
+    const back = document.createElement("div");
+    back.className = "face back";
+    element.append(front, back);
+    slot.appendChild(element);
 
     if (faceDown) {
-        element.classList.add("hidden");
+        element.classList.add("down");
         element.setAttribute("aria-label", "face down card");
     } else {
-        element.textContent = card.value + card.suit;
-        if (card.suit === "♥" || card.suit === "♦") {
-            element.classList.add("red");
+        element.setAttribute("aria-label", card.value + " of " + SUIT_NAMES[card.suit]);
+    }
+
+    // How the card moves: a new card slides in (and turns over if it is face
+    // up), and the dealer's hidden card turns over when it is shown. Cards
+    // that were already on the table stay still.
+    const isNew = card.state === undefined;
+    if (isNew) {
+        slot.classList.add("deal");
+    }
+    if (!faceDown && card.state !== "up") {
+        element.classList.add("turn");
+    }
+    // The hidden card turns over before the dealer draws more.
+    slot.dataset.number = card.state === "down" && !faceDown ? 0 : card.number;
+    card.state = faceDown ? "down" : "up";
+    return slot;
+}
+
+// Give the cards that move a delay each, in the order they were dealt, so
+// they come in one at a time. Returns when the last one is done, in seconds.
+function staggerCards() {
+    const moving = Array.from(document.querySelectorAll(".game .slot")).filter(function (slot) {
+        return slot.classList.contains("deal") || slot.querySelector(".turn");
+    });
+    moving.sort(function (a, b) {
+        return Number(a.dataset.number) - Number(b.dataset.number);
+    });
+    let done = 0;
+    moving.forEach(function (slot, index) {
+        const start = index * DEAL_GAP;
+        const slides = slot.classList.contains("deal");
+        const turn = slot.querySelector(".turn");
+        slot.style.animationDelay = start + "s";
+        let end = start + (slides ? SLIDE_TIME : 0);
+        if (turn) {
+            turn.style.animationDelay = end + "s";
+            end += TURN_TIME;
         }
-    }
-    // Only new cards slide in; cards that were already shown stay still.
-    if (!card.shown) {
-        element.classList.add("new");
-        card.shown = true;
-    }
-    return element;
+        done = Math.max(done, end);
+    });
+    return done;
+}
+
+// Restart the fade-in on an element, after "delay" seconds.
+function reveal(element, delay) {
+    element.classList.remove("reveal");
+    void element.offsetWidth;   // let the browser see the class is gone
+    element.style.animationDelay = delay + "s";
+    element.classList.add("reveal");
 }
 
 function render() {
@@ -369,7 +451,16 @@ function render() {
         playerHands.appendChild(box);
     });
 
-    resultText.textContent = message;
+    // The cards come in one at a time, and the result waits for them.
+    const done = staggerCards();
+    if (message !== shownMessage) {
+        resultText.textContent = message;
+        shownMessage = message;
+        reveal(resultText, done);
+    }
+    if (!playing && dealer.length > 0 && done > 0) {
+        reveal(dealerScoreText, done);
+    }
     balanceText.textContent = balance;
     betText.textContent = bet;
 
