@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "hi-lo-counter-9ba4397329";
+const CACHE = "hi-lo-counter-43470cd6be";
 
 const FILES = [
     "/assets/hi-lo-counter/app.html",

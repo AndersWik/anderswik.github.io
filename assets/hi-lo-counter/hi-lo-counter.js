@@ -108,7 +108,7 @@ function cardElement(card, size) {
     const slot = document.createElement("div");
     slot.className = "slot " + size;
     const element = document.createElement("div");
-    element.className = "card";
+    element.className = "playing-card";
     if (card.suit === "♥" || card.suit === "♦") {
         element.classList.add("red");
     }

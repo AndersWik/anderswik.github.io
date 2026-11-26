@@ -52,7 +52,7 @@ keywords: [javascript, game, cards, card counting, hi-lo, blackjack, setTimeout,
   &lt;button type="submit"&gt;Start&lt;/button&gt;
 &lt;/form&gt;
 
-&lt;div id="play" class="table" hidden&gt;
+&lt;div id="play" class="felt" hidden&gt;
   &lt;p id="round" class="label"&gt;&lt;/p&gt;
   &lt;div id="deal" class="deal"&gt;&lt;/div&gt;
   &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
@@ -187,7 +187,7 @@ function showCard(index) {
     font-size: 11px;
 }
 
-.card {
+.playing-card {
     position: relative;
     width: 4.6em;
     height: 6.6em;
@@ -313,7 +313,7 @@ guessForm.addEventListener("submit", checkGuess);</code></pre>
     /* --- The table ---------------------------------------------------------- */
 
     /* Green felt with a wooden rail, as in Blackjack. */
-    .table {
+    .felt {
         margin-top: 16px;
         padding: 12px 10px;
         color: #ffffff;
@@ -361,7 +361,7 @@ guessForm.addEventListener("submit", checkGuess);</code></pre>
         font-size: 11px;
     }
 
-    .card {
+    .playing-card {
         position: relative;
         width: 4.6em;
         height: 6.6em;
@@ -383,7 +383,7 @@ guessForm.addEventListener("submit", checkGuess);</code></pre>
         font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
     }
 
-    .card.red .front {
+    .playing-card.red .front {
         color: #c8102e;
     }
 
@@ -436,7 +436,7 @@ guessForm.addEventListener("submit", checkGuess);</code></pre>
     }
 
     /* ...and turns over, from its back to its front. */
-    .slot.big .card {
+    .slot.big .playing-card {
         animation: turn 0.45s ease-out both;
     }
 
@@ -641,7 +641,7 @@ guessForm.addEventListener("submit", checkGuess);</code></pre>
     &lt;button type="submit"&gt;Start&lt;/button&gt;
   &lt;/form&gt;
 
-  &lt;div id="play" class="table" hidden&gt;
+  &lt;div id="play" class="felt" hidden&gt;
     &lt;p id="round" class="label"&gt;&lt;/p&gt;
     &lt;div id="deal" class="deal"&gt;&lt;/div&gt;
     &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
@@ -798,7 +798,7 @@ guessForm.addEventListener("submit", checkGuess);</code></pre>
         const slot = document.createElement("div");
         slot.className = "slot " + size;
         const element = document.createElement("div");
-        element.className = "card";
+        element.className = "playing-card";
         if (card.suit === "♥" || card.suit === "♦") {
             element.classList.add("red");
         }

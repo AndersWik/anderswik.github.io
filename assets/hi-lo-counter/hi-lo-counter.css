@@ -80,8 +80,10 @@
 
 /* --- The table ---------------------------------------------------------- */
 
-/* Green felt with a wooden rail, as in Blackjack. */
-.game .table {
+/* Green felt with a wooden rail, as in Blackjack.
+   Not called "table": Bootstrap has a .table class
+   that puts white boxes round the cards. */
+.game .felt {
   margin-top: 16px;
   padding: 12px 10px;
   color: #ffffff;
@@ -129,7 +131,7 @@
   font-size: 11px;
 }
 
-.game .card {
+.game .playing-card {
   position: relative;
   width: 4.6em;
   height: 6.6em;
@@ -151,7 +153,7 @@
   font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
 }
 
-.game .card.red .front {
+.game .playing-card.red .front {
   color: #c8102e;
 }
 
@@ -204,7 +206,7 @@
 }
 
 /* ...and turns over, from its back to its front. */
-.game .slot.big .card {
+.game .slot.big .playing-card {
   animation: turn 0.45s ease-out both;
 }
 

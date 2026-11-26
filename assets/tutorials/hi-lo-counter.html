@@ -51,7 +51,7 @@
     /* --- The table ---------------------------------------------------------- */
 
     /* Green felt with a wooden rail, as in Blackjack. */
-    .table {
+    .felt {
         margin-top: 16px;
         padding: 12px 10px;
         color: #ffffff;
@@ -99,7 +99,7 @@
         font-size: 11px;
     }
 
-    .card {
+    .playing-card {
         position: relative;
         width: 4.6em;
         height: 6.6em;
@@ -121,7 +121,7 @@
         font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
     }
 
-    .card.red .front {
+    .playing-card.red .front {
         color: #c8102e;
     }
 
@@ -174,7 +174,7 @@
     }
 
     /* ...and turns over, from its back to its front. */
-    .slot.big .card {
+    .slot.big .playing-card {
         animation: turn 0.45s ease-out both;
     }
 
@@ -379,7 +379,7 @@
     <button type="submit">Start</button>
   </form>
 
-  <div id="play" class="table" hidden>
+  <div id="play" class="felt" hidden>
     <p id="round" class="label"></p>
     <div id="deal" class="deal"></div>
     <p id="status" aria-live="polite"></p>
@@ -536,7 +536,7 @@
         const slot = document.createElement("div");
         slot.className = "slot " + size;
         const element = document.createElement("div");
-        element.className = "card";
+        element.className = "playing-card";
         if (card.suit === "♥" || card.suit === "♦") {
             element.classList.add("red");
         }

@@ -25,7 +25,7 @@ keywords: [javascript, game, cards, deck, shuffle, fisher-yates, state, render, 
   <h2>Step 1: The page</h2>
   <p>Create <code>blackjack.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>.</p>
   <pre><code class="language-html">&lt;h1&gt;Blackjack&lt;/h1&gt;
-&lt;div class="table"&gt;
+&lt;div class="felt"&gt;
   &lt;div class="hand"&gt;
     &lt;p class="label"&gt;Dealer &lt;span id="dealer-score"&gt;&lt;/span&gt;&lt;/p&gt;
     &lt;div id="dealer-cards" class="cards"&gt;&lt;/div&gt;
@@ -55,9 +55,9 @@ keywords: [javascript, game, cards, deck, shuffle, fisher-yates, state, render, 
   &lt;button type="button" id="split"&gt;Split&lt;/button&gt;
   &lt;button type="button" id="takeInsurance"&gt;Insurance&lt;/button&gt;
 &lt;/div&gt;</code></pre>
-  <p>The card areas start empty. JavaScript fills them. Everything that is on the card table goes in <code>&lt;div class="table"&gt;</code>: the dealer's cards at the top, yours at the bottom, and the result in the middle. The chips have a class each, for their color.</p>
+  <p>The card areas start empty. JavaScript fills them. Everything that is on the card table goes in <code>&lt;div class="felt"&gt;</code>: the dealer's cards at the top, yours at the bottom, and the result in the middle. It is called felt, the green cloth on a card table, and not table: many sites use Bootstrap, whose <code>.table</code> class would put white boxes round the cards. The chips have a class each, for their color.</p>
   <h2>Step 2: The CSS</h2>
-  <pre><code class="language-css">.table {
+  <pre><code class="language-css">.felt {
     margin-top: 16px;
     padding: 12px 10px;
     color: #ffffff;
@@ -134,7 +134,7 @@ button:disabled {
     const slot = document.createElement("div");
     slot.className = "slot";
     const element = document.createElement("div");
-    element.className = "card";
+    element.className = "playing-card";
     if (card.suit === "♥" || card.suit === "♦") {
         element.classList.add("red");
     }
@@ -166,7 +166,7 @@ button:disabled {
     font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
 }
 
-.card.red .front {
+.playing-card.red .front {
     color: #c8102e;
 }
 
@@ -226,14 +226,14 @@ button:disabled {
     perspective: 600px;
 }
 
-.card {
+.playing-card {
     position: relative;
     width: 64px;
     height: 92px;
     transform-style: preserve-3d;
 }
 
-.card.down {
+.playing-card.down {
     transform: rotateY(180deg);
 }</code></pre>
   <ul>
@@ -251,7 +251,7 @@ button:disabled {
     from { opacity: 0; transform: translateY(-40px); }
 }
 
-.card.turn {
+.playing-card.turn {
     animation: turn 0.45s ease-out both;
 }
 
@@ -515,7 +515,7 @@ newDeck = function () { return [c("9"), c("K"), c("7"), c("A")]; };</code></pre>
     /* --- The table ---------------------------------------------------------- */
 
     /* Green felt, lighter in the middle, with a wooden rail around it. */
-    .table {
+    .felt {
         margin-top: 16px;
         padding: 12px 10px;
         color: #ffffff;
@@ -593,14 +593,14 @@ newDeck = function () { return [c("9"), c("K"), c("7"), c("A")]; };</code></pre>
     }
 
     /* A card has two faces back to back. Turning it is turning the card. */
-    .card {
+    .playing-card {
         position: relative;
         width: 64px;
         height: 92px;
         transform-style: preserve-3d;
     }
 
-    .card.down {
+    .playing-card.down {
         transform: rotateY(180deg);
     }
 
@@ -619,7 +619,7 @@ newDeck = function () { return [c("9"), c("K"), c("7"), c("A")]; };</code></pre>
         font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
     }
 
-    .card.red .front {
+    .playing-card.red .front {
         color: #c8102e;
     }
 
@@ -674,7 +674,7 @@ newDeck = function () { return [c("9"), c("K"), c("7"), c("A")]; };</code></pre>
     }
 
     /* ...and a card that is shown turns over, from its back to its front. */
-    .card.turn {
+    .playing-card.turn {
         animation: turn 0.45s ease-out both;
     }
 
@@ -739,7 +739,7 @@ newDeck = function () { return [c("9"), c("K"), c("7"), c("A")]; };</code></pre>
 &lt;/head&gt;
 &lt;body&gt;
   &lt;h1&gt;Blackjack&lt;/h1&gt;
-  &lt;div class="table"&gt;
+  &lt;div class="felt"&gt;
     &lt;div class="hand"&gt;
       &lt;p class="label"&gt;Dealer &lt;span id="dealer-score"&gt;&lt;/span&gt;&lt;/p&gt;
       &lt;div id="dealer-cards" class="cards"&gt;&lt;/div&gt;
@@ -1116,7 +1116,7 @@ newDeck = function () { return [c("9"), c("K"), c("7"), c("A")]; };</code></pre>
         const slot = document.createElement("div");
         slot.className = "slot";
         const element = document.createElement("div");
-        element.className = "card";
+        element.className = "playing-card";
         if (card.suit === "♥" || card.suit === "♦") {
             element.classList.add("red");
         }

@@ -38,8 +38,10 @@
 
 /* --- The table ---------------------------------------------------------- */
 
-/* Green felt, lighter in the middle, with a wooden rail around it. */
-.game .table {
+/* Green felt, lighter in the middle, with a wooden rail around it.
+   Not called "table": Bootstrap has a .table class
+   that puts white boxes round the cards. */
+.game .felt {
   margin-top: 16px;
   padding: 12px 10px;
   color: #ffffff;
@@ -117,14 +119,14 @@
 }
 
 /* A card has two faces back to back. Turning it is turning the card. */
-.game .card {
+.game .playing-card {
   position: relative;
   width: 64px;
   height: 92px;
   transform-style: preserve-3d;
 }
 
-.game .card.down {
+.game .playing-card.down {
   transform: rotateY(180deg);
 }
 
@@ -143,7 +145,7 @@
   font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
 }
 
-.game .card.red .front {
+.game .playing-card.red .front {
   color: #c8102e;
 }
 
@@ -198,7 +200,7 @@
 }
 
 /* ...and a card that is shown turns over, from its back to its front. */
-.game .card.turn {
+.game .playing-card.turn {
   animation: turn 0.45s ease-out both;
 }
 

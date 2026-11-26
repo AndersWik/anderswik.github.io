@@ -16,7 +16,7 @@
     /* --- The table ---------------------------------------------------------- */
 
     /* Green felt, lighter in the middle, with a wooden rail around it. */
-    .table {
+    .felt {
         margin-top: 16px;
         padding: 12px 10px;
         color: #ffffff;
@@ -94,14 +94,14 @@
     }
 
     /* A card has two faces back to back. Turning it is turning the card. */
-    .card {
+    .playing-card {
         position: relative;
         width: 64px;
         height: 92px;
         transform-style: preserve-3d;
     }
 
-    .card.down {
+    .playing-card.down {
         transform: rotateY(180deg);
     }
 
@@ -120,7 +120,7 @@
         font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
     }
 
-    .card.red .front {
+    .playing-card.red .front {
         color: #c8102e;
     }
 
@@ -175,7 +175,7 @@
     }
 
     /* ...and a card that is shown turns over, from its back to its front. */
-    .card.turn {
+    .playing-card.turn {
         animation: turn 0.45s ease-out both;
     }
 
@@ -240,7 +240,7 @@
 </head>
 <body>
   <h1>Blackjack</h1>
-  <div class="table">
+  <div class="felt">
     <div class="hand">
       <p class="label">Dealer <span id="dealer-score"></span></p>
       <div id="dealer-cards" class="cards"></div>
@@ -617,7 +617,7 @@
         const slot = document.createElement("div");
         slot.className = "slot";
         const element = document.createElement("div");
-        element.className = "card";
+        element.className = "playing-card";
         if (card.suit === "♥" || card.suit === "♦") {
             element.classList.add("red");
         }

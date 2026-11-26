@@ -106,7 +106,7 @@ function rank(card) {
 // A card that is "down" shows its back.
 function cardElement(card, down) {
     const element = document.createElement("div");
-    element.className = "card";
+    element.className = "playing-card";
     if (down) {
         element.classList.add("down");
         element.setAttribute("aria-label", "A card, face down");

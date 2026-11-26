@@ -134,7 +134,7 @@
         margin-bottom: 0.4em;
     }
 
-    .hold-button.held .card {
+    .hold-button.held .playing-card {
         box-shadow: 0 0 0 3px #f6d77a;
         border-radius: 6px;
     }
@@ -159,7 +159,7 @@
         perspective: 600px;
     }
 
-    .card {
+    .playing-card {
         position: relative;
         width: 4.6em;
         height: 6.6em;
@@ -167,7 +167,7 @@
     }
 
     /* A card that is face down: turned round, so the back shows. */
-    .card.down {
+    .playing-card.down {
         transform: rotateY(180deg);
     }
 
@@ -186,7 +186,7 @@
         font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
     }
 
-    .card.red .front {
+    .playing-card.red .front {
         color: #c8102e;
     }
 
@@ -239,7 +239,7 @@
     }
 
     /* ...and turns over, from its back to its front. */
-    .slot.new .card {
+    .slot.new .playing-card {
         animation: turn 0.45s ease-out both;
     }
 
@@ -493,7 +493,7 @@
     // A card that is "down" shows its back.
     function cardElement(card, down) {
         const element = document.createElement("div");
-        element.className = "card";
+        element.className = "playing-card";
         if (down) {
             element.classList.add("down");
             element.setAttribute("aria-label", "A card, face down");

@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "video-poker-6286a66b5b";
+const CACHE = "video-poker-866bd77256";
 
 const FILES = [
     "/assets/video-poker/app.html",
