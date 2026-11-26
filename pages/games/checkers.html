@@ -1,0 +1,36 @@
+---
+layout: game
+title: Checkers
+permalink: /games/checkers/
+nonav: true
+css:
+  - /assets/checkers/checkers.css
+js:
+  - /assets/checkers/checkers.js
+---
+<div class="container">
+  <h1>Checkers</h1>
+  <div id="board" class="board"></div>
+  <p id="status" aria-live="polite"></p>
+  <p id="message"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy" selected>The computer (easy)</option>
+      <option value="hard">The computer (hard)</option>
+    </select>
+  </p>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>You are red, at the bottom, and move first. Click a piece, then click where it should go: the dots show where it may move.</li>
+      <li>Pieces move one step diagonally forward, on the dark squares.</li>
+      <li>Jump over an opponent's piece to an empty square behind it, and the piece is taken. If you can jump, you must. If you can jump again from where you land, you must carry on: click each square in turn.</li>
+      <li>A piece that reaches the far side becomes a king (♛). A king moves and jumps both forward and back. Becoming a king ends the turn.</li>
+      <li>You win when the other side has no pieces left, or can't move. If 40 moves each go by without a jump or a new king, it is a draw.</li>
+    </ul>
+  </details>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/checkers/">How to build this game</a></p>

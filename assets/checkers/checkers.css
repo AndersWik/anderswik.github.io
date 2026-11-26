@@ -1,0 +1,173 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  text-align: center;
+  width: 480px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+/* The title: the site's font, and a short gold line under it. */
+.game h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+/* --- The board ------------------------------------------------------------ */
+
+/* Eight squares across, in a wooden frame. */
+.game .board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: 440px;
+  max-width: 100%;
+  margin: 0 auto;
+  border: 8px solid #6b4423;
+  border-radius: 6px;
+  box-sizing: border-box;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.game .square {
+  position: relative;
+  aspect-ratio: 1;
+}
+
+.game .square.light {
+  background-color: #ecd9b0;
+}
+
+.game .square.dark {
+  background-color: #8b5a2b;
+  cursor: pointer;
+}
+
+/* The squares the last move went through. */
+.game .square.last {
+  background-color: #a8743c;
+}
+
+/* A dot where the picked piece may go. */
+.game .square.target::after {
+  content: "";
+  position: absolute;
+  inset: 36%;
+  border-radius: 50%;
+  background-color: rgba(255, 230, 120, 0.85);
+}
+
+/* --- The pieces ------------------------------------------------------------- */
+
+/* A round piece with a raised ring, like a real checker. */
+.game .piece {
+  position: absolute;
+  inset: 10%;
+  border-radius: 50%;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.45), inset 0 0 0 4px rgba(255, 255, 255, 0.12), inset 0 0 0 7px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s;
+}
+
+.game .piece.red {
+  background: radial-gradient(circle at 35% 30%, #ef5350, #b71c1c 70%);
+}
+
+.game .piece.black {
+  background: radial-gradient(circle at 35% 30%, #555555, #111111 70%);
+}
+
+/* A king has a crown on it. */
+.game .piece.king::after {
+  content: "♛";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: min(28px, 6vw);
+  color: #f6d77a;
+}
+
+/* Pieces that may move glow a little; the picked one lifts, in gold. */
+.game .piece.movable {
+  box-shadow: 0 0 0 3px rgba(246, 215, 122, 0.55), 0 3px 4px rgba(0, 0, 0, 0.45);
+}
+
+.game .piece.selected {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 0 0 3px #f6d77a, 0 6px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Text and buttons ------------------------------------------------------- */
+
+.game #status {
+  font-size: 18px;
+  margin-top: 16px;
+}
+
+.game #message {
+  color: #c25e00;
+  min-height: 1.5em;
+}
+
+.game button {
+  padding: 15px 30px;
+  font-size: 18px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game select {
+  margin-top: 16px;
+  padding: 6px;
+  font-size: 16px;
+}
+
+/* --- The rules ---------------------------------------------------------- */
+
+.game .rules {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #dddddd;
+  text-align: left;
+}
+
+.game .rules summary {
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.game .rules ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.game .rules li {
+  margin-bottom: 6px;
+}

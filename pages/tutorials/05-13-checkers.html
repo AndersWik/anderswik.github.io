@@ -1,0 +1,935 @@
+---
+layout: default
+title: Checkers
+permalink: /tutorials/checkers/
+chapter: "05"
+chapter_title: "Board Games"
+keywords: [javascript, game, checkers, draughts, board, recursion, multi-jump, minimax, alpha-beta, pruning, computer player, slice, filter]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Checkers</h1>
+  <p>Checkers, also called draughts: red against black on the dark squares of an 8 by 8 board. Pieces move one step diagonally forward and jump over the other side's pieces to take them. If you can jump, you must, and if you can jump again from where you land, you must carry on. A piece that reaches the far side becomes a king, which moves both ways. Play a friend, or the computer.</p>
+  <p>It builds on <a href="/tutorials/reversi/">Reversi</a> and <a href="/tutorials/reversi-ai/">Reversi vs computer</a>: the same kind of board, and the same minimax for the computer. The new ideas are finding jumps with several steps with <strong>recursion</strong>, and <strong>alpha-beta pruning</strong>, which lets the computer think twice as far in the same time.</p>
+  <p><a href="/assets/tutorials/checkers.html">Open the finished game</a></p>
+
+  <h2>Step 1: The page</h2>
+  <p>Create <code>checkers.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The board is an empty box; JavaScript makes the 64 squares:</p>
+  <pre><code class="language-html">&lt;div class="container"&gt;
+  &lt;h1&gt;Checkers&lt;/h1&gt;
+  &lt;div id="board" class="board"&gt;&lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;p id="message"&gt;&lt;/p&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+  &lt;p&gt;
+    &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+    &lt;select id="mode"&gt;
+      &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+      &lt;option value="easy" selected&gt;The computer (easy)&lt;/option&gt;
+      &lt;option value="hard"&gt;The computer (hard)&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/p&gt;
+  &lt;details class="rules"&gt;
+    &lt;summary&gt;How to play&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;You are red, at the bottom, and move first. Click a piece, then click where it should go: the dots show where it may move.&lt;/li&gt;
+      &lt;li&gt;Pieces move one step diagonally forward, on the dark squares.&lt;/li&gt;
+      &lt;li&gt;Jump over an opponent's piece to an empty square behind it, and the piece is taken. If you can jump, you must. If you can jump again from where you land, you must carry on: click each square in turn.&lt;/li&gt;
+      &lt;li&gt;A piece that reaches the far side becomes a king (♛). A king moves and jumps both forward and back. Becoming a king ends the turn.&lt;/li&gt;
+      &lt;li&gt;You win when the other side has no pieces left, or can't move. If 40 moves each go by without a jump or a new king, it is a draw.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
+&lt;/div&gt;</code></pre>
+  <p>The pieces are only CSS: a circle with a gradient, a shadow under it, and two rings inside, so it looks like a real checker. A king gets a crown with <code>::after</code>:</p>
+  <pre><code class="language-css">.piece.king::after {
+    content: "♛";</code></pre>
+
+  <h2>Step 2: The board is one list</h2>
+  <p>Instead of 8 rows of 8, the board is one list of 64 squares, row by row. Square <code>i</code> is in row <code>Math.floor(i / 8)</code> and column <code>i % 8</code>. A square is <code>null</code>, or a letter: <code>"r"</code> a red man, <code>"R"</code> a red king, <code>"b"</code> and <code>"B"</code> the same for black. One list is easy to copy with <code>slice()</code>, and the computer will copy it many thousands of times.</p>
+  <pre><code class="language-javascript">function startBoard() {
+    const squares = [];
+    for (let i = 0; i &lt; SIZE * SIZE; i++) {
+        const dark = (row(i) + col(i)) % 2 === 1;
+        if (dark &amp;&amp; row(i) &lt; 3) {
+            squares.push("b");
+        } else if (dark &amp;&amp; row(i) &gt; 4) {
+            squares.push("r");
+        } else {
+            squares.push(null);
+        }
+    }
+    return squares;
+}</code></pre>
+  <p>A square is dark when its row and column add up to an odd number. Black gets the dark squares in the top three rows, red in the bottom three.</p>
+
+  <h2>Step 3: Which way a piece may go</h2>
+  <pre><code class="language-javascript">function directions(piece) {
+    const up = [[-1, -1], [-1, 1]];
+    const down = [[1, -1], [1, 1]];
+    if (isKing(piece)) {
+        return up.concat(down);
+    }
+    return colorOf(piece) === "red" ? up : down;
+}
+
+function stepFrom(i, [dr, dc], n) {
+    const r = row(i) + dr * n;
+    const c = col(i) + dc * n;
+    if (r &lt; 0 || r &gt;= SIZE || c &lt; 0 || c &gt;= SIZE) {
+        return -1;
+    }
+    return r * SIZE + c;
+}</code></pre>
+  <p>Red goes up the board, so its row gets smaller; black goes down. A king may do both. <code>stepFrom</code> gives the square one or two steps away, or -1 if that is off the board, which saves checking the edges everywhere else.</p>
+
+  <h2>Step 4: Jumps with several steps</h2>
+  <p>This is the hardest part of checkers. After a jump, the same piece may be able to jump again, and again, and sometimes two different ways. Every whole chain of jumps is one move.</p>
+  <p>A function that calls itself, <strong>recursion</strong>, fits this well: "find the jumps from here" is the same question after every jump, just from a new square.</p>
+  <pre><code class="language-javascript">function findJumps(squares, piece, path, captured, found) {
+    const at = path[path.length - 1];
+    let jumped = false;
+    directions(piece).forEach(function (direction) {
+        const over = stepFrom(at, direction, 1);
+        const to = stepFrom(at, direction, 2);
+        if (to === -1) {
+            return;
+        }
+        const enemy = colorOf(squares[over]) === other(colorOf(piece));
+        // The square it started from is empty now: the piece has left it.
+        const free = squares[to] === null || to === path[0];
+        if (!enemy || !free || captured.includes(over)) {
+            return;
+        }
+        jumped = true;
+        const nextPath = path.concat([to]);
+        const nextCaptured = captured.concat([over]);
+        if (crowns(piece, to)) {
+            found.push({ path: nextPath, captured: nextCaptured });
+        } else {
+            findJumps(squares, piece, nextPath, nextCaptured, found);
+        }
+    });
+    if (!jumped &amp;&amp; captured.length &gt; 0) {
+        found.push({ path: path, captured: captured });
+    }
+}</code></pre>
+  <ul>
+    <li><code>path</code> is the squares the piece has been to so far, and <code>captured</code> the pieces it has jumped.</li>
+    <li>For every direction: is there an enemy next to it, and an empty square behind? Then jump, and ask again from the new square, with the longer path.</li>
+    <li>When no more jumps are possible from a square, the chain is done, and it is a move.</li>
+    <li>A piece may not jump the same piece twice: <code>captured.includes(over)</code>. A king could otherwise jump round in a circle for ever.</li>
+    <li>The square the piece started from counts as empty, since the piece has left it. A king can jump round in a square and land where it began.</li>
+    <li>A man that becomes a king in the middle of a chain stops there. That is the rule, and the new king must wait for its next turn.</li>
+  </ul>
+
+  <h2>Step 5: All the legal moves</h2>
+  <pre><code class="language-javascript">function legalMoves(squares, who) {
+    const jumps = [];
+    const steps = [];
+    for (let i = 0; i &lt; squares.length; i++) {
+        const piece = squares[i];
+        if (colorOf(piece) !== who) {
+            continue;
+        }
+        findJumps(squares, piece, [i], [], jumps);
+        directions(piece).forEach(function (direction) {
+            const to = stepFrom(i, direction, 1);
+            if (to !== -1 &amp;&amp; squares[to] === null) {
+                steps.push({ path: [i, to], captured: [] });
+            }
+        });
+    }
+    return jumps.length &gt; 0 ? jumps : steps;
+}</code></pre>
+  <p>Jumping is a must: if any piece can jump, only the jumps are legal. Everything else, the human's clicks, the computer and the end of the game, asks this one function, so the rules are in one place.</p>
+  <p>A move changes the board, but as a <strong>new</strong> list; the old one is left as it was. Then the computer can try a move and look at the result, without having to undo it afterwards:</p>
+  <pre><code class="language-javascript">function applyMove(squares, move) {
+    const next = squares.slice();
+    const from = move.path[0];
+    const to = move.path[move.path.length - 1];
+    let piece = next[from];
+    next[from] = null;
+    move.captured.forEach(function (i) {
+        next[i] = null;
+    });
+    if (crowns(piece, to)) {
+        piece = piece.toUpperCase();
+    }
+    next[to] = piece;
+    return next;
+}</code></pre>
+
+  <h2>Step 6: Clicking a jump, one square at a time</h2>
+  <p>You click a piece, and dots show where it may go. In a chain of jumps, you click each square in turn. We keep the squares clicked so far in <code>steps</code>, and keep only the moves that start the same way:</p>
+  <pre><code class="language-javascript">function movesInProgress() {
+    if (selected === null) {
+        return [];
+    }
+    return legalMoves(board, player).filter(function (move) {
+        return move.path[0] === selected &amp;&amp; steps.every(function (square, n) {
+            return move.path[n + 1] === square;
+        });
+    });
+}
+
+function clickSquare(i) {
+    if (gameOver || isComputersTurn()) {
+        return;
+    }
+    // A click on one of your own pieces picks it, if it can move.
+    if (colorOf(board[i]) === player &amp;&amp; steps.length === 0) {
+        const canMove = legalMoves(board, player).some(function (move) { return move.path[0] === i; });
+        selected = canMove ? i : null;
+        messageText.textContent = canMove ? "" : mustJumpText(i);
+        show();
+        return;
+    }
+    // A click on a square the picked piece may go to.
+    const fits = movesInProgress().filter(function (move) { return move.path[steps.length + 1] === i; });
+    if (fits.length === 0) {
+        return;
+    }
+    steps.push(i);
+    const done = fits.find(function (move) { return move.path.length === steps.length + 1; });
+    if (done) {
+        play(done);
+    } else {
+        show();   // a jump with more steps: click the next square
+    }
+}</code></pre>
+  <p>When a click finishes a move, it is played. Otherwise <code>show()</code> draws the board as it is after the steps so far, with the jumped pieces gone, and dots on the squares where the chain can go on.</p>
+
+  <h2>Step 7: The computer, with alpha-beta</h2>
+  <p>As in <a href="/tutorials/reversi-ai/">Reversi vs computer</a>, the hard computer uses <strong>minimax</strong>: try every move, then every answer, and so on, a few moves deep. Then pick the move where the worst that can happen is the best. The number of boards grows very fast: about 8 moves each way, 6 moves deep, is 8<sup>6</sup>, over 250 000 boards.</p>
+  <p><strong>Alpha-beta pruning</strong> skips most of them, without changing the answer:</p>
+  <pre><code class="language-javascript">function alphaBeta(squares, who, depth, alpha, beta) {
+    const moves = legalMoves(squares, who);
+    if (moves.length === 0) {
+        // No moves: "who" has lost. Sooner is better (or worse).
+        return who === COMPUTER ? -10000 - depth : 10000 + depth;
+    }
+    if (depth === 0) {
+        return scoreBoard(squares);
+    }
+    if (who === COMPUTER) {
+        let best = -Infinity;
+        for (const move of moves) {
+            best = Math.max(best, alphaBeta(applyMove(squares, move), HUMAN, depth - 1, alpha, beta));
+            alpha = Math.max(alpha, best);
+            if (alpha &gt;= beta) {
+                break;   // the human would never let it get here
+            }
+        }
+        return best;
+    }
+    let best = Infinity;
+    for (const move of moves) {
+        best = Math.min(best, alphaBeta(applyMove(squares, move), COMPUTER, depth - 1, alpha, beta));
+        beta = Math.min(beta, best);
+        if (alpha &gt;= beta) {
+            break;   // the computer would never let it get here
+        }
+    }
+    return best;
+}</code></pre>
+  <p>Say the computer has already found a move where it is sure to keep all its pieces (that is <code>alpha</code>). Now it looks at another move, and the first answer it finds for the human wins a piece. Then the human can do <em>at least</em> that well after this move, so it is worse than the move it already has, and there is no need to look at the human's other answers. That is the <code>break</code>. With good moves found early, it often only has to look at a few thousand boards instead of a quarter of a million. On this site, the computer's first move takes about 30 ms.</p>
+  <p>At the bottom of the search, the board is given a score:</p>
+  <pre><code class="language-javascript">function scoreBoard(squares) {
+    let score = 0;
+    squares.forEach(function (piece, i) {
+        if (piece === null) {
+            return;
+        }
+        let value = isKing(piece) ? 160 : 100;
+        if (piece === "b") {
+            value += row(i) * 3 + (row(i) === 0 ? 8 : 0);
+        } else if (piece === "r") {
+            value += (SIZE - 1 - row(i)) * 3 + (row(i) === SIZE - 1 ? 8 : 0);
+        }
+        score += colorOf(piece) === COMPUTER ? value : -value;
+    });
+    return score;
+}</code></pre>
+  <p>Pieces count most. Men that have come far are worth a little more, since they are closer to becoming kings, and so are men left on the back row, which stop the other side from getting kings.</p>
+  <p>The easy computer doesn't look ahead: it takes as many pieces as it can, else any move. In a test, the hard computer won 6 games out of 6 against the easy one.</p>
+
+  <h2>Step 8: Test it</h2>
+  <ul>
+    <li>At the start, red has 7 moves.</li>
+    <li>Make a jump possible. Click a piece that can't jump: it should say you must jump.</li>
+    <li>Set up a double jump, and click both squares. The jumped pieces should go as you click.</li>
+    <li>Get a man to the far side in the middle of a jump. It should become a king and stop.</li>
+    <li>Take all the other side's pieces, or block them so they can't move. You should win.</li>
+  </ul>
+  <p>A good way to set up these tests is in the browser's console: <code>board = startBoard()</code>, change squares with <code>board[i] = "b"</code>, and call <code>show()</code>.</p>
+
+  <h2>The complete page</h2>
+  <p><strong>checkers.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Checkers&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+
+    .container {
+        text-align: center;
+        width: 480px;
+        max-width: calc(100% - 40px);
+        box-sizing: border-box;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    /* --- The board ------------------------------------------------------------ */
+
+    /* Eight squares across, in a wooden frame. */
+    .board {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        width: 440px;
+        max-width: 100%;
+        margin: 0 auto;
+        border: 8px solid #6b4423;
+        border-radius: 6px;
+        box-sizing: border-box;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .square {
+        position: relative;
+        aspect-ratio: 1;
+    }
+
+    .square.light {
+        background-color: #ecd9b0;
+    }
+
+    .square.dark {
+        background-color: #8b5a2b;
+        cursor: pointer;
+    }
+
+    /* The squares the last move went through. */
+    .square.last {
+        background-color: #a8743c;
+    }
+
+    /* A dot where the picked piece may go. */
+    .square.target::after {
+        content: "";
+        position: absolute;
+        inset: 36%;
+        border-radius: 50%;
+        background-color: rgba(255, 230, 120, 0.85);
+    }
+
+    /* --- The pieces ------------------------------------------------------------- */
+
+    /* A round piece with a raised ring, like a real checker. */
+    .piece {
+        position: absolute;
+        inset: 10%;
+        border-radius: 50%;
+        box-shadow: 0 3px 4px rgba(0, 0, 0, 0.45), inset 0 0 0 4px rgba(255, 255, 255, 0.12), inset 0 0 0 7px rgba(0, 0, 0, 0.18);
+        transition: transform 0.15s;
+    }
+
+    .piece.red {
+        background: radial-gradient(circle at 35% 30%, #ef5350, #b71c1c 70%);
+    }
+
+    .piece.black {
+        background: radial-gradient(circle at 35% 30%, #555555, #111111 70%);
+    }
+
+    /* A king has a crown on it. */
+    .piece.king::after {
+        content: "♛";
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: min(28px, 6vw);
+        color: #f6d77a;
+    }
+
+    /* Pieces that may move glow a little; the picked one lifts, in gold. */
+    .piece.movable {
+        box-shadow: 0 0 0 3px rgba(246, 215, 122, 0.55), 0 3px 4px rgba(0, 0, 0, 0.45);
+    }
+
+    .piece.selected {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 0 0 3px #f6d77a, 0 6px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    /* --- Text and buttons ------------------------------------------------------- */
+
+    #status {
+        font-size: 18px;
+        margin-top: 16px;
+    }
+
+    #message {
+        color: #c25e00;
+        min-height: 1.5em;
+    }
+
+    button {
+        padding: 15px 30px;
+        font-size: 18px;
+        background-color: #000000;
+        color: #ffffff;
+        border: 5px solid #3d3b3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    select {
+        margin-top: 16px;
+        padding: 6px;
+        font-size: 16px;
+    }
+
+    /* --- The rules ---------------------------------------------------------- */
+
+    .rules {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class="container"&gt;
+    &lt;h1&gt;Checkers&lt;/h1&gt;
+    &lt;div id="board" class="board"&gt;&lt;/div&gt;
+    &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+    &lt;p id="message"&gt;&lt;/p&gt;
+    &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+    &lt;p&gt;
+      &lt;label for="mode"&gt;Play against:&lt;/label&gt;
+      &lt;select id="mode"&gt;
+        &lt;option value="pvp"&gt;A friend&lt;/option&gt;
+        &lt;option value="easy" selected&gt;The computer (easy)&lt;/option&gt;
+        &lt;option value="hard"&gt;The computer (hard)&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/p&gt;
+    &lt;details class="rules"&gt;
+      &lt;summary&gt;How to play&lt;/summary&gt;
+      &lt;ul&gt;
+        &lt;li&gt;You are red, at the bottom, and move first. Click a piece, then click where it should go: the dots show where it may move.&lt;/li&gt;
+        &lt;li&gt;Pieces move one step diagonally forward, on the dark squares.&lt;/li&gt;
+        &lt;li&gt;Jump over an opponent's piece to an empty square behind it, and the piece is taken. If you can jump, you must. If you can jump again from where you land, you must carry on: click each square in turn.&lt;/li&gt;
+        &lt;li&gt;A piece that reaches the far side becomes a king (♛). A king moves and jumps both forward and back. Becoming a king ends the turn.&lt;/li&gt;
+        &lt;li&gt;You win when the other side has no pieces left, or can't move. If 40 moves each go by without a jump or a new king, it is a draw.&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/details&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Checkers (English draughts): red against black on the dark squares of
+     * an 8 x 8 board. Red is at the bottom and moves first.
+     *
+     *   - A man moves one step diagonally forward.
+     *   - Jump over an opponent's piece to the empty square behind it to take
+     *     it. Taking is a must, and a piece that can jump again carries on.
+     *   - A man that reaches the far row becomes a king, which moves and
+     *     jumps both ways. Becoming a king ends the turn.
+     *   - A player who can't move, or has no pieces, loses.
+     *
+     * The board is a list of 64 squares, row by row. A square is null, or a
+     * letter: "r" a red man, "R" a red king, "b" a black man, "B" a black king.
+     * A move is { path, captured }: the squares the piece goes through, the
+     * first one where it starts, and the squares of the pieces it takes.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SIZE = 8;
+    const HUMAN = "red";
+    const COMPUTER = "black";
+    const NAMES = { red: "Red", black: "Black" };
+    const DEPTH = 6;               // moves the hard computer looks ahead
+    const COMPUTER_DELAY = 500;    // ms before the computer moves
+    const DRAW_MOVES = 80;         // 40 moves each without a capture or a new king
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const statusText = document.getElementById("status");
+    const messageText = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+    const modeSelect = document.getElementById("mode");
+
+    // --- State ---------------------------------------------------------------
+
+    let board = [];
+    let player = "red";
+    let gameOver = false;
+    let quietMoves = 0;      // moves since the last capture or new king
+    let selected = null;     // the square of the piece the human picked
+    let steps = [];          // squares clicked so far in a jump with several steps
+    let lastMove = null;     // to show where the last move went
+    let squares = [];        // the 64 elements on the page
+    let computerTimer = null;
+
+    // --- The board -------------------------------------------------------------
+
+    function row(i) {
+        return Math.floor(i / SIZE);
+    }
+
+    function col(i) {
+        return i % SIZE;
+    }
+
+    function colorOf(piece) {
+        if (piece === null) {
+            return null;
+        }
+        return piece.toLowerCase() === "r" ? "red" : "black";
+    }
+
+    function isKing(piece) {
+        return piece === "R" || piece === "B";
+    }
+
+    function other(who) {
+        return who === "red" ? "black" : "red";
+    }
+
+    function startBoard() {
+        const squares = [];
+        for (let i = 0; i &lt; SIZE * SIZE; i++) {
+            const dark = (row(i) + col(i)) % 2 === 1;
+            if (dark &amp;&amp; row(i) &lt; 3) {
+                squares.push("b");
+            } else if (dark &amp;&amp; row(i) &gt; 4) {
+                squares.push("r");
+            } else {
+                squares.push(null);
+            }
+        }
+        return squares;
+    }
+
+    // The ways a piece may go: [rows, columns]. Red goes up the board (row -1),
+    // black goes down (row +1), and kings go both ways.
+    function directions(piece) {
+        const up = [[-1, -1], [-1, 1]];
+        const down = [[1, -1], [1, 1]];
+        if (isKing(piece)) {
+            return up.concat(down);
+        }
+        return colorOf(piece) === "red" ? up : down;
+    }
+
+    // The square n steps away in a direction, or -1 if that is off the board.
+    function stepFrom(i, [dr, dc], n) {
+        const r = row(i) + dr * n;
+        const c = col(i) + dc * n;
+        if (r &lt; 0 || r &gt;= SIZE || c &lt; 0 || c &gt;= SIZE) {
+            return -1;
+        }
+        return r * SIZE + c;
+    }
+
+    // Does this man become a king on this square?
+    function crowns(piece, i) {
+        return !isKing(piece) &amp;&amp; ((piece === "r" &amp;&amp; row(i) === 0) || (piece === "b" &amp;&amp; row(i) === SIZE - 1));
+    }
+
+    // --- Moves -----------------------------------------------------------------
+
+    // Every move "who" may make. If any piece can jump, only jumps are allowed.
+    function legalMoves(squares, who) {
+        const jumps = [];
+        const steps = [];
+        for (let i = 0; i &lt; squares.length; i++) {
+            const piece = squares[i];
+            if (colorOf(piece) !== who) {
+                continue;
+            }
+            findJumps(squares, piece, [i], [], jumps);
+            directions(piece).forEach(function (direction) {
+                const to = stepFrom(i, direction, 1);
+                if (to !== -1 &amp;&amp; squares[to] === null) {
+                    steps.push({ path: [i, to], captured: [] });
+                }
+            });
+        }
+        return jumps.length &gt; 0 ? jumps : steps;
+    }
+
+    // All the jumps a piece can make from the last square of "path", one after
+    // the other. A jump with several steps is one move. It ends when no other
+    // jump is possible, or when a man becomes a king.
+    function findJumps(squares, piece, path, captured, found) {
+        const at = path[path.length - 1];
+        let jumped = false;
+        directions(piece).forEach(function (direction) {
+            const over = stepFrom(at, direction, 1);
+            const to = stepFrom(at, direction, 2);
+            if (to === -1) {
+                return;
+            }
+            const enemy = colorOf(squares[over]) === other(colorOf(piece));
+            // The square it started from is empty now: the piece has left it.
+            const free = squares[to] === null || to === path[0];
+            if (!enemy || !free || captured.includes(over)) {
+                return;
+            }
+            jumped = true;
+            const nextPath = path.concat([to]);
+            const nextCaptured = captured.concat([over]);
+            if (crowns(piece, to)) {
+                found.push({ path: nextPath, captured: nextCaptured });
+            } else {
+                findJumps(squares, piece, nextPath, nextCaptured, found);
+            }
+        });
+        if (!jumped &amp;&amp; captured.length &gt; 0) {
+            found.push({ path: path, captured: captured });
+        }
+    }
+
+    // The board after a move, as a new list. The old one is left as it was,
+    // so the computer can try moves without undoing them.
+    function applyMove(squares, move) {
+        const next = squares.slice();
+        const from = move.path[0];
+        const to = move.path[move.path.length - 1];
+        let piece = next[from];
+        next[from] = null;
+        move.captured.forEach(function (i) {
+            next[i] = null;
+        });
+        if (crowns(piece, to)) {
+            piece = piece.toUpperCase();
+        }
+        next[to] = piece;
+        return next;
+    }
+
+    function count(squares, who) {
+        return squares.filter(function (piece) { return colorOf(piece) === who; }).length;
+    }
+
+    // --- Playing a move --------------------------------------------------------
+
+    function play(move) {
+        const piece = board[move.path[0]];
+        const to = move.path[move.path.length - 1];
+        if (move.captured.length &gt; 0 || crowns(piece, to)) {
+            quietMoves = 0;
+        } else {
+            quietMoves++;
+        }
+        board = applyMove(board, move);
+        lastMove = move;
+        selected = null;
+        steps = [];
+        player = other(player);
+
+        if (legalMoves(board, player).length === 0) {
+            gameOver = true;
+            messageText.textContent = NAMES[other(player)] + " wins! " +
+                (count(board, player) === 0 ? NAMES[player] + " has no pieces left." : NAMES[player] + " can't move.");
+        } else if (quietMoves &gt;= DRAW_MOVES) {
+            gameOver = true;
+            messageText.textContent = "It's a draw: 40 moves each without a jump or a new king.";
+        }
+        show();
+        if (!gameOver &amp;&amp; isComputersTurn()) {
+            computerTimer = setTimeout(computerMove, COMPUTER_DELAY);
+        }
+    }
+
+    // --- The human: click a piece, then where it goes ---------------------------
+
+    // The moves the human can still make with the selected piece, given the
+    // squares clicked so far.
+    function movesInProgress() {
+        if (selected === null) {
+            return [];
+        }
+        return legalMoves(board, player).filter(function (move) {
+            return move.path[0] === selected &amp;&amp; steps.every(function (square, n) {
+                return move.path[n + 1] === square;
+            });
+        });
+    }
+
+    function clickSquare(i) {
+        if (gameOver || isComputersTurn()) {
+            return;
+        }
+        // A click on one of your own pieces picks it, if it can move.
+        if (colorOf(board[i]) === player &amp;&amp; steps.length === 0) {
+            const canMove = legalMoves(board, player).some(function (move) { return move.path[0] === i; });
+            selected = canMove ? i : null;
+            messageText.textContent = canMove ? "" : mustJumpText(i);
+            show();
+            return;
+        }
+        // A click on a square the picked piece may go to.
+        const fits = movesInProgress().filter(function (move) { return move.path[steps.length + 1] === i; });
+        if (fits.length === 0) {
+            return;
+        }
+        steps.push(i);
+        const done = fits.find(function (move) { return move.path.length === steps.length + 1; });
+        if (done) {
+            play(done);
+        } else {
+            show();   // a jump with more steps: click the next square
+        }
+    }
+
+    // Why a piece can't be picked: usually because another piece must jump.
+    function mustJumpText(i) {
+        const moves = legalMoves(board, player);
+        if (moves.length &gt; 0 &amp;&amp; moves[0].captured.length &gt; 0) {
+            return "You must jump: one of your pieces can take.";
+        }
+        return "That piece can't move.";
+    }
+
+    // --- The computer ------------------------------------------------------------
+
+    function isComputersTurn() {
+        return modeSelect.value !== "pvp" &amp;&amp; player === COMPUTER;
+    }
+
+    function computerMove() {
+        const moves = legalMoves(board, COMPUTER);
+        let best = [];
+        let bestScore = -Infinity;
+        moves.forEach(function (move) {
+            let score;
+            if (modeSelect.value === "easy") {
+                // Easy: take as many pieces as it can, else any move.
+                score = move.captured.length + Math.random() * 0.5;
+            } else {
+                score = alphaBeta(applyMove(board, move), HUMAN, DEPTH - 1, -Infinity, Infinity);
+            }
+            if (score &gt; bestScore) {
+                bestScore = score;
+                best = [move];
+            } else if (score === bestScore) {
+                best.push(move);
+            }
+        });
+        // Of the moves that are just as good, pick one at random, so the
+        // computer doesn't play the same game every time.
+        play(best[Math.floor(Math.random() * best.length)]);
+    }
+
+    // Minimax with alpha-beta pruning: how good is this board for the computer,
+    // if both sides play their best for "depth" more moves? alpha and beta are
+    // the best scores the computer and the human are already sure of; a move
+    // that can't beat them doesn't need to be looked at any further.
+    function alphaBeta(squares, who, depth, alpha, beta) {
+        const moves = legalMoves(squares, who);
+        if (moves.length === 0) {
+            // No moves: "who" has lost. Sooner is better (or worse).
+            return who === COMPUTER ? -10000 - depth : 10000 + depth;
+        }
+        if (depth === 0) {
+            return scoreBoard(squares);
+        }
+        if (who === COMPUTER) {
+            let best = -Infinity;
+            for (const move of moves) {
+                best = Math.max(best, alphaBeta(applyMove(squares, move), HUMAN, depth - 1, alpha, beta));
+                alpha = Math.max(alpha, best);
+                if (alpha &gt;= beta) {
+                    break;   // the human would never let it get here
+                }
+            }
+            return best;
+        }
+        let best = Infinity;
+        for (const move of moves) {
+            best = Math.min(best, alphaBeta(applyMove(squares, move), COMPUTER, depth - 1, alpha, beta));
+            beta = Math.min(beta, best);
+            if (alpha &gt;= beta) {
+                break;   // the computer would never let it get here
+            }
+        }
+        return best;
+    }
+
+    // A guess at how good a board is for the computer: a man is worth 100 and
+    // a king 160, plus a little for men that have come far, and for keeping
+    // the back row, which stops the other side from getting kings.
+    function scoreBoard(squares) {
+        let score = 0;
+        squares.forEach(function (piece, i) {
+            if (piece === null) {
+                return;
+            }
+            let value = isKing(piece) ? 160 : 100;
+            if (piece === "b") {
+                value += row(i) * 3 + (row(i) === 0 ? 8 : 0);
+            } else if (piece === "r") {
+                value += (SIZE - 1 - row(i)) * 3 + (row(i) === SIZE - 1 ? 8 : 0);
+            }
+            score += colorOf(piece) === COMPUTER ? value : -value;
+        });
+        return score;
+    }
+
+    // --- Showing the board -------------------------------------------------------
+
+    function show() {
+        // While a jump with several steps is under way, show the board as it is
+        // after the steps so far.
+        let shown = board;
+        let at = selected;
+        const inProgress = movesInProgress();
+        if (steps.length &gt; 0) {
+            const partial = { path: [selected].concat(steps), captured: inProgress[0].captured.slice(0, steps.length) };
+            shown = applyMove(board, partial);
+            at = steps[steps.length - 1];
+        }
+        const targets = inProgress.map(function (move) { return move.path[steps.length + 1]; });
+        // Pieces that may move: when a jump is a must, only those that can jump.
+        const movable = gameOver || isComputersTurn() || selected !== null ? [] :
+            legalMoves(board, player).map(function (move) { return move.path[0]; });
+
+        squares.forEach(function (element, i) {
+            element.className = "square " + ((row(i) + col(i)) % 2 === 1 ? "dark" : "light");
+            element.innerHTML = "";
+            const piece = shown[i];
+            if (piece !== null) {
+                const disc = document.createElement("div");
+                disc.className = "piece " + colorOf(piece) + (isKing(piece) ? " king" : "");
+                if (i === at) {
+                    disc.classList.add("selected");
+                } else if (movable.includes(i)) {
+                    disc.classList.add("movable");
+                }
+                element.appendChild(disc);
+            }
+            if (targets.includes(i)) {
+                element.classList.add("target");
+            }
+            if (lastMove !== null &amp;&amp; steps.length === 0 &amp;&amp; lastMove.path.includes(i)) {
+                element.classList.add("last");
+            }
+        });
+
+        let text = "Red " + count(board, "red") + " - Black " + count(board, "black") + ". ";
+        if (gameOver) {
+            text += "Game over.";
+        } else if (isComputersTurn()) {
+            text += NAMES[player] + " is thinking...";
+        } else {
+            text += NAMES[player] + "'s turn.";
+        }
+        statusText.textContent = text;
+    }
+
+    // --- Starting --------------------------------------------------------------
+
+    function newGame() {
+        // A computer move that is waiting to happen belongs to the old game.
+        clearTimeout(computerTimer);
+        board = startBoard();
+        player = "red";
+        gameOver = false;
+        quietMoves = 0;
+        selected = null;
+        steps = [];
+        lastMove = null;
+        messageText.textContent = "";
+        show();
+    }
+
+    function buildBoard() {
+        for (let i = 0; i &lt; SIZE * SIZE; i++) {
+            const element = document.createElement("div");
+            element.className = "square";
+            element.addEventListener("click", function () {
+                clickSquare(i);
+            });
+            boardElement.appendChild(element);
+            squares.push(element);
+        }
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    restartButton.addEventListener("click", newGame);
+    modeSelect.addEventListener("change", newGame);
+
+    buildBoard();
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Let the hard computer think deeper when there are few pieces left: the search gets much faster then.</li>
+    <li>Add an Undo button: keep a list of the boards, as in <a href="/tutorials/klondike/">Klondike</a>.</li>
+    <li>Make International draughts: a 10 by 10 board, men that may jump backwards, and kings that fly any distance.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>Checkers is played with clicks or taps, so it works well on a phone. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkers</title>
+
+  <!-- Makes this page an installable app, see _scripts/make-pwa.py. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
+  <!-- iPhone and iPad read these instead of the manifest. -->
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Checkers">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/assets/checkers/checkers.css">
+  <style>
+    /* Without the site header the games would touch the top of the screen. */
+    .game { padding-block: 16px; }
+  </style>
+</head>
+<body>
+<div class="game">
+<div class="container">
+  <h1>Checkers</h1>
+  <div id="board" class="board"></div>
+  <p id="status" aria-live="polite"></p>
+  <p id="message"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="mode">Play against:</label>
+    <select id="mode">
+      <option value="pvp">A friend</option>
+      <option value="easy" selected>The computer (easy)</option>
+      <option value="hard">The computer (hard)</option>
+    </select>
+  </p>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>You are red, at the bottom, and move first. Click a piece, then click where it should go: the dots show where it may move.</li>
+      <li>Pieces move one step diagonally forward, on the dark squares.</li>
+      <li>Jump over an opponent's piece to an empty square behind it, and the piece is taken. If you can jump, you must. If you can jump again from where you land, you must carry on: click each square in turn.</li>
+      <li>A piece that reaches the far side becomes a king (♛). A king moves and jumps both forward and back. Becoming a king ends the turn.</li>
+      <li>You win when the other side has no pieces left, or can't move. If 40 moves each go by without a jump or a new king, it is a draw.</li>
+    </ul>
+  </details>
+</div>
+</div>
+
+<script src="/assets/checkers/checkers.js"></script>
+<script>
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+</body>
+</html>
