@@ -33,10 +33,21 @@ body {
     text-align: center;
 }
 
+h1::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin: 10px auto 0;
+    background-color: #e8b455;
+    border-radius: 2px;
+}
+
 #ip {
     font-size: 48px;
     overflow-wrap: anywhere;
 }</code></pre>
+  <p><code>h1::after</code> adds a short gold line under the heading without any extra HTML. A <code>::after</code> element needs <code>content</code>, even an empty one, to show up.</p>
   <p><code>overflow-wrap: anywhere</code> lets a long IPv6 address break onto the next line on a narrow phone screen.</p>
   <h2>Step 2: fetch, async and await</h2>
   <p>Getting data from the network takes time, from milliseconds to seconds. JavaScript doesn't stop and wait, because that would freeze the whole page. Instead, <code>fetch()</code> returns a <strong>promise</strong>, a value that arrives later.</p>
@@ -91,6 +102,16 @@ showMyIp();</code></pre>
 
     body {
         text-align: center;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
     }
 
     #ip {

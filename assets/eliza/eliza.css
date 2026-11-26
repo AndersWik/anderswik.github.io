@@ -10,7 +10,7 @@
   body > .container-sm.eliza {
     background-color: #0a0d0a;
   }
-  body > .container-sm.eliza h2 {
+  body > .container-sm.eliza h1 {
     color: var(--text);
   }
   .sub { color: var(--dim); font-size: 13px; margin: 0 0 16px; }

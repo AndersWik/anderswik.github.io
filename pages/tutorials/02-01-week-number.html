@@ -40,10 +40,21 @@ body {
     text-align: center;
 }
 
+h1::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin: 10px auto 0;
+    background-color: #e8b455;
+    border-radius: 2px;
+}
+
 #number {
     margin: 0;
     font-size: 160px;
 }</code></pre>
+  <p><code>h1::after</code> adds a short gold line under the heading without any extra HTML. A <code>::after</code> element needs <code>content</code>, even an empty one, to show up.</p>
   <h2>Step 2: Find the element</h2>
   <pre><code class="language-javascript">const weekNumber = document.getElementById("number");
 
@@ -96,6 +107,16 @@ getWeekNumber(new Date(2021, 0, 3))    // 53  (Sunday of week 53, 2020)</code></
 
     body {
         text-align: center;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
     }
 
     #number {

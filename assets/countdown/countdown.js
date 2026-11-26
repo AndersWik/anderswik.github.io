@@ -102,6 +102,4 @@ if (params.get("title")) {
 if (params.get("to") && isValidDate(endDate)) {
     timer = setInterval(tick, 1000);
     tick(); // show the time right away instead of after one second
-} else {
-    titleText.textContent = "Add a date to the address, e.g. ?to=1999-12-31T23:59:00";
 }

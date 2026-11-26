@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "unix-timestamp-convertor-35557f4429";
+const CACHE = "unix-timestamp-convertor-5c3c2513ba";
 
 const FILES = [
     "/assets/unix-timestamp-convertor/app.html",

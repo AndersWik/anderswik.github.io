@@ -92,13 +92,14 @@ a {
 	}
 }
 
-h2, h3 {
+// An h1 with class="h2" is the page title, styled like the h2 titles were.
+h2, .h2, h3 {
 	font-family: $font-display;
 	color: $color-ink;
 	letter-spacing: -.01em;
 }
 
-h2 {
+h2, .h2 {
 	font-size: 35px;
 	margin-bottom: 1.25rem;
 }
@@ -231,8 +232,11 @@ body > header {
 	border-bottom: 3px solid $color-accent;
 	font-family: $font-display;
 
-	h1 {
+	// The site name is not a heading: the h1 on each page is the page's own title.
+	.site-title {
 		font-size: 2rem;
+		font-weight: 500;
+		line-height: 1.2;
 		margin: .25rem 0;
 		letter-spacing: .02em;
 	}
@@ -543,14 +547,26 @@ footer {
 //<editor-fold desc="-- 404--">
 ///////////////////////////////////////////////////
 
+// The 404 page reuses the terminal from the home page.
 .notfound {
-	h2 {
-		font-size: 45px;
+	min-height: 60vh;
+
+	.terminal .text {
+		// A long, wrong address must not make the page wider.
+		overflow-wrap: anywhere;
+
+		a {
+			color: $color-accent;
+			text-decoration: underline;
+
+			&:hover {
+				color: #fff;
+			}
+		}
 	}
-	p {
-		color: #e8b455;
-		font-family: ubuntu;
-		font-size: 35px;
+
+	.folders a {
+		margin-right: 1em;
 	}
 }
 

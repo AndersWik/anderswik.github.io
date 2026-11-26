@@ -3,6 +3,7 @@
 }
 
 .make-request p,
+.make-request h1,
 .make-request h2,
 .make-request h3 {
   font-family: ubuntu;

@@ -63,6 +63,16 @@ body {
     text-align: center;
 }
 
+h1::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin: 10px auto 0;
+    background-color: #e8b455;
+    border-radius: 2px;
+}
+
 .clock {
     display: flex;
     justify-content: center;
@@ -120,6 +130,7 @@ form button {
     margin-top: 16px;
     padding: 8px 16px;
 }</code></pre>
+  <p><code>h1::after</code> adds a short gold line under the heading without any extra HTML. A <code>::after</code> element needs <code>content</code>, even an empty one, to show up.</p>
   <p>The <code>.blink</code> class uses a CSS animation. <code>@keyframes blink</code> says how it changes, from <code>opacity: 1</code> (visible) to <code>opacity: 0</code> (gone). <code>animation: blink 400ms infinite alternate</code> runs it every 400 milliseconds, forever, back and forth. JavaScript only has to add the class.</p>
   <h2>Step 2: Read the address</h2>
   <p><code>window.location.search</code> is the part of the address from <code>?</code>. <code>URLSearchParams</code> reads it, and handles details like <code>%20</code> for spaces:</p>
@@ -177,19 +188,17 @@ const imageUrl = params.get("url");</code></pre>
 if (params.get("to") &amp;&amp; isValidDate(endDate)) {
     timer = setInterval(tick, 1000);
     tick();
-} else {
-    titleText.textContent = "Add a date to the address, e.g. ?to=1999-12-31T23:59:00";
 }</code></pre>
   <ul>
     <li>The title is written with <code>textContent</code>, never <code>innerHTML</code>. Otherwise a link with <code>?title=&lt;img src=x onerror=...&gt;</code> could run any script on the page. This kind of attack is called cross-site scripting, or XSS.</li>
     <li><code>params.get("title")</code> is <code>null</code> if there is no title and <code>""</code> if the form field was empty. Both count as false, so an empty field keeps the heading "Countdown".</li>
     <li><code>new Date("not a date")</code> gives an "Invalid Date" whose time is <code>NaN</code>. <code>isValidDate()</code> checks for that with <code>isNaN(date.getTime())</code>.</li>
-    <li><strong>A trap:</strong> <code>new Date(null)</code> is not invalid. It is 1 January 1970. So without the <code>params.get("to")</code> check, a page with no date would show a finished countdown instead of the help text.</li>
+    <li><strong>A trap:</strong> <code>new Date(null)</code> is not invalid. It is 1 January 1970. So without the <code>params.get("to")</code> check, a page with no date would show a finished countdown with blinking zeros. With the check, it waits at 00 for you to fill in the form.</li>
     <li>We call <code>tick()</code> once ourselves, so the numbers show right away and not after the first second.</li>
   </ul>
   <h2>Step 6: Test it</h2>
   <ul>
-    <li>Open the page without anything after <code>.html</code>. You should see the help text in the heading.</li>
+    <li>Open the page without anything after <code>.html</code>. It should show the heading "Countdown" and 00 everywhere, without blinking.</li>
     <li>Fill in the form with a time two minutes from now and an image address. When it reaches zero, the numbers blink and the image shows.</li>
     <li>Try <code>?to=nonsense</code> and <code>?to=2000-01-01T00:00</code>.</li>
     <li>Try <code>?to=2099-01-01T00:00&amp;title=&lt;b&gt;hi&lt;/b&gt;</code>. The title should show the tags as text.</li>
@@ -212,6 +221,16 @@ if (params.get("to") &amp;&amp; isValidDate(endDate)) {
 
     body {
         text-align: center;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
     }
 
     .clock {
@@ -415,8 +434,6 @@ if (params.get("to") &amp;&amp; isValidDate(endDate)) {
     if (params.get("to") &amp;&amp; isValidDate(endDate)) {
         timer = setInterval(tick, 1000);
         tick(); // show the time right away instead of after one second
-    } else {
-        titleText.textContent = "Add a date to the address, e.g. ?to=1999-12-31T23:59:00";
     }
   &lt;/script&gt;
 &lt;/body&gt;

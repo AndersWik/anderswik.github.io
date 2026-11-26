@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "egg-clock-1538d5095c";
+const CACHE = "egg-clock-875cfcdff6";
 
 const FILES = [
     "/assets/egg-clock/app.html",

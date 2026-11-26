@@ -38,13 +38,13 @@ a:hover {
   color: #1f2328;
 }
 
-h2, h3 {
+h2, .h2, h3 {
   font-family: ubuntu, "ubuntu-text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: #1f2328;
   letter-spacing: -0.01em;
 }
 
-h2 {
+h2, .h2 {
   font-size: 35px;
   margin-bottom: 1.25rem;
 }
@@ -157,8 +157,10 @@ body > header {
   border-bottom: 3px solid #e8b455;
   font-family: ubuntu, "ubuntu-text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
-body > header h1 {
+body > header .site-title {
   font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.2;
   margin: 0.25rem 0;
   letter-spacing: 0.02em;
 }
@@ -434,13 +436,21 @@ footer .social:hover img {
   width: 100%;
 }
 
-.notfound h2 {
-  font-size: 45px;
+.notfound {
+  min-height: 60vh;
 }
-.notfound p {
+.notfound .terminal .text {
+  overflow-wrap: anywhere;
+}
+.notfound .terminal .text a {
   color: #e8b455;
-  font-family: ubuntu;
-  font-size: 35px;
+  text-decoration: underline;
+}
+.notfound .terminal .text a:hover {
+  color: #fff;
+}
+.notfound .folders a {
+  margin-right: 1em;
 }
 
 .tutorials pre, .linux pre, .markdown pre, .git pre, .vagrant pre, .mysql pre, .php pre, .latex pre, .pwa pre, .firefox-plugins pre, .regular-expressions pre, .strudel pre, .html pre, .css pre, .wordpress pre, .scss pre {

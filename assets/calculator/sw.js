@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "calculator-faabba3731";
+const CACHE = "calculator-897e9b4a70";
 
 const FILES = [
     "/assets/calculator/app.html",

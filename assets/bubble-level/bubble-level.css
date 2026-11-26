@@ -10,14 +10,14 @@
   overflow: hidden;
 }
 
-.bubble-level h2 {
+.bubble-level h1 {
   font-family: "Ubuntu", Arial, sans-serif;
   font-weight: 700;
   color: #222222;
   letter-spacing: 0.02em;
 }
 
-.bubble-level h2::after {
+.bubble-level h1::after {
   content: "";
   display: block;
   width: 48px;

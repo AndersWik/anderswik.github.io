@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "compass-a8e19cf789";
+const CACHE = "compass-7dc7f897a6";
 
 const FILES = [
     "/assets/compass/app.html",

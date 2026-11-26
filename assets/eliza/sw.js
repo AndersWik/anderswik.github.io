@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "eliza-2c59a1e707";
+const CACHE = "eliza-f4dab52269";
 
 const FILES = [
     "/assets/eliza/app.html",

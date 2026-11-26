@@ -1,3 +1,20 @@
+.countdown h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.countdown h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
 .countdown #countdown-days,
 .countdown #countdown-hours,
 .countdown #countdown-minutes,

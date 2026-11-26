@@ -1,0 +1,38 @@
+---
+layout: default
+title: Page not found
+nonav: true
+js:
+  - /assets/404/404.js
+---
+
+<div class="home notfound">
+  <div class="terminal">
+    <div class="menu">
+      <h1 class="title">404: page not found</h1>
+      <span class="close-btn"></span>
+      <span class="hide-btn"></span>
+      <span class="full-btn"></span>
+    </div>
+    <div class="text">
+      <span class="terminal-row">anders-wik: anderswik$ cd <span id="wanted-path">this page</span></span>
+      <span class="terminal-row">bash: cd: <span id="error-path">this page</span>: No such file or directory</span>
+      <span class="terminal-row" id="suggestion-row" hidden>Did you mean: <a id="suggestion" href="/">/</a> ?</span>
+      <span class="terminal-row">anders-wik: anderswik$ ls ~/</span>
+      <span class="terminal-row folders">
+        <a href="/games/">games/</a>
+        <a href="/utils/">utils/</a>
+        <a href="/other/">other/</a>
+        <a href="/tutorials/">tutorials/</a>
+        <a href="/notes/">notes/</a>
+        <a href="/references/">references/</a>
+      </span>
+      <span class="usr">anders-wik: anderswik$ <span class="b">&#x25AE;</span></span>
+    </div>
+  </div>
+</div>
+
+<script type="text/plain" id="site-pages">
+{% for p in site.pages %}{% assign last = p.url | slice: -1 %}{% if p.url != "/404.html" %}{% if last == "/" or p.url contains ".html" %}{{ p.url }}
+{% endif %}{% endif %}{% endfor %}
+</script>

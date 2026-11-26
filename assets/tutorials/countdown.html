@@ -16,6 +16,16 @@
         text-align: center;
     }
 
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
     .clock {
         display: flex;
         justify-content: center;
@@ -217,8 +227,6 @@
     if (params.get("to") && isValidDate(endDate)) {
         timer = setInterval(tick, 1000);
         tick(); // show the time right away instead of after one second
-    } else {
-        titleText.textContent = "Add a date to the address, e.g. ?to=1999-12-31T23:59:00";
     }
   </script>
 </body>

@@ -55,6 +55,16 @@ body {
     text-align: center;
 }
 
+h1::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin: 10px auto 0;
+    background-color: #e8b455;
+    border-radius: 2px;
+}
+
 .clock {
     display: flex;
     justify-content: center;
@@ -85,6 +95,7 @@ body {
     height: 60px;
     font-size: 18px;
 }</code></pre>
+  <p><code>h1::after</code> adds a short gold line under the heading without any extra HTML. A <code>::after</code> element needs <code>content</code>, even an empty one, to show up.</p>
   <p><code>display: grid</code> with <code>grid-template-columns: 1fr 1fr</code> puts the six buttons in two equal columns.</p>
   <h2>Step 2: Show the time</h2>
   <pre><code class="language-javascript">function twoDigits(number) {
@@ -178,6 +189,16 @@ removeSecondButton.addEventListener("click", function () { changeTime(-1); });</
 
     body {
         text-align: center;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
     }
 
     .clock {
