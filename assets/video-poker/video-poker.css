@@ -1,0 +1,343 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  text-align: center;
+  width: 560px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+/* The title: the site's font, and a short gold line under it. */
+.game h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+.game button {
+  padding: 12px 26px;
+  font-size: 18px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/* --- The table ---------------------------------------------------------- */
+
+/* Green felt with a wooden rail, as in Blackjack. Not called "table":
+   Bootstrap has a .table class that would put white boxes round the cards. */
+.game .felt {
+  margin-top: 16px;
+  padding: 12px 8px;
+  color: #ffffff;
+  background: radial-gradient(ellipse at 50% 40%, #2f8a5b, #1b5a3a 75%);
+  border: 8px solid #6b4423;
+  border-radius: 24px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.game .label {
+  margin: 0 0 4px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.game #status {
+  min-height: 2.8em;
+  margin: 8px 0 0;
+}
+
+/* Five cards in a row. The cards are sized in em, so the font size sets
+   how big they are: smaller on a narrow phone, never bigger than 18px. */
+.game .hand {
+  display: flex;
+  justify-content: center;
+  gap: 1.5%;
+  font-size: clamp(9px, 3.3vw, 18px);
+}
+
+/* Each card is a button, without the look of one. */
+.game .hold-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+.game .hold-button:disabled {
+  opacity: 1;
+}
+
+.game .held-tag {
+  visibility: hidden;
+  margin-bottom: 0.3em;
+  padding: 0.1em 0.4em;
+  font-size: max(0.75em, 10px);
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: #222222;
+  background-color: #f6d77a;
+  border-radius: 3px;
+}
+
+/* A held card: the tag shows, and the card lifts a little. */
+.game .hold-button.held .held-tag {
+  visibility: visible;
+}
+
+/* With margins, not transform: the turn animation keeps the card's
+   transform when it ends, so a transform here would never show. */
+.game .hold-button.held .slot {
+  margin-top: -0.4em;
+  margin-bottom: 0.4em;
+}
+
+.game .hold-button.held .card {
+  box-shadow: 0 0 0 3px #f6d77a;
+  border-radius: 6px;
+}
+
+/* On a phone, less room round the felt, so the cards can be bigger. */
+@media (max-width: 480px) {
+  .game .container {
+    max-width: calc(100% - 16px);
+    margin: 8px;
+    padding: 12px;
+  }
+
+  .game .felt {
+    padding: 10px 4px;
+  }
+}
+
+/* --- The cards, as in Blackjack and the Hi-Lo Counter --------------------- */
+
+.game .slot {
+  flex: none;
+  perspective: 600px;
+}
+
+.game .card {
+  position: relative;
+  width: 4.6em;
+  height: 6.6em;
+  transform-style: preserve-3d;
+}
+
+/* A card that is face down: turned round, so the back shows. */
+.game .card.down {
+  transform: rotateY(180deg);
+}
+
+.game .face {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  backface-visibility: hidden;
+  box-shadow: -1px 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+.game .front {
+  background-color: #ffffff;
+  border: 1px solid #c9c9c9;
+  color: #1a1a1a;
+  font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
+}
+
+.game .card.red .front {
+  color: #c8102e;
+}
+
+.game .back {
+  transform: rotateY(180deg);
+  background-color: #b3202a;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px);
+  border: 4px solid #ffffff;
+  outline: 1px solid #c9c9c9;
+  box-sizing: border-box;
+}
+
+.game .corner {
+  position: absolute;
+  font-size: 0.95em;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+}
+
+.game .corner.top {
+  top: 0.25em;
+  left: 0.25em;
+}
+
+.game .corner.bottom {
+  bottom: 0.25em;
+  right: 0.25em;
+  transform: rotate(180deg);
+}
+
+.game .pip {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.3em;
+}
+
+/* A new card slides onto the table... */
+.game .slot.new {
+  animation: slide 0.3s ease-out both;
+}
+
+@keyframes slide {
+  from { opacity: 0; transform: translateY(-40px); }
+}
+
+/* ...and turns over, from its back to its front. */
+.game .slot.new .card {
+  animation: turn 0.45s ease-out both;
+}
+
+@keyframes turn {
+  from { transform: rotateY(180deg); }
+  to { transform: rotateY(0deg); }
+}
+
+/* --- Bet, credits and the Deal button ------------------------------------- */
+
+.game .controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.game .bet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game .credits {
+  margin: 0;
+}
+
+.game .number {
+  display: inline-block;
+  min-width: 1.6em;
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-size: 24px;
+}
+
+/* The round + and - buttons, as in the Hi-Lo Counter. */
+.game .round {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 24px;
+  line-height: 1;
+  color: #222222;
+  background-color: #ffffff;
+  border: 3px solid #6b4423;
+  border-radius: 50%;
+}
+
+.game .deal-button {
+  width: 100%;
+  background-color: #e8b455;
+  color: #222222;
+  border-color: #c99a3b;
+  font-weight: bold;
+}
+
+/* --- The pay table -------------------------------------------------------- */
+
+.game .paytable {
+  width: 100%;
+  margin: 16px 0 0;
+  border-collapse: collapse;
+}
+
+.game .paytable td {
+  padding: 4px 10px;
+  border-bottom: 1px solid #e3e3e3;
+  text-align: left;
+}
+
+.game .paytable td:last-child {
+  text-align: right;
+  font-weight: bold;
+}
+
+/* The hand that just won. */
+.game .paytable tr.win td {
+  background-color: #f6d77a;
+}
+
+/* --- The rules ---------------------------------------------------------- */
+
+/* The rules: click "How to play" to open them. */
+.game .rules {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #dddddd;
+  text-align: left;
+}
+
+.game .rules summary {
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.game .rules ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.game .rules li {
+  margin-bottom: 6px;
+}

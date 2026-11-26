@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Video Poker</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+
+    .container {
+        text-align: center;
+        width: 560px;
+        max-width: calc(100% - 40px);
+        box-sizing: border-box;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    button {
+        padding: 12px 26px;
+        font-size: 18px;
+        background-color: #000000;
+        color: #ffffff;
+        border: 5px solid #3d3b3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: default;
+        opacity: 0.4;
+    }
+
+    /* --- The table ---------------------------------------------------------- */
+
+    /* Green felt with a wooden rail, as in Blackjack. */
+    .felt {
+        margin-top: 16px;
+        padding: 12px 8px;
+        color: #ffffff;
+        background: radial-gradient(ellipse at 50% 40%, #2f8a5b, #1b5a3a 75%);
+        border: 8px solid #6b4423;
+        border-radius: 24px;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .label {
+        margin: 0 0 4px;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    #status {
+        min-height: 2.8em;
+        margin: 8px 0 0;
+    }
+
+    /* Five cards in a row. The cards are sized in em, so the font size sets
+          how big they are: smaller on a narrow phone, never bigger than 18px. */
+    .hand {
+        display: flex;
+        justify-content: center;
+        gap: 1.5%;
+        font-size: clamp(9px, 3.3vw, 18px);
+    }
+
+    /* Each card is a button, without the look of one. */
+    .hold-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+        background: none;
+        border: none;
+        border-radius: 0;
+        color: inherit;
+        font-size: inherit;
+    }
+
+    .hold-button:disabled {
+        opacity: 1;
+    }
+
+    .held-tag {
+        visibility: hidden;
+        margin-bottom: 0.3em;
+        padding: 0.1em 0.4em;
+        font-size: max(0.75em, 10px);
+        font-weight: bold;
+        letter-spacing: 0.05em;
+        color: #222222;
+        background-color: #f6d77a;
+        border-radius: 3px;
+    }
+
+    /* A held card: the tag shows, and the card lifts a little. */
+    .hold-button.held .held-tag {
+        visibility: visible;
+    }
+
+    /* With margins, not transform: the turn animation keeps the card's
+          transform when it ends, so a transform here would never show. */
+    .hold-button.held .slot {
+        margin-top: -0.4em;
+        margin-bottom: 0.4em;
+    }
+
+    .hold-button.held .card {
+        box-shadow: 0 0 0 3px #f6d77a;
+        border-radius: 6px;
+    }
+
+    /* On a phone, less room round the felt, so the cards can be bigger. */
+    @media (max-width: 480px) {
+        .container {
+            max-width: calc(100% - 16px);
+            margin: 8px;
+            padding: 12px;
+        }
+
+        .felt {
+            padding: 10px 4px;
+        }
+    }
+
+    /* --- The cards, as in Blackjack and the Hi-Lo Counter --------------------- */
+
+    .slot {
+        flex: none;
+        perspective: 600px;
+    }
+
+    .card {
+        position: relative;
+        width: 4.6em;
+        height: 6.6em;
+        transform-style: preserve-3d;
+    }
+
+    /* A card that is face down: turned round, so the back shows. */
+    .card.down {
+        transform: rotateY(180deg);
+    }
+
+    .face {
+        position: absolute;
+        inset: 0;
+        border-radius: 6px;
+        backface-visibility: hidden;
+        box-shadow: -1px 1px 4px rgba(0, 0, 0, 0.45);
+    }
+
+    .front {
+        background-color: #ffffff;
+        border: 1px solid #c9c9c9;
+        color: #1a1a1a;
+        font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
+    }
+
+    .card.red .front {
+        color: #c8102e;
+    }
+
+    .back {
+        transform: rotateY(180deg);
+        background-color: #b3202a;
+        background-image:
+            repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px),
+            repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px);
+        border: 4px solid #ffffff;
+        outline: 1px solid #c9c9c9;
+        box-sizing: border-box;
+    }
+
+    .corner {
+        position: absolute;
+        font-size: 0.95em;
+        font-weight: bold;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .corner.top {
+        top: 0.25em;
+        left: 0.25em;
+    }
+
+    .corner.bottom {
+        bottom: 0.25em;
+        right: 0.25em;
+        transform: rotate(180deg);
+    }
+
+    .pip {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.3em;
+    }
+
+    /* A new card slides onto the table... */
+    .slot.new {
+        animation: slide 0.3s ease-out both;
+    }
+
+    @keyframes slide {
+        from { opacity: 0; transform: translateY(-40px); }
+    }
+
+    /* ...and turns over, from its back to its front. */
+    .slot.new .card {
+        animation: turn 0.45s ease-out both;
+    }
+
+    @keyframes turn {
+        from { transform: rotateY(180deg); }
+        to { transform: rotateY(0deg); }
+    }
+
+    /* --- Bet, credits and the Deal button ------------------------------------- */
+
+    .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 16px 0 12px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .bet {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .credits {
+        margin: 0;
+    }
+
+    .number {
+        display: inline-block;
+        min-width: 1.6em;
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-size: 24px;
+    }
+
+    /* The round + and - buttons, as in the Hi-Lo Counter. */
+    .round {
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        font-size: 24px;
+        line-height: 1;
+        color: #222222;
+        background-color: #ffffff;
+        border: 3px solid #6b4423;
+        border-radius: 50%;
+    }
+
+    .deal-button {
+        width: 100%;
+        background-color: #e8b455;
+        color: #222222;
+        border-color: #c99a3b;
+        font-weight: bold;
+    }
+
+    /* --- The pay table -------------------------------------------------------- */
+
+    .paytable {
+        width: 100%;
+        margin: 16px 0 0;
+        border-collapse: collapse;
+    }
+
+    .paytable td {
+        padding: 4px 10px;
+        border-bottom: 1px solid #e3e3e3;
+        text-align: left;
+    }
+
+    .paytable td:last-child {
+        text-align: right;
+        font-weight: bold;
+    }
+
+    /* The hand that just won. */
+    .paytable tr.win td {
+        background-color: #f6d77a;
+    }
+
+    /* --- The rules ---------------------------------------------------------- */
+
+    /* The rules: click "How to play" to open them. */
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Video Poker</h1>
+
+    <div class="felt">
+      <p class="label">Jacks or Better</p>
+      <div id="hand" class="hand"></div>
+      <p id="status" aria-live="polite">Choose your bet and press Deal.</p>
+    </div>
+
+    <div class="controls">
+      <div class="bet">
+        <span>Bet</span>
+        <button type="button" id="bet-minus" class="round" aria-label="Bet one less">−</button>
+        <span id="bet" class="number">1</span>
+        <button type="button" id="bet-plus" class="round" aria-label="Bet one more">+</button>
+      </div>
+      <p class="credits">Credits <span id="credits" class="number">100</span></p>
+    </div>
+    <button type="button" id="deal" class="deal-button">Deal</button>
+
+    <table id="paytable" class="paytable"></table>
+
+    <details class="rules">
+      <summary>How to play</summary>
+      <ul>
+        <li>Choose how many credits to bet, 1 to 5, and press <strong>Deal</strong>. You get five cards.</li>
+        <li>Click the cards you want to keep, or press the keys 1 to 5. They are marked HELD.</li>
+        <li>Press <strong>Draw</strong>. The cards you didn't keep are swapped for new ones.</li>
+        <li>Your final hand pays as the table says, times your bet. The lowest win is a pair of jacks or better: a pair of 2s to 10s pays nothing.</li>
+        <li>Your credits are saved. If they run out, you can start over with 100.</li>
+      </ul>
+    </details>
+  </div>
+
+  <script>
+    /*
+     * Video Poker: Jacks or Better, the poker you play alone against the machine.
+     *
+     *   1. Choose a bet, 1 to 5 credits, and press Deal. You get five cards.
+     *   2. Click the cards you want to keep (or press 1 to 5).
+     *   3. Press Draw. The other cards are swapped for new ones from the deck.
+     *   4. The final hand pays as the pay table says, times the bet.
+     *
+     * The lowest hand that pays is a pair of jacks, queens, kings or aces.
+     * The cards look the same as in Blackjack and the Hi-Lo Counter.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SUITS = ["♠", "♥", "♦", "♣"];
+    const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const SUIT_NAMES = { "♠": "spades", "♥": "hearts", "♦": "diamonds", "♣": "clubs" };
+    const START_CREDITS = 100;
+    const MAX_BET = 5;
+    const SAVE_KEY = "video-poker";
+
+    // The pay table, best hand first. pay is the win for a bet of 1 credit.
+    const PAYTABLE = [
+        { id: "royal", name: "Royal flush", pay: 250 },
+        { id: "straightFlush", name: "Straight flush", pay: 50 },
+        { id: "four", name: "Four of a kind", pay: 25 },
+        { id: "fullHouse", name: "Full house", pay: 9 },
+        { id: "flush", name: "Flush", pay: 6 },
+        { id: "straight", name: "Straight", pay: 4 },
+        { id: "three", name: "Three of a kind", pay: 3 },
+        { id: "twoPair", name: "Two pair", pay: 2 },
+        { id: "jacks", name: "Jacks or better", pay: 1 }
+    ];
+
+    // --- Elements on the page ------------------------------------------------
+
+    function byId(id) {
+        return document.getElementById(id);
+    }
+
+    const handBox = byId("hand");
+    const statusText = byId("status");
+    const betText = byId("bet");
+    const betMinus = byId("bet-minus");
+    const betPlus = byId("bet-plus");
+    const creditsText = byId("credits");
+    const dealButton = byId("deal");
+    const paytable = byId("paytable");
+
+    // --- State ---------------------------------------------------------------
+
+    let credits = START_CREDITS;
+    let bet = 1;
+    let deck = [];
+    let hand = [];                                 // the five cards
+    let held = [false, false, false, false, false];
+    let phase = "deal";   // "deal": waiting for Deal, "draw": choosing cards to hold
+    let lastWin = null;   // the id of the hand that won last, for the pay table
+
+    // --- Saving --------------------------------------------------------------
+
+    function load() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+            if (saved) {
+                credits = saved.credits;
+                bet = saved.bet;
+            }
+        } catch (error) {
+            // Nothing saved: start with 100 credits.
+        }
+    }
+
+    function save() {
+        try {
+            localStorage.setItem(SAVE_KEY, JSON.stringify({ credits: credits, bet: bet }));
+        } catch (error) {
+            // Not saved, but the game still works.
+        }
+    }
+
+    // --- Cards ---------------------------------------------------------------
+
+    // A shuffled deck (the Fisher-Yates shuffle), as in the Hi-Lo Counter.
+    function newDeck() {
+        const list = [];
+        for (const suit of SUITS) {
+            for (const value of VALUES) {
+                list.push({ suit: suit, value: value });
+            }
+        }
+        for (let i = list.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [list[i], list[j]] = [list[j], list[i]];
+        }
+        return list;
+    }
+
+    // A card as a number, so cards can be compared: 2 is 2, J is 11, A is 14.
+    function rank(card) {
+        const faces = { J: 11, Q: 12, K: 13, A: 14 };
+        return faces[card.value] || Number(card.value);
+    }
+
+    // A card with a front and a back, as in Blackjack and the Hi-Lo Counter.
+    // A card that is "down" shows its back.
+    function cardElement(card, down) {
+        const element = document.createElement("div");
+        element.className = "card";
+        if (down) {
+            element.classList.add("down");
+            element.setAttribute("aria-label", "A card, face down");
+        } else {
+            if (card.suit === "♥" || card.suit === "♦") {
+                element.classList.add("red");
+            }
+            element.setAttribute("aria-label", card.value + " of " + SUIT_NAMES[card.suit]);
+        }
+        element.setAttribute("role", "img");
+
+        const front = document.createElement("div");
+        front.className = "face front";
+        if (!down) {
+            front.innerHTML =
+                '<span class="corner top">' + card.value + "<br>" + card.suit + "</span>" +
+                '<span class="pip">' + card.suit + "</span>" +
+                '<span class="corner bottom">' + card.value + "<br>" + card.suit + "</span>";
+        }
+        const back = document.createElement("div");
+        back.className = "face back";
+        element.append(front, back);
+        return element;
+    }
+
+    // --- Which hand is it? ---------------------------------------------------
+
+    // Returns the row of the pay table for the hand, or null if it pays nothing.
+    function evaluate(cards) {
+        const ranks = cards.map(rank).sort(function (a, b) { return a - b; });
+
+        // How many of each rank: { 13: 2, 7: 3 } is a full house, kings and sevens.
+        const counts = {};
+        ranks.forEach(function (r) {
+            counts[r] = (counts[r] || 0) + 1;
+        });
+        // The sizes of the groups, biggest first: [3, 2] is a full house.
+        const groups = Object.values(counts).sort(function (a, b) { return b - a; });
+
+        const flush = cards.every(function (card) { return card.suit === cards[0].suit; });
+        // Five different ranks in a row. An ace can also be low: A 2 3 4 5.
+        const lowAce = ranks.join(",") === "2,3,4,5,14";
+        const straight = groups.length === 5 && (ranks[4] - ranks[0] === 4 || lowAce);
+
+        let id = null;
+        if (straight && flush) {
+            id = ranks[0] === 10 ? "royal" : "straightFlush";
+        } else if (groups[0] === 4) {
+            id = "four";
+        } else if (groups[0] === 3 && groups[1] === 2) {
+            id = "fullHouse";
+        } else if (flush) {
+            id = "flush";
+        } else if (straight) {
+            id = "straight";
+        } else if (groups[0] === 3) {
+            id = "three";
+        } else if (groups[0] === 2 && groups[1] === 2) {
+            id = "twoPair";
+        } else if (groups[0] === 2 && pairRank(counts) >= 11) {
+            id = "jacks";
+        }
+        return PAYTABLE.find(function (row) { return row.id === id; }) || null;
+    }
+
+    // The rank of the one pair in a hand: the key in counts that is 2.
+    function pairRank(counts) {
+        for (const r in counts) {
+            if (counts[r] === 2) {
+                return Number(r);
+            }
+        }
+        return 0;
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    // Draw the five cards. "fresh" is a list of the places (0 to 4) with new
+    // cards: they slide in and turn over, one after the other.
+    function showHand(fresh) {
+        handBox.innerHTML = "";
+        for (let i = 0; i < 5; i++) {
+            // Each card is a button, so it can be held with a click, a tap or the keyboard.
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "hold-button";
+            button.classList.toggle("held", held[i]);
+            button.disabled = phase !== "draw";
+            button.setAttribute("aria-pressed", held[i] ? "true" : "false");
+            button.addEventListener("click", function () { toggleHold(i); });
+
+            const tag = document.createElement("span");
+            tag.className = "held-tag";
+            tag.textContent = "HELD";
+
+            // Before the first deal there are no cards yet: show their backs.
+            const card = cardElement(hand[i], hand.length === 0);
+            const slot = document.createElement("div");
+            slot.className = "slot";
+            slot.appendChild(card);
+            if (fresh.includes(i)) {
+                // New cards slide in and turn over, one after the other: each
+                // starts 0.1 seconds after the one before.
+                const delay = (fresh.indexOf(i) * 0.1) + "s";
+                slot.classList.add("new");
+                slot.style.animationDelay = delay;
+                card.style.animationDelay = delay;
+            }
+
+            button.append(tag, slot);
+            handBox.appendChild(button);
+        }
+    }
+
+    function showPaytable() {
+        paytable.innerHTML = "";
+        PAYTABLE.forEach(function (row) {
+            const tr = document.createElement("tr");
+            tr.classList.toggle("win", row.id === lastWin);
+            const name = document.createElement("td");
+            name.textContent = row.name;
+            const pay = document.createElement("td");
+            pay.textContent = row.pay * bet;
+            tr.append(name, pay);
+            paytable.appendChild(tr);
+        });
+    }
+
+    function showNumbers() {
+        betText.textContent = bet;
+        creditsText.textContent = credits;
+        betMinus.disabled = phase !== "deal" || bet <= 1;
+        betPlus.disabled = phase !== "deal" || bet >= Math.min(MAX_BET, Math.max(credits, 1));
+        if (phase === "draw") {
+            dealButton.textContent = "Draw";
+        } else {
+            dealButton.textContent = credits === 0 ? "Start over" : "Deal";
+        }
+        showPaytable();
+    }
+
+    // --- The game ------------------------------------------------------------
+
+    function deal() {
+        if (credits === 0) {
+            credits = START_CREDITS;
+            bet = 1;
+            save();
+            statusText.textContent = "You have " + START_CREDITS + " new credits. Good luck!";
+            showNumbers();
+            return;
+        }
+        bet = Math.min(bet, credits);
+        credits -= bet;
+        deck = newDeck();
+        hand = deck.splice(0, 5);
+        held = [false, false, false, false, false];
+        lastWin = null;
+        phase = "draw";
+        save();
+
+        const now = evaluate(hand);
+        statusText.textContent = (now ? "You have " + now.name.toLowerCase() + ". " : "") +
+            "Click the cards you want to keep, then Draw.";
+        showHand([0, 1, 2, 3, 4]);
+        showNumbers();
+    }
+
+    function draw() {
+        // Swap every card that isn't held for the next card in the deck.
+        const fresh = [];
+        for (let i = 0; i < 5; i++) {
+            if (!held[i]) {
+                hand[i] = deck.shift();
+                fresh.push(i);
+            }
+        }
+        phase = "deal";
+
+        const result = evaluate(hand);
+        if (result) {
+            const win = result.pay * bet;
+            credits += win;
+            lastWin = result.id;
+            statusText.textContent = result.name + "! You win " + win + (win === 1 ? " credit." : " credits.");
+        } else {
+            lastWin = null;
+            statusText.textContent = noWinText() + (credits === 0 ? " You are out of credits." : "");
+        }
+        save();
+        showHand(fresh);
+        showNumbers();
+    }
+
+    // A low pair is the most common near miss, so say why it doesn't pay.
+    function noWinText() {
+        const counts = {};
+        hand.map(rank).forEach(function (r) {
+            counts[r] = (counts[r] || 0) + 1;
+        });
+        const pair = pairRank(counts);
+        if (pair > 0 && pair < 11) {
+            return "A pair of " + VALUES[pair - 1] + "s doesn't pay: it has to be jacks or better.";
+        }
+        return "No win this time.";
+    }
+
+    function toggleHold(i) {
+        if (phase !== "draw") {
+            return;
+        }
+        held[i] = !held[i];
+        const button = handBox.children[i];
+        button.classList.toggle("held", held[i]);
+        button.setAttribute("aria-pressed", held[i] ? "true" : "false");
+    }
+
+    function changeBet(change) {
+        bet = Math.max(1, Math.min(MAX_BET, credits, bet + change));
+        save();
+        showNumbers();
+    }
+
+    // --- Buttons and keys ----------------------------------------------------
+
+    dealButton.addEventListener("click", function () {
+        if (phase === "deal") {
+            deal();
+        } else {
+            draw();
+        }
+    });
+    betMinus.addEventListener("click", function () { changeBet(-1); });
+    betPlus.addEventListener("click", function () { changeBet(1); });
+
+    // The keys 1 to 5 hold the cards, from the left.
+    document.addEventListener("keydown", function (event) {
+        const n = Number(event.key);
+        if (n >= 1 && n <= 5) {
+            toggleHold(n - 1);
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    load();
+    showHand([]);
+    showNumbers();
+  </script>
+</body>
+</html>
