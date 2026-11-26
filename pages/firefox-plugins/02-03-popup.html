@@ -32,7 +32,7 @@ body { width: 360px; }</code></pre>
     <li>Anything worth keeping must be saved, see below.</li>
   </ul>
   <h2>Save the state</h2>
-  <p><code>localStorage</code> works in an extension page just like on a web page, and is kept between openings. The <a href="/other/discgolf/">Discgolf score card</a> already saves after every change, so a round survives the popup closing.</p>
+  <p><code>localStorage</code> works in an extension page just like on a web page, and is kept between openings. The <a href="/games/discgolf/">Discgolf score card</a> already saves after every change, so a round survives the popup closing.</p>
   <pre><code class="language-javascript">localStorage.setItem("discgolf-scorecard", JSON.stringify(state));</code></pre>
   <p>Extensions also have their own <code>browser.storage.local</code>, which the background script can use too and which can sync between computers with <code>storage.sync</code>. It needs the <code>"storage"</code> permission.</p>
   <pre><code class="language-javascript">await browser.storage.local.set({ clicks: 3 });

@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "countdown-c2d2787162";
+const CACHE = "countdown-ab48bb2d87";
 
 const FILES = [
     "/assets/countdown/app.html",

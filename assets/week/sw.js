@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "week-07b28980c5";
+const CACHE = "week-c938efd189";
 
 const FILES = [
     "/assets/week/app.html",

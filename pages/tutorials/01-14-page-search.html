@@ -79,7 +79,7 @@ form.addEventListener("change", function () {
     });
     return urls;
 }</code></pre>
-  <p><code>split(/\s+/)</code> splits on any run of spaces, tabs and newlines, so one per line, or several on a line, both work. <code>new URL(part, location.href)</code> reads the address, and the second argument is the base for addresses without a site: <code>/utils/</code> becomes <code>https://www.anderswik.se/utils/</code>. It throws an error if the text can't be an address, and then we skip it. <code>includes</code> stops the same page from being searched twice.</p>
+  <p><code>split(/\s+/)</code> splits on any run of spaces, tabs and newlines, so one per line, or several on a line, both work. <code>new URL(part, location.href)</code> reads the address, and the second argument is the base for addresses without a site: <code>/tools/</code> becomes <code>https://www.anderswik.se/tools/</code>. It throws an error if the text can't be an address, and then we skip it. <code>includes</code> stops the same page from being searched twice.</p>
   <h2>Step 4: What is a sitemap?</h2>
   <p>Most sites already have a list of their pages: the sitemap. It is there so search engines can find every page. It is usually at <code>/sitemap.xml</code>, and the address is often written in <code>/robots.txt</code>. It is XML, a format that looks like HTML but where you make up the tag names yourself:</p>
   <pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
@@ -556,7 +556,7 @@ for (let i = 0; i &lt; urls.length; i++) {
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
   <h2>Pages that are made by JavaScript: a frame</h2>
-  <p><code>fetch()</code> gives you the HTML the server sends. Some pages are almost empty HTML, and JavaScript fills them in when they are shown. To search those, the <a href="/utils/page-search/">version on this site</a> can load each page in an <code>&lt;iframe&gt;</code> instead, wait a little, and read what it shows:</p>
+  <p><code>fetch()</code> gives you the HTML the server sends. Some pages are almost empty HTML, and JavaScript fills them in when they are shown. To search those, the <a href="/tools/page-search/">version on this site</a> can load each page in an <code>&lt;iframe&gt;</code> instead, wait a little, and read what it shows:</p>
   <pre><code class="language-javascript">loader.onload = function () {
     setTimeout(function () {
         const doc = loader.contentDocument;
@@ -571,7 +571,7 @@ loader.src = url;</code></pre>
 }</code></pre>
   <p>An <strong>origin</strong> is the scheme, host and port together, like <code>https://www.anderswik.se</code>. Note that <code>https://anderswik.se</code> and <code>https://www.anderswik.se</code> are different origins.</p>
   <h2>The version on this site</h2>
-  <p><a href="/utils/page-search/">Page Search on this site</a> also:</p>
+  <p><a href="/tools/page-search/">Page Search on this site</a> also:</p>
   <ul>
     <li>Has a Stop button and a progress bar.</li>
     <li>Takes flags for the regular expression, so you can turn off "ignore case".</li>

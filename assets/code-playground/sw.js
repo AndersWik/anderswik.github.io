@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "code-playground-c29bf4da58";
+const CACHE = "code-playground-e5a2415727";
 
 const FILES = [
     "/assets/code-playground/app.html",

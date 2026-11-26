@@ -16,7 +16,7 @@ keywords: [pwa, localstorage, indexeddb, storage, save, persist, offline data, j
 
 const settings = JSON.parse(localStorage.getItem("settings"));   // null if nothing saved</code></pre>
   <h2>Our disc golf score card</h2>
-  <p>The <a href="/other/discgolf/">Discgolf score card</a> saves the whole round after every change, so a game survives the phone locking or the app being closed. This is from <code>assets/discgolf/discgolf.js</code>:</p>
+  <p>The <a href="/games/discgolf/">Discgolf score card</a> saves the whole round after every change, so a game survives the phone locking or the app being closed. This is from <code>assets/discgolf/discgolf.js</code>:</p>
   <pre><code class="language-javascript">// localStorage keeps text in the browser, also after a reload. It can be
 // turned off (private windows), so every use is inside try/catch.
 function saveState() {

@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "bubble-level-28ce8b57bb";
+const CACHE = "bubble-level-77244732ec";
 
 const FILES = [
     "/assets/bubble-level/app.html",

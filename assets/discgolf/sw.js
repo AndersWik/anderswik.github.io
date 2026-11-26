@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "discgolf-031ce2da1d";
+const CACHE = "discgolf-cefc2bb9c2";
 
 const FILES = [
     "/assets/discgolf/app.html",

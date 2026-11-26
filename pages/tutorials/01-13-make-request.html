@@ -28,7 +28,7 @@ keywords: [javascript, fetch, http, request, response, api, rest, postman, cors,
   </ul>
   <p>So our tool works with any API that allows CORS, and with your own server on <code>localhost</code> if you turn CORS on there. For everything else, see <a href="#firefox-add-on">the Firefox add-on</a> at the end.</p>
   <h2>Step 1: The page</h2>
-  <p>Create <code>make-request.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. To keep it short, the headers are a text area with one <code>Name: value</code> per line. The <a href="/utils/make-request/">version on this site</a> has a row with two fields for every header instead.</p>
+  <p>Create <code>make-request.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. To keep it short, the headers are a text area with one <code>Name: value</code> per line. The <a href="/tools/make-request/">version on this site</a> has a row with two fields for every header instead.</p>
   <pre><code class="language-html">&lt;h1&gt;Make Request&lt;/h1&gt;
 
 &lt;form id="form"&gt;
@@ -393,7 +393,7 @@ permissionButton.addEventListener("click", function () {
   <p>Some headers, like <code>Host</code> and <code>Content-Length</code>, are still set by the browser in an add-on.</p>
   <p>On this site, the add-on is made by <code>_scripts/make-extension.py</code> from the same page as the website. The line in <code>_data/extensions.yml</code> has <code>all_urls: true</code>, which adds the two settings above. See <a href="/firefox-plugins/make-extension/">Make an extension</a> for how the rest works.</p>
   <h2 id="history-and-library">History and a library</h2>
-  <p>The <a href="/utils/make-request/">version on this site</a> also remembers what you did. It keeps every request as a plain object, so the form, the history, the library and the exported file all use the same shape:</p>
+  <p>The <a href="/tools/make-request/">version on this site</a> also remembers what you did. It keeps every request as a plain object, so the form, the history, the library and the exported file all use the same shape:</p>
   <pre><code class="language-javascript">{ method: "POST", url: "https://...", headers: [{ name: "Accept", value: "application/json" }],
   bodyType: "json", body: "{...}" }</code></pre>
   <p>Two functions turn the form into such an object and back, <code>currentRequest()</code> and <code>applyRequest(request)</code>. Then loading a request from the history, from the library or from the last visit is all the same call.</p>
@@ -463,7 +463,7 @@ importFile.addEventListener("change", function () {
   </ul>
   <h2>More about Make Request</h2>
   <ul>
-    <li><a href="/utils/make-request/">Make Request on this site</a></li>
+    <li><a href="/tools/make-request/">Make Request on this site</a></li>
     <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS on MDN</a></li>
   </ul>
   {% include chapter.html %}

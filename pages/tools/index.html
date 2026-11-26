@@ -1,0 +1,59 @@
+---
+layout: default
+title: Tools
+permalink: /tools/
+nonav: true
+# Thumbnails live in /assets/images/tools/<slug>.webp
+categories:
+  - title: Developer tools
+    items:
+      - { slug: encode-base64, name: Base64 }
+      - { slug: colorhex, name: Colorhex }
+      - { slug: crontab, name: Crontab }
+      - { slug: data-conversion, name: Data Conversion }
+      - { slug: make-request, name: Make Request }
+      - { slug: myip, name: My IP }
+      - { slug: page-search, name: Page Search }
+      - { slug: px-em-converter, name: PX to EM Converter }
+      - { slug: unix-timestamp-convertor, name: Unix Timestamp Convertor }
+      - { slug: encode-url, name: Url encode / decode }
+      - { slug: vagrant, name: Vagrant }
+  - title: Playgrounds
+    items:
+      - { slug: code-playground, name: Code Playground }
+      - { slug: git-playground, name: Git Playground }
+      - { slug: linux-playground, name: Linux Playground }
+      - { slug: mysql-playground, name: MySQL Playground }
+  - title: Timers and dates
+    items:
+      - { slug: countdown, name: Countdown }
+      - { slug: egg-clock, name: Egg Clock }
+      - { slug: pomodoro-timer, name: Pomodoro Timer }
+      - { slug: week, name: Week }
+  - title: Phone sensors
+    items:
+      - { slug: bubble-level, name: Bubble Level }
+      - { slug: compass, name: Compass }
+      - { slug: speedometer, name: Speedometer }
+  - title: Everyday
+    items:
+      - { slug: calculator, name: Calculator }
+      - { slug: checklist, name: Checklist }
+---
+
+<h1 class="visually-hidden">{{ page.title }}</h1>
+<section class="games">
+  {% for category in page.categories %}
+  <h2 class="category-title">{{ category.title }}</h2>
+  <ul class="badges">
+    {% for item in category.items %}
+    <li>
+      <a class="badge-card" href="{{ '/tools/' | append: item.slug | append: '/' | relative_url }}">
+        <img src="{{ '/assets/images/tools/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
+        <span class="badge-name">{{ item.name }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+</section>

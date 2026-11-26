@@ -113,7 +113,7 @@
   // --- Reading URLs ------------------------------------------------------
 
   // Text with URLs, one per line (spaces and commas work too) -> a list
-  // without duplicates. Addresses like /utils/ are read from this page.
+  // without duplicates. Addresses like /tools/ are read from this page.
   function parseUrlList(text) {
     var urls = [];
     var bad = [];

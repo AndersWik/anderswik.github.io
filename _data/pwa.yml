@@ -25,6 +25,8 @@
 - { slug: blackjack, page: pages/games/blackjack.html, short_name: Blackjack, emoji: "🃏" }
 - { slug: choose-dice, page: pages/games/choose-dice.html, short_name: Dice, emoji: "🎲" }
 - { slug: chore-wheel, page: pages/games/chore-wheel.html, short_name: Chore Wheel, emoji: "🧹" }
+- { slug: discgolf, page: pages/games/discgolf.html, name: Discgolf score card, short_name: Discgolf, emoji: "🥏" }
+- { slug: eliza, page: pages/games/eliza.html, short_name: Eliza, emoji: "💬" }
 - { slug: coin-flip, page: pages/games/coin-flip.html, short_name: Coin Flip, emoji: "🪙" }
 - { slug: five-in-a-row, page: pages/games/five-in-a-row.html, short_name: Five in Row, emoji: "⚫", label: "5" }
 - { slug: four-in-a-row, page: pages/games/four-in-a-row.html, name: Connect Four, short_name: Connect 4, emoji: "🔴" }
@@ -46,26 +48,24 @@
 - { slug: tic-tac-toe, page: pages/games/tic-tac-toe.html, short_name: Tic Tac Toe, emoji: "❌" }
 
 - { slug: ascii, page: pages/references/ascii.html, name: ASCII table, short_name: ASCII, emoji: "🔤" }
-- { slug: calculator, page: pages/utils/calculator.html, short_name: Calculator, emoji: "🧮" }
-- { slug: code-playground, page: pages/utils/code-playground.html, short_name: Playground, emoji: "💻" }
-- { slug: colorhex, page: pages/utils/colorhex.html, short_name: Color Hex, emoji: "🎨" }
-- { slug: crontab, page: pages/utils/crontab.html, short_name: Crontab, emoji: "⏰" }
-- { slug: data-conversion, page: pages/utils/data-conversion.html, short_name: Data Size, emoji: "💾" }
-- { slug: encode-base64, page: pages/utils/encode-base64.html, name: Base64, short_name: Base64, emoji: "🔁", label: "64" }
-- { slug: encode-url, page: pages/utils/encode-url.html, name: Url encode / decode, short_name: URL Encode, emoji: "🔁", label: URL }
-- { slug: checklist, page: pages/utils/checklist.html, short_name: Checklist, emoji: "✅" }
-- { slug: make-request, page: pages/utils/make-request.html, short_name: Request, emoji: "📨" }
-- { slug: page-search, page: pages/utils/page-search.html, short_name: Page Search, emoji: "🔍" }
-- { slug: pomodoro-timer, page: pages/utils/pomodoro-timer.html, short_name: Pomodoro, emoji: "🍅" }
-- { slug: px-em-converter, page: pages/utils/px-em-converter.html, short_name: PX to EM, emoji: "📏" }
-- { slug: unix-timestamp-convertor, page: pages/utils/unix-timestamp-convertor.html, name: Unix Timestamp Converter, short_name: Timestamp, emoji: "🕒" }
+- { slug: calculator, page: pages/tools/calculator.html, short_name: Calculator, emoji: "🧮" }
+- { slug: code-playground, page: pages/tools/code-playground.html, short_name: Playground, emoji: "💻" }
+- { slug: colorhex, page: pages/tools/colorhex.html, short_name: Color Hex, emoji: "🎨" }
+- { slug: crontab, page: pages/tools/crontab.html, short_name: Crontab, emoji: "⏰" }
+- { slug: data-conversion, page: pages/tools/data-conversion.html, short_name: Data Size, emoji: "💾" }
+- { slug: encode-base64, page: pages/tools/encode-base64.html, name: Base64, short_name: Base64, emoji: "🔁", label: "64" }
+- { slug: encode-url, page: pages/tools/encode-url.html, name: Url encode / decode, short_name: URL Encode, emoji: "🔁", label: URL }
+- { slug: checklist, page: pages/tools/checklist.html, short_name: Checklist, emoji: "✅" }
+- { slug: make-request, page: pages/tools/make-request.html, short_name: Request, emoji: "📨" }
+- { slug: page-search, page: pages/tools/page-search.html, short_name: Page Search, emoji: "🔍" }
+- { slug: pomodoro-timer, page: pages/tools/pomodoro-timer.html, short_name: Pomodoro, emoji: "🍅" }
+- { slug: px-em-converter, page: pages/tools/px-em-converter.html, short_name: PX to EM, emoji: "📏" }
+- { slug: unix-timestamp-convertor, page: pages/tools/unix-timestamp-convertor.html, name: Unix Timestamp Converter, short_name: Timestamp, emoji: "🕒" }
 
-- { slug: bubble-level, page: pages/other/bubble-level.html, short_name: Level, emoji: "📐" }
-- { slug: compass, page: pages/other/compass.html, short_name: Compass, emoji: "🧭" }
-- { slug: countdown, page: pages/other/countdown.html, short_name: Countdown, emoji: "⏳" }
-- { slug: discgolf, page: pages/other/discgolf.html, name: Discgolf score card, short_name: Discgolf, emoji: "🥏" }
-- { slug: egg-clock, page: pages/other/egg-clock.html, short_name: Egg Clock, emoji: "🥚" }
-- { slug: eliza, page: pages/other/eliza.html, short_name: Eliza, emoji: "💬" }
-- { slug: myip, page: pages/other/myip.html, name: My IP, short_name: My IP, emoji: "🌐" }
-- { slug: speedometer, page: pages/other/speedometer.html, short_name: Speed, emoji: "🚗" }
-- { slug: week, page: pages/other/week.html, name: Week number, short_name: Week, emoji: "📅" }
+- { slug: bubble-level, page: pages/tools/bubble-level.html, short_name: Level, emoji: "📐" }
+- { slug: compass, page: pages/tools/compass.html, short_name: Compass, emoji: "🧭" }
+- { slug: countdown, page: pages/tools/countdown.html, short_name: Countdown, emoji: "⏳" }
+- { slug: egg-clock, page: pages/tools/egg-clock.html, short_name: Egg Clock, emoji: "🥚" }
+- { slug: myip, page: pages/tools/myip.html, name: My IP, short_name: My IP, emoji: "🌐" }
+- { slug: speedometer, page: pages/tools/speedometer.html, short_name: Speed, emoji: "🚗" }
+- { slug: week, page: pages/tools/week.html, name: Week number, short_name: Week, emoji: "📅" }

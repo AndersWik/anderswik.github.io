@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "checklist-e2b986430f";
+const CACHE = "checklist-38c05a80f4";
 
 const FILES = [
     "/assets/checklist/app.html",

@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "colorhex-1004d78b7d";
+const CACHE = "colorhex-938a72efb2";
 
 const FILES = [
     "/assets/colorhex/app.html",
