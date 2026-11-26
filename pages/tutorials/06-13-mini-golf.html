@@ -1,0 +1,1457 @@
+---
+layout: default
+title: Mini Golf
+permalink: /tutorials/mini-golf/
+chapter: "06"
+chapter_title: "Classic arcade"
+keywords: [javascript, game, canvas, physics, collision, line segment, closest point, bounce, friction, levels, data, pointer events, touch, drag, slingshot, Math.sin, localStorage]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Mini Golf</h1>
+  <p>Mini golf with 20 holes. Drag back from anywhere on the course and let go, like a slingshot: the further you drag, the harder the putt. There are walls, bumpers, sand, water, sliding gates and windmills, and a scorecard at the end.</p>
+  <p>It builds on <a href="/tutorials/pool/">Pool</a>: the same game loop, rolling with friction and bouncing. The new ideas are keeping the holes as data, one bounce function for every kind of wall, things that move, and controls that work with a finger as well as a mouse.</p>
+  <p><a href="/assets/tutorials/mini-golf.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>mini-golf.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The course is a canvas with a wooden edge, as in Pool:</p>
+  <pre><code class="language-html">&lt;canvas id="gameCanvas" width="800" height="400"&gt;&lt;/canvas&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+body {
+    background-color: #2e7d32;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border: 10px solid #5d4037;
+    border-radius: 10px;
+    box-sizing: border-box;
+    cursor: crosshair;
+    /* Dragging on a phone putts instead of scrolling the page. */
+    touch-action: none;
+}</code></pre>
+  <p><code>touch-action: none</code> is new. Without it, dragging a finger on a phone scrolls the page instead of putting.</p>
+  <h2>Step 2: The holes are data</h2>
+  <p>Twenty holes written as code would be twenty functions full of numbers. Instead, each hole is an object that only says what is where, and the same code plays all of them. Here is hole 2, a wall in the middle, and hole 9, a gate with a sliding block:</p>
+  <pre><code class="language-javascript">{
+    name: "Under the wall",
+    par: 3,
+    start: [150, 120],
+    hole: [650, 120],
+    course: box(60, 60, 740, 340),
+    blocks: [[380, 60, 420, 250]]
+},
+{
+    name: "The gate",
+    par: 2,
+    start: [130, 200],
+    hole: [670, 200],
+    course: box(60, 100, 740, 300),
+    blocks: [[390, 100, 410, 160], [390, 240, 410, 300]],
+    movers: [{ rect: [388, 185, 412, 215], axis: "y", range: 30, speed: 0.04 }]
+}</code></pre>
+  <p>Every rectangle is written as its corners: <code>[left, top, right, bottom]</code>. The <code>course</code> is the outline of the green, a list of corners, and the last corner joins the first. A list of corners can make any shape, like the L of hole 3:</p>
+  <pre><code class="language-javascript">course: [[60, 50], [340, 50], [340, 250], [740, 250], [740, 350], [60, 350]]</code></pre>
+  <p>Most holes are rectangles, so a small helper writes the four corners:</p>
+  <pre><code class="language-javascript">function box(left, top, right, bottom) {
+    return [[left, top], [right, top], [right, bottom], [left, bottom]];
+}</code></pre>
+  <p>Making a new hole is now only a matter of writing one more object. All the holes are in the complete page below.</p>
+  <h2>Step 3: Everything is a line</h2>
+  <p>The ball bounces off the outline, thin walls and blocks. Instead of writing a bounce for each, we turn them all into <strong>line segments</strong>, straight lines from one point to another. The outline is a segment from each corner to the next, and a block is its four edges:</p>
+  <pre><code class="language-javascript">function segment(ax, ay, bx, by, half) {
+    return { ax: ax, ay: ay, bx: bx, by: by, half: half };
+}
+
+function rectSegments(rect, half) {
+    const [left, top, right, bottom] = rect;
+    return [
+        segment(left, top, right, top, half),
+        segment(right, top, right, bottom, half),
+        segment(right, bottom, left, bottom, half),
+        segment(left, bottom, left, top, half)
+    ];
+}
+
+function buildCourse(level) {
+    const segments = [];
+
+    // The outline: from each corner to the next, and the last one back to the first.
+    level.course.forEach(function (corner, i) {
+        const next = level.course[(i + 1) % level.course.length];
+        segments.push(segment(corner[0], corner[1], next[0], next[1], WALL_HALF));
+    });
+    (level.walls || []).forEach(function (w) {
+        segments.push(segment(w[0], w[1], w[2], w[3], WALL_HALF));
+    });
+    (level.blocks || []).forEach(function (rect) {
+        segments.push(...rectSegments(rect, 0));
+    });
+
+    return {
+        level: level,
+        segments: segments,
+        bumpers: level.bumpers || [],
+        sand: level.sand || [],
+        water: level.water || [],
+        movers: level.movers || [],
+        windmills: level.windmills || []
+    };
+}</code></pre>
+  <ul>
+    <li><code>(i + 1) % level.course.length</code> is the next corner, and for the last corner it is 0, the first one again.</li>
+    <li><code>half</code> is half a wall's thickness. Walls are drawn 8 pixels thick, so the ball must bounce 4 pixels before the line itself.</li>
+    <li><code>level.walls || []</code> means "the walls, or an empty list if the hole has none", so a hole only lists what it has.</li>
+    <li><code>...rectSegments(rect, 0)</code>: the three dots put the four edges into the list one by one, instead of one list inside the other.</li>
+  </ul>
+  <h2>Step 4: Bouncing off a line</h2>
+  <p>This is the heart of the game. It works for any line, at any angle:</p>
+  <pre><code class="language-javascript">function bounceOffSegment(ball, seg, velocityAt) {
+    // The point on the segment closest to the ball. t is how far along it,
+    // from 0 (the start) to 1 (the end).
+    const abx = seg.bx - seg.ax;
+    const aby = seg.by - seg.ay;
+    const lengthSquared = abx * abx + aby * aby;
+    let t = lengthSquared === 0 ? 0 : ((ball.x - seg.ax) * abx + (ball.y - seg.ay) * aby) / lengthSquared;
+    t = Math.max(0, Math.min(1, t));
+    const cx = seg.ax + abx * t;
+    const cy = seg.ay + aby * t;
+
+    const dx = ball.x - cx;
+    const dy = ball.y - cy;
+    const distance = Math.hypot(dx, dy);
+    const minimum = BALL_RADIUS + seg.half;
+    if (distance &gt;= minimum || distance === 0) {
+        return;
+    }
+
+    // nx, ny: one pixel long, pointing from the wall to the ball.
+    const nx = dx / distance;
+    const ny = dy / distance;
+
+    // Move the ball out of the wall.
+    ball.x = cx + nx * minimum;
+    ball.y = cy + ny * minimum;
+
+    // How fast the ball goes into the wall, compared to the wall itself.
+    const wall = velocityAt(cx, cy);
+    const into = (ball.vx - wall.x) * nx + (ball.vy - wall.y) * ny;
+    if (into &lt; 0) {
+        // Take that part of the speed away, and give some of it back the other way.
+        ball.vx -= (1 + WALL_BOUNCE) * into * nx;
+        ball.vy -= (1 + WALL_BOUNCE) * into * ny;
+    }
+}</code></pre>
+  <ol>
+    <li><strong>The closest point.</strong> <code>t</code> says how far along the line the ball is, from 0 at the start to 1 at the end. The math is a <em>dot product</em>: how much of the way from the start to the ball goes the same way as the line. Keeping <code>t</code> between 0 and 1 makes the ball hit the end of a wall when it comes from the side, so corners work too.</li>
+    <li><strong>Too close?</strong> If the ball's center is nearer than its radius (plus half the wall), it is touching.</li>
+    <li><strong>Push it out</strong> along <code>nx, ny</code>, the direction from the wall to the ball, until it just touches.</li>
+    <li><strong>Bounce.</strong> <code>into</code> is how fast the ball moves towards the wall. Taking it away once stops the ball at the wall; taking it away <code>1 + WALL_BOUNCE</code> times sends it back with 75% of that speed. The speed along the wall stays as it is, so the ball bounces off at the same angle it came in, like light in a mirror.</li>
+  </ol>
+  <p><code>velocityAt</code> is a function that says how fast the wall itself moves at a point. For a normal wall it is <code>still()</code>, which is always 0. We need it for the moving things in step 7: a block that moves into the ball should push it.</p>
+  <p>Bumpers are circles, and work the same way, with a closest point that is simply the bumper's middle. They give back a little more than they get: <code>BUMPER_BOUNCE</code> is 1.15.</p>
+  <h2>Step 5: Rolling</h2>
+  <p>One step of the ball, 1/60 of a second:</p>
+  <pre><code class="language-javascript">function rollStep(ball, course, t) {
+    const level = course.level;
+
+    for (let s = 0; s &lt; SUBSTEPS; s++) {
+        const now = t + s / SUBSTEPS;
+        ball.x += ball.vx / SUBSTEPS;
+        ball.y += ball.vy / SUBSTEPS;
+
+        course.segments.forEach(function (seg) {
+            bounceOffSegment(ball, seg, still);
+        });
+        course.movers.forEach(function (mover) {
+            const velocity = moverVelocity(mover, now);
+            rectSegments(moverRect(mover, now), 0).forEach(function (seg) {
+                bounceOffSegment(ball, seg, function () { return velocity; });
+            });
+        });
+        course.windmills.forEach(function (windmill) {
+            bladeSegments(windmill, now).forEach(function (seg) {
+                bounceOffSegment(ball, seg, function (x, y) { return bladeVelocity(windmill, x, y); });
+            });
+        });
+        course.bumpers.forEach(function (bumper) {
+            bounceOffBumper(ball, bumper);
+        });
+
+        if (course.water.some(function (rect) { return inside(ball, rect); })) {
+            return "water";
+        }
+        // Too fast and the ball rolls right over the hole.
+        if (distanceToHole(ball, level) &lt; HOLE_RADIUS &amp;&amp; Math.hypot(ball.vx, ball.vy) &lt; SINK_SPEED) {
+            return "sunk";
+        }
+    }
+
+    const speed = Math.hypot(ball.vx, ball.vy);
+    if (speed === 0) {
+        return null;   // lying still
+    }
+
+    // Friction: keep a part of the speed, and take a little more away, so
+    // the ball stops in the end instead of creeping on for ever.
+    const inSand = course.sand.some(function (rect) { return inside(ball, rect); });
+    let newSpeed = inSand ? speed * SAND_FRICTION - 0.08 : speed * FRICTION - 0.02;
+    newSpeed = Math.min(newSpeed, MAX_SPEED);   // bumpers can't make it faster than a full putt
+
+    if (newSpeed &lt; STOP_SPEED) {
+        ball.vx = 0;
+        ball.vy = 0;
+        // Stopped on the edge of the hole: it drops in.
+        if (distanceToHole(ball, level) &lt; HOLE_RADIUS + 3) {
+            return "sunk";
+        }
+        return "stopped";
+    }
+    ball.vx *= newSpeed / speed;
+    ball.vy *= newSpeed / speed;
+    return null;
+}</code></pre>
+  <ul>
+    <li><strong>Small steps.</strong> At full power the ball moves 16 pixels a step, which is more than its own size. It could jump right through a thin wall between two steps. So it moves in 4 small steps of at most 4 pixels, and checks every wall after each one.</li>
+    <li><strong>Friction.</strong> As in Pool, the ball keeps a part of its speed each step, 98.5% on grass and 92% in sand. Taking away a little extra as well (0.02) makes it stop in the end, instead of creeping on and on at a slower and slower speed.</li>
+    <li><strong>Too fast for the hole.</strong> The ball only drops in if it is slower than <code>SINK_SPEED</code>. A hard putt rolls straight over the hole, just like in real golf. And a ball that stops right at the edge of the hole drops in.</li>
+    <li><code>rollStep</code> only uses its arguments, nothing else in the game. That makes it easy to test: a test page can try thousands of putts on a copy of the ball, to check that every hole can be played. That is how the pars in <code>LEVELS</code> were checked.</li>
+  </ul>
+  <h2>Step 6: Water and the stroke counter</h2>
+  <p>Before every putt we remember where the ball was. If it goes in the water, it comes back there, and it costs one stroke:</p>
+  <pre><code class="language-javascript">function putt() {
+    const shot = puttFromDrag();
+    dragging = false;
+    if (shot.power &lt; 0.03) {
+        return;   // a click, not a drag
+    }
+    lastSpot = { x: ball.x, y: ball.y };
+    ball.vx = shot.dx * shot.power * MAX_SPEED;
+    ball.vy = shot.dy * shot.power * MAX_SPEED;
+    strokes++;
+}
+
+function update() {
+    time++;
+    if (noticeSteps &gt; 0) {
+        noticeSteps--;
+    }
+
+    const wasStill = ballStill();
+    const result = rollStep(ball, course, time);
+
+    // A mover or a windmill hit the ball while you were aiming.
+    if (wasStill &amp;&amp; !ballStill()) {
+        dragging = false;
+    }
+
+    if (result === "sunk") {
+        finishHole();
+    } else if (result === "water") {
+        strokes++;
+        ball = { x: lastSpot.x, y: lastSpot.y, vx: 0, vy: 0 };
+        showNotice("Splash! One stroke penalty.");
+        if (strokes &gt;= MAX_STROKES) {
+            finishHole();
+        }
+    } else if (result === "stopped" &amp;&amp; strokes &gt;= MAX_STROKES) {
+        showNotice("That's " + MAX_STROKES + " strokes. On to the next hole.");
+        finishHole();
+    }
+}</code></pre>
+  <p>A hole ends after <code>MAX_STROKES</code> (10), so nobody gets stuck on a hole for ever.</p>
+  <h2>Step 7: Things that move</h2>
+  <p>A mover slides to and fro. <code>Math.sin</code> goes smoothly from -1 to 1 and back, so multiplying it by <code>range</code> gives an offset that goes from <code>-range</code> to <code>range</code>, slowing down at the ends like a swing:</p>
+  <pre><code class="language-javascript">function moverOffset(mover, t) {
+    return Math.sin(t * mover.speed + (mover.phase || 0)) * mover.range;
+}
+
+function moverVelocity(mover, t) {
+    const speed = Math.cos(t * mover.speed + (mover.phase || 0)) * mover.range * mover.speed;
+    return mover.axis === "x" ? { x: speed, y: 0 } : { x: 0, y: speed };
+}</code></pre>
+  <p>How fast the mover goes is how fast its offset changes, and the change of <code>sin</code> is <code>cos</code>. The mover is fastest in the middle, where <code>cos</code> is 1, and stands still at the ends, where it is 0. In <code>rollStep</code>, the mover's four edges are made new every small step, and its speed goes to <code>bounceOffSegment</code>, so a moving block knocks the ball away.</p>
+  <p>A windmill blade is a line through the middle, turned by <code>time * speed</code>:</p>
+  <pre><code class="language-javascript">function bladeSegments(windmill, t) {
+    const blades = [];
+    for (let i = 0; i &lt; windmill.blades; i++) {
+        const angle = t * windmill.speed + i * Math.PI / windmill.blades;
+        const dx = Math.cos(angle) * windmill.radius;
+        const dy = Math.sin(angle) * windmill.radius;
+        blades.push(segment(windmill.x - dx, windmill.y - dy, windmill.x + dx, windmill.y + dy, BLADE_HALF));
+    }
+    return blades;
+}
+
+function bladeVelocity(windmill, x, y) {
+    return { x: -windmill.speed * (y - windmill.y), y: windmill.speed * (x - windmill.x) };
+}</code></pre>
+  <p>A point on a turning blade moves at a right angle to the blade, and faster the further out it is, just like the end of a clock hand moves more than the middle. Turning the arrow from the middle to the point a quarter turn, and multiplying it by the speed, gives exactly that.</p>
+  <p>Movers and windmills move all the time, also while you aim. So the ball is checked every step, even when it lies still: if a blade hits it, it starts to roll.</p>
+  <h2>Step 8: Drag to putt, with a mouse or a finger</h2>
+  <p>Pool used mouse events. <strong>Pointer events</strong> are the same for a mouse, a finger and a pen, so one set of code works on a computer and on a phone:</p>
+  <pre><code class="language-javascript">canvas.addEventListener("pointerdown", function (event) {
+    if (screen !== "playing") {
+        goOn();
+        return;
+    }
+    if (!ballStill()) {
+        return;   // wait until the ball has stopped
+    }
+    // Keep getting the moves even when the finger leaves the canvas.
+    try {
+        canvas.setPointerCapture(event.pointerId);
+    } catch (error) {
+        // Some browsers say no; dragging still works inside the canvas.
+    }
+    dragging = true;
+    dragStart = canvasPosition(event);
+    dragNow = dragStart;
+});
+
+canvas.addEventListener("pointermove", function (event) {
+    if (dragging) {
+        dragNow = canvasPosition(event);
+    }
+});
+
+canvas.addEventListener("pointerup", function () {
+    if (dragging &amp;&amp; screen === "playing" &amp;&amp; ballStill()) {
+        putt();
+    }
+    dragging = false;
+});</code></pre>
+  <p>The putt goes the opposite way of the drag, like a slingshot, and the length of the drag is the power:</p>
+  <pre><code class="language-javascript">function puttFromDrag() {
+    const pullX = dragStart.x - dragNow.x;
+    const pullY = dragStart.y - dragNow.y;
+    const pull = Math.hypot(pullX, pullY);
+    return {
+        dx: pull === 0 ? 0 : pullX / pull,
+        dy: pull === 0 ? 0 : pullY / pull,
+        power: Math.min(1, pull / MAX_PULL)
+    };
+}</code></pre>
+  <p>You can start the drag anywhere, not only on the ball. On a phone the course is small, and a finger would hide the ball anyway.</p>
+  <p><code>setPointerCapture</code> sends all the moves to the canvas until the finger is lifted, even when it slides outside. Without it, a long drag that leaves the canvas would never putt.</p>
+  <p>The game doesn't need a keyboard at all: a click or a tap starts it and goes on to the next hole. That is why it can be installed as an app on a phone, which Pool can't, since it needs Enter to start.</p>
+  <h2>Step 9: The score</h2>
+  <p>Every hole has a <code>par</code>: how many strokes a good player needs. Golf names a score by how far it is from par:</p>
+  <pre><code class="language-javascript">function scoreName(strokesTaken, par) {
+    if (strokesTaken === 1) {
+        return "Hole in one!";
+    }
+    const names = { "-3": "Albatross!", "-2": "Eagle!", "-1": "Birdie!", "0": "Par", "1": "Bogey", "2": "Double bogey" };
+    return names[strokesTaken - par] || toParText(strokesTaken - par) + " over par";
+}</code></pre>
+  <p><code>names[strokesTaken - par]</code> looks up the difference, so 2 strokes on a par 3 is <code>names[-1]</code>, "Birdie!". If the name isn't in the object, the lookup gives <code>undefined</code>, and <code>||</code> picks the text after it.</p>
+  <p>At the end, a scorecard shows all 20 holes, and the lowest total is saved with <code>localStorage</code>, as in the <a href="/tutorials/bubble-level/">Bubble level</a>.</p>
+  <h2>Step 10: Test it</h2>
+  <ul>
+    <li>Putt as hard as you can into each kind of wall, also into the corners. The ball should never go through.</li>
+    <li>Putt hard straight over the hole. It should roll over it. Putt softly and it should drop in.</li>
+    <li>Putt into the water on hole 6. The ball should come back, with one more stroke.</li>
+    <li>Stop the ball in the path of the gate on hole 9. The gate should push it.</li>
+    <li>Open the game on a phone, and drag with a finger. The page should not scroll.</li>
+    <li>Play all 20 holes, and check the scorecard adds up.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>mini-golf.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Mini Golf&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        background-color: #2e7d32;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        border: 10px solid #5d4037;
+        border-radius: 10px;
+        box-sizing: border-box;
+        cursor: crosshair;
+        /* Dragging on a phone putts instead of scrolling the page. */
+        touch-action: none;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;canvas id="gameCanvas" width="800" height="400"&gt;&lt;/canvas&gt;
+
+  &lt;script&gt;
+    /*
+     * The 20 holes of Mini Golf. The canvas is 800 x 400 pixels.
+     *
+     * Every rectangle is written as its corners: [left, top, right, bottom].
+     *
+     *   name     shown at the top of the screen
+     *   par      how many strokes a good player needs
+     *   start    where the ball starts, [x, y]
+     *   hole     where the hole is, [x, y]
+     *   course   the outline of the green, a list of corners [x, y].
+     *            The last corner joins the first. box() makes a rectangle.
+     *   blocks   solid rectangles the ball bounces off
+     *   walls    thin walls from one point to another, [x1, y1, x2, y2]
+     *   bumpers  round bumpers that bounce harder, [x, y, radius]
+     *   sand     rectangles that slow the ball down a lot
+     *   water    rectangles: one stroke penalty, and the ball goes back
+     *   movers   blocks that slide to and fro:
+     *              rect   where it is in the middle of its way
+     *              axis   "x" (left and right) or "y" (up and down)
+     *              range  how far it goes each way, in pixels
+     *              speed  how fast, in radians each step (0.05 is a trip in 2 seconds)
+     *              phase  where in its trip it starts (optional)
+     *   windmills  blades that turn round a point:
+     *              x, y   the middle
+     *              radius how long each blade is
+     *              blades how many blades go right through the middle (2 = a plus)
+     *              speed  how fast it turns, in radians each step (minus = the other way)
+     */
+
+    // A rectangle as a list of its four corners, for a course outline.
+    function box(left, top, right, bottom) {
+        return [[left, top], [right, top], [right, bottom], [left, bottom]];
+    }
+
+    const LEVELS = [
+        {
+            name: "Straight ahead",
+            par: 2,
+            start: [170, 200],
+            hole: [630, 200],
+            course: box(100, 130, 700, 270)
+        },
+        {
+            name: "Under the wall",
+            par: 3,
+            start: [150, 120],
+            hole: [650, 120],
+            course: box(60, 60, 740, 340),
+            blocks: [[380, 60, 420, 250]]
+        },
+        {
+            name: "Around the corner",
+            par: 3,
+            start: [200, 110],
+            hole: [680, 300],
+            course: [[60, 50], [340, 50], [340, 250], [740, 250], [740, 350], [60, 350]]
+        },
+        {
+            name: "Bumper alley",
+            par: 3,
+            start: [120, 200],
+            hole: [690, 200],
+            course: box(60, 60, 740, 340),
+            bumpers: [[300, 140, 22], [300, 260, 22], [450, 200, 28], [600, 120, 22], [600, 280, 22]]
+        },
+        {
+            name: "Sand trap",
+            par: 3,
+            start: [120, 200],
+            hole: [660, 200],
+            course: box(60, 100, 740, 300),
+            sand: [[300, 100, 480, 300]]
+        },
+        {
+            name: "Water hazard",
+            par: 3,
+            start: [120, 290],
+            hole: [670, 110],
+            course: box(60, 60, 740, 340),
+            water: [[250, 60, 370, 250], [430, 150, 550, 340]]
+        },
+        {
+            name: "Zigzag",
+            par: 4,
+            start: [120, 100],
+            hole: [670, 90],
+            course: box(60, 40, 740, 360),
+            blocks: [[200, 40, 230, 280], [380, 120, 410, 360], [560, 40, 590, 280]]
+        },
+        {
+            name: "The funnel",
+            par: 2,
+            start: [120, 200],
+            hole: [660, 200],
+            course: box(60, 60, 740, 340),
+            walls: [[300, 60, 500, 170], [300, 340, 500, 230]]
+        },
+        {
+            name: "The gate",
+            par: 2,
+            start: [130, 200],
+            hole: [670, 200],
+            course: box(60, 100, 740, 300),
+            blocks: [[390, 100, 410, 160], [390, 240, 410, 300]],
+            movers: [{ rect: [388, 185, 412, 215], axis: "y", range: 30, speed: 0.04 }]
+        },
+        {
+            name: "Island green",
+            par: 2,
+            start: [120, 200],
+            hole: [570, 200],
+            course: box(60, 60, 740, 340),
+            water: [[450, 60, 740, 165], [450, 235, 740, 340], [660, 165, 740, 235]]
+        },
+        {
+            name: "U-turn",
+            par: 3,
+            start: [120, 107],
+            hole: [120, 293],
+            course: box(60, 40, 740, 360),
+            blocks: [[60, 175, 620, 225]]
+        },
+        {
+            name: "Pinball",
+            par: 3,
+            start: [110, 200],
+            hole: [690, 200],
+            course: box(60, 40, 740, 360),
+            bumpers: [
+                [220, 110, 20], [220, 290, 20], [320, 200, 20], [420, 110, 20],
+                [420, 290, 20], [520, 200, 20], [620, 110, 20], [620, 290, 20]
+            ]
+        },
+        {
+            name: "Sand and water",
+            par: 3,
+            start: [120, 200],
+            hole: [640, 200],
+            course: box(60, 40, 740, 360),
+            water: [[300, 40, 380, 175], [300, 225, 380, 360]],
+            sand: [[560, 120, 720, 280]]
+        },
+        {
+            name: "The maze",
+            par: 4,
+            start: [110, 320],
+            hole: [690, 320],
+            course: box(60, 40, 740, 360),
+            blocks: [[180, 40, 200, 270], [320, 130, 340, 360], [460, 40, 480, 270], [600, 130, 620, 360]]
+        },
+        {
+            name: "Traffic",
+            par: 2,
+            start: [110, 200],
+            hole: [690, 200],
+            course: box(60, 140, 740, 260),
+            movers: [
+                { rect: [240, 180, 260, 220], axis: "y", range: 40, speed: 0.05 },
+                { rect: [490, 180, 510, 220], axis: "y", range: 40, speed: 0.07, phase: 1.5 }
+            ]
+        },
+        {
+            name: "Diamond",
+            par: 3,
+            start: [110, 200],
+            hole: [690, 200],
+            course: box(60, 60, 740, 340),
+            walls: [[330, 200, 400, 130], [400, 130, 470, 200], [470, 200, 400, 270], [400, 270, 330, 200]],
+            bumpers: [[570, 130, 16], [570, 270, 16]]
+        },
+        {
+            name: "Back door",
+            par: 3,
+            start: [120, 200],
+            hole: [630, 200],
+            course: box(60, 40, 740, 360),
+            blocks: [[560, 110, 580, 290], [560, 110, 690, 130], [560, 270, 690, 290]]
+        },
+        {
+            name: "The bridge",
+            par: 3,
+            start: [110, 200],
+            hole: [680, 300],
+            course: box(60, 40, 740, 360),
+            water: [[330, 40, 470, 175], [330, 225, 470, 360]],
+            bumpers: [[580, 200, 18]]
+        },
+        {
+            name: "Windmill",
+            par: 3,
+            start: [120, 200],
+            hole: [660, 200],
+            course: box(60, 100, 740, 300),
+            blocks: [[390, 100, 410, 170], [390, 230, 410, 300]],
+            windmills: [{ x: 310, y: 200, radius: 55, blades: 2, speed: 0.03 }]
+        },
+        {
+            name: "Grand finale",
+            par: 4,
+            start: [110, 120],
+            hole: [580, 320],
+            course: [[60, 40], [740, 40], [740, 360], [420, 360], [420, 200], [60, 200]],
+            water: [[230, 40, 300, 110]],
+            bumpers: [[330, 150, 16]],
+            sand: [[500, 290, 660, 350]],
+            windmills: [{ x: 580, y: 190, radius: 50, blades: 2, speed: -0.025 }]
+        }
+    ];
+
+    /*
+     * Mini Golf: 20 holes. Drag back from anywhere on the course and let go to
+     * putt, like a slingshot: the further you drag, the harder the putt. Get the
+     * ball in the hole in as few strokes as you can.
+     *
+     *   drag and let go   putt (mouse or finger)
+     *   P                 pause
+     *   Esc               menu
+     *
+     * The holes are in levels.js. Everything the ball can hit is turned into
+     * straight line segments, so one bounce function handles every wall.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;        // one update step, in milliseconds
+    const SUBSTEPS = 4;            // the ball moves in 4 small steps, so it can't jump through a wall
+    const BALL_RADIUS = 8;
+    const HOLE_RADIUS = 12;
+    const WALL_HALF = 4;           // half the thickness of a drawn wall
+    const BLADE_HALF = 3;          // half the thickness of a windmill blade
+    const MAX_SPEED = 16;          // pixels a step at full power
+    const MAX_PULL = 150;          // drag this far for full power
+    const FRICTION = 0.985;        // speed kept each step on grass
+    const SAND_FRICTION = 0.92;    // ... and in sand
+    const STOP_SPEED = 0.05;       // slower than this and the ball stops
+    const SINK_SPEED = 6;          // faster than this and the ball rolls over the hole
+    const WALL_BOUNCE = 0.75;      // speed kept when bouncing off a wall
+    const BUMPER_BOUNCE = 1.15;    // bumpers give a little extra
+    const MAX_STROKES = 10;        // the hole ends after this many
+    const BEST_KEY = "mini-golf-best";
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, playing, paused, holeDone, finished
+    let gameStarted = false;
+
+    let holeIndex = 0;     // which hole, 0 to 19
+    let course = null;     // the hole, made ready by buildCourse()
+    let ball = { x: 0, y: 0, vx: 0, vy: 0 };
+    let lastSpot = { x: 0, y: 0 };   // where the last putt was from, for water
+    let strokes = 0;
+    let scores = [];       // strokes for every finished hole
+    let time = 0;          // steps since the hole started, for movers and windmills
+    let best = loadBest(); // the lowest total ever, or null
+
+    let dragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let dragNow = { x: 0, y: 0 };
+
+    let notice = "";       // a short message, like "Splash!"
+    let noticeSteps = 0;   // how many more steps to show it
+
+    // --- Building a hole -------------------------------------------------------
+
+    // A segment is a straight line the ball bounces off. "half" is half its
+    // thickness, so the ball bounces off the edge of a thick wall, not its middle.
+    function segment(ax, ay, bx, by, half) {
+        return { ax: ax, ay: ay, bx: bx, by: by, half: half };
+    }
+
+    // The four edges of a rectangle [left, top, right, bottom].
+    function rectSegments(rect, half) {
+        const [left, top, right, bottom] = rect;
+        return [
+            segment(left, top, right, top, half),
+            segment(right, top, right, bottom, half),
+            segment(right, bottom, left, bottom, half),
+            segment(left, bottom, left, top, half)
+        ];
+    }
+
+    // Turn a hole from levels.js into everything the physics needs.
+    // || [] means "an empty list if the hole has none".
+    function buildCourse(level) {
+        const segments = [];
+
+        // The outline: from each corner to the next, and the last one back to the first.
+        level.course.forEach(function (corner, i) {
+            const next = level.course[(i + 1) % level.course.length];
+            segments.push(segment(corner[0], corner[1], next[0], next[1], WALL_HALF));
+        });
+        (level.walls || []).forEach(function (w) {
+            segments.push(segment(w[0], w[1], w[2], w[3], WALL_HALF));
+        });
+        (level.blocks || []).forEach(function (rect) {
+            segments.push(...rectSegments(rect, 0));
+        });
+
+        return {
+            level: level,
+            segments: segments,
+            bumpers: level.bumpers || [],
+            sand: level.sand || [],
+            water: level.water || [],
+            movers: level.movers || [],
+            windmills: level.windmills || []
+        };
+    }
+
+    // --- Things that move ------------------------------------------------------
+
+    // A mover goes to and fro with Math.sin, which goes smoothly from -1 to 1 and back.
+    function moverOffset(mover, t) {
+        return Math.sin(t * mover.speed + (mover.phase || 0)) * mover.range;
+    }
+
+    function moverRect(mover, t) {
+        const offset = moverOffset(mover, t);
+        const [left, top, right, bottom] = mover.rect;
+        if (mover.axis === "x") {
+            return [left + offset, top, right + offset, bottom];
+        }
+        return [left, top + offset, right, bottom + offset];
+    }
+
+    // How fast the mover goes: the change of sin is cos.
+    function moverVelocity(mover, t) {
+        const speed = Math.cos(t * mover.speed + (mover.phase || 0)) * mover.range * mover.speed;
+        return mover.axis === "x" ? { x: speed, y: 0 } : { x: 0, y: speed };
+    }
+
+    // The blades of a windmill: each one is a line right through the middle.
+    function bladeSegments(windmill, t) {
+        const blades = [];
+        for (let i = 0; i &lt; windmill.blades; i++) {
+            const angle = t * windmill.speed + i * Math.PI / windmill.blades;
+            const dx = Math.cos(angle) * windmill.radius;
+            const dy = Math.sin(angle) * windmill.radius;
+            blades.push(segment(windmill.x - dx, windmill.y - dy, windmill.x + dx, windmill.y + dy, BLADE_HALF));
+        }
+        return blades;
+    }
+
+    // How fast a point on a turning blade moves: faster further out, at a
+    // right angle to the blade.
+    function bladeVelocity(windmill, x, y) {
+        return { x: -windmill.speed * (y - windmill.y), y: windmill.speed * (x - windmill.x) };
+    }
+
+    // --- Bouncing ------------------------------------------------------------
+
+    function still() {
+        return { x: 0, y: 0 };
+    }
+
+    // Bounce the ball off a segment. velocityAt(x, y) says how fast the wall
+    // moves at that point: still() for a wall that doesn't move.
+    function bounceOffSegment(ball, seg, velocityAt) {
+        // The point on the segment closest to the ball. t is how far along it,
+        // from 0 (the start) to 1 (the end).
+        const abx = seg.bx - seg.ax;
+        const aby = seg.by - seg.ay;
+        const lengthSquared = abx * abx + aby * aby;
+        let t = lengthSquared === 0 ? 0 : ((ball.x - seg.ax) * abx + (ball.y - seg.ay) * aby) / lengthSquared;
+        t = Math.max(0, Math.min(1, t));
+        const cx = seg.ax + abx * t;
+        const cy = seg.ay + aby * t;
+
+        const dx = ball.x - cx;
+        const dy = ball.y - cy;
+        const distance = Math.hypot(dx, dy);
+        const minimum = BALL_RADIUS + seg.half;
+        if (distance &gt;= minimum || distance === 0) {
+            return;
+        }
+
+        // nx, ny: one pixel long, pointing from the wall to the ball.
+        const nx = dx / distance;
+        const ny = dy / distance;
+
+        // Move the ball out of the wall.
+        ball.x = cx + nx * minimum;
+        ball.y = cy + ny * minimum;
+
+        // How fast the ball goes into the wall, compared to the wall itself.
+        const wall = velocityAt(cx, cy);
+        const into = (ball.vx - wall.x) * nx + (ball.vy - wall.y) * ny;
+        if (into &lt; 0) {
+            // Take that part of the speed away, and give some of it back the other way.
+            ball.vx -= (1 + WALL_BOUNCE) * into * nx;
+            ball.vy -= (1 + WALL_BOUNCE) * into * ny;
+        }
+    }
+
+    function bounceOffBumper(ball, bumper) {
+        const [x, y, radius] = bumper;
+        const dx = ball.x - x;
+        const dy = ball.y - y;
+        const distance = Math.hypot(dx, dy);
+        const minimum = BALL_RADIUS + radius;
+        if (distance &gt;= minimum || distance === 0) {
+            return;
+        }
+        const nx = dx / distance;
+        const ny = dy / distance;
+        ball.x = x + nx * minimum;
+        ball.y = y + ny * minimum;
+        const into = ball.vx * nx + ball.vy * ny;
+        if (into &lt; 0) {
+            ball.vx -= (1 + BUMPER_BOUNCE) * into * nx;
+            ball.vy -= (1 + BUMPER_BOUNCE) * into * ny;
+        }
+    }
+
+    function inside(point, rect) {
+        return point.x &gt; rect[0] &amp;&amp; point.x &lt; rect[2] &amp;&amp; point.y &gt; rect[1] &amp;&amp; point.y &lt; rect[3];
+    }
+
+    function distanceToHole(ball, level) {
+        return Math.hypot(ball.x - level.hole[0], ball.y - level.hole[1]);
+    }
+
+    // --- Rolling ---------------------------------------------------------------
+
+    // One step of the ball, about 1/60 of a second. Returns what happened:
+    //   "sunk"     the ball went in the hole
+    //   "water"    the ball went in the water
+    //   "stopped"  the ball just stopped
+    //   null       nothing special
+    // It doesn't use anything outside its arguments, so the same function can
+    // try out putts without playing them.
+    function rollStep(ball, course, t) {
+        const level = course.level;
+
+        for (let s = 0; s &lt; SUBSTEPS; s++) {
+            const now = t + s / SUBSTEPS;
+            ball.x += ball.vx / SUBSTEPS;
+            ball.y += ball.vy / SUBSTEPS;
+
+            course.segments.forEach(function (seg) {
+                bounceOffSegment(ball, seg, still);
+            });
+            course.movers.forEach(function (mover) {
+                const velocity = moverVelocity(mover, now);
+                rectSegments(moverRect(mover, now), 0).forEach(function (seg) {
+                    bounceOffSegment(ball, seg, function () { return velocity; });
+                });
+            });
+            course.windmills.forEach(function (windmill) {
+                bladeSegments(windmill, now).forEach(function (seg) {
+                    bounceOffSegment(ball, seg, function (x, y) { return bladeVelocity(windmill, x, y); });
+                });
+            });
+            course.bumpers.forEach(function (bumper) {
+                bounceOffBumper(ball, bumper);
+            });
+
+            if (course.water.some(function (rect) { return inside(ball, rect); })) {
+                return "water";
+            }
+            // Too fast and the ball rolls right over the hole.
+            if (distanceToHole(ball, level) &lt; HOLE_RADIUS &amp;&amp; Math.hypot(ball.vx, ball.vy) &lt; SINK_SPEED) {
+                return "sunk";
+            }
+        }
+
+        const speed = Math.hypot(ball.vx, ball.vy);
+        if (speed === 0) {
+            return null;   // lying still
+        }
+
+        // Friction: keep a part of the speed, and take a little more away, so
+        // the ball stops in the end instead of creeping on for ever.
+        const inSand = course.sand.some(function (rect) { return inside(ball, rect); });
+        let newSpeed = inSand ? speed * SAND_FRICTION - 0.08 : speed * FRICTION - 0.02;
+        newSpeed = Math.min(newSpeed, MAX_SPEED);   // bumpers can't make it faster than a full putt
+
+        if (newSpeed &lt; STOP_SPEED) {
+            ball.vx = 0;
+            ball.vy = 0;
+            // Stopped on the edge of the hole: it drops in.
+            if (distanceToHole(ball, level) &lt; HOLE_RADIUS + 3) {
+                return "sunk";
+            }
+            return "stopped";
+        }
+        ball.vx *= newSpeed / speed;
+        ball.vy *= newSpeed / speed;
+        return null;
+    }
+
+    // --- The game --------------------------------------------------------------
+
+    function loadBest() {
+        try {
+            const saved = Number(localStorage.getItem(BEST_KEY));
+            return saved &gt; 0 ? saved : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function saveBest(total) {
+        best = total;
+        try {
+            localStorage.setItem(BEST_KEY, String(total));
+        } catch (error) {
+            // Not saved, but the game still works.
+        }
+    }
+
+    function newGame() {
+        scores = [];
+        gameStarted = true;
+        startHole(0);
+    }
+
+    function startHole(index) {
+        holeIndex = index;
+        course = buildCourse(LEVELS[index]);
+        ball = { x: course.level.start[0], y: course.level.start[1], vx: 0, vy: 0 };
+        lastSpot = { x: ball.x, y: ball.y };
+        strokes = 0;
+        time = 0;
+        dragging = false;
+        notice = "";
+        screen = "playing";
+    }
+
+    function ballStill() {
+        return ball.vx === 0 &amp;&amp; ball.vy === 0;
+    }
+
+    // The putt from dragging: the opposite way of the drag, like a slingshot.
+    function puttFromDrag() {
+        const pullX = dragStart.x - dragNow.x;
+        const pullY = dragStart.y - dragNow.y;
+        const pull = Math.hypot(pullX, pullY);
+        return {
+            dx: pull === 0 ? 0 : pullX / pull,
+            dy: pull === 0 ? 0 : pullY / pull,
+            power: Math.min(1, pull / MAX_PULL)
+        };
+    }
+
+    function putt() {
+        const shot = puttFromDrag();
+        dragging = false;
+        if (shot.power &lt; 0.03) {
+            return;   // a click, not a drag
+        }
+        lastSpot = { x: ball.x, y: ball.y };
+        ball.vx = shot.dx * shot.power * MAX_SPEED;
+        ball.vy = shot.dy * shot.power * MAX_SPEED;
+        strokes++;
+    }
+
+    function showNotice(text) {
+        notice = text;
+        noticeSteps = 120;   // two seconds
+    }
+
+    function finishHole() {
+        scores.push(Math.min(strokes, MAX_STROKES));
+        dragging = false;
+        if (holeIndex === LEVELS.length - 1) {
+            const total = totalStrokes();
+            if (best === null || total &lt; best) {
+                saveBest(total);
+            }
+            screen = "finished";
+        } else {
+            screen = "holeDone";
+        }
+    }
+
+    function totalStrokes() {
+        return scores.reduce(function (sum, s) { return sum + s; }, 0);
+    }
+
+    // Strokes compared to par for the holes played: -2 is two under par.
+    function totalToPar() {
+        let par = 0;
+        for (let i = 0; i &lt; scores.length; i++) {
+            par += LEVELS[i].par;
+        }
+        return totalStrokes() - par;
+    }
+
+    function toParText(n) {
+        if (n === 0) {
+            return "even";
+        }
+        return n &gt; 0 ? "+" + n : String(n);
+    }
+
+    // The name of a score on one hole.
+    function scoreName(strokesTaken, par) {
+        if (strokesTaken === 1) {
+            return "Hole in one!";
+        }
+        const names = { "-3": "Albatross!", "-2": "Eagle!", "-1": "Birdie!", "0": "Par", "1": "Bogey", "2": "Double bogey" };
+        return names[strokesTaken - par] || toParText(strokesTaken - par) + " over par";
+    }
+
+    // --- Update ----------------------------------------------------------------
+
+    function update() {
+        time++;
+        if (noticeSteps &gt; 0) {
+            noticeSteps--;
+        }
+
+        const wasStill = ballStill();
+        const result = rollStep(ball, course, time);
+
+        // A mover or a windmill hit the ball while you were aiming.
+        if (wasStill &amp;&amp; !ballStill()) {
+            dragging = false;
+        }
+
+        if (result === "sunk") {
+            finishHole();
+        } else if (result === "water") {
+            strokes++;
+            ball = { x: lastSpot.x, y: lastSpot.y, vx: 0, vy: 0 };
+            showNotice("Splash! One stroke penalty.");
+            if (strokes &gt;= MAX_STROKES) {
+                finishHole();
+            }
+        } else if (result === "stopped" &amp;&amp; strokes &gt;= MAX_STROKES) {
+            showNotice("That's " + MAX_STROKES + " strokes. On to the next hole.");
+            finishHole();
+        }
+    }
+
+    // --- Drawing ---------------------------------------------------------------
+
+    function drawText(text, x, y, size, color, align) {
+        ctx.fillStyle = color || "white";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = align || "center";
+        ctx.fillText(text, x, y);
+    }
+
+    function rectPath(rect) {
+        ctx.beginPath();
+        ctx.rect(rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]);
+    }
+
+    function drawCourse() {
+        const level = course.level;
+
+        // The ground around the course.
+        ctx.fillStyle = "#1b5e20";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // The green, with stripes like a mowed lawn. clip() keeps the stripes
+        // inside the outline.
+        ctx.beginPath();
+        level.course.forEach(function (corner, i) {
+            if (i === 0) {
+                ctx.moveTo(corner[0], corner[1]);
+            } else {
+                ctx.lineTo(corner[0], corner[1]);
+            }
+        });
+        ctx.closePath();
+        ctx.save();
+        ctx.clip();
+        for (let x = 0; x &lt; WIDTH; x += 40) {
+            ctx.fillStyle = (x / 40) % 2 === 0 ? "#66bb6a" : "#5cb860";
+            ctx.fillRect(x, 0, 40, HEIGHT);
+        }
+        ctx.restore();
+
+        course.sand.forEach(function (rect) {
+            ctx.fillStyle = "#e8d5a0";
+            rectPath(rect);
+            ctx.fill();
+        });
+
+        course.water.forEach(function (rect) {
+            ctx.fillStyle = "#3fa9e0";
+            rectPath(rect);
+            ctx.fill();
+            // A few waves.
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.lineWidth = 2;
+            for (let y = rect[1] + 15; y &lt; rect[3] - 5; y += 25) {
+                for (let x = rect[0] + 10; x &lt; rect[2] - 20; x += 40) {
+                    ctx.beginPath();
+                    ctx.arc(x + 6, y, 6, Math.PI * 1.1, Math.PI * 1.9);
+                    ctx.stroke();
+                }
+            }
+        });
+
+        // The tee, where the ball starts.
+        ctx.fillStyle = "rgba(0, 0, 0, 0.12)";
+        ctx.fillRect(level.start[0] - 18, level.start[1] - 18, 36, 36);
+
+        // The walls round the edge, and the thin walls.
+        ctx.strokeStyle = "#8d6e63";
+        ctx.lineWidth = WALL_HALF * 2;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        level.course.forEach(function (corner, i) {
+            if (i === 0) {
+                ctx.moveTo(corner[0], corner[1]);
+            } else {
+                ctx.lineTo(corner[0], corner[1]);
+            }
+        });
+        ctx.closePath();
+        ctx.stroke();
+        (level.walls || []).forEach(function (w) {
+            ctx.beginPath();
+            ctx.moveTo(w[0], w[1]);
+            ctx.lineTo(w[2], w[3]);
+            ctx.stroke();
+        });
+
+        (level.blocks || []).forEach(function (rect) {
+            ctx.fillStyle = "#8d6e63";
+            rectPath(rect);
+            ctx.fill();
+        });
+
+        course.bumpers.forEach(function (bumper) {
+            ctx.beginPath();
+            ctx.arc(bumper[0], bumper[1], bumper[2], 0, Math.PI * 2);
+            ctx.fillStyle = "#e53935";
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "white";
+            ctx.beginPath();
+            ctx.arc(bumper[0], bumper[1], bumper[2] * 0.6, 0, Math.PI * 2);
+            ctx.stroke();
+        });
+
+        drawHole(level.hole);
+
+        course.movers.forEach(function (mover) {
+            ctx.fillStyle = "#ffb300";
+            ctx.strokeStyle = "#6d4c41";
+            ctx.lineWidth = 2;
+            rectPath(moverRect(mover, time));
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        course.windmills.forEach(function (windmill) {
+            ctx.strokeStyle = "#eeeeee";
+            ctx.lineWidth = BLADE_HALF * 2;
+            bladeSegments(windmill, time).forEach(function (seg) {
+                ctx.beginPath();
+                ctx.moveTo(seg.ax, seg.ay);
+                ctx.lineTo(seg.bx, seg.by);
+                ctx.stroke();
+            });
+            ctx.beginPath();
+            ctx.arc(windmill.x, windmill.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = "#6d4c41";
+            ctx.fill();
+        });
+    }
+
+    function drawHole(hole) {
+        const [x, y] = hole;
+        ctx.beginPath();
+        ctx.arc(x, y, HOLE_RADIUS - 1, 0, Math.PI * 2);
+        ctx.fillStyle = "#111111";
+        ctx.fill();
+
+        // The flag.
+        ctx.strokeStyle = "#dddddd";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y - 38);
+        ctx.stroke();
+        ctx.fillStyle = "#e53935";
+        ctx.beginPath();
+        ctx.moveTo(x, y - 38);
+        ctx.lineTo(x + 20, y - 32);
+        ctx.lineTo(x, y - 26);
+        ctx.fill();
+    }
+
+    function drawBall() {
+        // A shadow, a little to the right and down.
+        ctx.beginPath();
+        ctx.arc(ball.x + 2, ball.y + 2, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+    }
+
+    function drawAim() {
+        if (!dragging) {
+            return;
+        }
+        const shot = puttFromDrag();
+        if (shot.power === 0) {
+            return;
+        }
+
+        // From green (soft) to red (full power).
+        const color = "hsl(" + Math.round(120 - 120 * shot.power) + ", 85%, 50%)";
+        const length = 30 + 170 * shot.power;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath();
+        ctx.moveTo(ball.x, ball.y);
+        ctx.lineTo(ball.x + shot.dx * length, ball.y + shot.dy * length);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // The power bar.
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(20, HEIGHT - 26, 164, 16);
+        ctx.fillStyle = color;
+        ctx.fillRect(22, HEIGHT - 24, 160 * shot.power, 12);
+    }
+
+    function drawHud() {
+        const level = course.level;
+        const text = "Hole " + (holeIndex + 1) + "/" + LEVELS.length + ": " + level.name +
+            "    Par " + level.par + "    Strokes " + strokes + "    Total " + toParText(totalToPar());
+        drawText(text, 20, 26, 16, "white", "left");
+
+        if (holeIndex === 0 &amp;&amp; strokes === 0 &amp;&amp; !dragging) {
+            drawText("Drag back from anywhere and let go to putt", WIDTH / 2, HEIGHT - 12, 16);
+        }
+        if (noticeSteps &gt; 0) {
+            drawText(notice, WIDTH / 2, HEIGHT / 2, 26, "yellow");
+        }
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 50, 40, "yellow");
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 28, 18);
+        });
+    }
+
+    // The scorecard: two rows of ten holes.
+    function drawScorecard() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        const total = totalStrokes();
+        drawText("Scorecard", WIDTH / 2, 50, 32, "yellow");
+
+        const cell = 52;
+        const left = (WIDTH - 70 - cell * 10) / 2;
+        for (let half = 0; half &lt; 2; half++) {
+            const top = 85 + half * 110;
+            drawText("Hole", left, top, 15, "#bbbbbb", "left");
+            drawText("Par", left, top + 28, 15, "#bbbbbb", "left");
+            drawText("You", left, top + 56, 15, "#bbbbbb", "left");
+            for (let i = 0; i &lt; 10; i++) {
+                const hole = half * 10 + i;
+                const x = left + 70 + i * cell + cell / 2;
+                const par = LEVELS[hole].par;
+                const yours = scores[hole];
+                // Under par is green, over par is red.
+                const color = yours &lt; par ? "#7CFC00" : yours &gt; par ? "#ff8a80" : "white";
+                drawText(String(hole + 1), x, top, 15, "#bbbbbb");
+                drawText(String(par), x, top + 28, 15);
+                drawText(String(yours), x, top + 56, 15, color);
+            }
+        }
+
+        drawText("Total: " + total + " strokes (" + toParText(totalToPar()) + ")", WIDTH / 2, 320, 22);
+        drawText(total === best ? "That's your best!" : "Your best: " + best, WIDTH / 2, 348, 16, "#bbbbbb");
+        drawText("Click or tap to play again", WIDTH / 2, 380, 16);
+    }
+
+    function draw() {
+        if (course === null) {
+            // Before the first game: show the first hole behind the menu.
+            course = buildCourse(LEVELS[0]);
+            ball = { x: course.level.start[0], y: course.level.start[1], vx: 0, vy: 0 };
+        }
+        drawCourse();
+        drawBall();
+
+        if (screen === "menu") {
+            const lines = [
+                "Drag back from anywhere and let go to putt.",
+                "The further you drag, the harder the putt.",
+                "20 holes. Click or tap to start."
+            ];
+            if (best !== null) {
+                lines.push("Your best: " + best + " strokes");
+            }
+            if (gameStarted) {
+                lines.push("Esc: back to the game");
+            }
+            drawMessage("Mini Golf", lines);
+        } else if (screen === "playing") {
+            drawAim();
+            drawHud();
+        } else if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "holeDone") {
+            const taken = scores[scores.length - 1];
+            drawMessage(scoreName(taken, course.level.par), [
+                "Hole " + (holeIndex + 1) + " in " + taken + (taken === 1 ? " stroke" : " strokes") + ", par " + course.level.par,
+                "Total " + toParText(totalToPar()),
+                "Click or tap for the next hole"
+            ]);
+        } else if (screen === "finished") {
+            drawScorecard();
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // Run one update per 1/60 second, so the game has the same speed on
+    // every screen, then draw.
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        while (leftover &gt;= STEP) {
+            if (screen === "playing") {
+                update();
+            }
+            leftover -= STEP;
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Mouse, finger and keyboard ------------------------------------------
+
+    // The canvas can be shown smaller than 800x400 on a small screen. Convert
+    // from position on the screen to position in the canvas. clientLeft and
+    // clientWidth leave out the border around the canvas.
+    function canvasPosition(event) {
+        const box = canvas.getBoundingClientRect();
+        return {
+            x: (event.clientX - box.left - canvas.clientLeft) * (WIDTH / canvas.clientWidth),
+            y: (event.clientY - box.top - canvas.clientTop) * (HEIGHT / canvas.clientHeight)
+        };
+    }
+
+    // Click, tap or Enter: go on from a message.
+    function goOn() {
+        if (screen === "menu") {
+            newGame();
+        } else if (screen === "holeDone") {
+            startHole(holeIndex + 1);
+        } else if (screen === "finished") {
+            newGame();
+        }
+    }
+
+    // Pointer events work the same for a mouse, a finger and a pen.
+    canvas.addEventListener("pointerdown", function (event) {
+        if (screen !== "playing") {
+            goOn();
+            return;
+        }
+        if (!ballStill()) {
+            return;   // wait until the ball has stopped
+        }
+        // Keep getting the moves even when the finger leaves the canvas.
+        try {
+            canvas.setPointerCapture(event.pointerId);
+        } catch (error) {
+            // Some browsers say no; dragging still works inside the canvas.
+        }
+        dragging = true;
+        dragStart = canvasPosition(event);
+        dragNow = dragStart;
+    });
+
+    canvas.addEventListener("pointermove", function (event) {
+        if (dragging) {
+            dragNow = canvasPosition(event);
+        }
+    });
+
+    canvas.addEventListener("pointerup", function () {
+        if (dragging &amp;&amp; screen === "playing" &amp;&amp; ballStill()) {
+            putt();
+        }
+        dragging = false;
+    });
+
+    canvas.addEventListener("pointercancel", function () {
+        dragging = false;
+    });
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+
+        if (key === "Enter") {
+            goOn();
+        } else if (key === "Escape") {
+            if (screen === "playing" || screen === "paused") {
+                screen = "menu";
+            } else if (screen === "menu" &amp;&amp; gameStarted) {
+                screen = "playing";
+            }
+        } else if (key === "p" || key === "P") {
+            if (screen === "playing") {
+                screen = "paused";
+            } else if (screen === "paused") {
+                screen = "playing";
+            }
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Make your own hole: copy one of the objects in <code>LEVELS</code> and move things around.</li>
+    <li>Add a slope: a rectangle that adds a little speed in one direction every step, like a hill.</li>
+    <li>Add a "teleport": two holes, where a ball that drops in one comes out of the other.</li>
+    <li>Make it a game for two players, who take turns on each hole.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

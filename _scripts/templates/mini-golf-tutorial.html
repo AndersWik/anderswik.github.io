@@ -1,0 +1,146 @@
+---
+layout: default
+title: Mini Golf
+permalink: /tutorials/mini-golf/
+chapter: "06"
+chapter_title: "Classic arcade"
+keywords: [javascript, game, canvas, physics, collision, line segment, closest point, bounce, friction, levels, data, pointer events, touch, drag, slingshot, Math.sin, localStorage]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Mini Golf</h1>
+  <p>Mini golf with 20 holes. Drag back from anywhere on the course and let go, like a slingshot: the further you drag, the harder the putt. There are walls, bumpers, sand, water, sliding gates and windmills, and a scorecard at the end.</p>
+  <p>It builds on <a href="/tutorials/pool/">Pool</a>: the same game loop, rolling with friction and bouncing. The new ideas are keeping the holes as data, one bounce function for every kind of wall, things that move, and controls that work with a finger as well as a mouse.</p>
+  <p><a href="/assets/tutorials/mini-golf.html">Open the finished game</a></p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>mini-golf.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The course is a canvas with a wooden edge, as in Pool:</p>
+  <pre><code class="language-html">&lt;canvas id="gameCanvas" width="800" height="400"&gt;&lt;/canvas&gt;</code></pre>
+  <pre><code class="language-css">@@css@@</code></pre>
+  <p><code>touch-action: none</code> is new. Without it, dragging a finger on a phone scrolls the page instead of putting.</p>
+  <h2>Step 2: The holes are data</h2>
+  <p>Twenty holes written as code would be twenty functions full of numbers. Instead, each hole is an object that only says what is where, and the same code plays all of them. Here is hole 2, a wall in the middle, and hole 9, a gate with a sliding block:</p>
+  <pre><code class="language-javascript">@@level:1@@,
+@@level:8@@</code></pre>
+  <p>Every rectangle is written as its corners: <code>[left, top, right, bottom]</code>. The <code>course</code> is the outline of the green, a list of corners, and the last corner joins the first. A list of corners can make any shape, like the L of hole 3:</p>
+  <pre><code class="language-javascript">course: [[60, 50], [340, 50], [340, 250], [740, 250], [740, 350], [60, 350]]</code></pre>
+  <p>Most holes are rectangles, so a small helper writes the four corners:</p>
+  <pre><code class="language-javascript">@@fn:box@@</code></pre>
+  <p>Making a new hole is now only a matter of writing one more object. All the holes are in the complete page below.</p>
+  <h2>Step 3: Everything is a line</h2>
+  <p>The ball bounces off the outline, thin walls and blocks. Instead of writing a bounce for each, we turn them all into <strong>line segments</strong>, straight lines from one point to another. The outline is a segment from each corner to the next, and a block is its four edges:</p>
+  <pre><code class="language-javascript">@@fn:segment@@
+
+@@fn:rectSegments@@
+
+@@fn:buildCourse@@</code></pre>
+  <ul>
+    <li><code>(i + 1) % level.course.length</code> is the next corner, and for the last corner it is 0, the first one again.</li>
+    <li><code>half</code> is half a wall's thickness. Walls are drawn 8 pixels thick, so the ball must bounce 4 pixels before the line itself.</li>
+    <li><code>level.walls || []</code> means "the walls, or an empty list if the hole has none", so a hole only lists what it has.</li>
+    <li><code>...rectSegments(rect, 0)</code>: the three dots put the four edges into the list one by one, instead of one list inside the other.</li>
+  </ul>
+  <h2>Step 4: Bouncing off a line</h2>
+  <p>This is the heart of the game. It works for any line, at any angle:</p>
+  <pre><code class="language-javascript">@@fn:bounceOffSegment@@</code></pre>
+  <ol>
+    <li><strong>The closest point.</strong> <code>t</code> says how far along the line the ball is, from 0 at the start to 1 at the end. The math is a <em>dot product</em>: how much of the way from the start to the ball goes the same way as the line. Keeping <code>t</code> between 0 and 1 makes the ball hit the end of a wall when it comes from the side, so corners work too.</li>
+    <li><strong>Too close?</strong> If the ball's center is nearer than its radius (plus half the wall), it is touching.</li>
+    <li><strong>Push it out</strong> along <code>nx, ny</code>, the direction from the wall to the ball, until it just touches.</li>
+    <li><strong>Bounce.</strong> <code>into</code> is how fast the ball moves towards the wall. Taking it away once stops the ball at the wall; taking it away <code>1 + WALL_BOUNCE</code> times sends it back with 75% of that speed. The speed along the wall stays as it is, so the ball bounces off at the same angle it came in, like light in a mirror.</li>
+  </ol>
+  <p><code>velocityAt</code> is a function that says how fast the wall itself moves at a point. For a normal wall it is <code>still()</code>, which is always 0. We need it for the moving things in step 7: a block that moves into the ball should push it.</p>
+  <p>Bumpers are circles, and work the same way, with a closest point that is simply the bumper's middle. They give back a little more than they get: <code>BUMPER_BOUNCE</code> is 1.15.</p>
+  <h2>Step 5: Rolling</h2>
+  <p>One step of the ball, 1/60 of a second:</p>
+  <pre><code class="language-javascript">@@fn:rollStep@@</code></pre>
+  <ul>
+    <li><strong>Small steps.</strong> At full power the ball moves 16 pixels a step, which is more than its own size. It could jump right through a thin wall between two steps. So it moves in 4 small steps of at most 4 pixels, and checks every wall after each one.</li>
+    <li><strong>Friction.</strong> As in Pool, the ball keeps a part of its speed each step, 98.5% on grass and 92% in sand. Taking away a little extra as well (0.02) makes it stop in the end, instead of creeping on and on at a slower and slower speed.</li>
+    <li><strong>Too fast for the hole.</strong> The ball only drops in if it is slower than <code>SINK_SPEED</code>. A hard putt rolls straight over the hole, just like in real golf. And a ball that stops right at the edge of the hole drops in.</li>
+    <li><code>rollStep</code> only uses its arguments, nothing else in the game. That makes it easy to test: a test page can try thousands of putts on a copy of the ball, to check that every hole can be played. That is how the pars in <code>LEVELS</code> were checked.</li>
+  </ul>
+  <h2>Step 6: Water and the stroke counter</h2>
+  <p>Before every putt we remember where the ball was. If it goes in the water, it comes back there, and it costs one stroke:</p>
+  <pre><code class="language-javascript">@@fn:putt@@
+
+@@fn:update@@</code></pre>
+  <p>A hole ends after <code>MAX_STROKES</code> (10), so nobody gets stuck on a hole for ever.</p>
+  <h2>Step 7: Things that move</h2>
+  <p>A mover slides to and fro. <code>Math.sin</code> goes smoothly from -1 to 1 and back, so multiplying it by <code>range</code> gives an offset that goes from <code>-range</code> to <code>range</code>, slowing down at the ends like a swing:</p>
+  <pre><code class="language-javascript">@@fn:moverOffset@@
+
+@@fn:moverVelocity@@</code></pre>
+  <p>How fast the mover goes is how fast its offset changes, and the change of <code>sin</code> is <code>cos</code>. The mover is fastest in the middle, where <code>cos</code> is 1, and stands still at the ends, where it is 0. In <code>rollStep</code>, the mover's four edges are made new every small step, and its speed goes to <code>bounceOffSegment</code>, so a moving block knocks the ball away.</p>
+  <p>A windmill blade is a line through the middle, turned by <code>time * speed</code>:</p>
+  <pre><code class="language-javascript">@@fn:bladeSegments@@
+
+@@fn:bladeVelocity@@</code></pre>
+  <p>A point on a turning blade moves at a right angle to the blade, and faster the further out it is, just like the end of a clock hand moves more than the middle. Turning the arrow from the middle to the point a quarter turn, and multiplying it by the speed, gives exactly that.</p>
+  <p>Movers and windmills move all the time, also while you aim. So the ball is checked every step, even when it lies still: if a blade hits it, it starts to roll.</p>
+  <h2>Step 8: Drag to putt, with a mouse or a finger</h2>
+  <p>Pool used mouse events. <strong>Pointer events</strong> are the same for a mouse, a finger and a pen, so one set of code works on a computer and on a phone:</p>
+  <pre><code class="language-javascript">canvas.addEventListener("pointerdown", function (event) {
+    if (screen !== "playing") {
+        goOn();
+        return;
+    }
+    if (!ballStill()) {
+        return;   // wait until the ball has stopped
+    }
+    // Keep getting the moves even when the finger leaves the canvas.
+    try {
+        canvas.setPointerCapture(event.pointerId);
+    } catch (error) {
+        // Some browsers say no; dragging still works inside the canvas.
+    }
+    dragging = true;
+    dragStart = canvasPosition(event);
+    dragNow = dragStart;
+});
+
+canvas.addEventListener("pointermove", function (event) {
+    if (dragging) {
+        dragNow = canvasPosition(event);
+    }
+});
+
+canvas.addEventListener("pointerup", function () {
+    if (dragging &amp;&amp; screen === "playing" &amp;&amp; ballStill()) {
+        putt();
+    }
+    dragging = false;
+});</code></pre>
+  <p>The putt goes the opposite way of the drag, like a slingshot, and the length of the drag is the power:</p>
+  <pre><code class="language-javascript">@@fn:puttFromDrag@@</code></pre>
+  <p>You can start the drag anywhere, not only on the ball. On a phone the course is small, and a finger would hide the ball anyway.</p>
+  <p><code>setPointerCapture</code> sends all the moves to the canvas until the finger is lifted, even when it slides outside. Without it, a long drag that leaves the canvas would never putt.</p>
+  <p>The game doesn't need a keyboard at all: a click or a tap starts it and goes on to the next hole. That is why it can be installed as an app on a phone, which Pool can't, since it needs Enter to start.</p>
+  <h2>Step 9: The score</h2>
+  <p>Every hole has a <code>par</code>: how many strokes a good player needs. Golf names a score by how far it is from par:</p>
+  <pre><code class="language-javascript">@@fn:scoreName@@</code></pre>
+  <p><code>names[strokesTaken - par]</code> looks up the difference, so 2 strokes on a par 3 is <code>names[-1]</code>, "Birdie!". If the name isn't in the object, the lookup gives <code>undefined</code>, and <code>||</code> picks the text after it.</p>
+  <p>At the end, a scorecard shows all 20 holes, and the lowest total is saved with <code>localStorage</code>, as in the <a href="/tutorials/bubble-level/">Bubble level</a>.</p>
+  <h2>Step 10: Test it</h2>
+  <ul>
+    <li>Putt as hard as you can into each kind of wall, also into the corners. The ball should never go through.</li>
+    <li>Putt hard straight over the hole. It should roll over it. Putt softly and it should drop in.</li>
+    <li>Putt into the water on hole 6. The ball should come back, with one more stroke.</li>
+    <li>Stop the ball in the path of the gate on hole 9. The gate should push it.</li>
+    <li>Open the game on a phone, and drag with a finger. The page should not scroll.</li>
+    <li>Play all 20 holes, and check the scorecard adds up.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>mini-golf.html</strong></p>
+  <pre><code class="language-html">@@complete@@</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Make your own hole: copy one of the objects in <code>LEVELS</code> and move things around.</li>
+    <li>Add a slope: a rectangle that adds a little speed in one direction every step, like a hill.</li>
+    <li>Add a "teleport": two holes, where a ball that drops in one comes out of the other.</li>
+    <li>Make it a game for two players, who take turns on each hole.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
