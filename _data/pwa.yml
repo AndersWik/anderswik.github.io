@@ -35,6 +35,7 @@
 - { slug: ludo, page: pages/games/ludo.html, short_name: Ludo, emoji: "🎲", label: LUDO }
 - { slug: pop-and-bump, page: pages/games/pop-and-bump.html, short_name: Pop and Bump, emoji: "🫧" }
 - { slug: memory, page: pages/games/memory.html, name: Memory, short_name: Memory, emoji: "🧠" }
+- { slug: minesweeper, page: pages/games/minesweeper.html, short_name: Minesweeper, emoji: "🚩" }
 - { slug: quiz, page: pages/games/quiz.html, short_name: Quiz, emoji: "❓" }
 - { slug: reversi, page: pages/games/reversi.html, name: Reversi, short_name: Reversi, emoji: "🌗" }
 - { slug: rock-paper-scissors, page: pages/games/rock-paper-scissors.html, short_name: RPS, emoji: "✌️" }

@@ -1,0 +1,871 @@
+---
+layout: default
+title: Minesweeper
+permalink: /tutorials/minesweeper/
+chapter: "07"
+chapter_title: "Trivia and Puzzle games"
+keywords: [javascript, game, minesweeper, grid, neighbors, flood fill, contextmenu, right-click, setInterval, css variables, container query units, pseudo-elements, css triangle]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Minesweeper</h1>
+  <p>Some squares on the field hide a mine. Dig up all the other squares to win. When you dig a square, a number tells how many mines there are in the 8 squares around it, and from the numbers you can work out where the mines are. Flag a square where you think there is a mine, so you don't dig it by mistake.</p>
+  <p>The field is a grid of buttons, like <a href="/tutorials/tic-tac-toe/">Tic Tac Toe</a> on a bigger board. The new parts are looking at all the neighbors of a square, opening a whole empty area at once (a <strong>flood fill</strong>), the right mouse button, a timer, and drawing a flag and a mine with CSS only.</p>
+  <p><a href="/assets/tutorials/minesweeper.html">Open the finished game</a></p>
+
+  <h2>Step 1: The page</h2>
+  <pre><code class="language-html">&lt;h1&gt;Minesweeper&lt;/h1&gt;
+&lt;div class="bar"&gt;
+  &lt;span&gt;Mines left: &lt;strong id="mines-left"&gt;10&lt;/strong&gt;&lt;/span&gt;
+  &lt;button type="button" id="tool" class="tool" aria-pressed="false"&gt;Dig&lt;/button&gt;
+  &lt;span&gt;Time: &lt;strong id="time"&gt;0&lt;/strong&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div id="board" class="board"&gt;&lt;/div&gt;
+&lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+&lt;p&gt;
+  &lt;label for="level"&gt;Size:&lt;/label&gt;
+  &lt;select id="level"&gt;
+    &lt;option value="easy" selected&gt;Easy: 9 × 9, 10 mines&lt;/option&gt;
+    &lt;option value="medium"&gt;Medium: 12 × 12, 25 mines&lt;/option&gt;
+    &lt;option value="hard"&gt;Hard: 16 × 16, 40 mines&lt;/option&gt;
+  &lt;/select&gt;
+  &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+&lt;/p&gt;</code></pre>
+  <p>The field starts empty: the code makes one button for every square. There are three sizes:</p>
+  <pre><code class="language-javascript">const LEVELS = {
+    easy: { rows: 9, cols: 9, mines: 10 },
+    medium: { rows: 12, cols: 12, mines: 25 },
+    hard: { rows: 16, cols: 16, mines: 40 }
+};</code></pre>
+  <p>About one square in six to eight is a mine. The classic expert field is 30 squares wide, but that doesn't fit on a phone, so the biggest here is 16 by 16.</p>
+
+  <h2>Step 2: A field of any size</h2>
+  <pre><code class="language-css">.board {
+    --cols: 9;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    width: 460px;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 4px;
+    background-color: #4f7a3a;
+    border-radius: 8px;
+    box-sizing: border-box;
+    container-type: inline-size;
+}
+
+.cell {
+    position: relative;
+    aspect-ratio: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background-color: #8ccf6f;
+    font-family: "Ubuntu", Arial, sans-serif;
+    font-size: calc(100cqw / var(--cols) * 0.6);
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+}</code></pre>
+  <p>The number of columns changes with the size, so the CSS gets it from a <strong>CSS variable</strong>, <code>--cols</code>. The code sets it when a game starts:</p>
+  <pre><code class="language-javascript">    // The CSS makes this many columns, and sizes the numbers to fit.
+    boardElement.style.setProperty("--cols", level.cols);</code></pre>
+  <p><code>repeat(var(--cols), 1fr)</code> then makes that many columns of the same width. The numbers must fit in a square, small or big. <code>container-type: inline-size</code> on the board lets everything inside it measure the board: <code>100cqw</code> is the board's width. Divided by the number of columns, that is the width of one square, and the numbers are 60% of it.</p>
+
+  <h2>Step 3: The squares</h2>
+  <pre><code class="language-javascript">    for (let row = 0; row &lt; level.rows; row++) {
+        grid.push([]);
+        for (let col = 0; col &lt; level.cols; col++) {
+            const button = document.createElement("button");
+            button.type = "button";
+            // A checker pattern, like a lawn that has been mowed.
+            button.className = "cell" + ((row + col) % 2 === 0 ? " light" : "");
+            button.addEventListener("click", function () {
+                clickSquare(row, col);
+            });
+            button.addEventListener("contextmenu", function (event) {
+                event.preventDefault();   // no browser menu on a right-click
+                toggleFlag(row, col);
+            });
+            boardElement.appendChild(button);
+            grid[row].push({ mine: false, open: false, flag: false, count: 0, button: button });
+        }
+    }</code></pre>
+  <p>Each square is an object that knows if it has a <code>mine</code>, if it is <code>open</code> (dug up), if it has a <code>flag</code>, its <code>count</code> of mines around it, and its <code>button</code>. Every other square gets the class <code>light</code>: when <code>row + col</code> is even. That gives a checker pattern, like a lawn that has been mowed in stripes.</p>
+
+  <h2>Step 4: The neighbors</h2>
+  <pre><code class="language-javascript">// The squares around (row, col): up to 8 of them, fewer at the edges.
+function neighbors(row, col) {
+    const list = [];
+    for (let r = row - 1; r &lt;= row + 1; r++) {
+        for (let c = col - 1; c &lt;= col + 1; c++) {
+            if ((r !== row || c !== col) &amp;&amp; r &gt;= 0 &amp;&amp; r &lt; level.rows &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; level.cols) {
+                list.push(grid[r][c]);
+            }
+        }
+    }
+    return list;
+}</code></pre>
+  <p>The squares around a square are one row up, the same row and one row down, and one column left, the same and one right: 9 squares, minus the square itself. At the edges some of them are outside the field, so the <code>if</code> leaves those out. A square in a corner has only 3 neighbors.</p>
+
+  <h2>Step 5: The mines</h2>
+  <pre><code class="language-javascript">// Put the mines anywhere but on the first square dug or next to it, and
+// count the mines around every square.
+function placeMines(safeRow, safeCol) {
+    const safe = neighbors(safeRow, safeCol).concat([grid[safeRow][safeCol]]);
+    const places = grid.flat().filter(function (square) {
+        return !safe.includes(square);
+    });
+    for (let i = 0; i &lt; level.mines; i++) {
+        const index = Math.floor(Math.random() * places.length);
+        places[index].mine = true;
+        places.splice(index, 1);   // so no square gets two mines
+    }
+    for (let row = 0; row &lt; level.rows; row++) {
+        for (let col = 0; col &lt; level.cols; col++) {
+            grid[row][col].count = neighbors(row, col).filter(function (square) {
+                return square.mine;
+            }).length;
+        }
+    }
+    minesPlaced = true;
+}</code></pre>
+  <p>Nothing is more annoying than losing on the very first click. So the mines are placed after the first dig, and never on that square or next to it. That square then has no mines around it, and always opens up a bit of the field.</p>
+  <p><code>places</code> is every square where a mine may go. Pick one at random, give it a mine, and take it out of the list with <code>splice</code>, so it can't be picked again. Then every square counts the mines around it, with <code>neighbors</code> and <code>filter</code>.</p>
+
+  <h2>Step 6: Digging</h2>
+  <pre><code class="language-javascript">function dig(row, col) {
+    const square = grid[row][col];
+    if (square.flag || square.open) {
+        return;
+    }
+    if (!minesPlaced) {
+        placeMines(row, col);
+        startTimer();
+        statusText.textContent = "";
+    }
+    if (square.mine) {
+        lose(square);
+        return;
+    }
+    openFrom(row, col);
+    if (opened === level.rows * level.cols - level.mines) {
+        win();
+    }
+}</code></pre>
+  <p>A flagged square can't be dug. The first dig places the mines and starts the clock. A mine ends the game. Otherwise the square opens, and when the number of open squares is the number of squares without a mine, the field is cleared.</p>
+
+  <h2>Step 7: Opening an empty area</h2>
+  <p>A square with no mines around it shows nothing. All its neighbors are safe, so the game opens them for you. And if one of those has no mines around it either, its neighbors open too, and so on. This is called a <strong>flood fill</strong>, like paint flowing out until it hits the numbers around the edge.</p>
+  <pre><code class="language-javascript">// Open a square. If there are no mines around it, its neighbors are safe
+// too, so open them, and go on from every neighbor that is also a 0. A list
+// of squares still to open keeps track, instead of a function calling itself.
+function openFrom(row, col) {
+    const todo = [[row, col]];
+    while (todo.length &gt; 0) {
+        const [r, c] = todo.pop();
+        const square = grid[r][c];
+        if (square.open || square.flag) {
+            continue;
+        }
+        square.open = true;
+        opened++;
+        showSquare(square);
+        if (square.count === 0) {
+            for (let nr = r - 1; nr &lt;= r + 1; nr++) {
+                for (let nc = c - 1; nc &lt;= c + 1; nc++) {
+                    if (nr &gt;= 0 &amp;&amp; nr &lt; level.rows &amp;&amp; nc &gt;= 0 &amp;&amp; nc &lt; level.cols &amp;&amp; !grid[nr][nc].open) {
+                        todo.push([nr, nc]);
+                    }
+                }
+            }
+        }
+    }
+}</code></pre>
+  <p><code>todo</code> is a list of squares still to open. Take one off with <code>pop</code>, open it, and if its count is 0, put all its neighbors on the list. The <code>continue</code> at the top skips a square that is already open, so every square is only opened once, and the loop ends when the list is empty.</p>
+  <p>It could also be written as a function that calls itself for every neighbor. But on a big empty field that is thousands of calls inside each other, and the browser can run out of room for them. A list can be as long as it needs to be.</p>
+
+  <h2>Step 8: Flags and the right mouse button</h2>
+  <pre><code class="language-javascript">            button.addEventListener("contextmenu", function (event) {
+                event.preventDefault();   // no browser menu on a right-click
+                toggleFlag(row, col);
+            });</code></pre>
+  <p>A right-click sends a <code>contextmenu</code> event, because it normally opens the browser's menu. <code>preventDefault()</code> stops the menu, and the square gets a flag instead.</p>
+  <p>A phone has no right button. So there is a button above the field that switches between Dig and Flag, and every click looks at it:</p>
+  <pre><code class="language-javascript">function clickSquare(row, col) {
+    const square = grid[row][col];
+    if (gameOver) {
+        return;
+    }
+    if (square.open) {
+        openAround(row, col);
+    } else if (flagTool) {
+        toggleFlag(row, col);
+    } else {
+        dig(row, col);
+    }
+}</code></pre>
+  <p>The button has <code>aria-pressed</code>, set to true or false by the code. That tells a screen reader that it is a switch, and if it is on.</p>
+
+  <h2>Step 9: Opening around a number</h2>
+  <pre><code class="language-javascript">// A click on a number with as many flags around it as its number digs all
+// the other squares around it. (If a flag is wrong, that digs up a mine.)
+function openAround(row, col) {
+    const square = grid[row][col];
+    const around = neighbors(row, col);
+    const flagged = around.filter(function (s) { return s.flag; }).length;
+    if (square.count === 0 || flagged !== square.count) {
+        return;
+    }
+    for (let r = row - 1; r &lt;= row + 1; r++) {
+        for (let c = col - 1; c &lt;= col + 1; c++) {
+            if (r &gt;= 0 &amp;&amp; r &lt; level.rows &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; level.cols &amp;&amp; !gameOver) {
+                dig(r, c);
+            }
+        }
+    }
+}</code></pre>
+  <p>When you have flagged all the mines around a number, the other squares around it are safe. Clicking the number digs them all at once. That saves a lot of clicks. But if one of the flags was wrong, it digs up a mine, so it has to be used with care.</p>
+
+  <h2>Step 10: Winning and losing</h2>
+  <pre><code class="language-javascript">function win() {
+    gameOver = true;
+    clearInterval(timer);
+    // Every mine left is now known: flag them all.
+    grid.flat().forEach(function (square) {
+        if (square.mine &amp;&amp; !square.flag) {
+            square.flag = true;
+            flags++;
+            showSquare(square);
+        }
+    });
+    showCounters();
+    ...
+}
+
+function lose(hit) {
+    gameOver = true;
+    clearInterval(timer);
+    hit.boom = true;
+    // Show every mine, and the flags that were wrong.
+    grid.flat().forEach(function (square) {
+        if (square.mine || square.flag) {
+            square.shown = true;
+            showSquare(square);
+        }
+    });
+    ...
+}</code></pre>
+  <p>When you win, every mine left must be where you didn't dig, so the game flags them for you, and the field turns gold. When you lose, every mine is shown, the one you dug is red, and a flag where there was no mine is crossed out, so you can see what went wrong.</p>
+  <pre><code class="language-javascript">function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(function () {
+        seconds++;
+        showCounters();
+    }, 1000);
+}</code></pre>
+  <p><code>setInterval</code> calls the function again and again, once a second, until <code>clearInterval</code> stops it: when you win, when you lose, and when a new game starts.</p>
+
+  <h2>Step 11: A flag and a mine in CSS</h2>
+  <p>The flag and the mine are not pictures. Each square has two pseudo-elements, <code>::before</code> and <code>::after</code>, and they are enough:</p>
+  <pre><code class="language-css">.cell.flag::before {
+    content: "";
+    position: absolute;
+    left: 36%;
+    top: 18%;
+    width: 7%;
+    height: 64%;
+    background-color: #3b2a1a;
+}
+
+.cell.flag::after {
+    content: "";
+    position: absolute;
+    left: 42%;
+    top: 18%;
+    border-left: calc(100cqw / var(--cols) * 0.32) solid #d93a3a;
+    border-top: calc(100cqw / var(--cols) * 0.16) solid transparent;
+    border-bottom: calc(100cqw / var(--cols) * 0.16) solid transparent;
+}
+
+.cell.mine::before {
+    content: "";
+    position: absolute;
+    inset: 24%;
+    border-radius: 50%;
+    background-image: radial-gradient(circle at 35% 35%, #888888, #111111 60%);
+    box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.25);
+}</code></pre>
+  <ul>
+    <li>The pole is a thin dark box.</li>
+    <li>The flag is a <strong>CSS triangle</strong>: a box with no size, and thick borders. Where two borders meet they are cut at an angle. Make the top and bottom borders transparent and the left one red, and only a red triangle pointing right is left.</li>
+    <li>The mine is a circle with a <code>radial-gradient</code>, light up to the left and dark at the edge, so it looks like a ball.</li>
+  </ul>
+  <p>Their sizes are in percent, or in the same <code>100cqw / var(--cols)</code> as the numbers, so they fit squares of every size.</p>
+
+  <h2>Step 12: Test it</h2>
+  <ul>
+    <li>Dig anywhere. The first dig should always open an area.</li>
+    <li>Check a few numbers by counting the mines around them when you lose.</li>
+    <li>Flag with a right-click, and with the Dig / Flag button.</li>
+    <li>Flag all the mines around a number and click the number.</li>
+    <li>Win a game. Every mine should get a flag, and the clock should stop.</li>
+    <li>Put a flag where there is no mine, and lose. The flag should be crossed out.</li>
+    <li>Try the hard size on a narrow window. The numbers should get smaller with the squares.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>minesweeper.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Minesweeper&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+        text-align: center;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    /* Mines left, the Dig / Flag button and the time. */
+    .bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 16px 0 10px;
+        font-size: 16px;
+    }
+
+    .tool {
+        min-width: 90px;
+        padding: 8px 16px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #ffffff;
+        background-color: #6b4423;
+        border: 3px solid #4a2e17;
+        border-radius: 999px;
+        cursor: pointer;
+    }
+
+    .tool.flag {
+        background-color: #d93a3a;
+        border-color: #a82424;
+    }
+
+    /* --- The field ---------------------------------------------------------- */
+
+    /* --cols is set by the code. The board is a container, so 100cqw is its
+         width, and the numbers can be sized to fit a square. */
+    .board {
+        --cols: 9;
+        display: grid;
+        grid-template-columns: repeat(var(--cols), 1fr);
+        width: 460px;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 4px;
+        background-color: #4f7a3a;
+        border-radius: 8px;
+        box-sizing: border-box;
+        container-type: inline-size;
+    }
+
+    /* A hidden square is grass, in two shades like a mowed lawn. */
+    .cell {
+        position: relative;
+        aspect-ratio: 1;
+        min-width: 0;
+        padding: 0;
+        border: none;
+        background-color: #8ccf6f;
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-size: calc(100cqw / var(--cols) * 0.6);
+        font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .cell.light {
+        background-color: #9ad97d;
+    }
+
+    .cell:not(.open):hover {
+        background-color: #b5e89c;
+    }
+
+    /* A square that has been dug is sand. */
+    .cell.open {
+        background-color: #eadbb8;
+        cursor: default;
+    }
+
+    .cell.open.light {
+        background-color: #f2e6c9;
+    }
+
+    /* Every number has its own color. */
+    .n1 { color: #2f6fd6; }
+    .n2 { color: #2e8b3e; }
+    .n3 { color: #d93a3a; }
+    .n4 { color: #6a3fa0; }
+    .n5 { color: #a0522d; }
+    .n6 { color: #138f8f; }
+    .n7 { color: #222222; }
+    .n8 { color: #777777; }
+
+    /* A flag: a red triangle on a dark pole, drawn with the two pseudo-elements. */
+    .cell.flag::before {
+        content: "";
+        position: absolute;
+        left: 36%;
+        top: 18%;
+        width: 7%;
+        height: 64%;
+        background-color: #3b2a1a;
+    }
+
+    .cell.flag::after {
+        content: "";
+        position: absolute;
+        left: 42%;
+        top: 18%;
+        border-left: calc(100cqw / var(--cols) * 0.32) solid #d93a3a;
+        border-top: calc(100cqw / var(--cols) * 0.16) solid transparent;
+        border-bottom: calc(100cqw / var(--cols) * 0.16) solid transparent;
+    }
+
+    /* A mine: a dark ball with a shine. */
+    .cell.mine::before {
+        content: "";
+        position: absolute;
+        inset: 24%;
+        border-radius: 50%;
+        background-image: radial-gradient(circle at 35% 35%, #888888, #111111 60%);
+        box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.25);
+    }
+
+    /* The mine that was dug up. */
+    .cell.boom {
+        background-color: #d93a3a;
+    }
+
+    /* A flag where there was no mine: faded and crossed out with two red
+         lines, made with gradients. */
+    .cell.wrong {
+        background-color: #f2e6c9;
+        background-image: linear-gradient(45deg, transparent 46%, #d93a3a 46% 54%, transparent 54%),
+            linear-gradient(-45deg, transparent 46%, #d93a3a 46% 54%, transparent 54%);
+    }
+
+    .cell.wrong::before,
+    .cell.wrong::after {
+        opacity: 0.35;
+    }
+
+    /* When the field is cleared, the board lights up gold. */
+    .board.won {
+        background-color: #e8b455;
+    }
+
+    #status {
+        min-height: 1.5em;
+        margin-top: 14px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    #restart {
+        margin: 8px 0 0 6px;
+        padding: 10px 22px;
+        font-size: 17px;
+        background-color: #000000;
+        color: #ffffff;
+        border: 5px solid #3d3b3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* The rules: click "How to play" to open them. */
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Minesweeper&lt;/h1&gt;
+  &lt;div class="bar"&gt;
+    &lt;span&gt;Mines left: &lt;strong id="mines-left"&gt;10&lt;/strong&gt;&lt;/span&gt;
+    &lt;button type="button" id="tool" class="tool" aria-pressed="false"&gt;Dig&lt;/button&gt;
+    &lt;span&gt;Time: &lt;strong id="time"&gt;0&lt;/strong&gt;&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div id="board" class="board"&gt;&lt;/div&gt;
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+  &lt;p&gt;
+    &lt;label for="level"&gt;Size:&lt;/label&gt;
+    &lt;select id="level"&gt;
+      &lt;option value="easy" selected&gt;Easy: 9 × 9, 10 mines&lt;/option&gt;
+      &lt;option value="medium"&gt;Medium: 12 × 12, 25 mines&lt;/option&gt;
+      &lt;option value="hard"&gt;Hard: 16 × 16, 40 mines&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;button type="button" id="restart"&gt;New game&lt;/button&gt;
+  &lt;/p&gt;
+  &lt;details class="rules"&gt;
+    &lt;summary&gt;How to play&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Some squares hide a mine. Dig up all the other squares to win.&lt;/li&gt;
+      &lt;li&gt;A number tells how many mines there are in the 8 squares around it.&lt;/li&gt;
+      &lt;li&gt;Your first dig is always safe, and opens up a bit of the field.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Flag&lt;/strong&gt; a square where you think there is a mine: right-click it, or switch the button above the field from Dig to Flag. A flagged square can't be dug by mistake.&lt;/li&gt;
+      &lt;li&gt;Click a number that has as many flags around it as its number, and all the other squares around it are dug at once.&lt;/li&gt;
+      &lt;li&gt;Dig up a mine, and the game is over.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
+
+  &lt;script&gt;
+    /*
+     * Minesweeper: some squares hide a mine. Dig up all the other squares to
+     * win. A number tells how many mines there are in the 8 squares around it.
+     *
+     *   - The mines are placed after the first dig, never on it or next to it,
+     *     so the first dig always opens up a bit of the field.
+     *   - Squares with no mines around them open their neighbors by themselves.
+     *   - Flag a square with a right-click, or with the Dig / Flag button.
+     *   - Click a number with as many flags around it as its number, and all
+     *     the other squares around it are dug.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const LEVELS = {
+        easy: { rows: 9, cols: 9, mines: 10 },
+        medium: { rows: 12, cols: 12, mines: 25 },
+        hard: { rows: 16, cols: 16, mines: 40 }
+    };
+
+    // --- Elements on the page ------------------------------------------------
+
+    const boardElement = document.getElementById("board");
+    const minesLeftText = document.getElementById("mines-left");
+    const timeText = document.getElementById("time");
+    const statusText = document.getElementById("status");
+    const toolButton = document.getElementById("tool");
+    const levelSelect = document.getElementById("level");
+    const restartButton = document.getElementById("restart");
+
+    // --- State ---------------------------------------------------------------
+
+    let level = LEVELS.easy;
+    let grid = [];          // grid[row][col]: { mine, open, flag, count, button }
+    let minesPlaced = false;
+    let gameOver = false;
+    let flags = 0;
+    let opened = 0;         // squares dug up so far
+    let flagTool = false;   // true when a click flags instead of digs
+    let seconds = 0;
+    let timer = null;
+
+    // --- The field -----------------------------------------------------------
+
+    function newGame() {
+        clearInterval(timer);
+        level = LEVELS[levelSelect.value];
+        grid = [];
+        minesPlaced = false;
+        gameOver = false;
+        flags = 0;
+        opened = 0;
+        seconds = 0;
+        boardElement.innerHTML = "";
+        // The CSS makes this many columns, and sizes the numbers to fit.
+        boardElement.style.setProperty("--cols", level.cols);
+        boardElement.classList.remove("won", "lost");
+
+        for (let row = 0; row &lt; level.rows; row++) {
+            grid.push([]);
+            for (let col = 0; col &lt; level.cols; col++) {
+                const button = document.createElement("button");
+                button.type = "button";
+                // A checker pattern, like a lawn that has been mowed.
+                button.className = "cell" + ((row + col) % 2 === 0 ? " light" : "");
+                button.addEventListener("click", function () {
+                    clickSquare(row, col);
+                });
+                button.addEventListener("contextmenu", function (event) {
+                    event.preventDefault();   // no browser menu on a right-click
+                    toggleFlag(row, col);
+                });
+                boardElement.appendChild(button);
+                grid[row].push({ mine: false, open: false, flag: false, count: 0, button: button });
+            }
+        }
+        statusText.textContent = "Dig anywhere to start.";
+        showCounters();
+    }
+
+    // The squares around (row, col): up to 8 of them, fewer at the edges.
+    function neighbors(row, col) {
+        const list = [];
+        for (let r = row - 1; r &lt;= row + 1; r++) {
+            for (let c = col - 1; c &lt;= col + 1; c++) {
+                if ((r !== row || c !== col) &amp;&amp; r &gt;= 0 &amp;&amp; r &lt; level.rows &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; level.cols) {
+                    list.push(grid[r][c]);
+                }
+            }
+        }
+        return list;
+    }
+
+    // Put the mines anywhere but on the first square dug or next to it, and
+    // count the mines around every square.
+    function placeMines(safeRow, safeCol) {
+        const safe = neighbors(safeRow, safeCol).concat([grid[safeRow][safeCol]]);
+        const places = grid.flat().filter(function (square) {
+            return !safe.includes(square);
+        });
+        for (let i = 0; i &lt; level.mines; i++) {
+            const index = Math.floor(Math.random() * places.length);
+            places[index].mine = true;
+            places.splice(index, 1);   // so no square gets two mines
+        }
+        for (let row = 0; row &lt; level.rows; row++) {
+            for (let col = 0; col &lt; level.cols; col++) {
+                grid[row][col].count = neighbors(row, col).filter(function (square) {
+                    return square.mine;
+                }).length;
+            }
+        }
+        minesPlaced = true;
+    }
+
+    // --- Playing -------------------------------------------------------------
+
+    function clickSquare(row, col) {
+        const square = grid[row][col];
+        if (gameOver) {
+            return;
+        }
+        if (square.open) {
+            openAround(row, col);
+        } else if (flagTool) {
+            toggleFlag(row, col);
+        } else {
+            dig(row, col);
+        }
+    }
+
+    function dig(row, col) {
+        const square = grid[row][col];
+        if (square.flag || square.open) {
+            return;
+        }
+        if (!minesPlaced) {
+            placeMines(row, col);
+            startTimer();
+            statusText.textContent = "";
+        }
+        if (square.mine) {
+            lose(square);
+            return;
+        }
+        openFrom(row, col);
+        if (opened === level.rows * level.cols - level.mines) {
+            win();
+        }
+    }
+
+    // Open a square. If there are no mines around it, its neighbors are safe
+    // too, so open them, and go on from every neighbor that is also a 0. A list
+    // of squares still to open keeps track, instead of a function calling itself.
+    function openFrom(row, col) {
+        const todo = [[row, col]];
+        while (todo.length &gt; 0) {
+            const [r, c] = todo.pop();
+            const square = grid[r][c];
+            if (square.open || square.flag) {
+                continue;
+            }
+            square.open = true;
+            opened++;
+            showSquare(square);
+            if (square.count === 0) {
+                for (let nr = r - 1; nr &lt;= r + 1; nr++) {
+                    for (let nc = c - 1; nc &lt;= c + 1; nc++) {
+                        if (nr &gt;= 0 &amp;&amp; nr &lt; level.rows &amp;&amp; nc &gt;= 0 &amp;&amp; nc &lt; level.cols &amp;&amp; !grid[nr][nc].open) {
+                            todo.push([nr, nc]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // A click on a number with as many flags around it as its number digs all
+    // the other squares around it. (If a flag is wrong, that digs up a mine.)
+    function openAround(row, col) {
+        const square = grid[row][col];
+        const around = neighbors(row, col);
+        const flagged = around.filter(function (s) { return s.flag; }).length;
+        if (square.count === 0 || flagged !== square.count) {
+            return;
+        }
+        for (let r = row - 1; r &lt;= row + 1; r++) {
+            for (let c = col - 1; c &lt;= col + 1; c++) {
+                if (r &gt;= 0 &amp;&amp; r &lt; level.rows &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; level.cols &amp;&amp; !gameOver) {
+                    dig(r, c);
+                }
+            }
+        }
+    }
+
+    function toggleFlag(row, col) {
+        const square = grid[row][col];
+        if (gameOver || square.open) {
+            return;
+        }
+        square.flag = !square.flag;
+        flags += square.flag ? 1 : -1;
+        showSquare(square);
+        showCounters();
+    }
+
+    function setTool(flag) {
+        flagTool = flag;
+        toolButton.textContent = flag ? "Flag" : "Dig";
+        toolButton.setAttribute("aria-pressed", flag);
+        toolButton.classList.toggle("flag", flag);
+    }
+
+    // --- Winning and losing --------------------------------------------------
+
+    function win() {
+        gameOver = true;
+        clearInterval(timer);
+        // Every mine left is now known: flag them all.
+        grid.flat().forEach(function (square) {
+            if (square.mine &amp;&amp; !square.flag) {
+                square.flag = true;
+                flags++;
+                showSquare(square);
+            }
+        });
+        showCounters();
+        boardElement.classList.add("won");
+        statusText.textContent = "You cleared the field in " + seconds + " seconds!";
+    }
+
+    function lose(hit) {
+        gameOver = true;
+        clearInterval(timer);
+        hit.boom = true;
+        // Show every mine, and the flags that were wrong.
+        grid.flat().forEach(function (square) {
+            if (square.mine || square.flag) {
+                square.shown = true;
+                showSquare(square);
+            }
+        });
+        boardElement.classList.add("lost");
+        statusText.textContent = "Boom! You dug up a mine.";
+    }
+
+    // --- Showing -------------------------------------------------------------
+
+    function showSquare(square) {
+        const button = square.button;
+        button.classList.remove("flag", "mine", "boom", "wrong");
+        button.textContent = "";
+        if (square.open) {
+            button.classList.add("open");
+            if (square.count &gt; 0) {
+                button.textContent = square.count;
+                button.classList.add("n" + square.count);
+            }
+            button.setAttribute("aria-label", square.count &gt; 0 ? square.count + " mines around" : "empty");
+        } else if (square.shown &amp;&amp; square.mine &amp;&amp; !square.flag) {
+            button.classList.add("mine");
+            if (square.boom) {
+                button.classList.add("boom");
+            }
+            button.setAttribute("aria-label", "mine");
+        } else if (square.flag) {
+            button.classList.add("flag");
+            if (square.shown &amp;&amp; !square.mine) {
+                button.classList.add("wrong");   // a flag where there was no mine
+            }
+            button.setAttribute("aria-label", "flag");
+        } else {
+            button.setAttribute("aria-label", "hidden");
+        }
+    }
+
+    function showCounters() {
+        minesLeftText.textContent = level.mines - flags;
+        timeText.textContent = seconds;
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        timer = setInterval(function () {
+            seconds++;
+            showCounters();
+        }, 1000);
+    }
+
+    // --- Connect the page ----------------------------------------------------
+
+    toolButton.addEventListener("click", function () {
+        setTool(!flagTool);
+    });
+    levelSelect.addEventListener("change", newGame);
+    restartButton.addEventListener("click", newGame);
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Flag a square by holding a finger on it for half a second, on a phone. Look at the <code>pointerdown</code> and <code>pointerup</code> events and <code>setTimeout</code>.</li>
+    <li>Save the best time for each size in <code>localStorage</code>.</li>
+    <li>Add a question mark as a third state, for squares you are not sure about.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>With the Dig / Flag button, Minesweeper works on a phone too. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

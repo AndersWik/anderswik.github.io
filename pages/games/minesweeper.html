@@ -1,0 +1,41 @@
+---
+layout: game
+title: Minesweeper
+permalink: /games/minesweeper/
+nonav: true
+css:
+  - /assets/minesweeper/minesweeper.css
+js:
+  - /assets/minesweeper/minesweeper.js
+---
+<div class="container">
+  <h1>Minesweeper</h1>
+  <div class="bar">
+    <span>Mines left: <strong id="mines-left">10</strong></span>
+    <button type="button" id="tool" class="tool" aria-pressed="false">Dig</button>
+    <span>Time: <strong id="time">0</strong></span>
+  </div>
+  <div id="board" class="board"></div>
+  <p id="status" aria-live="polite"></p>
+  <p>
+    <label for="level">Size:</label>
+    <select id="level">
+      <option value="easy" selected>Easy: 9 × 9, 10 mines</option>
+      <option value="medium">Medium: 12 × 12, 25 mines</option>
+      <option value="hard">Hard: 16 × 16, 40 mines</option>
+    </select>
+    <button type="button" id="restart">New game</button>
+  </p>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>Some squares hide a mine. Dig up all the other squares to win.</li>
+      <li>A number tells how many mines there are in the 8 squares around it.</li>
+      <li>Your first dig is always safe, and opens up a bit of the field.</li>
+      <li><strong>Flag</strong> a square where you think there is a mine: right-click it, or switch the button above the field from Dig to Flag. A flagged square can't be dug by mistake.</li>
+      <li>Click a number that has as many flags around it as its number, and all the other squares around it are dug at once.</li>
+      <li>Dig up a mine, and the game is over.</li>
+    </ul>
+  </details>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/minesweeper/">How to build this game</a></p>
