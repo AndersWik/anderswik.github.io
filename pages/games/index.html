@@ -63,9 +63,9 @@ categories:
       - { slug: discgolf, name: Discgolf Scorecard }
   - title: Mobile
     games:
-      - { slug: marble-maze, name: Marble Maze }
-      - { slug: steady-hand, name: Steady Hand }
-      - { slug: spin-counter, name: Spin Counter }
+      - { slug: marble-maze, name: Marble Maze, tags: [Accelerometer, Gyroscope] }
+      - { slug: steady-hand, name: Steady Hand, tags: [Gyroscope] }
+      - { slug: spin-counter, name: Spin Counter, tags: [Gyroscope] }
 ---
 
 <h1 class="visually-hidden">{{ page.title }}</h1>
@@ -78,6 +78,7 @@ categories:
       <a class="badge-card" href="{{ '/games/' | append: game.slug | append: '/' | relative_url }}">
         <img src="{{ '/assets/images/games/' | append: game.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
         <span class="badge-name">{{ game.name }}</span>
+        {% if game.tags %}<span class="badge-tags">{% for tag in game.tags %}<span class="badge-tag">{{ tag }}</span>{% endfor %}</span>{% endif %}
       </a>
     </li>
     {% endfor %}
