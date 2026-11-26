@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Steady Hand</title>
+
+  <!-- Makes this page an installable app, see _scripts/make-pwa.py. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
+  <!-- iPhone and iPad read these instead of the manifest. -->
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Steady Hand">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/assets/steady-hand/steady-hand.css">
+  <style>
+    /* Without the site header the games would touch the top of the screen. */
+    .game { padding-block: 16px; }
+  </style>
+</head>
+<body>
+<div class="game">
+<div class="container">
+  <h1>Steady Hand</h1>
+  <canvas id="gameCanvas" width="360" height="400"></canvas>
+  <p id="message" aria-live="polite">Hold your phone like a cup of coffee, and tap Start.</p>
+  <button type="button" id="start">Start</button>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>Hold the phone in front of you, like a cup of coffee, and keep it as still as you can for 10 seconds.</li>
+      <li>Every little wobble makes the coffee slosh. If it goes over the edge, it spills, and you try again.</li>
+      <li>Every level fills the cup a little higher, so it spills more easily.</li>
+      <li>The phone's gyroscope feels even a tiny tremble. Tip: hold it with both hands, elbows against your body, and breathe out slowly.</li>
+      <li>On a computer, hold the mouse still over the cup instead.</li>
+    </ul>
+  </details>
+</div>
+</div>
+
+<script src="/assets/steady-hand/steady-hand.js"></script>
+<script>
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+</body>
+</html>

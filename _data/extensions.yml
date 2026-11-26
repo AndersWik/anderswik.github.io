@@ -59,6 +59,7 @@
 - { slug: roulette, page: pages/games/roulette.html, emoji: "🎡" }
 - { slug: slot-machine, page: pages/games/slot-machine.html, emoji: "🎰" }
 - { slug: sudoku, page: pages/games/sudoku.html, emoji: "🔢" }
+- { slug: steady-hand, page: pages/games/steady-hand.html, emoji: "☕", width: 440, description: "Hold your phone as still as a full cup of coffee for 10 seconds. On a computer, hold the mouse still." }
 - { slug: tic-tac-toe, page: pages/games/tic-tac-toe.html, emoji: "❌" }
 - { slug: ascii, page: pages/references/ascii.html, name: ASCII table, emoji: "🔤", open: tab }
 - { slug: calculator, page: pages/tools/calculator.html, emoji: "🧮" }

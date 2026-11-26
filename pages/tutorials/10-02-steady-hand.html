@@ -1,0 +1,781 @@
+---
+layout: default
+title: Steady Hand
+permalink: /tutorials/steady-hand/
+chapter: "10"
+chapter_title: "Mobile games"
+keywords: [javascript, game, canvas, devicemotion, rotationRate, gyroscope, sensor, requestPermission, spring, damping, physics, clip, vibrate, pointermove, localStorage]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Steady Hand</h1>
+  <p>Hold your phone like a full cup of coffee, and keep it still for 10 seconds. Every little wobble makes the coffee slosh, and if it goes over the edge, it spills. Every level fills the cup a little higher. On a computer, you hold the mouse still over the cup instead.</p>
+  <p>The <a href="/tutorials/bubble-level/">Bubble level</a> and <a href="/tutorials/marble-maze/">Marble Maze</a> read how the phone is <em>tilted</em>. This game reads how fast it is <em>turning</em>, straight from the gyroscope, which feels even a tiny tremble. The other new idea is a spring: the coffee is pushed by the wobbles and pulled back to flat, and that is all it takes to make it slosh like real coffee.</p>
+  <p><a href="/assets/tutorials/steady-hand.html">Open the finished game</a> (on a phone, to feel the gyroscope)</p>
+
+  <h2>Step 1: The page</h2>
+  <p>Create <code>steady-hand.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The cup is drawn on a canvas, with a message and one button under it:</p>
+  <pre><code class="language-html">&lt;div class="container"&gt;
+  &lt;h1&gt;Steady Hand&lt;/h1&gt;
+  &lt;canvas id="gameCanvas" width="360" height="400"&gt;&lt;/canvas&gt;
+  &lt;p id="message" aria-live="polite"&gt;Hold your phone like a cup of coffee, and tap Start.&lt;/p&gt;
+  &lt;button type="button" id="start"&gt;Start&lt;/button&gt;
+  &lt;details class="rules"&gt;
+    &lt;summary&gt;How to play&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Hold the phone in front of you, like a cup of coffee, and keep it as still as you can for 10 seconds.&lt;/li&gt;
+      &lt;li&gt;Every little wobble makes the coffee slosh. If it goes over the edge, it spills, and you try again.&lt;/li&gt;
+      &lt;li&gt;Every level fills the cup a little higher, so it spills more easily.&lt;/li&gt;
+      &lt;li&gt;The phone's gyroscope feels even a tiny tremble. Tip: hold it with both hands, elbows against your body, and breathe out slowly.&lt;/li&gt;
+      &lt;li&gt;On a computer, hold the mouse still over the cup instead.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
+&lt;/div&gt;</code></pre>
+  <p>The CSS is the same as in Marble Maze: a wooden frame round the canvas, and <code>touch-action: none</code>, so a finger on the cup doesn't scroll the page. It is all in the complete page below.</p>
+
+  <h2>Step 2: The gyroscope</h2>
+  <p>A phone has two motion sensors. The <strong>accelerometer</strong> feels which way is down, and that is what <code>deviceorientation</code> uses for the tilt. The <strong>gyroscope</strong> feels how fast the phone turns, in degrees a second. For a steady hand the gyroscope is much better: a hand that trembles hardly changes the tilt, but it turns back and forth all the time, and the gyroscope feels every bit of it.</p>
+  <p>Its numbers come with the <code>devicemotion</code> event, as <code>event.rotationRate</code>:</p>
+  <pre><code class="language-javascript">function onMotion(event) {
+    const rate = event.rotationRate;
+    if (!rate || rate.beta === null || rate.gamma === null) {
+        return;
+    }
+    gyroscope = true;
+    turning = { x: rate.gamma, y: rate.beta };
+}</code></pre>
+  <ul>
+    <li><code>beta</code> is turning forward and back, <code>gamma</code> left and right, and <code>alpha</code> round the screen, like a steering wheel. Turning round the screen hardly moves the coffee, so the game uses only <code>beta</code> and <code>gamma</code>.</li>
+    <li>A phone or computer without a gyroscope may still send the event, but with <code>null</code> numbers, or no <code>rotationRate</code> at all. Then we don't use it, and <code>gyroscope</code> stays <code>false</code>.</li>
+  </ul>
+  <p>As in the Bubble level, iPhones ask for permission first, and only after a tap. This time it is <code>DeviceMotionEvent.requestPermission</code>, so the Start button calls this before the game starts:</p>
+  <pre><code class="language-javascript">async function startSensor() {
+    if (listening || !window.DeviceMotionEvent) {
+        return;
+    }
+    if (typeof DeviceMotionEvent.requestPermission === "function") {
+        try {
+            if (await DeviceMotionEvent.requestPermission() !== "granted") {
+                return;
+            }
+        } catch (error) {
+            return;
+        }
+    }
+    window.addEventListener("devicemotion", onMotion);
+    listening = true;
+}</code></pre>
+
+  <h2>Step 3: Coffee on a spring</h2>
+  <p>Coffee doesn't just lean when you move the cup. It sloshes up one side, swings back, up the other side, and slowly calms down. That is a <strong>damped spring</strong>, and it takes three forces:</p>
+  <ul>
+    <li><strong>The push:</strong> turning the phone pushes the coffee, harder the faster it turns (<code>PUSH</code>).</li>
+    <li><strong>The pull back:</strong> the further the coffee leans, the harder it is pulled back to flat (<code>STIFFNESS</code>).</li>
+    <li><strong>The damping:</strong> the faster the coffee moves, the more it is slowed down (<code>DAMPING</code>), so the sloshing dies out.</li>
+  </ul>
+  <pre><code class="language-javascript">function moveCoffee(seconds) {
+    ["x", "y"].forEach(function (axis) {
+        const v = axis === "x" ? "vx" : "vy";
+        const force = PUSH * turning[axis] - STIFFNESS * slosh[axis] - DAMPING * slosh[v];
+        slosh[v] += force * seconds;
+        slosh[axis] += slosh[v] * seconds;
+    });
+    // The mouse stops sending moves when it stands still: then it is still.
+    if (!gyroscope) {
+        turning = { x: turning.x * 0.8, y: turning.y * 0.8 };
+    }
+}</code></pre>
+  <p>The forces change the speed, and the speed changes the lean, a small step at a time, just like the marble's speed and position in Marble Maze. The coffee has an <code>x</code> part (left and right) and a <code>y</code> part (forward and back), and both are moved the same way.</p>
+  <p>The pull back is what makes it swing. When the coffee has been pulled back to flat, it is still moving, so it goes past flat and up the other side, until the pull stops it there. Try <code>DAMPING = 0</code>: one jerk, and it sloshes for ever.</p>
+  <p>How far the coffee climbs up the side of the cup is the length of the lean, <code>x</code> and <code>y</code> together:</p>
+  <pre><code class="language-javascript">function sloshSize() {
+    return Math.hypot(slosh.x, slosh.y);
+}</code></pre>
+
+  <h2>Step 4: Fuller and fuller cups</h2>
+  <p>Every level fills the cup higher, so there is less <code>room</code> before the coffee goes over the edge. The room shrinks by 18 percent every level:</p>
+  <pre><code class="language-javascript">function levelSettings(n) {
+    const room = Math.max(0.5, 30 * Math.pow(0.82, n - 1));
+    return { room: room, fill: Math.min(0.95, 1 - room / (CUP.bottom - CUP.top)) };
+}</code></pre>
+  <p>How do you choose numbers like 30 and 0.82? By trying them, without having to shake a phone for an hour. A test played the game with a <strong>simulated hand</strong>: random turning of a few degrees a second, like a real tremble, through the same <code>moveCoffee</code>. A hand that turns about 2 degrees a second gets to around level 9, a very steady one (0.5) to level 16, and a shaky one (8) only to level 2. So everyone gets a few levels done, and nobody runs out of levels.</p>
+
+  <h2>Step 5: Countdown, hold and spill</h2>
+  <p>The game is in one of five <code>screen</code>s: <code>menu</code>, <code>countdown</code>, <code>holding</code>, <code>spilled</code> or <code>levelDone</code>. The start of a level gives you 3 seconds to get steady, and then you hold for 10:</p>
+  <pre><code class="language-javascript">function update() {
+    const seconds = STEP / 1000;
+    clock += STEP;
+    moveCoffee(seconds);
+
+    if (screen === "countdown") {
+        // The coffee may slosh while you get ready; it calms down by itself.
+        if (clock &gt;= COUNTDOWN) {
+            screen = "holding";
+            clock = 0;
+            slosh = { x: 0, y: 0, vx: 0, vy: 0 };
+            message.textContent = "Hold still!";
+        }
+        return;
+    }
+    if (screen === "holding") {
+        if (listening &amp;&amp; !gyroscope &amp;&amp; lastMouse === null &amp;&amp; clock &gt; NO_SENSOR_TIME) {
+            message.textContent = "No gyroscope found. On a computer, hold the mouse still over the cup.";
+        }
+        wobbleSum += sloshSize();
+        wobbleSteps++;
+        if (sloshSize() &gt; levelSettings(level).room) {
+            spill();
+        } else if (clock &gt;= HOLD_TIME) {
+            win();
+        }
+    }
+    if (screen === "spilled") {
+        drops.forEach(function (drop) {
+            drop.vy += 0.4;
+            drop.x += drop.vx;
+            drop.y += drop.vy;
+        });
+    }
+}</code></pre>
+  <ul>
+    <li>During the countdown the coffee may slosh, it doesn't count yet. When the hold starts, the coffee is set flat.</li>
+    <li>While holding, every step checks if the coffee has gone over the edge. It also adds up how far it sloshed, for the steadiness score at the end.</li>
+    <li>If no gyroscope reading has come after 1.5 seconds, and the mouse hasn't moved either, the message says what to do on a computer.</li>
+  </ul>
+  <p>A spill throws drops out over the side the coffee leans to. Each drop has a speed, and gravity adds to its downward speed every step, like a thrown ball. The phone buzzes twice too:</p>
+  <pre><code class="language-javascript">function spill() {
+    screen = "spilled";
+    // Drops fly out over the side the coffee leans to.
+    const side = slosh.x &gt;= 0 ? 1 : -1;
+    for (let i = 0; i &lt; 14; i++) {
+        drops.push({
+            x: side &gt; 0 ? CUP.right : CUP.left,
+            y: CUP.top + 4,
+            vx: side * (1 + Math.random() * 3),
+            vy: -2 - Math.random() * 3
+        });
+    }
+    if (navigator.vibrate) {
+        navigator.vibrate([60, 40, 60]);
+    }
+    startButton.disabled = false;
+    startButton.textContent = "Try again";
+    message.textContent = "Spilled after " + (clock / 1000).toFixed(1) + " seconds! Try again.";
+}</code></pre>
+  <p>Holding for 10 seconds ends the level. The <strong>steadiness</strong> is 100 percent if the coffee never moved, and lower the closer it came to the edge on average. The highest level you have done is saved in <code>localStorage</code>:</p>
+  <pre><code class="language-javascript">function win() {
+    screen = "levelDone";
+    // Steadiness: 100% if the coffee never moved, less the more it sloshed.
+    const average = wobbleSum / wobbleSteps;
+    const steadiness = Math.max(0, Math.round(100 * (1 - average / levelSettings(level).room)));
+    if (level &gt; (best || 0)) {
+        best = level;
+        try {
+            localStorage.setItem(BEST_KEY, String(best));
+        } catch (error) {
+            // Not saved, but the game still works.
+        }
+    }
+    startButton.disabled = false;
+    startButton.textContent = "Next level";
+    message.textContent = "Level " + level + " done! Steadiness " + steadiness + "%. The next cup is fuller.";
+}</code></pre>
+
+  <h2>Step 6: Drawing the coffee</h2>
+  <p>The coffee is a shape with a straight bottom and a wavy, tilted top. It must stay inside the mug, which is wider at the top than at the bottom. Instead of working out where the surface meets the slanted sides, we draw the mug's outline and <strong>clip</strong> to it: after <code>ctx.clip()</code>, everything drawn outside the outline is simply left out.</p>
+  <pre><code class="language-javascript">// The coffee, inside the cup: the surface leans with the slosh, and
+// ripples a little with the forward and back part of it.
+const lean = Math.max(-1.4, Math.min(1.4, slosh.x / (CUP.right - CUP.left) * 2));
+const width = CUP.right - CUP.left;
+ctx.save();
+cupPath();
+ctx.clip();
+ctx.fillStyle = "#6f4e37";
+ctx.beginPath();
+ctx.moveTo(CUP.left, CUP.bottom);
+for (let x = 0; x &lt;= width; x += 5) {
+    const ripple = Math.sin(x / 14 + clock / 120) * Math.min(6, Math.abs(slosh.y) * 0.4);
+    ctx.lineTo(CUP.left + x, surface + (x - width / 2) * lean + ripple);
+}
+ctx.lineTo(CUP.right, CUP.bottom);
+ctx.closePath();
+ctx.fill();
+// ... the foam line, drawn the same way ...
+ctx.restore();</code></pre>
+  <ul>
+    <li><code>lean</code> is how steep the surface is: 0 is flat, and it follows the left and right slosh.</li>
+    <li>The forward and back slosh can't lean the surface in a picture from the side, so it makes <strong>ripples</strong> instead: a sine wave that moves with the clock, taller the more it sloshes.</li>
+    <li><code>ctx.save()</code> and <code>ctx.restore()</code> switch the clip off again, so the mug, the steam and the drops are drawn normally.</li>
+  </ul>
+  <p>The mug's outline is used twice, for the clip and to draw the mug itself, so it is a function of its own:</p>
+  <pre><code class="language-javascript">function cupPath() {
+    ctx.beginPath();
+    ctx.moveTo(CUP.left - 6, CUP.top);
+    ctx.lineTo(CUP.left + 6, CUP.bottom);
+    ctx.lineTo(CUP.right - 6, CUP.bottom);
+    ctx.lineTo(CUP.right + 6, CUP.top);
+}</code></pre>
+  <p>Under the cup, a <strong>wobble meter</strong> shows how close the coffee is to the edge. Its color goes from green to red with <code>hsl()</code>: hue 120 is green and 0 is red, so the hue is <code>120 - 120 * fill</code>.</p>
+
+  <h2>Step 7: On a computer</h2>
+  <p>A computer has no gyroscope, but you can try to hold the mouse still. How fast the mouse moves over the cup counts as turning:</p>
+  <pre><code class="language-javascript">canvas.addEventListener("pointermove", function (event) {
+    if (gyroscope || event.pointerType === "touch") {
+        return;
+    }
+    const now = performance.now();
+    if (lastMouse !== null &amp;&amp; now &gt; lastMouse.time) {
+        const seconds = (now - lastMouse.time) / 1000;
+        turning = {
+            x: (event.clientX - lastMouse.x) / seconds * MOUSE_PUSH,
+            y: (event.clientY - lastMouse.y) / seconds * MOUSE_PUSH
+        };
+    }
+    lastMouse = { x: event.clientX, y: event.clientY, time: now };
+});</code></pre>
+  <p>The mouse only sends <code>pointermove</code> when it moves. When it stops, nothing comes, so the last speed would stay for ever. That is why <code>moveCoffee</code> lets the mouse turning fade away a little every step. Taking the mouse off the cup counts as a big wobble, so you can't just let go of it.</p>
+
+  <h2>Step 8: Test it</h2>
+  <ul>
+    <li>On a phone, hold it with both hands, elbows against your body. Level 1 should be easy.</li>
+    <li>Give the phone a quick jerk. The coffee should slosh up one side, swing back and calm down.</li>
+    <li>Spill on purpose: the drops fly out over the side the coffee leans to, and the phone buzzes.</li>
+    <li>Do a few levels and reload the page. Your best level should still be there.</li>
+    <li>On a computer, hold the mouse over the cup and keep it still. Move it fast, and the coffee spills.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>steady-hand.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Steady Hand&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+
+    .container {
+        text-align: center;
+        width: 420px;
+        max-width: calc(100% - 40px);
+        box-sizing: border-box;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    canvas {
+        display: block;
+        width: 360px;
+        max-width: 100%;
+        height: auto;
+        margin: 12px auto 0;
+        border: 8px solid #6b4423;
+        border-radius: 8px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        box-sizing: border-box;
+        touch-action: none;
+    }
+
+    #message {
+        min-height: 2.8em;
+        margin: 12px 0;
+    }
+
+    #start {
+        width: 100%;
+        padding: 14px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #222222;
+        background-color: #e8b455;
+        border: 3px solid #c99a3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* On a phone, less room round the cup, so it can be bigger. */
+    @media (max-width: 480px) {
+        .container {
+            max-width: calc(100% - 16px);
+            margin: 8px;
+            padding: 12px;
+        }
+    }
+
+    /* --- The rules ---------------------------------------------------------- */
+
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class="container"&gt;
+    &lt;h1&gt;Steady Hand&lt;/h1&gt;
+    &lt;canvas id="gameCanvas" width="360" height="400"&gt;&lt;/canvas&gt;
+    &lt;p id="message" aria-live="polite"&gt;Hold your phone like a cup of coffee, and tap Start.&lt;/p&gt;
+    &lt;button type="button" id="start"&gt;Start&lt;/button&gt;
+    &lt;details class="rules"&gt;
+      &lt;summary&gt;How to play&lt;/summary&gt;
+      &lt;ul&gt;
+        &lt;li&gt;Hold the phone in front of you, like a cup of coffee, and keep it as still as you can for 10 seconds.&lt;/li&gt;
+        &lt;li&gt;Every little wobble makes the coffee slosh. If it goes over the edge, it spills, and you try again.&lt;/li&gt;
+        &lt;li&gt;Every level fills the cup a little higher, so it spills more easily.&lt;/li&gt;
+        &lt;li&gt;The phone's gyroscope feels even a tiny tremble. Tip: hold it with both hands, elbows against your body, and breathe out slowly.&lt;/li&gt;
+        &lt;li&gt;On a computer, hold the mouse still over the cup instead.&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/details&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Steady Hand: hold the phone still for 10 seconds without spilling the
+     * coffee. The gyroscope measures how fast the phone turns, in degrees a
+     * second, even a tiny tremble. Every wobble makes the coffee slosh, and if
+     * it sloshes over the edge, it spills. Every level fills the cup higher.
+     *
+     * The gyroscope's numbers come with the "devicemotion" event, as
+     * event.rotationRate. On a computer, which has no gyroscope, moving the
+     * mouse over the cup does the same.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;      // one update, in ms
+    const HOLD_TIME = 10000;     // ms to hold still
+    const COUNTDOWN = 3000;      // ms of "3, 2, 1" to get steady first
+    const STIFFNESS = 30;        // how hard the coffee is pulled back to flat
+    const DAMPING = 3;           // how fast the sloshing calms down
+    const PUSH = 30;             // how much one degree a second of turning pushes the coffee
+    const MOUSE_PUSH = 0.15;     // the same for the mouse, per pixel a second
+    const NO_SENSOR_TIME = 1500; // ms without a gyroscope reading before we say there is none
+    const BEST_KEY = "steady-hand-best";
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    const message = document.getElementById("message");
+    const startButton = document.getElementById("start");
+
+    // The cup, in pixels: a mug seen from the side.
+    const CUP = { left: 110, right: 250, top: 120, bottom: 300 };
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";         // menu, countdown, holding, spilled, levelDone
+    let level = 1;
+    let best = loadBest();
+    let clock = 0;               // ms into the countdown or the hold
+    let slosh = { x: 0, y: 0, vx: 0, vy: 0 };   // the coffee's surface: how far it leans, and how fast
+    let turning = { x: 0, y: 0 };               // the latest rotation rate, in degrees a second
+    let wobbleSum = 0;           // for the steadiness score
+    let wobbleSteps = 0;
+    let drops = [];              // spilled drops, flying out
+    let gyroscope = false;       // has a real gyroscope sent anything?
+    let listening = false;
+    let lastMouse = null;        // the mouse, for computers
+
+    // --- How hard is a level? ------------------------------------------------
+
+    // The cup is filled higher every level, so there is less room before the
+    // coffee goes over the edge. "room" is how far the coffee may slosh.
+    // With PUSH at 30, a simulated hand that turns 2 degrees a second gets
+    // to about level 9, a very steady one (0.5) to level 16, a shaky one (8)
+    // to level 2.
+    function levelSettings(n) {
+        const room = Math.max(0.5, 30 * Math.pow(0.82, n - 1));
+        return { room: room, fill: Math.min(0.95, 1 - room / (CUP.bottom - CUP.top)) };
+    }
+
+    // --- The gyroscope -------------------------------------------------------
+
+    // rotationRate has three numbers: alpha is turning round the screen (like a
+    // steering wheel), beta tipping forward and back, and gamma tipping left and
+    // right. Tipping makes coffee slosh; turning round the screen hardly does.
+    function onMotion(event) {
+        const rate = event.rotationRate;
+        if (!rate || rate.beta === null || rate.gamma === null) {
+            return;
+        }
+        gyroscope = true;
+        turning = { x: rate.gamma, y: rate.beta };
+    }
+
+    // iPhones ask first, and only after a tap.
+    async function startSensor() {
+        if (listening || !window.DeviceMotionEvent) {
+            return;
+        }
+        if (typeof DeviceMotionEvent.requestPermission === "function") {
+            try {
+                if (await DeviceMotionEvent.requestPermission() !== "granted") {
+                    return;
+                }
+            } catch (error) {
+                return;
+            }
+        }
+        window.addEventListener("devicemotion", onMotion);
+        listening = true;
+    }
+
+    // On a computer: how fast the mouse moves over the cup, in pixels a second,
+    // counts as turning. Taking the mouse off the cup counts as a big wobble.
+    canvas.addEventListener("pointermove", function (event) {
+        if (gyroscope || event.pointerType === "touch") {
+            return;
+        }
+        const now = performance.now();
+        if (lastMouse !== null &amp;&amp; now &gt; lastMouse.time) {
+            const seconds = (now - lastMouse.time) / 1000;
+            turning = {
+                x: (event.clientX - lastMouse.x) / seconds * MOUSE_PUSH,
+                y: (event.clientY - lastMouse.y) / seconds * MOUSE_PUSH
+            };
+        }
+        lastMouse = { x: event.clientX, y: event.clientY, time: now };
+    });
+
+    canvas.addEventListener("pointerleave", function (event) {
+        if (!gyroscope &amp;&amp; event.pointerType !== "touch" &amp;&amp; screen === "holding") {
+            turning = { x: 400, y: 0 };
+        }
+    });
+
+    // --- The coffee ------------------------------------------------------------
+
+    // The coffee's surface is a spring: turning pushes it, it is pulled back
+    // to flat, and the sloshing slowly calms down (a damped spring). Then a
+    // quick jerk makes a wave that swings back and forth for a moment, just
+    // like real coffee.
+    function moveCoffee(seconds) {
+        ["x", "y"].forEach(function (axis) {
+            const v = axis === "x" ? "vx" : "vy";
+            const force = PUSH * turning[axis] - STIFFNESS * slosh[axis] - DAMPING * slosh[v];
+            slosh[v] += force * seconds;
+            slosh[axis] += slosh[v] * seconds;
+        });
+        // The mouse stops sending moves when it stands still: then it is still.
+        if (!gyroscope) {
+            turning = { x: turning.x * 0.8, y: turning.y * 0.8 };
+        }
+    }
+
+    // How far the coffee climbs up the side of the cup.
+    function sloshSize() {
+        return Math.hypot(slosh.x, slosh.y);
+    }
+
+    // --- The game ------------------------------------------------------------
+
+    function startLevel(n) {
+        level = n;
+        clock = 0;
+        slosh = { x: 0, y: 0, vx: 0, vy: 0 };
+        drops = [];
+        wobbleSum = 0;
+        wobbleSteps = 0;
+        screen = "countdown";
+        startButton.disabled = true;
+        message.textContent = "Level " + n + ": get steady...";
+    }
+
+    function update() {
+        const seconds = STEP / 1000;
+        clock += STEP;
+        moveCoffee(seconds);
+
+        if (screen === "countdown") {
+            // The coffee may slosh while you get ready; it calms down by itself.
+            if (clock &gt;= COUNTDOWN) {
+                screen = "holding";
+                clock = 0;
+                slosh = { x: 0, y: 0, vx: 0, vy: 0 };
+                message.textContent = "Hold still!";
+            }
+            return;
+        }
+        if (screen === "holding") {
+            if (listening &amp;&amp; !gyroscope &amp;&amp; lastMouse === null &amp;&amp; clock &gt; NO_SENSOR_TIME) {
+                message.textContent = "No gyroscope found. On a computer, hold the mouse still over the cup.";
+            }
+            wobbleSum += sloshSize();
+            wobbleSteps++;
+            if (sloshSize() &gt; levelSettings(level).room) {
+                spill();
+            } else if (clock &gt;= HOLD_TIME) {
+                win();
+            }
+        }
+        if (screen === "spilled") {
+            drops.forEach(function (drop) {
+                drop.vy += 0.4;
+                drop.x += drop.vx;
+                drop.y += drop.vy;
+            });
+        }
+    }
+
+    function spill() {
+        screen = "spilled";
+        // Drops fly out over the side the coffee leans to.
+        const side = slosh.x &gt;= 0 ? 1 : -1;
+        for (let i = 0; i &lt; 14; i++) {
+            drops.push({
+                x: side &gt; 0 ? CUP.right : CUP.left,
+                y: CUP.top + 4,
+                vx: side * (1 + Math.random() * 3),
+                vy: -2 - Math.random() * 3
+            });
+        }
+        if (navigator.vibrate) {
+            navigator.vibrate([60, 40, 60]);
+        }
+        startButton.disabled = false;
+        startButton.textContent = "Try again";
+        message.textContent = "Spilled after " + (clock / 1000).toFixed(1) + " seconds! Try again.";
+    }
+
+    function win() {
+        screen = "levelDone";
+        // Steadiness: 100% if the coffee never moved, less the more it sloshed.
+        const average = wobbleSum / wobbleSteps;
+        const steadiness = Math.max(0, Math.round(100 * (1 - average / levelSettings(level).room)));
+        if (level &gt; (best || 0)) {
+            best = level;
+            try {
+                localStorage.setItem(BEST_KEY, String(best));
+            } catch (error) {
+                // Not saved, but the game still works.
+            }
+        }
+        startButton.disabled = false;
+        startButton.textContent = "Next level";
+        message.textContent = "Level " + level + " done! Steadiness " + steadiness + "%. The next cup is fuller.";
+    }
+
+    function loadBest() {
+        try {
+            const saved = Number(localStorage.getItem(BEST_KEY));
+            return saved &gt; 0 ? saved : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function draw() {
+        ctx.fillStyle = "#f4ead8";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        const settings = levelSettings(level);
+        const height = CUP.bottom - CUP.top;
+        const surface = CUP.bottom - settings.fill * height;   // the coffee level when it is still
+
+        // The table.
+        ctx.fillStyle = "#c8995e";
+        ctx.fillRect(0, CUP.bottom + 14, WIDTH, HEIGHT);
+
+        // The coffee, inside the cup: the surface leans with the slosh, and
+        // ripples a little with the forward and back part of it.
+        const lean = Math.max(-1.4, Math.min(1.4, slosh.x / (CUP.right - CUP.left) * 2));
+        const width = CUP.right - CUP.left;
+        ctx.save();
+        cupPath();
+        ctx.clip();
+        ctx.fillStyle = "#6f4e37";
+        ctx.beginPath();
+        ctx.moveTo(CUP.left, CUP.bottom);
+        for (let x = 0; x &lt;= width; x += 5) {
+            const ripple = Math.sin(x / 14 + clock / 120) * Math.min(6, Math.abs(slosh.y) * 0.4);
+            ctx.lineTo(CUP.left + x, surface + (x - width / 2) * lean + ripple);
+        }
+        ctx.lineTo(CUP.right, CUP.bottom);
+        ctx.closePath();
+        ctx.fill();
+        // A lighter foam line on top.
+        ctx.strokeStyle = "#c69c6d";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let x = 0; x &lt;= width; x += 5) {
+            const ripple = Math.sin(x / 14 + clock / 120) * Math.min(6, Math.abs(slosh.y) * 0.4);
+            const y = surface + (x - width / 2) * lean + ripple;
+            if (x === 0) {
+                ctx.moveTo(CUP.left + x, y);
+            } else {
+                ctx.lineTo(CUP.left + x, y);
+            }
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        // The mug: white, with a handle.
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(CUP.right + 22, (CUP.top + CUP.bottom) / 2, 34, -Math.PI / 2.2, Math.PI / 2.2);
+        ctx.stroke();
+        ctx.lineWidth = 6;
+        cupPath();
+        ctx.stroke();
+
+        // Steam, while it is calm.
+        if (screen !== "spilled" &amp;&amp; sloshSize() &lt; settings.room * 0.5) {
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.lineWidth = 3;
+            [-30, 0, 30].forEach(function (dx, i) {
+                ctx.beginPath();
+                for (let y = 0; y &lt; 50; y += 4) {
+                    const x = (CUP.left + CUP.right) / 2 + dx + Math.sin(y / 9 + clock / 300 + i) * 6;
+                    if (y === 0) {
+                        ctx.moveTo(x, CUP.top - 12 - y);
+                    } else {
+                        ctx.lineTo(x, CUP.top - 12 - y);
+                    }
+                }
+                ctx.stroke();
+            });
+        }
+
+        // Spilled drops.
+        ctx.fillStyle = "#6f4e37";
+        drops.forEach(function (drop) {
+            ctx.beginPath();
+            ctx.arc(drop.x, Math.min(drop.y, CUP.bottom + 18), 4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // The wobble meter: how close the coffee is to the edge.
+        const fill = Math.min(1, sloshSize() / settings.room);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+        ctx.fillRect(30, HEIGHT - 40, WIDTH - 60, 14);
+        ctx.fillStyle = "hsl(" + Math.round(120 - 120 * fill) + ", 70%, 45%)";
+        ctx.fillRect(30, HEIGHT - 40, (WIDTH - 60) * fill, 14);
+
+        // Level and time at the top.
+        ctx.fillStyle = "#3b2a1a";
+        ctx.font = "bold 16px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("Level " + level, 14, 26);
+        ctx.textAlign = "right";
+        ctx.fillText(best ? "Best: level " + best : "", WIDTH - 14, 26);
+        ctx.textAlign = "center";
+        ctx.font = "bold 40px Arial";
+        if (screen === "countdown") {
+            ctx.fillText(String(Math.ceil((COUNTDOWN - clock) / 1000)), WIDTH / 2, 80);
+        } else if (screen === "holding") {
+            ctx.fillText(((HOLD_TIME - clock) / 1000).toFixed(1), WIDTH / 2, 80);
+        } else if (screen === "levelDone") {
+            ctx.fillText("Steady!", WIDTH / 2, 80);
+        } else if (screen === "spilled") {
+            ctx.fillText("Spilled!", WIDTH / 2, 80);
+        }
+    }
+
+    // The outline of the mug: a little wider at the top than at the bottom.
+    function cupPath() {
+        ctx.beginPath();
+        ctx.moveTo(CUP.left - 6, CUP.top);
+        ctx.lineTo(CUP.left + 6, CUP.bottom);
+        ctx.lineTo(CUP.right - 6, CUP.bottom);
+        ctx.lineTo(CUP.right + 6, CUP.top);
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+        while (leftover &gt;= STEP) {
+            if (screen !== "menu" &amp;&amp; screen !== "levelDone") {
+                update();
+            }
+            leftover -= STEP;
+        }
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Start ---------------------------------------------------------------
+
+    startButton.addEventListener("click", async function () {
+        await startSensor();
+        if (screen === "levelDone") {
+            startLevel(level + 1);
+        } else {
+            startLevel(level);
+        }
+    });
+
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a two-player mode: take turns, and the steadiest hand wins.</li>
+    <li>Use <code>event.acceleration</code> too, so moving the phone sideways also sloshes the coffee, not only turning it.</li>
+    <li>Make the hold longer on later levels, instead of filling the cup higher.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>Steady Hand is made for phones. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
