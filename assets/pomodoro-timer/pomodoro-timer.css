@@ -1,3 +1,20 @@
+.pomodoro h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.pomodoro h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
 .pomodoro {
   --pomo-green: #2e9e5b;
   --pomo-green-dark: #23824a;

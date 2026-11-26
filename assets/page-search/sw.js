@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "page-search-a54c51589b";
+const CACHE = "page-search-834dbdecc8";
 
 const FILES = [
     "/assets/page-search/app.html",

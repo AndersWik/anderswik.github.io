@@ -1,3 +1,20 @@
+.unix-timestamp-convertor h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.unix-timestamp-convertor h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
 .unix-timestamp-convertor p {
   font-family: ubuntu;
 }

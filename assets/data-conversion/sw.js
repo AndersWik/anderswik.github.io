@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "data-conversion-f9c7a06c9b";
+const CACHE = "data-conversion-cc27d72e29";
 
 const FILES = [
     "/assets/data-conversion/app.html",

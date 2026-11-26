@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "crontab-5edbaa8d03";
+const CACHE = "crontab-3ad6247342";
 
 const FILES = [
     "/assets/crontab/app.html",

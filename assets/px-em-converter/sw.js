@@ -6,7 +6,7 @@
  * hash of the files, so a new version of the app gets a new cache.
  */
 
-const CACHE = "px-em-converter-973aabe119";
+const CACHE = "px-em-converter-7c36390271";
 
 const FILES = [
     "/assets/px-em-converter/app.html",
