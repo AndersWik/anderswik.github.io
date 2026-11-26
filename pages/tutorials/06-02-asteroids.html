@@ -138,6 +138,39 @@ angles.forEach(function (spread) {
   <p>What a rock breaks into is looked up in a table, so no <code>if</code> chain is needed:</p>
   <pre><code class="language-javascript">const ROCK_SIZES = { large: 50, medium: 30, small: 15 };
 const SPLITS_INTO = { large: "medium", medium: "small", small: null };</code></pre>
+  <p>A rock that comes in from the edge and a rock that breaks off another are made by the same function. Every rock gets its own shape: ten corners, each at a random distance from the middle, between 70% and 110% of its radius. It also gets a random way to turn, so some turn left and some right:</p>
+  <pre><code class="language-javascript">function newRock(x, y, dx, dy, size) {
+    const radius = ROCK_SIZES[size];
+    const corners = [];
+    for (let i = 0; i &lt; 10; i++) {
+        corners.push(radius * (0.7 + Math.random() * 0.4));
+    }
+    return {
+        x: x, y: y, dx: dx, dy: dy, size: size, radius: radius,
+        corners: corners,
+        turn: Math.random() * Math.PI * 2,      // how far it has turned
+        spin: (Math.random() - 0.5) * 0.04      // how fast it turns, either way
+    };
+}</code></pre>
+  <p>To draw it, we go round the rock: corner number <code>i</code> is at the angle <code>i / 10</code> of a full turn, plus how far the rock has turned. <code>Math.cos</code> and <code>Math.sin</code> give the place at that angle and distance:</p>
+  <pre><code class="language-javascript">function drawRock(rock) {
+    ctx.beginPath();
+    rock.corners.forEach(function (distance, i) {
+        const angle = rock.turn + i / rock.corners.length * Math.PI * 2;
+        const x = rock.x + Math.cos(angle) * distance;
+        const y = rock.y + Math.sin(angle) * distance;
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+    ctx.closePath();
+    ctx.strokeStyle = "gray";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}</code></pre>
+  <p>Hits are still tested with a circle of the rock's radius, as in step 2. The rock's edge goes a little in and out of that circle, which is close enough, and much simpler than testing a bumpy shape.</p>
   <h2>Step 7: Bumping into rocks</h2>
   <p>When the ship touches a rock, they bounce apart and the ship takes damage:</p>
   <pre><code class="language-javascript">function crash(rock) {
@@ -159,6 +192,25 @@ const SPLITS_INTO = { large: "medium", medium: "small", small: null };</code></p
   <p><code>(nx, ny)</code> points from the ship to the rock, with length 1. Pushing the ship the opposite way and the rock this way makes them bounce apart. The <code>if</code> checks whether they are already moving apart. They stay touching for a few steps after a bounce, and without the check the ship would take damage every one of those steps. <code>|| 1</code> avoids dividing by zero if the centers are exactly on top of each other.</p>
   <h2>Step 8: Levels and power-ups</h2>
   <p>Each level sends <code>5 + level</code> large rocks, one at a time from a random edge, a bit faster on each level. The level is done when all of them have come and been destroyed. A new kind of power-up is added on each level: <code>POWER_UPS.slice(0, level)</code> is the list of the ones you can get so far.</p>
+  <p>Every level starts its clock, <code>gameTime</code>, at 0 again. Everything that remembers a time must start again too:</p>
+  <pre><code class="language-javascript">function startLevel() {
+    bullets = [];
+    rocks = [];
+    powerUps = [];
+    rocksToSpawn = 5 + level;
+    gameTime = 0;
+    // The clock starts again at 0, so the ship's times must too. Otherwise
+    // lastShot is a time from the last level, later than any time in this
+    // one, and the ship can't shoot until the new clock gets that far.
+    ship.lastShot = -FIRE_DELAY;
+    ship.shotUntil = 0;
+    ship.speedUntil = 0;
+    ship.hurtUntil = 0;
+    nextRockTime = 0;
+    nextPowerUpTime = POWER_UP_DELAY;
+    screen = "playing";
+}</code></pre>
+  <p>The first version of this game forgot that, and after level 1 you couldn't shoot. Say the last shot in level 1 was at 40 000 ms. In level 2 the clock starts at 0, so <code>gameTime - ship.lastShot</code> is about -40 000, never more than <code>FIRE_DELAY</code>, and <code>shoot()</code> said no for 40 seconds. A power-up taken just before the end of a level would also have lasted far into the next one. <code>lastShot</code> starts at <code>-FIRE_DELAY</code>, so the first shot can come at once.</p>
   <h2>Step 9: Drawing the ship</h2>
   <p>The ship is a triangle pointing in its direction. Working out the turned corners with sin and cos is possible, but the canvas can do it for us. We move the canvas to the ship and turn the canvas. Then we draw a triangle pointing right, and it comes out turned:</p>
   <pre><code class="language-javascript">ctx.save();
@@ -300,7 +352,7 @@ ctx.restore();</code></pre>
             angle: -Math.PI / 2,  // pointing up
             radius: 15,
             health: 100,
-            lastShot: 0,
+            lastShot: -FIRE_DELAY,  // so the first shot can come right away
             shotType: "single",
             shotUntil: 0,
             speedUntil: 0,
@@ -322,6 +374,13 @@ ctx.restore();</code></pre>
         powerUps = [];
         rocksToSpawn = 5 + level;
         gameTime = 0;
+        // The clock starts again at 0, so the ship's times must too. Otherwise
+        // lastShot is a time from the last level, later than any time in this
+        // one, and the ship can't shoot until the new clock gets that far.
+        ship.lastShot = -FIRE_DELAY;
+        ship.shotUntil = 0;
+        ship.speedUntil = 0;
+        ship.hurtUntil = 0;
         nextRockTime = 0;
         nextPowerUpTime = POWER_UP_DELAY;
         screen = "playing";
@@ -360,9 +419,26 @@ ctx.restore();</code></pre>
 
     // --- Spawning ------------------------------------------------------------
 
+    // A rock with its own shape: ten corners, each at a random distance from
+    // the middle, as in Cave Flyer. It turns slowly as it flies. Hits are
+    // still tested with a circle of the rock's radius.
+    function newRock(x, y, dx, dy, size) {
+        const radius = ROCK_SIZES[size];
+        const corners = [];
+        for (let i = 0; i &lt; 10; i++) {
+            corners.push(radius * (0.7 + Math.random() * 0.4));
+        }
+        return {
+            x: x, y: y, dx: dx, dy: dy, size: size, radius: radius,
+            corners: corners,
+            turn: Math.random() * Math.PI * 2,      // how far it has turned
+            spin: (Math.random() - 0.5) * 0.04      // how fast it turns, either way
+        };
+    }
+
     function spawnRock() {
         const place = fromRandomEdge();
-        rocks.push({ x: place.x, y: place.y, dx: place.dx, dy: place.dy, size: "large", radius: ROCK_SIZES.large });
+        rocks.push(newRock(place.x, place.y, place.dx, place.dy, "large"));
         rocksToSpawn--;
         // Rocks come faster on higher levels, but not faster than every 0.5 s.
         nextRockTime = gameTime + Math.max(500, 3000 - level * 100);
@@ -386,11 +462,7 @@ ctx.restore();</code></pre>
             return;
         }
         for (let i = 0; i &lt; 2; i++) {
-            rocks.push({
-                x: rock.x, y: rock.y,
-                dx: Math.random() * 2 - 1, dy: Math.random() * 2 - 1,
-                size: smaller, radius: ROCK_SIZES[smaller]
-            });
+            rocks.push(newRock(rock.x, rock.y, Math.random() * 2 - 1, Math.random() * 2 - 1, smaller));
         }
     }
 
@@ -501,6 +573,9 @@ ctx.restore();</code></pre>
         bullets.forEach(move);
         rocks.forEach(move);
         powerUps.forEach(move);
+        rocks.forEach(function (rock) {
+            rock.turn += rock.spin;
+        });
 
         // Bullets that hit something are removed, and so is what they hit.
         bullets = bullets.filter(function (bullet) {
@@ -564,6 +639,24 @@ ctx.restore();</code></pre>
             ctx.lineWidth = 2;
             ctx.stroke();
         }
+    }
+
+    function drawRock(rock) {
+        ctx.beginPath();
+        rock.corners.forEach(function (distance, i) {
+            const angle = rock.turn + i / rock.corners.length * Math.PI * 2;
+            const x = rock.x + Math.cos(angle) * distance;
+            const y = rock.y + Math.sin(angle) * distance;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.closePath();
+        ctx.strokeStyle = "gray";
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
 
     function drawStars() {
@@ -694,9 +787,7 @@ ctx.restore();</code></pre>
             return;
         }
 
-        rocks.forEach(function (rock) {
-            drawCircle(rock, "gray", false);
-        });
+        rocks.forEach(drawRock);
         powerUps.forEach(function (powerUp) {
             drawCircle(powerUp, powerUp.color, true);
         });
@@ -815,7 +906,7 @@ ctx.restore();</code></pre>
 &lt;/html&gt;</code></pre>
   <h2>Try this</h2>
   <ul>
-    <li>Make rocks bumpy: draw each one as a circle of 10 points with random distances from the middle.</li>
+    <li>Let a large rock take two hits before it breaks, and draw it a little brighter after the first.</li>
     <li>Add a high score saved in <code>localStorage</code>.</li>
     <li>Bring back the enemy ships from the classic game: a ship that flies across the screen and shoots at you.</li>
   </ul>

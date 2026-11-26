@@ -85,7 +85,7 @@ function newShip() {
         angle: -Math.PI / 2,  // pointing up
         radius: 15,
         health: 100,
-        lastShot: 0,
+        lastShot: -FIRE_DELAY,  // so the first shot can come right away
         shotType: "single",
         shotUntil: 0,
         speedUntil: 0,
@@ -107,6 +107,13 @@ function startLevel() {
     powerUps = [];
     rocksToSpawn = 5 + level;
     gameTime = 0;
+    // The clock starts again at 0, so the ship's times must too. Otherwise
+    // lastShot is a time from the last level, later than any time in this
+    // one, and the ship can't shoot until the new clock gets that far.
+    ship.lastShot = -FIRE_DELAY;
+    ship.shotUntil = 0;
+    ship.speedUntil = 0;
+    ship.hurtUntil = 0;
     nextRockTime = 0;
     nextPowerUpTime = POWER_UP_DELAY;
     screen = "playing";
@@ -145,9 +152,26 @@ function touching(a, b) {
 
 // --- Spawning ------------------------------------------------------------
 
+// A rock with its own shape: ten corners, each at a random distance from
+// the middle, as in Cave Flyer. It turns slowly as it flies. Hits are
+// still tested with a circle of the rock's radius.
+function newRock(x, y, dx, dy, size) {
+    const radius = ROCK_SIZES[size];
+    const corners = [];
+    for (let i = 0; i < 10; i++) {
+        corners.push(radius * (0.7 + Math.random() * 0.4));
+    }
+    return {
+        x: x, y: y, dx: dx, dy: dy, size: size, radius: radius,
+        corners: corners,
+        turn: Math.random() * Math.PI * 2,      // how far it has turned
+        spin: (Math.random() - 0.5) * 0.04      // how fast it turns, either way
+    };
+}
+
 function spawnRock() {
     const place = fromRandomEdge();
-    rocks.push({ x: place.x, y: place.y, dx: place.dx, dy: place.dy, size: "large", radius: ROCK_SIZES.large });
+    rocks.push(newRock(place.x, place.y, place.dx, place.dy, "large"));
     rocksToSpawn--;
     // Rocks come faster on higher levels, but not faster than every 0.5 s.
     nextRockTime = gameTime + Math.max(500, 3000 - level * 100);
@@ -171,11 +195,7 @@ function breakRock(rock) {
         return;
     }
     for (let i = 0; i < 2; i++) {
-        rocks.push({
-            x: rock.x, y: rock.y,
-            dx: Math.random() * 2 - 1, dy: Math.random() * 2 - 1,
-            size: smaller, radius: ROCK_SIZES[smaller]
-        });
+        rocks.push(newRock(rock.x, rock.y, Math.random() * 2 - 1, Math.random() * 2 - 1, smaller));
     }
 }
 
@@ -286,6 +306,9 @@ function update() {
     bullets.forEach(move);
     rocks.forEach(move);
     powerUps.forEach(move);
+    rocks.forEach(function (rock) {
+        rock.turn += rock.spin;
+    });
 
     // Bullets that hit something are removed, and so is what they hit.
     bullets = bullets.filter(function (bullet) {
@@ -349,6 +372,24 @@ function drawCircle(thing, color, filled) {
         ctx.lineWidth = 2;
         ctx.stroke();
     }
+}
+
+function drawRock(rock) {
+    ctx.beginPath();
+    rock.corners.forEach(function (distance, i) {
+        const angle = rock.turn + i / rock.corners.length * Math.PI * 2;
+        const x = rock.x + Math.cos(angle) * distance;
+        const y = rock.y + Math.sin(angle) * distance;
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+    ctx.closePath();
+    ctx.strokeStyle = "gray";
+    ctx.lineWidth = 2;
+    ctx.stroke();
 }
 
 function drawStars() {
@@ -479,9 +520,7 @@ function draw() {
         return;
     }
 
-    rocks.forEach(function (rock) {
-        drawCircle(rock, "gray", false);
-    });
+    rocks.forEach(drawRock);
     powerUps.forEach(function (powerUp) {
         drawCircle(powerUp, powerUp.color, true);
     });
