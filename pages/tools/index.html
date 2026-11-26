@@ -33,10 +33,10 @@ categories:
       - { slug: week, name: Week }
   - title: Phone sensors
     items:
-      - { slug: bubble-level, name: Bubble Level }
-      - { slug: compass, name: Compass }
-      - { slug: guitar-tuner, name: Guitar Tuner }
-      - { slug: speedometer, name: Speedometer }
+      - { slug: bubble-level, name: Bubble Level, tags: [Accelerometer, Gyroscope] }
+      - { slug: compass, name: Compass, tags: [Magnetometer, Accelerometer, Gyroscope] }
+      - { slug: guitar-tuner, name: Guitar Tuner, tags: [Microphone] }
+      - { slug: speedometer, name: Speedometer, tags: [GPS] }
   - title: Everyday
     items:
       - { slug: calculator, name: Calculator }
@@ -53,6 +53,7 @@ categories:
       <a class="badge-card" href="{{ '/tools/' | append: item.slug | append: '/' | relative_url }}">
         <img src="{{ '/assets/images/tools/' | append: item.slug | append: '.webp' | relative_url }}" alt="" width="240" height="180" loading="lazy">
         <span class="badge-name">{{ item.name }}</span>
+        {% if item.tags %}<span class="badge-tags">{% for tag in item.tags %}<span class="badge-tag">{{ tag }}</span>{% endfor %}</span>{% endif %}
       </a>
     </li>
     {% endfor %}
