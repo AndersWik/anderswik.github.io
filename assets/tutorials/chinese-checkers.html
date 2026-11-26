@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chinese Checkers</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+
+    .container {
+        text-align: center;
+        width: 560px;
+        max-width: calc(100% - 40px);
+        box-sizing: border-box;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    /* --- The board ------------------------------------------------------------ */
+
+    /* The board is an SVG picture: it scales to any width by itself. */
+    .board {
+        display: block;
+        width: 520px;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* The two triangles of the star, in wood. */
+    .star {
+        fill: #c8995e;
+        stroke: #8b5a2b;
+        stroke-width: 0.25;
+        stroke-linejoin: round;
+    }
+
+    /* A hole in the wood. */
+    .pit {
+        fill: #6b4423;
+        cursor: pointer;
+    }
+
+    /* A piece: a colored marble with a shine and a shadow. */
+    .piece {
+        stroke: rgba(0, 0, 0, 0.35);
+        stroke-width: 0.08;
+        filter: drop-shadow(0 0.08px 0.12px rgba(0, 0, 0, 0.5));
+        cursor: pointer;
+    }
+
+    .piece.selected {
+        stroke: #fff3b0;
+        stroke-width: 0.22;
+    }
+
+    /* Where the picked piece may go. */
+    .target {
+        fill: #fff3b0;
+        stroke: #8b5a2b;
+        stroke-width: 0.06;
+        cursor: pointer;
+    }
+
+    /* The path of the last move. */
+    .path {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.75);
+        stroke-width: 0.16;
+        stroke-dasharray: 0.4 0.3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    /* --- Text and buttons ------------------------------------------------------- */
+
+    #status {
+        font-size: 18px;
+        margin-top: 16px;
+    }
+
+    #message {
+        color: #c25e00;
+        min-height: 1.5em;
+    }
+
+    button {
+        padding: 15px 30px;
+        font-size: 18px;
+        background-color: #000000;
+        color: #ffffff;
+        border: 5px solid #3d3b3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    select {
+        margin-top: 16px;
+        padding: 6px;
+        font-size: 16px;
+    }
+
+    /* --- The rules ---------------------------------------------------------- */
+
+    .rules {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Chinese Checkers</h1>
+    <svg id="board" class="board" viewBox="-13 -14 26 28" role="img" aria-label="The board"></svg>
+    <p id="status" aria-live="polite"></p>
+    <button type="button" id="restart">New game</button>
+    <p>
+      <label for="players">Players:</label>
+      <select id="players">
+        <option value="2" selected>You and 1 computer</option>
+        <option value="3">You and 2 computers</option>
+        <option value="6">You and 5 computers</option>
+        <option value="friend">Two players</option>
+      </select>
+    </p>
+    <details class="rules">
+      <summary>How to play</summary>
+      <ul>
+        <li>You are red, at the bottom. Move all ten of your pieces to the point of the star on the other side. The first player to get there wins.</li>
+        <li>Click a piece, then one of the dots. A piece moves one step to an empty hole next to it, or jumps.</li>
+        <li>A jump goes over one piece next to it, yours or anyone's, to the empty hole right behind. After a jump you may jump again, as many times as you can, in any direction. Nothing is taken.</li>
+        <li>The dots show every hole the piece can reach, also at the end of a long chain of jumps.</li>
+        <li>Tip: build "ladders" of pieces with gaps between them, so one piece can jump far in one move.</li>
+      </ul>
+    </details>
+  </div>
+
+  <script>
+    /*
+     * Chinese Checkers: a star of 121 holes, ten pieces for each player in
+     * one point of the star. Move all your pieces to the point on the other
+     * side. A piece steps to an empty hole next to it, or jumps over a piece
+     * next to it to the empty hole behind, again and again. Nothing is taken.
+     *
+     * The holes are on a hexagonal grid, so every hole has six neighbours.
+     * A hole is written with "cube coordinates": three numbers q, r and s that
+     * always add up to 0. The six steps to a neighbour are the six ways to add
+     * 1 to one of them and take 1 from another. This makes neighbours,
+     * distances and the shape of the star simple sums.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SQRT3 = Math.sqrt(3);
+    const STEP_TIME = 140;        // ms for each hop of a moving piece
+    const COMPUTER_DELAY = 350;   // ms before a computer moves
+
+    // The six steps to a neighbour, as [q, r]. s is always -q - r.
+    const DIRECTIONS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
+
+    // The six points of the star, clockwise from the bottom. Each is where one
+    // of the three numbers is more than 4 (or less than -4). "tip" is the hole
+    // at the very end of the point.
+    const CORNERS = [
+        { name: "bottom", test: function (h) { return h.r > 4; }, tip: hole(-4, 8) },
+        { name: "lower left", test: function (h) { return h.q < -4; }, tip: hole(-8, 4) },
+        { name: "upper left", test: function (h) { return h.s > 4; }, tip: hole(-4, -4) },
+        { name: "top", test: function (h) { return h.r < -4; }, tip: hole(4, -8) },
+        { name: "upper right", test: function (h) { return h.q > 4; }, tip: hole(8, -4) },
+        { name: "lower right", test: function (h) { return h.s < -4; }, tip: hole(4, 4) }
+    ];
+
+    const COLORS = [
+        { name: "Red", fill: "#d32f2f" },
+        { name: "Purple", fill: "#7b1fa2" },
+        { name: "Blue", fill: "#1565c0" },
+        { name: "Green", fill: "#2e7d32" },
+        { name: "Yellow", fill: "#f9a825" },
+        { name: "Orange", fill: "#ef6c00" }
+    ];
+
+    // Which points of the star are used, for 2, 3 and 6 players. Opposite
+    // points are 3 apart: the bottom (0) plays against the top (3).
+    const SEATS = { 2: [0, 3], 3: [0, 2, 4], 6: [0, 1, 2, 3, 4, 5] };
+
+    // --- Elements on the page --------------------------------------------------
+
+    const svg = document.getElementById("board");
+    const statusText = document.getElementById("status");
+    const restartButton = document.getElementById("restart");
+    const playersSelect = document.getElementById("players");
+
+    // --- Holes -----------------------------------------------------------------
+
+    function hole(q, r) {
+        return { q: q, r: r, s: -q - r };
+    }
+
+    function key(h) {
+        return h.q + "," + h.r;
+    }
+
+    function add(h, [dq, dr], n) {
+        return hole(h.q + dq * n, h.r + dr * n);
+    }
+
+    // The number of steps between two holes on a hexagonal grid.
+    function distance(a, b) {
+        return (Math.abs(a.q - b.q) + Math.abs(a.r - b.r) + Math.abs(a.s - b.s)) / 2;
+    }
+
+    // The star is two big triangles on top of each other: one where q, r and s
+    // are all at least -4, and one where they are all at most 4.
+    function inStar(h) {
+        const up = h.q >= -4 && h.r >= -4 && h.s >= -4;
+        const down = h.q <= 4 && h.r <= 4 && h.s <= 4;
+        return up || down;
+    }
+
+    function cornerOf(h) {
+        return CORNERS.findIndex(function (corner) { return corner.test(h); });
+    }
+
+    // Where a hole is drawn: the usual sums for a hexagonal grid.
+    function pixel(h) {
+        return { x: SQRT3 * (h.q + h.r / 2), y: 1.5 * h.r };
+    }
+
+    // All 121 holes.
+    const HOLES = [];
+    for (let q = -8; q <= 8; q++) {
+        for (let r = -8; r <= 8; r++) {
+            if (inStar(hole(q, r))) {
+                HOLES.push(hole(q, r));
+            }
+        }
+    }
+
+    // --- State ---------------------------------------------------------------
+
+    let board = new Map();   // key -> the number of the player there, or null
+    let players = [];        // { corner, goal, color, human }
+    let turn = 0;            // whose turn: a number in players
+    let selected = null;     // the hole of the piece the human picked
+    let targets = new Map(); // where it may go: key -> the path there
+    let lastPath = null;     // the last move, drawn faintly
+    let busy = false;        // a piece is moving, or a computer is thinking
+    let winner = null;
+    let timer = null;
+
+    // --- Moves -----------------------------------------------------------------
+
+    function onBoard(h) {
+        return board.has(key(h));
+    }
+
+    // Every hole a piece can reach, with the path there. A step goes to an
+    // empty neighbour. Jumps are found like water spreading: from every hole
+    // the piece can jump to, look for more jumps, but never visit a hole twice.
+    function reachable(from, squares) {
+        const paths = new Map();
+        const isFree = function (h) {
+            return onBoard(h) && (squares.get(key(h)) === null || key(h) === key(from));
+        };
+        DIRECTIONS.forEach(function (direction) {
+            const next = add(from, direction, 1);
+            if (onBoard(next) && squares.get(key(next)) === null) {
+                paths.set(key(next), [from, next]);
+            }
+        });
+        const seen = new Set([key(from)]);
+        const queue = [[from]];
+        while (queue.length > 0) {
+            const path = queue.shift();
+            const at = path[path.length - 1];
+            DIRECTIONS.forEach(function (direction) {
+                const over = add(at, direction, 1);
+                const land = add(at, direction, 2);
+                const overPiece = onBoard(over) && squares.get(key(over)) !== null && key(over) !== key(from);
+                if (overPiece && isFree(land) && !seen.has(key(land))) {
+                    seen.add(key(land));
+                    const longer = path.concat([land]);
+                    if (!paths.has(key(land))) {
+                        paths.set(key(land), longer);
+                    }
+                    queue.push(longer);
+                }
+            });
+        }
+        return paths;
+    }
+
+    // Every move a player can make: { from, to, path }.
+    function allMoves(player, squares) {
+        const moves = [];
+        HOLES.forEach(function (h) {
+            if (squares.get(key(h)) === player) {
+                reachable(h, squares).forEach(function (path) {
+                    moves.push({ from: h, to: path[path.length - 1], path: path });
+                });
+            }
+        });
+        return moves;
+    }
+
+    function hasWon(player, squares) {
+        const goal = players[player].goal;
+        return HOLES.every(function (h) {
+            return cornerOf(h) !== goal || squares.get(key(h)) === player;
+        });
+    }
+
+    // --- The computer ------------------------------------------------------------
+
+    // How far a player's pieces still have to go: every piece's distance to the
+    // tip of its goal, added up. Less is better.
+    function distanceLeft(player, squares) {
+        const tip = CORNERS[players[player].goal].tip;
+        let sum = 0;
+        HOLES.forEach(function (h) {
+            if (squares.get(key(h)) === player) {
+                sum += distance(h, tip);
+            }
+        });
+        return sum;
+    }
+
+    function moved(squares, move) {
+        const next = new Map(squares);
+        next.set(key(move.to), next.get(key(move.from)));
+        next.set(key(move.from), null);
+        return next;
+    }
+
+    // The move that brings the pieces furthest. Each move is also given half
+    // the score of the best move it makes possible next time, so the computer
+    // likes moves that set up a long chain of jumps.
+    function bestMove(player) {
+        const before = distanceLeft(player, board);
+        const goal = players[player].goal;
+        const tip = CORNERS[goal].tip;
+        let best = [];
+        let bestScore = -Infinity;
+        allMoves(player, board).forEach(function (move) {
+            const after = moved(board, move);
+            const gain = before - distanceLeft(player, after);
+            let next = 0;
+            allMoves(player, after).forEach(function (m) {
+                next = Math.max(next, distance(m.from, tip) - distance(m.to, tip));
+            });
+            let score = gain + next * 0.5;
+            // Bring up the pieces at the back, so none are left behind...
+            score += distance(move.from, tip) * 0.05;
+            // ...and don't leave the goal once there.
+            if (cornerOf(move.from) === goal && cornerOf(move.to) !== goal) {
+                score -= 5;
+            }
+            if (score > bestScore + 0.001) {
+                bestScore = score;
+                best = [move];
+            } else if (Math.abs(score - bestScore) <= 0.001) {
+                best.push(move);
+            }
+        });
+        return best[Math.floor(Math.random() * best.length)];
+    }
+
+    // --- Playing ---------------------------------------------------------------
+
+    // Move a piece along its path, one hop at a time, then end the turn.
+    function play(move) {
+        busy = true;
+        selected = null;
+        targets = new Map();
+        let step = 0;
+        const player = board.get(key(move.from));
+        function hop() {
+            board.set(key(move.path[step]), null);
+            step++;
+            board.set(key(move.path[step]), player);
+            lastPath = move.path.slice(0, step + 1);
+            draw();
+            if (step < move.path.length - 1) {
+                timer = setTimeout(hop, STEP_TIME);
+            } else {
+                busy = false;
+                endTurn(player);
+            }
+        }
+        hop();
+    }
+
+    function endTurn(player) {
+        if (hasWon(player, board)) {
+            winner = player;
+            draw();
+            return;
+        }
+        turn = (turn + 1) % players.length;
+        draw();
+        if (!players[turn].human) {
+            busy = true;
+            timer = setTimeout(function () {
+                busy = false;
+                play(bestMove(turn));
+            }, COMPUTER_DELAY);
+        }
+    }
+
+    function clickHole(h) {
+        if (busy || winner !== null || !players[turn].human) {
+            return;
+        }
+        const k = key(h);
+        if (board.get(k) === turn) {
+            selected = h;
+            targets = reachable(h, board);
+        } else if (targets.has(k)) {
+            const path = targets.get(k);
+            play({ from: selected, to: h, path: path });
+            return;
+        } else {
+            selected = null;
+            targets = new Map();
+        }
+        draw();
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    const SVG_NS = "http://www.w3.org/2000/svg";
+
+    function svgElement(name, attributes) {
+        const element = document.createElementNS(SVG_NS, name);
+        for (const a in attributes) {
+            element.setAttribute(a, attributes[a]);
+        }
+        return element;
+    }
+
+    // The wooden star: the two big triangles, a little bigger than the holes.
+    function drawStar() {
+        [[2, 4, 0], [3, 1, 5]].forEach(function (three) {
+            const points = three.map(function (c) {
+                const p = pixel(CORNERS[c].tip);
+                return (p.x * 1.13) + "," + (p.y * 1.13);
+            });
+            svg.appendChild(svgElement("polygon", { points: points.join(" "), class: "star" }));
+        });
+    }
+
+    function draw() {
+        svg.innerHTML = "";
+        drawStar();
+
+        // The players' points of the star, faintly in their colors.
+        const tint = {};
+        players.forEach(function (p) {
+            tint[p.corner] = p.color.fill;
+            tint[p.goal] = tint[p.goal] || p.color.fill;
+        });
+
+        if (lastPath !== null && lastPath.length > 1) {
+            const points = lastPath.map(function (h) { const p = pixel(h); return p.x + "," + p.y; });
+            svg.appendChild(svgElement("polyline", { points: points.join(" "), class: "path" }));
+        }
+
+        HOLES.forEach(function (h) {
+            const p = pixel(h);
+            const group = svgElement("g", { class: "hole", "data-key": key(h) });
+            const corner = cornerOf(h);
+            group.appendChild(svgElement("circle", {
+                cx: p.x, cy: p.y, r: 0.42, class: "pit",
+                style: corner >= 0 && tint[corner] ? "fill: " + tint[corner] + "55" : ""
+            }));
+            const owner = board.get(key(h));
+            if (owner !== null) {
+                const piece = svgElement("circle", { cx: p.x, cy: p.y, r: 0.68, class: "piece", fill: players[owner].color.fill });
+                if (selected !== null && key(selected) === key(h)) {
+                    piece.classList.add("selected");
+                }
+                group.appendChild(piece);
+            }
+            if (targets.has(key(h))) {
+                group.appendChild(svgElement("circle", { cx: p.x, cy: p.y, r: 0.3, class: "target" }));
+            }
+            group.addEventListener("click", function () { clickHole(h); });
+            svg.appendChild(group);
+        });
+
+        const player = players[turn];
+        if (winner !== null) {
+            const w = players[winner];
+            statusText.textContent = w.human && playersSelect.value !== "friend" ? "You win!" : w.color.name + " wins!";
+        } else if (player.human) {
+            statusText.textContent = playersSelect.value === "friend" ? player.color.name + "'s turn." : "Your turn: you are red.";
+        } else {
+            statusText.textContent = player.color.name + " is thinking...";
+        }
+    }
+
+    // --- Starting --------------------------------------------------------------
+
+    function newGame() {
+        clearTimeout(timer);
+        const choice = playersSelect.value;
+        const seats = SEATS[choice === "friend" ? 2 : Number(choice)];
+        players = seats.map(function (corner, i) {
+            return {
+                corner: corner,
+                goal: (corner + 3) % 6,
+                color: COLORS[corner],
+                human: i === 0 || choice === "friend"
+            };
+        });
+        board = new Map();
+        HOLES.forEach(function (h) {
+            const seat = players.findIndex(function (p) { return p.corner === cornerOf(h); });
+            board.set(key(h), seat >= 0 ? seat : null);
+        });
+        turn = 0;
+        selected = null;
+        targets = new Map();
+        lastPath = null;
+        busy = false;
+        winner = null;
+        draw();
+    }
+
+    restartButton.addEventListener("click", newGame);
+    playersSelect.addEventListener("change", newGame);
+
+    newGame();
+  </script>
+</body>
+</html>

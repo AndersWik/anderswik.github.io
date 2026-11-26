@@ -31,6 +31,7 @@
 - { slug: 8-ball, page: pages/games/8-ball.html, name: Magic 8 Ball, emoji: "🎱", description: "Ask a question and shake the Magic 8 Ball for an answer." }
 - { slug: blackjack, page: pages/games/blackjack.html, emoji: "🃏" }
 - { slug: checkers, page: pages/games/checkers.html, emoji: "👑", width: 520, description: "Checkers, red against black: play a friend or the computer." }
+- { slug: chinese-checkers, page: pages/games/chinese-checkers.html, emoji: "⭐", width: 600, description: "Chinese checkers on a star: race your ten pieces across, against 1, 2 or 5 computers or a friend." }
 - { slug: choose-dice, page: pages/games/choose-dice.html, emoji: "🎲" }
 - { slug: chore-wheel, page: pages/games/chore-wheel.html, emoji: "🧹" }
 - { slug: discgolf, page: pages/games/discgolf.html, name: Discgolf score card, emoji: "🥏" }

@@ -1,0 +1,146 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  text-align: center;
+  width: 560px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+/* The title: the site's font, and a short gold line under it. */
+.game h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+/* --- The board ------------------------------------------------------------ */
+
+/* The board is an SVG picture: it scales to any width by itself. */
+.game .board {
+  display: block;
+  width: 520px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The two triangles of the star, in wood. */
+.game .star {
+  fill: #c8995e;
+  stroke: #8b5a2b;
+  stroke-width: 0.25;
+  stroke-linejoin: round;
+}
+
+/* A hole in the wood. */
+.game .pit {
+  fill: #6b4423;
+  cursor: pointer;
+}
+
+/* A piece: a colored marble with a shine and a shadow. */
+.game .piece {
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 0.08;
+  filter: drop-shadow(0 0.08px 0.12px rgba(0, 0, 0, 0.5));
+  cursor: pointer;
+}
+
+.game .piece.selected {
+  stroke: #fff3b0;
+  stroke-width: 0.22;
+}
+
+/* Where the picked piece may go. */
+.game .target {
+  fill: #fff3b0;
+  stroke: #8b5a2b;
+  stroke-width: 0.06;
+  cursor: pointer;
+}
+
+/* The path of the last move. */
+.game .path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.75);
+  stroke-width: 0.16;
+  stroke-dasharray: 0.4 0.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* --- Text and buttons ------------------------------------------------------- */
+
+.game #status {
+  font-size: 18px;
+  margin-top: 16px;
+}
+
+.game #message {
+  color: #c25e00;
+  min-height: 1.5em;
+}
+
+.game button {
+  padding: 15px 30px;
+  font-size: 18px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 5px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game select {
+  margin-top: 16px;
+  padding: 6px;
+  font-size: 16px;
+}
+
+/* --- The rules ---------------------------------------------------------- */
+
+.game .rules {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #dddddd;
+  text-align: left;
+}
+
+.game .rules summary {
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.game .rules ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.game .rules li {
+  margin-bottom: 6px;
+}

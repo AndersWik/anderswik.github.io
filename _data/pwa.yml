@@ -24,6 +24,7 @@
 - { slug: 8-ball, page: pages/games/8-ball.html, name: Magic 8 Ball, short_name: 8 Ball, emoji: "🎱" }
 - { slug: blackjack, page: pages/games/blackjack.html, short_name: Blackjack, emoji: "🃏" }
 - { slug: checkers, page: pages/games/checkers.html, short_name: Checkers, emoji: "👑" }
+- { slug: chinese-checkers, page: pages/games/chinese-checkers.html, short_name: Star Checker, emoji: "⭐" }
 - { slug: choose-dice, page: pages/games/choose-dice.html, short_name: Dice, emoji: "🎲" }
 - { slug: chore-wheel, page: pages/games/chore-wheel.html, short_name: Chore Wheel, emoji: "🧹" }
 - { slug: discgolf, page: pages/games/discgolf.html, name: Discgolf score card, short_name: Discgolf, emoji: "🥏" }

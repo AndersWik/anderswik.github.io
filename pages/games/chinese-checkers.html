@@ -1,0 +1,36 @@
+---
+layout: game
+title: Chinese Checkers
+permalink: /games/chinese-checkers/
+nonav: true
+css:
+  - /assets/chinese-checkers/chinese-checkers.css
+js:
+  - /assets/chinese-checkers/chinese-checkers.js
+---
+<div class="container">
+  <h1>Chinese Checkers</h1>
+  <svg id="board" class="board" viewBox="-13 -14 26 28" role="img" aria-label="The board"></svg>
+  <p id="status" aria-live="polite"></p>
+  <button type="button" id="restart">New game</button>
+  <p>
+    <label for="players">Players:</label>
+    <select id="players">
+      <option value="2" selected>You and 1 computer</option>
+      <option value="3">You and 2 computers</option>
+      <option value="6">You and 5 computers</option>
+      <option value="friend">Two players</option>
+    </select>
+  </p>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>You are red, at the bottom. Move all ten of your pieces to the point of the star on the other side. The first player to get there wins.</li>
+      <li>Click a piece, then one of the dots. A piece moves one step to an empty hole next to it, or jumps.</li>
+      <li>A jump goes over one piece next to it, yours or anyone's, to the empty hole right behind. After a jump you may jump again, as many times as you can, in any direction. Nothing is taken.</li>
+      <li>The dots show every hole the piece can reach, also at the end of a long chain of jumps.</li>
+      <li>Tip: build "ladders" of pieces with gaps between them, so one piece can jump far in one move.</li>
+    </ul>
+  </details>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/chinese-checkers/">How to build this game</a></p>
