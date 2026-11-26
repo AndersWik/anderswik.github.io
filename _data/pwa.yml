@@ -1,7 +1,7 @@
 # Games and apps that can be installed as a Progressive Web App (PWA).
 #
 # Only apps that work on a phone are listed: no keyboard needed to play.
-# Left out on purpose: the keyboard games (asteroids, breakout, pong,
+# Left out on purpose: the keyboard games (asteroids, breakout, cave-flyer, pong,
 # space-fighter, space-invader, volleyball, and arcade-shooter, artillery,
 # hock-a-loogie, missile-command, pool, whack-a-mole that need Enter to start),
 # and utils/vagrant (downloads a Vagrantfile, a desktop tool).

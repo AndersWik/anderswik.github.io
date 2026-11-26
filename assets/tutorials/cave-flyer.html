@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cave Flyer</title>
+  <style>
+    body {
+        margin: 0;
+        background-color: #222;
+    }
+
+    canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 20px auto;
+        background-color: black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+  <script>
+    /*
+     * Cave Flyer: fly a ship through a cave that scrolls past from right to
+     * left. The roof and the floor are mountains drawn with one white line:
+     * touch the line and the game is over. From level 2, rocks fly at you.
+     * Shoot them, or fly round them. Every level is faster, with more rocks.
+     *
+     *   arrow keys   fly up, down, back and forward
+     *   space        shoot
+     *   P            pause
+     *   Esc          menu
+     *
+     * The cave is a list of points, one every SEGMENT pixels, each with the
+     * height of the roof and the floor there. Every step all the points move
+     * left; new ones are made at the right as the old ones leave at the left.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;          // one update step, in milliseconds
+    const SEGMENT = 20;              // pixels between two points of the cave
+    const LEVEL_STEPS = 60 * 30;     // a level lasts 30 seconds
+    const SHIP_SPEED = 4;            // pixels a step, in every direction
+    const BULLET_SPEED = 10;
+    const FIRE_DELAY = 12;           // steps between two shots
+    const SAFE_START = 8;            // the first new cave points are straight and wide too
+    const TOP = 44;                  // the mountains stay below the score at the top...
+    const MARGIN = 12;               // ...and above the bottom of the screen
+    const BEST_KEY = "cave-flyer-best";
+
+    // The ship is a triangle that points right, as in Asteroids: its corners,
+    // seen from the middle of the ship.
+    const SHIP_SHAPE = [[18, 0], [-14, -10], [-14, 10]];
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, playing, paused, levelDone, gameOver
+    let gameStarted = false;
+    let keys = {};
+
+    let level = 1;
+    let score = 0;
+    let best = loadBest();
+    let steps = 0;         // steps into this level
+    let ship = null;
+    let cave = [];         // { x, top, bottom }
+    let center = 0;        // the middle of the cave, as it winds
+    let gap = 0;           // the height of the cave
+    let rocks = [];        // { x, y, vx, vy, radius, corners }
+    let rocksLeft = 0;     // rocks still to come this level
+    let bullets = [];      // { x, y }
+    let reload = 0;        // steps until the next shot
+
+    // --- How hard is a level? ------------------------------------------------
+
+    // Everything that changes from level to level, in one place.
+    function levelSettings(n) {
+        return {
+            speed: 2 + (n - 1) * 0.6,                  // pixels the cave moves each step
+            rocks: n === 1 ? 0 : 4 + (n - 2) * 3,      // no rocks on level 1
+            rockSpeed: 1.5 + n * 0.3,                  // on top of the cave's speed
+            minGap: Math.max(120, 200 - n * 8),        // the narrowest the cave gets
+            maxGap: Math.max(190, 320 - n * 10),       // and the widest
+            roughness: 18 + n * 3                      // how much the mountains go up and down
+        };
+    }
+
+    // --- Starting --------------------------------------------------------------
+
+    function newGame() {
+        level = 1;
+        score = 0;
+        gameStarted = true;
+        startLevel();
+    }
+
+    function startLevel() {
+        const settings = levelSettings(level);
+        steps = 0;
+        ship = { x: 120, y: HEIGHT / 2 };
+        rocks = [];
+        bullets = [];
+        reload = 0;
+        rocksLeft = settings.rocks;
+
+        // A new cave, starting straight and wide so you get a calm start.
+        center = (TOP + HEIGHT - MARGIN) / 2;
+        gap = settings.maxGap;
+        cave = [];
+        for (let x = 0; x <= WIDTH + SEGMENT; x += SEGMENT) {
+            cave.push({ x: x, top: center - gap / 2, bottom: center + gap / 2 });
+        }
+        screen = "playing";
+    }
+
+    // --- The cave ------------------------------------------------------------
+
+    function random(min, max) {
+        return min + Math.random() * (max - min);
+    }
+
+    // The next point of the cave, a little to the right of the last one. The
+    // middle and the height of the cave both wander a little, at random, but
+    // stay inside the screen.
+    function newCavePoint(x) {
+        const settings = levelSettings(level);
+        const made = steps * settings.speed / SEGMENT;   // about how many points this level has made
+        if (made > SAFE_START) {
+            // The cave may never climb or fall faster than the ship can follow.
+            // While the cave moves one SEGMENT, the ship can move SHIP_SPEED
+            // pixels up or down every step; 0.6 leaves some room to spare.
+            const maxStep = SHIP_SPEED * (SEGMENT / settings.speed) * 0.6;
+            center += Math.max(-maxStep, Math.min(maxStep, random(-1, 1) * settings.roughness));
+            gap += random(-1, 1) * 12;
+        }
+        gap = Math.min(settings.maxGap, Math.max(settings.minGap, gap));
+        center = Math.min(HEIGHT - MARGIN - gap / 2, Math.max(TOP + gap / 2, center));
+        // A small spike on each line makes them look more like mountains.
+        return {
+            x: x,
+            top: center - gap / 2 + random(-6, 6),
+            bottom: center + gap / 2 + random(-6, 6)
+        };
+    }
+
+    // The height of the roof and the floor at any x, between two points:
+    // a straight line from one point to the next (linear interpolation).
+    function caveAt(x) {
+        for (let i = 0; i < cave.length - 1; i++) {
+            const a = cave[i];
+            const b = cave[i + 1];
+            if (x >= a.x && x <= b.x) {
+                const t = (x - a.x) / (b.x - a.x);
+                return { top: a.top + (b.top - a.top) * t, bottom: a.bottom + (b.bottom - a.bottom) * t };
+            }
+        }
+        return { top: 0, bottom: HEIGHT };
+    }
+
+    function moveCave(speed) {
+        cave.forEach(function (point) {
+            point.x -= speed;
+        });
+        // Points that have left at the left are thrown away...
+        while (cave.length > 2 && cave[1].x < 0) {
+            cave.shift();
+        }
+        // ...and new ones are made at the right.
+        while (cave[cave.length - 1].x < WIDTH + SEGMENT) {
+            cave.push(newCavePoint(cave[cave.length - 1].x + SEGMENT));
+        }
+    }
+
+    // --- The ship ------------------------------------------------------------
+
+    // Points round the edge of the ship, to test for hits: the three corners
+    // and some points along each side, so a sharp mountain top can't slip in
+    // between two corners.
+    function shipPoints() {
+        const points = [];
+        for (let i = 0; i < SHIP_SHAPE.length; i++) {
+            const [ax, ay] = SHIP_SHAPE[i];
+            const [bx, by] = SHIP_SHAPE[(i + 1) % SHIP_SHAPE.length];
+            for (let t = 0; t < 1; t += 0.125) {
+                points.push({ x: ship.x + ax + (bx - ax) * t, y: ship.y + ay + (by - ay) * t });
+            }
+        }
+        return points;
+    }
+
+    function moveShip() {
+        if (keys.ArrowUp) {
+            ship.y -= SHIP_SPEED;
+        }
+        if (keys.ArrowDown) {
+            ship.y += SHIP_SPEED;
+        }
+        if (keys.ArrowLeft) {
+            ship.x -= SHIP_SPEED;
+        }
+        if (keys.ArrowRight) {
+            ship.x += SHIP_SPEED;
+        }
+        // Not out of the back or the front of the screen. Up and down there is
+        // no need: the mountains are in the way.
+        ship.x = Math.max(14, Math.min(WIDTH - 18, ship.x));
+    }
+
+    function shoot() {
+        if (reload > 0) {
+            return;
+        }
+        bullets.push({ x: ship.x + 18, y: ship.y });
+        reload = FIRE_DELAY;
+    }
+
+    // --- Rocks ---------------------------------------------------------------
+
+    // A rock comes in from the right, somewhere in the cave. Its corners are
+    // at random distances from its middle, so every rock has its own shape.
+    function spawnRock() {
+        const settings = levelSettings(level);
+        const radius = random(12, 26);
+        const at = caveAt(WIDTH - SEGMENT);
+        const corners = [];
+        for (let i = 0; i < 10; i++) {
+            corners.push(radius * random(0.7, 1.1));
+        }
+        rocks.push({
+            x: WIDTH + radius,
+            y: random(at.top + radius + 10, at.bottom - radius - 10),
+            vx: -(settings.speed + settings.rockSpeed * random(0.8, 1.3)),
+            vy: random(-0.5, 0.5),
+            radius: radius,
+            corners: corners,
+            turn: random(0, Math.PI * 2)
+        });
+    }
+
+    // When should the next rock come? Spread them over the level, but not
+    // in the first and last three seconds.
+    function rockDue() {
+        const settings = levelSettings(level);
+        if (rocksLeft === 0) {
+            return false;
+        }
+        const start = 180;
+        const end = LEVEL_STEPS - 180;
+        const sent = settings.rocks - rocksLeft;
+        return steps >= start + sent * (end - start) / settings.rocks;
+    }
+
+    // --- Update ----------------------------------------------------------------
+
+    function crash() {
+        score = Math.floor(score);
+        if (score > (best || 0)) {
+            best = score;
+            try {
+                localStorage.setItem(BEST_KEY, String(best));
+            } catch (error) {
+                // Not saved, but the game still works.
+            }
+        }
+        screen = "gameOver";
+    }
+
+    function update() {
+        const settings = levelSettings(level);
+        steps++;
+        score += settings.speed / 10;   // points for distance flown
+        reload = Math.max(0, reload - 1);
+
+        moveCave(settings.speed);
+        moveShip();
+        if (keys[" "]) {
+            shoot();
+        }
+
+        if (rockDue()) {
+            spawnRock();
+            rocksLeft--;
+        }
+        rocks.forEach(function (rock) {
+            rock.x += rock.vx;
+            rock.y += rock.vy;
+            rock.turn += 0.02;
+        });
+        rocks = rocks.filter(function (rock) { return rock.x > -rock.radius; });
+
+        // Bullets fly right, and stop at the mountains or a rock.
+        bullets.forEach(function (bullet) {
+            bullet.x += BULLET_SPEED;
+        });
+        bullets = bullets.filter(function (bullet) {
+            const at = caveAt(bullet.x);
+            if (bullet.x > WIDTH || bullet.y <= at.top || bullet.y >= at.bottom) {
+                return false;
+            }
+            const hit = rocks.find(function (rock) {
+                return Math.hypot(rock.x - bullet.x, rock.y - bullet.y) < rock.radius;
+            });
+            if (hit) {
+                rocks = rocks.filter(function (rock) { return rock !== hit; });
+                score += 50;
+                return false;
+            }
+            return true;
+        });
+
+        // Did the ship touch a mountain or a rock?
+        const touched = shipPoints().some(function (p) {
+            const at = caveAt(p.x);
+            if (p.y <= at.top || p.y >= at.bottom) {
+                return true;
+            }
+            return rocks.some(function (rock) {
+                return Math.hypot(rock.x - p.x, rock.y - p.y) < rock.radius * 0.85;
+            });
+        });
+        if (touched) {
+            crash();
+            return;
+        }
+
+        if (steps >= LEVEL_STEPS) {
+            score += level * 100;
+            level++;
+            screen = "levelDone";
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawText(text, x, y, size, color, align) {
+        ctx.fillStyle = color || "white";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = align || "center";
+        ctx.fillText(text, x, y);
+    }
+
+    // One white line through the points: the roof or the floor.
+    function drawLine(side) {
+        ctx.beginPath();
+        cave.forEach(function (point, i) {
+            if (i === 0) {
+                ctx.moveTo(point.x, point[side]);
+            } else {
+                ctx.lineTo(point.x, point[side]);
+            }
+        });
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    function drawShip(color) {
+        ctx.beginPath();
+        SHIP_SHAPE.forEach(function (corner, i) {
+            if (i === 0) {
+                ctx.moveTo(ship.x + corner[0], ship.y + corner[1]);
+            } else {
+                ctx.lineTo(ship.x + corner[0], ship.y + corner[1]);
+            }
+        });
+        ctx.closePath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        if (screen === "playing") {
+            // A flickering flame behind the ship.
+            const flame = random(8, 14);
+            ctx.beginPath();
+            ctx.moveTo(ship.x - 14, ship.y - 5);
+            ctx.lineTo(ship.x - 14 - flame, ship.y);
+            ctx.lineTo(ship.x - 14, ship.y + 5);
+            ctx.strokeStyle = "orange";
+            ctx.stroke();
+        }
+    }
+
+    function drawRock(rock) {
+        ctx.beginPath();
+        rock.corners.forEach(function (distance, i) {
+            const angle = rock.turn + i / rock.corners.length * Math.PI * 2;
+            const x = rock.x + Math.cos(angle) * distance;
+            const y = rock.y + Math.sin(angle) * distance;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.closePath();
+        ctx.strokeStyle = "gray";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    function drawHud() {
+        drawText("Score: " + Math.floor(score) + "   Level: " + level, 20, 30, 18, "white", "left");
+        // How far through the level: a bar that fills up.
+        ctx.strokeStyle = "gray";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(WIDTH - 170, 16, 150, 12);
+        ctx.fillStyle = "white";
+        ctx.fillRect(WIDTH - 170, 16, 150 * Math.min(1, steps / LEVEL_STEPS), 12);
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 50, 40);
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 20);
+        });
+    }
+
+    function draw() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        if (screen === "menu") {
+            drawText("Cave Flyer", WIDTH / 2, HEIGHT / 2 - 70, 56);
+            const lines = [
+                "Fly through the cave. Don't touch the white lines.",
+                "From level 2, rocks fly at you: shoot them or fly round them.",
+                "Arrow keys: fly    Space: shoot    P: pause",
+                "Press Enter to start"
+            ];
+            lines.forEach(function (line, index) {
+                drawText(line, WIDTH / 2, HEIGHT / 2 + index * 30, 18, index === 3 ? "yellow" : "white");
+            });
+            if (best !== null) {
+                drawText("Best: " + best, WIDTH / 2, HEIGHT - 50, 16, "gray");
+            }
+            if (gameStarted) {
+                drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 25, 16);
+            }
+            return;
+        }
+
+        drawLine("top");
+        drawLine("bottom");
+        rocks.forEach(drawRock);
+        ctx.fillStyle = "white";
+        bullets.forEach(function (bullet) {
+            ctx.fillRect(bullet.x - 4, bullet.y - 1, 8, 2);
+        });
+        drawShip(screen === "gameOver" ? "red" : "white");
+        drawHud();
+
+        if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "levelDone") {
+            const next = levelSettings(level);
+            drawMessage("Level " + (level - 1) + " done!", [
+                "Next: faster, with " + next.rocks + " rocks",
+                "Press Enter for level " + level
+            ]);
+        } else if (screen === "gameOver") {
+            drawMessage("Game over", [
+                "Score: " + Math.floor(score) + "   Level: " + level,
+                "Best: " + best,
+                "Press Enter to play again, Esc for the menu"
+            ]);
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // Run one update per 1/60 second, so the game has the same speed on
+    // every screen, then draw.
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        while (leftover >= STEP) {
+            if (screen === "playing") {
+                update();
+            }
+            leftover -= STEP;
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Keyboard ------------------------------------------------------------
+
+    function loadBest() {
+        try {
+            const saved = Number(localStorage.getItem(BEST_KEY));
+            return saved > 0 ? saved : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+        keys[key] = true;
+
+        if (screen === "menu") {
+            if (key === "Enter") {
+                newGame();
+            } else if (key === "Escape" && gameStarted) {
+                screen = "paused";
+            }
+        } else if (screen === "playing") {
+            if (key === "p" || key === "P") {
+                screen = "paused";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "paused") {
+            if (key === "p" || key === "P") {
+                screen = "playing";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "levelDone") {
+            if (key === "Enter") {
+                startLevel();
+            }
+        } else if (screen === "gameOver") {
+            if (key === "Enter") {
+                newGame();
+            } else if (key === "Escape") {
+                gameStarted = false;
+                screen = "menu";
+            }
+        }
+    });
+
+    document.addEventListener("keyup", function (event) {
+        keys[event.key] = false;
+    });
+
+    // If the window loses focus while a key is held, we never get its keyup.
+    window.addEventListener("blur", function () {
+        for (const key in keys) {
+            keys[key] = false;
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>

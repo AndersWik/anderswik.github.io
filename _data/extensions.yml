@@ -80,6 +80,7 @@
 - { slug: arcade-shooter, page: pages/games/arcade-shooter.html, emoji: "👾", label: ARCADE, open: tab }
 - { slug: artillery-game, page: pages/games/artillery-game.html, name: Artillery, emoji: "💣", open: tab }
 - { slug: asteroids, page: pages/games/asteroids.html, name: Asteroids, emoji: "☄️", open: tab }
+- { slug: cave-flyer, page: pages/games/cave-flyer.html, emoji: "🌌", open: tab, description: "Fly a ship through a cave, past mountains and flying rocks. A keyboard game." }
 - { slug: breakout, page: pages/games/breakout.html, name: Breakout, emoji: "🧱", open: tab }
 - { slug: hock-a-loogie, page: pages/games/hock-a-loogie.html, emoji: "💦", open: tab }
 - { slug: missile-command, page: pages/games/missile-command.html, emoji: "🚀", open: tab }
