@@ -1,0 +1,55 @@
+---
+layout: default
+title: Speedometer
+permalink: /other/speedometer/
+nonav: true
+css:
+  - /assets/speedometer/speedometer.css
+js:
+  - /assets/speedometer/speedometer.js
+---
+
+<div class="speedometer container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h1 class="h2">Speedometer</h1>
+      <p id="message">Press Start and allow the page to use your location.</p>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col">
+      <div class="dial bw">
+        <p id="speed" class="speed">0</p>
+        <p id="unit" class="unit">km/h</p>
+        <p id="gps" class="gps">GPS off</p>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col-4">
+      <p class="label">Max</p>
+      <p id="max" class="reading bw">0</p>
+    </div>
+    <div class="col-4">
+      <p class="label">Distance</p>
+      <p id="distance" class="reading bw">0.00</p>
+    </div>
+    <div class="col-4">
+      <p class="label">Average</p>
+      <p id="average" class="reading bw">0</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12 mt-3">
+      <button type="button" id="button-start" class="btn btn-success">Start</button>
+    </div>
+    <div class="col-6 mt-3">
+      <button type="button" id="button-unit" class="btn btn-secondary">Show mph</button>
+    </div>
+    <div class="col-6 mt-3">
+      <button type="button" id="button-reset" class="btn btn-secondary">Reset</button>
+    </div>
+  </div>
+  <p class="mt-4 text-muted small">Don't use the phone while you drive. Put it in a holder, or give it to a passenger.</p>
+  <p class="mt-5 text-center"><a href="/tutorials/speedometer/">How to build this app</a></p>
+</div>

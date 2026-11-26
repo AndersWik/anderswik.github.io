@@ -1,0 +1,76 @@
+.speedometer h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.speedometer h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+.speedometer .dial {
+  padding: 20px 10px 14px;
+}
+
+.speedometer .speed {
+  margin: 0;
+  font-family: ubuntu;
+  font-weight: 700;
+  font-size: 120px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.speedometer .unit {
+  margin: 0;
+  color: #fdbc40;
+  font-family: ubuntu;
+  font-size: 28px;
+}
+
+.speedometer .gps {
+  margin: 8px 0 0;
+  font-family: ubuntu;
+  font-size: 15px;
+  color: #6c757d;
+}
+
+/* How much to trust the GPS: set by the JavaScript. */
+.speedometer .gps.good {
+  color: #198754;
+}
+
+.speedometer .gps.poor {
+  color: #c98a00;
+}
+
+.speedometer .gps.none {
+  color: #d63a2f;
+}
+
+.speedometer .label {
+  color: #fdbc40;
+  font-family: ubuntu;
+  font-size: 22px;
+  margin-bottom: 0.5rem;
+}
+
+.speedometer .reading {
+  font-family: ubuntu;
+  font-size: 24px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.speedometer button {
+  font-family: ubuntu;
+  width: 100%;
+  height: 70px;
+}

@@ -67,4 +67,5 @@
 - { slug: egg-clock, page: pages/other/egg-clock.html, short_name: Egg Clock, emoji: "🥚" }
 - { slug: eliza, page: pages/other/eliza.html, short_name: Eliza, emoji: "💬" }
 - { slug: myip, page: pages/other/myip.html, name: My IP, short_name: My IP, emoji: "🌐" }
+- { slug: speedometer, page: pages/other/speedometer.html, short_name: Speed, emoji: "🚗" }
 - { slug: week, page: pages/other/week.html, name: Week number, short_name: Week, emoji: "📅" }

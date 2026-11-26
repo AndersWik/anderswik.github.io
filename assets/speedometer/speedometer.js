@@ -1,0 +1,284 @@
+/*
+ * Speedometer: how fast you go, from the phone's GPS.
+ *
+ * navigator.geolocation.watchPosition() calls us with a new position about
+ * once a second. Most phones also tell the speed (coords.speed, in meters a
+ * second), which the GPS measures very well. If it doesn't, we work the
+ * speed out ourselves: the distance between the last two positions divided
+ * by the time between them.
+ *
+ * State:
+ *   watchId       the running watchPosition (null when stopped)
+ *   wakeLock      keeps the screen on (null when we don't have one)
+ *   last          the last position: latitude, longitude and time
+ *   recent        the positions of the last few seconds, for working out the speed
+ *   speed         the speed now, in meters a second
+ *   maxSpeed      the highest speed of the trip, in meters a second
+ *   distance      how far the trip has gone, in meters
+ *   movingTime    how long we have been moving, in seconds, for the average
+ *   lastFixTime   when the last position came, to notice a lost signal
+ *   unit          "kmh" or "mph"
+ */
+
+// --- Settings --------------------------------------------------------------
+
+const SPEED_WINDOW = 4000;  // milliseconds: work out the speed over this long
+const STILL_SPEED = 0.8;     // m/s, about 3 km/h: slower than this counts as standing still
+const GOOD_ACCURACY = 20;    // meters: a position better than this can be trusted
+const POOR_ACCURACY = 50;    // meters: worse than this, don't count distance or max
+const SIGNAL_TIMEOUT = 5000; // milliseconds without a position before we say "no signal"
+const EARTH_RADIUS = 6371000; // meters
+const UNIT_KEY = "speedometer-unit";
+
+// meters a second -> the unit on the screen, and meters -> km or miles
+const UNITS = {
+    kmh: { speed: 3.6, speedName: "km/h", distance: 1 / 1000, distanceName: "km", other: "Show mph" },
+    mph: { speed: 2.23694, speedName: "mph", distance: 1 / 1609.344, distanceName: "mi", other: "Show km/h" }
+};
+
+// --- State -----------------------------------------------------------------
+
+let watchId = null;
+let wakeLock = null;
+let last = null;
+let recent = [];
+let speed = 0;
+let maxSpeed = 0;
+let distance = 0;
+let movingTime = 0;
+let lastFixTime = 0;
+let unit = loadUnit();
+
+// --- Elements on the page --------------------------------------------------
+
+const speedText = document.getElementById("speed");
+const unitText = document.getElementById("unit");
+const gpsText = document.getElementById("gps");
+const maxText = document.getElementById("max");
+const distanceText = document.getElementById("distance");
+const averageText = document.getElementById("average");
+const message = document.getElementById("message");
+const startButton = document.getElementById("button-start");
+const unitButton = document.getElementById("button-unit");
+const resetButton = document.getElementById("button-reset");
+
+// --- Helpers ---------------------------------------------------------------
+
+function toRadians(degrees) {
+    return degrees * Math.PI / 180;
+}
+
+// The distance in meters between two places on the Earth, from their
+// latitude and longitude: the haversine formula. The Earth is round, so we
+// can't use Pythagoras on degrees.
+function distanceBetween(lat1, lon1, lat2, lon2) {
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) ** 2;
+    return 2 * EARTH_RADIUS * Math.asin(Math.sqrt(a));
+}
+
+function loadUnit() {
+    try {
+        return localStorage.getItem(UNIT_KEY) === "mph" ? "mph" : "kmh";
+    } catch (error) {
+        return "kmh";
+    }
+}
+
+function saveUnit() {
+    try {
+        localStorage.setItem(UNIT_KEY, unit);
+    } catch (error) {
+        // Not saved, but the app still works.
+    }
+}
+
+// --- Drawing ---------------------------------------------------------------
+
+function showNumbers() {
+    const u = UNITS[unit];
+    speedText.textContent = Math.round(speed * u.speed);
+    unitText.textContent = u.speedName;
+    maxText.textContent = Math.round(maxSpeed * u.speed);
+    // 2 decimals, but only 1 from 100 km on, so it fits on a phone.
+    const shown = distance * u.distance;
+    distanceText.textContent = shown.toFixed(shown < 100 ? 2 : 1) + " " + u.distanceName;
+    const average = movingTime > 0 ? distance / movingTime : 0;
+    averageText.textContent = Math.round(average * u.speed);
+    unitButton.textContent = u.other;
+}
+
+// How much to trust the GPS: the class colors the text.
+function showGps(text, quality) {
+    gpsText.textContent = text;
+    gpsText.className = "gps " + quality;
+}
+
+// --- The GPS ---------------------------------------------------------------
+
+function onPosition(position) {
+    const coords = position.coords;
+    const time = position.timestamp;
+    lastFixTime = Date.now();
+
+    const accuracy = coords.accuracy;   // meters, about: the real place is within this
+    // \u00B1 is the ± sign.
+    showGps("GPS \u00B1" + Math.round(accuracy) + " m", accuracy <= GOOD_ACCURACY ? "good" : "poor");
+    message.textContent = "Measuring.";
+
+    // How far and how long since the last position.
+    let step = 0;
+    let seconds = 0;
+    if (last !== null) {
+        step = distanceBetween(last.latitude, last.longitude, coords.latitude, coords.longitude);
+        seconds = (time - last.time) / 1000;
+    }
+
+    // Keep the positions of the last few seconds. The oldest one stays until
+    // the next one is old enough, so there is always a few seconds' worth.
+    recent.push({ latitude: coords.latitude, longitude: coords.longitude, time: time });
+    while (recent.length > 1 && time - recent[1].time >= SPEED_WINDOW) {
+        recent.shift();
+    }
+
+    if (coords.speed !== null && !isNaN(coords.speed)) {
+        // The phone knows the speed: use it.
+        speed = coords.speed;
+    } else {
+        // Work it out ourselves: how far from the oldest of the recent
+        // positions, divided by the time. Over a few seconds, the GPS
+        // wobbling a meter or two back and forth hardly counts.
+        const oldest = recent[0];
+        const windowSeconds = (time - oldest.time) / 1000;
+        speed = windowSeconds > 0
+            ? distanceBetween(oldest.latitude, oldest.longitude, coords.latitude, coords.longitude) / windowSeconds
+            : 0;
+    }
+
+    // Standing still, GPS still wobbles a few meters. Call that 0.
+    if (speed < STILL_SPEED) {
+        speed = 0;
+    }
+
+    // Only count distance and max from positions we can trust, and only
+    // when moving, or the wobble adds up to meters while standing still.
+    if (speed > 0 && accuracy <= POOR_ACCURACY) {
+        distance += step;
+        movingTime += seconds;
+        maxSpeed = Math.max(maxSpeed, speed);
+    }
+
+    last = { latitude: coords.latitude, longitude: coords.longitude, time: time };
+    showNumbers();
+}
+
+function onError(error) {
+    if (error.code === error.PERMISSION_DENIED) {
+        message.textContent = "The page may not use your location. Allow it in the browser's settings.";
+        stop();
+    } else if (error.code === error.POSITION_UNAVAILABLE) {
+        showGps("No GPS signal", "none");
+    }
+    // TIMEOUT: watchPosition keeps trying by itself.
+}
+
+// No position for a while: in a tunnel, or the GPS lost the satellites.
+function checkSignal() {
+    if (watchId !== null && lastFixTime > 0 && Date.now() - lastFixTime > SIGNAL_TIMEOUT) {
+        showGps("No GPS signal", "none");
+        speed = 0;
+        showNumbers();
+    }
+}
+
+// --- Keeping the screen on -------------------------------------------------
+
+// The browser stops sending positions when the screen turns off, so we ask
+// to keep it on. Not every browser can, so we try.
+async function keepScreenOn() {
+    if (!("wakeLock" in navigator)) {
+        return;
+    }
+    try {
+        wakeLock = await navigator.wakeLock.request("screen");
+    } catch (error) {
+        wakeLock = null;
+    }
+}
+
+// The lock is let go when the page is hidden, so ask again when it comes back.
+document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && watchId !== null) {
+        keepScreenOn();
+    }
+});
+
+// --- Start and stop --------------------------------------------------------
+
+function start() {
+    if (!("geolocation" in navigator)) {
+        message.textContent = "This browser can't tell your location.";
+        return;
+    }
+    // enableHighAccuracy asks for the GPS, not only Wi-Fi and phone masts.
+    // maximumAge: 0 means always a new position, never an old saved one.
+    watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000
+    });
+    last = null;   // don't count the distance from where we stopped last time
+    recent = [];
+    lastFixTime = 0;
+    keepScreenOn();
+    startButton.textContent = "Stop";
+    startButton.className = "btn btn-warning";
+    showGps("Looking for GPS...", "poor");
+    message.textContent = "Waiting for the first position.";
+}
+
+function stop() {
+    if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+    }
+    watchId = null;
+    if (wakeLock !== null) {
+        wakeLock.release();
+        wakeLock = null;
+    }
+    speed = 0;
+    startButton.textContent = "Start";
+    startButton.className = "btn btn-success";
+    showGps("GPS off", "");
+    showNumbers();
+}
+
+function reset() {
+    maxSpeed = 0;
+    distance = 0;
+    movingTime = 0;
+    showNumbers();
+}
+
+function toggleUnit() {
+    unit = unit === "kmh" ? "mph" : "kmh";
+    saveUnit();
+    showNumbers();
+}
+
+// --- Connect the buttons ---------------------------------------------------
+
+startButton.addEventListener("click", function () {
+    if (watchId === null) {
+        start();
+    } else {
+        stop();
+    }
+});
+unitButton.addEventListener("click", toggleUnit);
+resetButton.addEventListener("click", reset);
+
+setInterval(checkSignal, 1000);
+showNumbers();

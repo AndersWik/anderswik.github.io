@@ -295,6 +295,9 @@ def build(app):
         # The default policy also has upgrade-insecure-requests, which turns
         # every http:// request into https://, so http APIs could not be called.
         manifest["content_security_policy"] = {"extension_pages": "script-src 'self'; object-src 'self'"}
+    if app.get("geolocation"):
+        # Extension pages may only use navigator.geolocation with this permission.
+        manifest["permissions"] = ["geolocation"]
     manifest["browser_specific_settings"] = {
         "gecko": {
             "id": f"{slug}@{DOMAIN}",
@@ -312,7 +315,8 @@ def build(app):
             archive.write(path, path.relative_to(folder))
 
     print(f"{slug:26} {len(files):3} files  {'tab  ' if in_tab else 'popup'}  {name}"
-          + ("  (all sites)" if app.get("all_urls") else ""))
+          + ("  (all sites)" if app.get("all_urls") else "")
+          + ("  (location)" if app.get("geolocation") else ""))
 
 
 def main():

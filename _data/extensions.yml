@@ -23,6 +23,7 @@
 #   width        popup width in pixels (default 360, at most 800)
 #   all_urls     true: permission to call every site, so fetch() is not
 #                stopped by CORS (make-request, page-search). Firefox asks the user first.
+#   geolocation  true: permission to use the location (speedometer)
 #
 # Timers (countdown, egg-clock, pomodoro-timer) open in a tab: a popup and its timer stop as
 # soon as it loses focus.
@@ -70,6 +71,7 @@
 - { slug: egg-clock, page: pages/other/egg-clock.html, emoji: "🥚", open: tab }
 - { slug: eliza, page: pages/other/eliza.html, emoji: "💬" }
 - { slug: myip, page: pages/other/myip.html, name: My IP, emoji: "🌐" }
+- { slug: speedometer, page: pages/other/speedometer.html, emoji: "🚗", open: tab, geolocation: true, description: "A speedometer from your GPS: speed, max speed, distance and average. Needs a device with GPS." }
 - { slug: week, page: pages/other/week.html, name: Week number, emoji: "📅" }
 
 # Keyboard games: not PWAs, but fine in a desktop browser. 800 pixel canvas, so a tab.
