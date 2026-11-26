@@ -61,6 +61,7 @@
 - { slug: page-search, page: pages/tools/page-search.html, short_name: Page Search, emoji: "🔍" }
 - { slug: pomodoro-timer, page: pages/tools/pomodoro-timer.html, short_name: Pomodoro, emoji: "🍅" }
 - { slug: px-em-converter, page: pages/tools/px-em-converter.html, short_name: PX to EM, emoji: "📏" }
+- { slug: timezone-converter, page: pages/tools/timezone-converter.html, short_name: Time Zones, emoji: "🌍" }
 - { slug: unix-timestamp-convertor, page: pages/tools/unix-timestamp-convertor.html, name: Unix Timestamp Converter, short_name: Timestamp, emoji: "🕒" }
 
 - { slug: bubble-level, page: pages/tools/bubble-level.html, short_name: Level, emoji: "📐" }

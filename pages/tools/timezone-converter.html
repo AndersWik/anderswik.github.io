@@ -1,0 +1,53 @@
+---
+layout: default
+title: Time Zone Converter
+permalink: /tools/timezone-converter/
+nonav: true
+css:
+  - /assets/timezone-converter/timezone-converter.css
+js:
+  - /assets/timezone-converter/timezone-converter.js
+---
+
+<div class="timezone-converter container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h1 class="h2">Time Zone Converter</h1>
+      <p>What time is it there, when it is this time here?</p>
+    </div>
+  </div>
+  <div class="row align-items-end mt-3">
+    <div class="col-12 col-sm-8">
+      <label class="form-label" for="when">Date and time</label>
+      <input class="form-control form-control-lg" type="datetime-local" id="when">
+    </div>
+    <div class="col-12 col-sm-4 mt-3 mt-sm-0">
+      <button type="button" id="now" class="btn btn-secondary">Now</button>
+    </div>
+  </div>
+  <div class="row align-items-end mt-3">
+    <div class="col-12 col-md-5">
+      <label class="form-label" for="from">From time zone</label>
+      <input class="form-control form-control-lg" id="from" list="zones" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="col-12 col-md-2 mt-3">
+      <button type="button" id="swap" class="btn btn-outline-secondary swap" aria-label="Swap the time zones">⇄</button>
+    </div>
+    <div class="col-12 col-md-5 mt-3">
+      <label class="form-label" for="to">To time zone</label>
+      <input class="form-control form-control-lg" id="to" list="zones" autocomplete="off" spellcheck="false">
+    </div>
+  </div>
+  <datalist id="zones"></datalist>
+
+  <div class="result bw mt-4">
+    <p id="from-text" class="from-text"></p>
+    <p id="to-time" class="to-time">--:--</p>
+    <p id="to-date" class="to-date"></p>
+    <p id="difference" class="difference"></p>
+    <p id="note" class="note" hidden></p>
+  </div>
+
+  <p class="mt-4 text-muted small">Type to search: "Tokyo", "New_York" or "UTC". Your system's time zone is chosen at the start.</p>
+  <p class="mt-5 text-center"><a href="/tutorials/timezone-converter/">How to build this tool</a></p>
+</div>

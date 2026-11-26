@@ -1,0 +1,69 @@
+.timezone-converter h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.timezone-converter h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+.timezone-converter label {
+  font-family: ubuntu;
+  color: #c98a00;
+}
+
+.timezone-converter button {
+  font-family: ubuntu;
+  width: 100%;
+  height: 48px;
+}
+
+.timezone-converter .swap {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.timezone-converter .result {
+  padding: 20px 12px;
+}
+
+.timezone-converter .result p {
+  margin: 0;
+}
+
+.timezone-converter .from-text {
+  color: #6c757d;
+}
+
+.timezone-converter .to-time {
+  font-family: ubuntu;
+  font-weight: 700;
+  font-size: 64px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.timezone-converter .to-date {
+  font-family: ubuntu;
+  font-size: 18px;
+}
+
+.timezone-converter .difference {
+  margin-top: 12px !important;
+  color: #c98a00;
+  font-family: ubuntu;
+}
+
+.timezone-converter .note {
+  margin-top: 8px !important;
+  color: #d63a2f;
+  font-size: 14px;
+}

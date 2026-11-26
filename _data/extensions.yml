@@ -66,6 +66,7 @@
 - { slug: page-search, page: pages/tools/page-search.html, emoji: "🔍", open: tab, all_urls: true, description: "Search many web pages, or every page in a sitemap, for a regular expression." }
 - { slug: pomodoro-timer, page: pages/tools/pomodoro-timer.html, emoji: "🍅", open: tab, description: "A Pomodoro timer: focus for 25 minutes, take a 5 minute break, repeat." }
 - { slug: px-em-converter, page: pages/tools/px-em-converter.html, emoji: "📏", description: "Convert pixels to em and rem, and back, from a base font size." }
+- { slug: timezone-converter, page: pages/tools/timezone-converter.html, emoji: "🌍", width: 560, description: "Convert a date and time from one time zone to another, with summer time." }
 - { slug: unix-timestamp-convertor, page: pages/tools/unix-timestamp-convertor.html, name: Unix Timestamp Converter, emoji: "🕒" }
 - { slug: bubble-level, page: pages/tools/bubble-level.html, emoji: "📐", description: "A bubble level for your phone: lay it on a surface and see if it is flat." }
 - { slug: compass, page: pages/tools/compass.html, emoji: "🧭", description: "A compass for your phone: see which way north is and which way you are facing." }

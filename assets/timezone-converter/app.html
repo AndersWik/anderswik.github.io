@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Time Zone Converter</title>
+
+  <!-- Makes this page an installable app, see _scripts/make-pwa.py. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
+  <!-- iPhone and iPad read these instead of the manifest. -->
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Time Zone Converter">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/assets/timezone-converter/timezone-converter.css">
+  <style>
+    /* Without the site header the games would touch the top of the screen. */
+    .game { padding-block: 16px; }
+  </style>
+</head>
+<body>
+<div class="timezone-converter container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h1 class="h2">Time Zone Converter</h1>
+      <p>What time is it there, when it is this time here?</p>
+    </div>
+  </div>
+  <div class="row align-items-end mt-3">
+    <div class="col-12 col-sm-8">
+      <label class="form-label" for="when">Date and time</label>
+      <input class="form-control form-control-lg" type="datetime-local" id="when">
+    </div>
+    <div class="col-12 col-sm-4 mt-3 mt-sm-0">
+      <button type="button" id="now" class="btn btn-secondary">Now</button>
+    </div>
+  </div>
+  <div class="row align-items-end mt-3">
+    <div class="col-12 col-md-5">
+      <label class="form-label" for="from">From time zone</label>
+      <input class="form-control form-control-lg" id="from" list="zones" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="col-12 col-md-2 mt-3">
+      <button type="button" id="swap" class="btn btn-outline-secondary swap" aria-label="Swap the time zones">⇄</button>
+    </div>
+    <div class="col-12 col-md-5 mt-3">
+      <label class="form-label" for="to">To time zone</label>
+      <input class="form-control form-control-lg" id="to" list="zones" autocomplete="off" spellcheck="false">
+    </div>
+  </div>
+  <datalist id="zones"></datalist>
+
+  <div class="result bw mt-4">
+    <p id="from-text" class="from-text"></p>
+    <p id="to-time" class="to-time">--:--</p>
+    <p id="to-date" class="to-date"></p>
+    <p id="difference" class="difference"></p>
+    <p id="note" class="note" hidden></p>
+  </div>
+
+  <p class="mt-4 text-muted small">Type to search: "Tokyo", "New_York" or "UTC". Your system's time zone is chosen at the start.</p>
+</div>
+
+<script src="/assets/timezone-converter/timezone-converter.js"></script>
+<script>
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+</body>
+</html>
