@@ -1,0 +1,119 @@
+.qr-reader h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.qr-reader h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+/* The camera picture: a square, filled edge to edge. */
+.qr-reader .viewfinder {
+  position: relative;
+  width: 320px;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  overflow: hidden;
+  background-color: #1b1d21;
+  border-radius: 16px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+.qr-reader video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A square in the middle to aim with, the rest a little darker. */
+.qr-reader .frame {
+  position: absolute;
+  inset: 16%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.2s;
+}
+
+.qr-reader .viewfinder.found .frame {
+  border-color: #3ccf6e;
+}
+
+.qr-reader .label {
+  color: #fdbc40;
+  font-family: ubuntu;
+  font-size: 18px;
+  margin-bottom: 0.5rem;
+}
+
+.qr-reader .result {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e2e4e8;
+  border-radius: 12px;
+}
+
+/* Long links have no spaces, so they may break anywhere. */
+.qr-reader .result-text {
+  margin-bottom: 0.5rem;
+  font-size: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.qr-reader .result-host {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.qr-reader .actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.qr-reader #button-start {
+  font-family: ubuntu;
+  width: 100%;
+  height: 70px;
+}
+
+.qr-reader #file {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* The codes read before, one line each. */
+.qr-reader .history {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.qr-reader .history button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  color: #222222;
+  background-color: #ffffff;
+  border: 1px solid #e2e4e8;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}

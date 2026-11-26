@@ -1,0 +1,1019 @@
+---
+layout: default
+title: Shake Dice
+permalink: /tutorials/shake-dice/
+chapter: "10"
+chapter_title: "Mobile games"
+keywords: [javascript, game, canvas, devicemotion, accelerometer, accelerationIncludingGravity, gravity, shake detection, crypto.getRandomValues, fair random numbers, modulo bias, friction, collision, polygon, roundRect, vibrate, localStorage]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Shake Dice</h1>
+  <p>Shake your phone to roll the dice. Choose D4, D6, D8, D10, D12 or D20, and 1 to 4 dice. The harder you shake, the harder the dice are thrown: they fly faster, bounce off the walls more, and roll longer. A bar shows how hard you shake, with a line at your hardest shake ever. On a computer, you press Roll.</p>
+  <p>The <a href="/tutorials/dice/">Dice roller</a> rolls dice with a click. Here the phone's <strong>accelerometer</strong> feels the shake, and the dice roll round a felt tray and bump into each other, like the balls in <a href="/tutorials/pool/">Pool</a>. Two new ideas: telling a real shake from a bump, and random numbers that are truly fair.</p>
+  <p><a href="/assets/tutorials/shake-dice.html">Open the finished game</a> (on a phone, to shake it)</p>
+
+  <h2>Step 1: The page</h2>
+  <p>Create <code>shake-dice.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. Two rows of buttons choose the dice, and the tray is a canvas:</p>
+  <pre><code class="language-html">&lt;div class="container"&gt;
+  &lt;h1&gt;Shake Dice&lt;/h1&gt;
+  &lt;div class="choices" id="sides" role="group" aria-label="Kind of dice"&gt;
+    &lt;button type="button" data-sides="4"&gt;D4&lt;/button&gt;
+    &lt;button type="button" data-sides="6"&gt;D6&lt;/button&gt;
+    &lt;button type="button" data-sides="8"&gt;D8&lt;/button&gt;
+    &lt;button type="button" data-sides="10"&gt;D10&lt;/button&gt;
+    &lt;button type="button" data-sides="12"&gt;D12&lt;/button&gt;
+    &lt;button type="button" data-sides="20"&gt;D20&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div class="choices" id="count" role="group" aria-label="Number of dice"&gt;
+    &lt;span class="choices-label"&gt;Dice:&lt;/span&gt;
+    &lt;button type="button" data-count="1"&gt;1&lt;/button&gt;
+    &lt;button type="button" data-count="2"&gt;2&lt;/button&gt;
+    &lt;button type="button" data-count="3"&gt;3&lt;/button&gt;
+    &lt;button type="button" data-count="4"&gt;4&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;canvas id="gameCanvas" width="360" height="400"&gt;&lt;/canvas&gt;
+  &lt;p id="message" aria-live="polite"&gt;Shake the phone to roll, or tap Roll.&lt;/p&gt;
+  &lt;button type="button" id="start"&gt;Roll&lt;/button&gt;
+  &lt;details class="rules"&gt;
+    &lt;summary&gt;How to play&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Choose the kind of dice, D4 to D20, and how many.&lt;/li&gt;
+      &lt;li&gt;Shake the phone, then stop. The harder you shake, the harder the dice are thrown: they fly faster, bounce more and roll longer.&lt;/li&gt;
+      &lt;li&gt;The numbers are fair: shaking harder changes the throw, not the odds.&lt;/li&gt;
+      &lt;li&gt;The bar under the dice shows how hard you shake, and the white line your hardest shake so far.&lt;/li&gt;
+      &lt;li&gt;Hold on to the phone! On a computer, press Roll.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
+&lt;/div&gt;</code></pre>
+  <p><code>data-sides</code> and <code>data-count</code> keep a number on each button, which the script reads as <code>button.dataset.sides</code>. <code>aria-pressed="true"</code> marks the chosen button, both for screen readers and for the CSS, which colors it gold. It is all in the complete page below.</p>
+
+  <h2>Step 2: Feeling a shake</h2>
+  <p><a href="/tutorials/steady-hand/">Steady Hand</a> read the gyroscope from the <code>devicemotion</code> event. The same event has the accelerometer, as <code>event.accelerationIncludingGravity</code>: how hard the phone is pushed, in m/s², along its three lines <code>x</code>, <code>y</code> and <code>z</code>.</p>
+  <p>A phone lying still is pushed by just one thing: gravity, 9.81 m/s². Shake it, and your hand pushes it too, back and forth. So how far the length of the push is from 9.81 tells how hard you shake:</p>
+  <pre><code class="language-javascript">function onMotion(event) {
+    const a = event.accelerationIncludingGravity;
+    if (!a || a.x === null) {
+        return;
+    }
+    // How far from just gravity: 0 lying still, more the harder you shake.
+    const force = Math.abs(Math.hypot(a.x, a.y, a.z) - GRAVITY);
+    meter = Math.max(meter, force);
+    if (force &lt; SHAKE_START) {
+        return;
+    }
+    if (!shaking) {
+        shaking = true;
+        strongReadings = 0;
+        peak = 0;
+    }
+    strongReadings++;
+    peak = Math.max(peak, force);
+    lastStrong = performance.now();
+    if (strongReadings &gt;= SHAKE_READINGS) {
+        rattle(force);
+    }
+}</code></pre>
+  <ul>
+    <li><code>Math.hypot(a.x, a.y, a.z)</code> is the length of the push, all three lines together. It doesn't matter how you hold the phone, or which way you shake it.</li>
+    <li>A shake pushes both ways: the phone feels more than gravity one moment and less the next. <code>Math.abs</code> counts both.</li>
+    <li><code>meter</code> is the shake bar under the tray. It jumps up with every reading, and falls back slowly in <code>update</code>, so you can read it.</li>
+  </ul>
+  <p>Android phones send <code>devicemotion</code> to any page, so the game starts listening at once. iPhones ask first, as in Steady Hand, so there the first tap on a button asks for permission.</p>
+
+  <h2>Step 3: A shake, not a bump</h2>
+  <p>Putting the phone down on a table is a bump: one or two strong readings. A shake is many. So a shake only counts after 3 strong readings, and only then do the dice start to rattle. When no strong reading has come for a quarter of a second, the shake is over, and the dice are thrown, as hard as the hardest moment of the shake:</p>
+  <pre><code class="language-javascript">function update() {
+    meter *= 0.96;
+    if (shaking &amp;&amp; performance.now() - lastStrong &gt; SHAKE_END) {
+        shaking = false;
+        if (strongReadings &gt;= SHAKE_READINGS) {
+            if (peak &gt; record) {
+                record = peak;
+                saveRecord();
+            }
+            throwDice(peak);
+            message.textContent = strengthName(peak) + " Rolling...";
+        }
+    }
+    if (rolling) {
+        moveDice();
+        if (!shaking &amp;&amp; allStill()) {
+            finish();
+        }
+    }
+}</code></pre>
+  <p>While you shake, every strong reading kicks the dice a little in a random direction, so they rattle round the tray in your hand:</p>
+  <pre><code class="language-javascript">function rattle(force) {
+    const kick = Math.min(force, HARDEST) * 0.12;
+    dice.forEach(function (die) {
+        die.vx += (Math.random() - 0.5) * kick;
+        die.vy += (Math.random() - 0.5) * kick;
+        die.spin += (Math.random() - 0.5) * 0.05;
+    });
+    rolling = true;
+}</code></pre>
+
+  <h2>Step 4: Fair numbers</h2>
+  <p>A D20 should give each number one time in 20. The usual way to roll one is <code>Math.floor(Math.random() * 20) + 1</code>, and for a game that is fine. But there is a trap worth knowing about, called <strong>modulo bias</strong>.</p>
+  <p>Say you have a random number from 0 to 255, like one byte, and take <code>% 20</code> to get 0 to 19. 256 is 12 times 20, with 16 left over. So 0 to 15 can each come from 13 different bytes, but 16 to 19 only from 12. The low numbers come up a little more often.</p>
+  <p>The fix: throw away the left-over part and draw again. Here with the browser's best randomness, <code>crypto.getRandomValues</code>, which fills a list with random 32-bit numbers:</p>
+  <pre><code class="language-javascript">function randomInt(n) {
+    const limit = Math.floor(0x100000000 / n) * n;
+    const number = new Uint32Array(1);
+    do {
+        crypto.getRandomValues(number);
+    } while (number[0] &gt;= limit);
+    return number[0] % n + 1;
+}</code></pre>
+  <p><code>limit</code> is the biggest multiple of n that fits in 32 bits. Numbers from <code>limit</code> up are drawn again, so every result has exactly the same number of ways to come up. With 32 bits that happens very rarely, so it costs nothing.</p>
+  <p>The numbers are picked when the dice are thrown, not from the shake. How hard you shake changes how the dice fly, but not the odds. Otherwise some numbers would be easier to shake than others, and the dice would not be fair.</p>
+
+  <h2>Step 5: The throw</h2>
+  <pre><code class="language-javascript">function throwDice(force) {
+    const power = Math.min(1, force / HARDEST);
+    dice.forEach(function (die) {
+        die.value = randomInt(settings.sides);
+        const direction = Math.random() * Math.PI * 2;
+        const speed = (2 + power * 20) * (0.8 + Math.random() * 0.4);
+        die.vx = Math.cos(direction) * speed;
+        die.vy = Math.sin(direction) * speed;
+        die.spin = (Math.random() - 0.5) * (0.2 + power * 0.5);
+    });
+    rolling = true;
+}</code></pre>
+  <p><code>power</code> is the shake as a number from 0 to 1: 40 m/s² or more is 1. Even the gentlest shake is 8 m/s², so a gentle throw starts at about 6 pixels a step, a wild one at about 22. Each die gets a random direction and a little random speed, so they don't fly the same way. The message says how hard it was:</p>
+  <pre><code class="language-javascript">function strengthName(force) {
+    if (force &lt; 14) {
+        return "A gentle shake.";
+    }
+    if (force &lt; 22) {
+        return "A good shake.";
+    }
+    if (force &lt; 32) {
+        return "A hard shake!";
+    }
+    return "A wild shake!";
+}</code></pre>
+
+  <h2>Step 6: Rolling to a stop</h2>
+  <p>Each step, the dice move, bounce off the walls, and slow down. How they slow down decides how much the throw matters. With friction that takes a part of the speed every step, like 2.5 percent, a die thrown twice as hard only rolls a little longer. The felt rolls the other way: it takes a fixed amount every step. Then a die thrown twice as hard rolls about twice as long. The game uses a little of both:</p>
+  <pre><code class="language-javascript">function slowDown(die) {
+    const speed = Math.hypot(die.vx, die.vy);
+    if (speed &gt; 0) {
+        const slower = Math.max(0, speed * FRICTION - ROLLING) / speed;
+        die.vx *= slower;
+        die.vy *= slower;
+    }
+    die.spin *= 0.97;
+}</code></pre>
+  <p>A test that threw the dice 40 times at each strength: a gentle throw rolled for about 1.7 seconds, and a wild one for about 2.7 seconds, with many more bounces. With only the 2.5 percent part, it was 2.6 against 3 seconds, too little to feel.</p>
+  <p>A die that hits a wall bounces back with 80 percent of its speed, and a hard hit gives a short buzz:</p>
+  <pre><code class="language-javascript">function bounceOffWalls(die) {
+    const r = SIZE;
+    let hit = 0;
+    if (die.x &lt; TRAY.left + r) {
+        die.x = TRAY.left + r;
+        hit = Math.abs(die.vx);
+        die.vx = Math.abs(die.vx) * BOUNCE;
+    } else if (die.x &gt; TRAY.right - r) {
+        die.x = TRAY.right - r;
+        hit = Math.abs(die.vx);
+        die.vx = -Math.abs(die.vx) * BOUNCE;
+    }
+    if (die.y &lt; TRAY.top + r) {
+        die.y = TRAY.top + r;
+        hit = Math.max(hit, Math.abs(die.vy));
+        die.vy = Math.abs(die.vy) * BOUNCE;
+    } else if (die.y &gt; TRAY.bottom - r) {
+        die.y = TRAY.bottom - r;
+        hit = Math.max(hit, Math.abs(die.vy));
+        die.vy = -Math.abs(die.vy) * BOUNCE;
+    }
+    if (hit &gt; 4 &amp;&amp; !shaking &amp;&amp; navigator.vibrate) {
+        navigator.vibrate(10);   // a tick when a die hits the wall hard
+    }
+}</code></pre>
+  <p>Dice that touch push each other apart, and swap the part of their speed along the line between them, the same as two pool balls:</p>
+  <pre><code class="language-javascript">function collide(a, b) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const distance = Math.hypot(dx, dy);
+    const minimum = SIZE * 1.8;
+    if (distance &gt;= minimum || distance === 0) {
+        return;
+    }
+    const nx = dx / distance;
+    const ny = dy / distance;
+    const push = (minimum - distance) / 2;
+    a.x -= nx * push;
+    a.y -= ny * push;
+    b.x += nx * push;
+    b.y += ny * push;
+    const closing = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+    if (closing &gt; 0) {
+        a.vx -= closing * nx;
+        a.vy -= closing * ny;
+        b.vx += closing * nx;
+        b.vy += closing * ny;
+    }
+}</code></pre>
+  <p>While a die rolls fast, its top face keeps changing to a random number. When it slows down, it shows the number it was given at the throw. When all dice lie still, <code>finish</code> shows the numbers and the total.</p>
+
+  <h2>Step 7: Drawing the dice</h2>
+  <p>Seen from above, each kind of die has its own outline: a triangle for the D4, a square for the D6, a diamond for the D8, a kite for the D10, a pentagon for the D12 and a hexagon for the D20. All but the D6 and D10 are <strong>regular polygons</strong>, with corners spread evenly round a circle:</p>
+  <pre><code class="language-javascript">function polygon(corners, radius) {
+    for (let i = 0; i &lt; corners; i++) {
+        const a = -Math.PI / 2 + i * Math.PI * 2 / corners;
+        const x = Math.cos(a) * radius;
+        const y = Math.sin(a) * radius;
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    }
+    ctx.closePath();
+}</code></pre>
+  <pre><code class="language-javascript">function shape(sides, r) {
+    ctx.beginPath();
+    if (sides === 6) {
+        ctx.roundRect(-r * 0.75, -r * 0.75, r * 1.5, r * 1.5, r * 0.22);
+    } else if (sides === 10) {
+        ctx.moveTo(0, -r * 1.1);       // a kite, like a D10's faces
+        ctx.lineTo(r * 0.95, -r * 0.1);
+        ctx.lineTo(0, r * 0.95);
+        ctx.lineTo(-r * 0.95, -r * 0.1);
+        ctx.closePath();
+    } else {
+        const corners = { 4: 3, 8: 4, 12: 5, 20: 6 }[sides];
+        const size = { 4: 1.2, 8: 1.05, 12: 1.0, 20: 1.05 }[sides];
+        polygon(corners, r * size);
+    }
+}</code></pre>
+  <p>The D6 is a <code>roundRect</code>, a rectangle with round corners, with dots instead of a number. Each dot is a place on a 3 by 3 grid:</p>
+  <pre><code class="language-javascript">const PIPS = {
+    1: [[0, 0]],
+    2: [[-1, -1], [1, 1]],
+    3: [[-1, -1], [0, 0], [1, 1]],
+    4: [[-1, -1], [1, -1], [-1, 1], [1, 1]],
+    5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]],
+    6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]]
+};</code></pre>
+  <p>The whole die is drawn turned by its <code>angle</code>, so the numbers turn with it, like on a real die. On a D10, D12 or D20, a 6 upside down looks like a 9, so 6 and 9 get a line under them, as on real dice.</p>
+
+  <h2>Step 8: Test it</h2>
+  <p>Some things are easier to test with made-up readings in the browser's console than by shaking:</p>
+  <ul>
+    <li><strong>Fair:</strong> 120,000 rolls of a D20 should give each number about 6,000 times. They came out from 5,853 to 6,112, a normal spread for random numbers. The D6 too: 19,782 to 20,205 for an expected 20,000.</li>
+    <li><strong>A bump:</strong> two readings of 15 m/s² should not throw the dice. They didn't.</li>
+    <li><strong>A shake:</strong> twelve readings up to 30 m/s² should rattle the dice, then throw them as "A hard shake!", and save 30 as the hardest shake. They did, and every die stopped inside the tray.</li>
+  </ul>
+  <p>Then with a phone:</p>
+  <ul>
+    <li>Shake gently, then wildly. A wild shake should throw the dice further, with more bounces.</li>
+    <li>Put the phone down on the table. It should not roll.</li>
+    <li>Choose 4 dice and shake. They should bump into each other, not lie on top of each other.</li>
+    <li>Reload the page. The dice you chose and the line for your hardest shake should still be there.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>shake-dice.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Shake Dice&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+
+    .container {
+        text-align: center;
+        width: 420px;
+        max-width: calc(100% - 40px);
+        box-sizing: border-box;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    canvas {
+        display: block;
+        width: 360px;
+        max-width: 100%;
+        height: auto;
+        margin: 12px auto 0;
+        border: 8px solid #6b4423;
+        border-radius: 8px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        box-sizing: border-box;
+        touch-action: none;
+    }
+
+    #message {
+        min-height: 2.8em;
+        margin: 12px 0;
+    }
+
+    #start {
+        width: 100%;
+        padding: 14px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #222222;
+        background-color: #e8b455;
+        border: 3px solid #c99a3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* On a phone, less room round the dice, so they can be bigger. */
+    @media (max-width: 480px) {
+        .container {
+            max-width: calc(100% - 16px);
+            margin: 8px;
+            padding: 12px;
+        }
+    }
+
+    /* --- The rules ---------------------------------------------------------- */
+
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+
+    /* --- Choosing the dice -------------------------------------------------- */
+
+    .choices {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .choices-label {
+        align-self: center;
+        margin-right: 4px;
+        font-weight: bold;
+        color: #555555;
+    }
+
+    .choices button {
+        min-width: 46px;
+        padding: 8px 6px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #222222;
+        background-color: #ffffff;
+        border: 2px solid #dddddd;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .choices button[aria-pressed="true"] {
+        background-color: #fdf1d8;
+        border-color: #e8b455;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class="container"&gt;
+    &lt;h1&gt;Shake Dice&lt;/h1&gt;
+    &lt;div class="choices" id="sides" role="group" aria-label="Kind of dice"&gt;
+      &lt;button type="button" data-sides="4"&gt;D4&lt;/button&gt;
+      &lt;button type="button" data-sides="6"&gt;D6&lt;/button&gt;
+      &lt;button type="button" data-sides="8"&gt;D8&lt;/button&gt;
+      &lt;button type="button" data-sides="10"&gt;D10&lt;/button&gt;
+      &lt;button type="button" data-sides="12"&gt;D12&lt;/button&gt;
+      &lt;button type="button" data-sides="20"&gt;D20&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class="choices" id="count" role="group" aria-label="Number of dice"&gt;
+      &lt;span class="choices-label"&gt;Dice:&lt;/span&gt;
+      &lt;button type="button" data-count="1"&gt;1&lt;/button&gt;
+      &lt;button type="button" data-count="2"&gt;2&lt;/button&gt;
+      &lt;button type="button" data-count="3"&gt;3&lt;/button&gt;
+      &lt;button type="button" data-count="4"&gt;4&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;canvas id="gameCanvas" width="360" height="400"&gt;&lt;/canvas&gt;
+    &lt;p id="message" aria-live="polite"&gt;Shake the phone to roll, or tap Roll.&lt;/p&gt;
+    &lt;button type="button" id="start"&gt;Roll&lt;/button&gt;
+    &lt;details class="rules"&gt;
+      &lt;summary&gt;How to play&lt;/summary&gt;
+      &lt;ul&gt;
+        &lt;li&gt;Choose the kind of dice, D4 to D20, and how many.&lt;/li&gt;
+        &lt;li&gt;Shake the phone, then stop. The harder you shake, the harder the dice are thrown: they fly faster, bounce more and roll longer.&lt;/li&gt;
+        &lt;li&gt;The numbers are fair: shaking harder changes the throw, not the odds.&lt;/li&gt;
+        &lt;li&gt;The bar under the dice shows how hard you shake, and the white line your hardest shake so far.&lt;/li&gt;
+        &lt;li&gt;Hold on to the phone! On a computer, press Roll.&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/details&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Shake Dice: shake the phone to roll the dice. The harder you shake, the
+     * harder the dice are thrown: they fly faster, bounce more and roll longer.
+     * Choose D4, D6, D8, D10, D12 or D20, and 1 to 4 dice.
+     *
+     * The shake comes from the accelerometer, with the "devicemotion" event, as
+     * event.accelerationIncludingGravity, in m/s². A phone lying still feels
+     * only gravity, 9.8 m/s². Shaking adds to that, so how far it is from 9.8
+     * is how hard you shake.
+     *
+     * The numbers are fair: each one is picked with crypto.getRandomValues when
+     * the dice are thrown. How hard you shake changes the throw, not the odds.
+     * On a computer, press Roll.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;      // one update, in ms
+    const GRAVITY = 9.81;        // m/s²
+    const SHAKE_START = 8;       // m/s² away from gravity: this is a shake
+    const SHAKE_READINGS = 3;    // strong readings it takes to count as a shake, not a bump
+    const SHAKE_END = 250;       // ms of calm after a shake before the dice are thrown
+    const HARDEST = 40;          // m/s²: shaking this hard throws as hard as it gets
+    const BUTTON_FORCE = 18;     // the Roll button throws like a good shake
+    const FRICTION = 0.995;      // air and felt take half a percent of the speed every step...
+    const ROLLING = 0.05;        // ...and the felt takes this much more, so a fast die rolls longer
+    const BOUNCE = 0.8;          // how much speed is left after hitting a wall
+    const SIZE = 34;             // a die's radius, in pixels
+    const COLORS = { 4: "#d9534f", 6: "#f5f1e6", 8: "#3b7dd8", 10: "#2e9e5b", 12: "#8a4fc7", 20: "#e8b455" };
+    const SETTINGS_KEY = "shake-dice-settings";
+    const RECORD_KEY = "shake-dice-record";
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    const TRAY = { left: 0, top: 40, right: WIDTH, bottom: HEIGHT - 50 };
+    const message = document.getElementById("message");
+    const rollButton = document.getElementById("start");
+    const sidesButtons = document.querySelectorAll("#sides button");
+    const countButtons = document.querySelectorAll("#count button");
+
+    // --- State ---------------------------------------------------------------
+
+    let settings = loadSettings();   // { sides, count }
+    let dice = [];                   // each: x, y, vx, vy, angle, spin, value, face
+    let rolling = false;
+    let shaking = false;
+    let strongReadings = 0;          // strong readings in this shake
+    let peak = 0;                    // the hardest reading in this shake, m/s²
+    let lastStrong = 0;              // when the last strong reading came
+    let meter = 0;                   // the shake meter, m/s², falls back slowly
+    let record = loadRecord();       // the hardest shake so far, m/s²
+    let listening = false;
+
+    // --- Random numbers ------------------------------------------------------
+
+    // A fair whole number from 1 to n. Math.random() would do for a game, but
+    // crypto.getRandomValues is the browser's best randomness. 2^32 can't be
+    // split evenly into n parts, so numbers from the last, uneven part are
+    // thrown away and we draw again.
+    function randomInt(n) {
+        const limit = Math.floor(0x100000000 / n) * n;
+        const number = new Uint32Array(1);
+        do {
+            crypto.getRandomValues(number);
+        } while (number[0] &gt;= limit);
+        return number[0] % n + 1;
+    }
+
+    // --- The accelerometer ---------------------------------------------------
+
+    function onMotion(event) {
+        const a = event.accelerationIncludingGravity;
+        if (!a || a.x === null) {
+            return;
+        }
+        // How far from just gravity: 0 lying still, more the harder you shake.
+        const force = Math.abs(Math.hypot(a.x, a.y, a.z) - GRAVITY);
+        meter = Math.max(meter, force);
+        if (force &lt; SHAKE_START) {
+            return;
+        }
+        if (!shaking) {
+            shaking = true;
+            strongReadings = 0;
+            peak = 0;
+        }
+        strongReadings++;
+        peak = Math.max(peak, force);
+        lastStrong = performance.now();
+        if (strongReadings &gt;= SHAKE_READINGS) {
+            rattle(force);
+        }
+    }
+
+    // iPhones ask first, and only after a tap. Other phones can start at once.
+    async function startSensor() {
+        if (listening || !window.DeviceMotionEvent) {
+            return;
+        }
+        if (typeof DeviceMotionEvent.requestPermission === "function") {
+            try {
+                if (await DeviceMotionEvent.requestPermission() !== "granted") {
+                    return;
+                }
+            } catch (error) {
+                return;
+            }
+        }
+        window.addEventListener("devicemotion", onMotion);
+        listening = true;
+    }
+
+    // --- The dice ------------------------------------------------------------
+
+    // Put the dice in a row in the middle, lying still.
+    function placeDice() {
+        dice = [];
+        const gap = Math.min(SIZE * 2.6, (TRAY.right - TRAY.left - SIZE * 2) / Math.max(1, settings.count - 1));
+        const first = WIDTH / 2 - gap * (settings.count - 1) / 2;
+        for (let i = 0; i &lt; settings.count; i++) {
+            dice.push({
+                x: first + gap * i, y: (TRAY.top + TRAY.bottom) / 2,
+                vx: 0, vy: 0, angle: 0, spin: 0,
+                value: settings.sides, face: settings.sides
+            });
+        }
+        rolling = false;
+    }
+
+    // While you shake, the dice rattle round the tray.
+    function rattle(force) {
+        const kick = Math.min(force, HARDEST) * 0.12;
+        dice.forEach(function (die) {
+            die.vx += (Math.random() - 0.5) * kick;
+            die.vy += (Math.random() - 0.5) * kick;
+            die.spin += (Math.random() - 0.5) * 0.05;
+        });
+        rolling = true;
+    }
+
+    // Throw the dice: the numbers are picked now, and the harder the throw, the
+    // faster they fly.
+    function throwDice(force) {
+        const power = Math.min(1, force / HARDEST);
+        dice.forEach(function (die) {
+            die.value = randomInt(settings.sides);
+            const direction = Math.random() * Math.PI * 2;
+            const speed = (2 + power * 20) * (0.8 + Math.random() * 0.4);
+            die.vx = Math.cos(direction) * speed;
+            die.vy = Math.sin(direction) * speed;
+            die.spin = (Math.random() - 0.5) * (0.2 + power * 0.5);
+        });
+        rolling = true;
+    }
+
+    function strengthName(force) {
+        if (force &lt; 14) {
+            return "A gentle shake.";
+        }
+        if (force &lt; 22) {
+            return "A good shake.";
+        }
+        if (force &lt; 32) {
+            return "A hard shake!";
+        }
+        return "A wild shake!";
+    }
+
+    function moveDice() {
+        dice.forEach(function (die) {
+            die.x += die.vx;
+            die.y += die.vy;
+            die.angle += die.spin;
+            bounceOffWalls(die);
+            slowDown(die);
+            // Rolling fast, the top face keeps changing. Slow, it shows its number.
+            const speed = Math.hypot(die.vx, die.vy);
+            if (speed &gt; 1) {
+                if (Math.random() &lt; speed / 15) {
+                    die.face = randomInt(settings.sides);
+                }
+            } else {
+                die.face = die.value;
+            }
+        });
+        // Dice that touch push each other apart, and swap their speed along the
+        // line between them, like two balls of the same weight.
+        for (let i = 0; i &lt; dice.length; i++) {
+            for (let j = i + 1; j &lt; dice.length; j++) {
+                collide(dice[i], dice[j]);
+            }
+        }
+    }
+
+    // Friction takes a part of the speed, and the felt a fixed amount more. With
+    // only the part, a die thrown twice as hard would roll just a little longer.
+    // With the fixed amount, it rolls about twice as long, like a real throw.
+    function slowDown(die) {
+        const speed = Math.hypot(die.vx, die.vy);
+        if (speed &gt; 0) {
+            const slower = Math.max(0, speed * FRICTION - ROLLING) / speed;
+            die.vx *= slower;
+            die.vy *= slower;
+        }
+        die.spin *= 0.97;
+    }
+
+    function bounceOffWalls(die) {
+        const r = SIZE;
+        let hit = 0;
+        if (die.x &lt; TRAY.left + r) {
+            die.x = TRAY.left + r;
+            hit = Math.abs(die.vx);
+            die.vx = Math.abs(die.vx) * BOUNCE;
+        } else if (die.x &gt; TRAY.right - r) {
+            die.x = TRAY.right - r;
+            hit = Math.abs(die.vx);
+            die.vx = -Math.abs(die.vx) * BOUNCE;
+        }
+        if (die.y &lt; TRAY.top + r) {
+            die.y = TRAY.top + r;
+            hit = Math.max(hit, Math.abs(die.vy));
+            die.vy = Math.abs(die.vy) * BOUNCE;
+        } else if (die.y &gt; TRAY.bottom - r) {
+            die.y = TRAY.bottom - r;
+            hit = Math.max(hit, Math.abs(die.vy));
+            die.vy = -Math.abs(die.vy) * BOUNCE;
+        }
+        if (hit &gt; 4 &amp;&amp; !shaking &amp;&amp; navigator.vibrate) {
+            navigator.vibrate(10);   // a tick when a die hits the wall hard
+        }
+    }
+
+    function collide(a, b) {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const distance = Math.hypot(dx, dy);
+        const minimum = SIZE * 1.8;
+        if (distance &gt;= minimum || distance === 0) {
+            return;
+        }
+        const nx = dx / distance;
+        const ny = dy / distance;
+        const push = (minimum - distance) / 2;
+        a.x -= nx * push;
+        a.y -= ny * push;
+        b.x += nx * push;
+        b.y += ny * push;
+        const closing = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+        if (closing &gt; 0) {
+            a.vx -= closing * nx;
+            a.vy -= closing * ny;
+            b.vx += closing * nx;
+            b.vy += closing * ny;
+        }
+    }
+
+    function allStill() {
+        return dice.every(function (die) { return Math.hypot(die.vx, die.vy) &lt; 0.15; });
+    }
+
+    function finish() {
+        rolling = false;
+        dice.forEach(function (die) { die.face = die.value; });
+        const values = dice.map(function (die) { return die.value; });
+        const total = values.reduce(function (sum, value) { return sum + value; }, 0);
+        const name = (dice.length &gt; 1 ? dice.length + " × " : "") + "D" + settings.sides;
+        message.textContent = name + ": " + (dice.length &gt; 1 ? values.join(" + ") + " = " + total : String(total));
+        if (navigator.vibrate) {
+            navigator.vibrate(40);
+        }
+    }
+
+    // --- The game ------------------------------------------------------------
+
+    function update() {
+        meter *= 0.96;
+        if (shaking &amp;&amp; performance.now() - lastStrong &gt; SHAKE_END) {
+            shaking = false;
+            if (strongReadings &gt;= SHAKE_READINGS) {
+                if (peak &gt; record) {
+                    record = peak;
+                    saveRecord();
+                }
+                throwDice(peak);
+                message.textContent = strengthName(peak) + " Rolling...";
+            }
+        }
+        if (rolling) {
+            moveDice();
+            if (!shaking &amp;&amp; allStill()) {
+                finish();
+            }
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function draw() {
+        // The table, and the felt tray.
+        ctx.fillStyle = "#6b4423";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        const felt = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 40, WIDTH / 2, HEIGHT / 2, WIDTH * 0.75);
+        felt.addColorStop(0, "#2f7d4f");
+        felt.addColorStop(1, "#1d5636");
+        ctx.fillStyle = felt;
+        ctx.fillRect(TRAY.left, TRAY.top, TRAY.right - TRAY.left, TRAY.bottom - TRAY.top);
+
+        dice.forEach(drawDie);
+
+        // At the top: what is rolled, and the total.
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 16px Arial";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+        ctx.fillText((dice.length &gt; 1 ? dice.length + " × " : "") + "D" + settings.sides, 14, TRAY.top / 2);
+        if (!rolling &amp;&amp; !shaking &amp;&amp; dice.length &gt; 1) {
+            ctx.textAlign = "right";
+            ctx.fillText("Total " + dice.reduce(function (sum, die) { return sum + die.value; }, 0), WIDTH - 14, TRAY.top / 2);
+        }
+
+        // At the bottom: the shake meter, and a line at the hardest shake.
+        const barLeft = 70;
+        const barWidth = WIDTH - barLeft - 16;
+        const barY = TRAY.bottom + 18;
+        ctx.textAlign = "left";
+        ctx.font = "bold 14px Arial";
+        ctx.fillText("Shake", 14, barY + 7);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+        ctx.fillRect(barLeft, barY, barWidth, 14);
+        const fill = Math.min(1, meter / HARDEST);
+        ctx.fillStyle = "hsl(" + Math.round(120 - 120 * fill) + ", 70%, 50%)";
+        ctx.fillRect(barLeft, barY, barWidth * fill, 14);
+        if (record &gt; 0) {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(barLeft + barWidth * Math.min(1, record / HARDEST) - 1, barY - 3, 3, 20);
+        }
+    }
+
+    function drawDie(die) {
+        const r = SIZE;
+        ctx.save();
+        // A soft shadow, then the die, turned.
+        ctx.translate(die.x + 4, die.y + 5);
+        ctx.rotate(die.angle);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+        shape(settings.sides, r);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(die.x, die.y);
+        ctx.rotate(die.angle);
+        ctx.fillStyle = COLORS[settings.sides];
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.lineWidth = 2;
+        shape(settings.sides, r);
+        ctx.fill();
+        ctx.stroke();
+        edges(settings.sides, r);
+
+        const dark = settings.sides === 6 || settings.sides === 20;
+        if (settings.sides === 6) {
+            pips(die.face, r);
+        } else {
+            ctx.fillStyle = dark ? "#222222" : "#ffffff";
+            ctx.font = "bold " + Math.round(die.face &gt;= 10 ? r * 0.62 : r * 0.78) + "px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            const y = settings.sides === 4 ? r * 0.18 : 0;   // a triangle's middle is low
+            ctx.fillText(String(die.face), 0, y);
+            // 6 and 9 look the same upside down, so they get a line under them.
+            if ((die.face === 6 || die.face === 9) &amp;&amp; settings.sides &gt;= 10) {
+                ctx.fillRect(-r * 0.2, y + r * 0.34, r * 0.4, 3);
+            }
+        }
+        ctx.restore();
+    }
+
+    // The outline of each kind of die, seen from above, round (0, 0).
+    function shape(sides, r) {
+        ctx.beginPath();
+        if (sides === 6) {
+            ctx.roundRect(-r * 0.75, -r * 0.75, r * 1.5, r * 1.5, r * 0.22);
+        } else if (sides === 10) {
+            ctx.moveTo(0, -r * 1.1);       // a kite, like a D10's faces
+            ctx.lineTo(r * 0.95, -r * 0.1);
+            ctx.lineTo(0, r * 0.95);
+            ctx.lineTo(-r * 0.95, -r * 0.1);
+            ctx.closePath();
+        } else {
+            const corners = { 4: 3, 8: 4, 12: 5, 20: 6 }[sides];
+            const size = { 4: 1.2, 8: 1.05, 12: 1.0, 20: 1.05 }[sides];
+            polygon(corners, r * size);
+        }
+    }
+
+    // A few lighter lines, so the shapes look like the real dice.
+    function edges(sides, r) {
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        if (sides === 8) {
+            ctx.moveTo(-r * 1.05, 0);
+            ctx.lineTo(r * 1.05, 0);
+        } else if (sides === 12) {
+            polygon(5, r * 0.62);
+        } else if (sides === 20) {
+            polygon(3, r * 0.78);
+        } else {
+            return;
+        }
+        ctx.stroke();
+    }
+
+    function polygon(corners, radius) {
+        for (let i = 0; i &lt; corners; i++) {
+            const a = -Math.PI / 2 + i * Math.PI * 2 / corners;
+            const x = Math.cos(a) * radius;
+            const y = Math.sin(a) * radius;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.closePath();
+    }
+
+    // The dots on a D6, on a 3 by 3 grid: -1, 0 or 1 across and down.
+    const PIPS = {
+        1: [[0, 0]],
+        2: [[-1, -1], [1, 1]],
+        3: [[-1, -1], [0, 0], [1, 1]],
+        4: [[-1, -1], [1, -1], [-1, 1], [1, 1]],
+        5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]],
+        6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]]
+    };
+
+    function pips(value, r) {
+        ctx.fillStyle = "#222222";
+        PIPS[value].forEach(function (pip) {
+            ctx.beginPath();
+            ctx.arc(pip[0] * r * 0.42, pip[1] * r * 0.42, r * 0.13, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    // --- Choosing the dice -----------------------------------------------------
+
+    function showChoices() {
+        sidesButtons.forEach(function (button) {
+            button.setAttribute("aria-pressed", String(Number(button.dataset.sides) === settings.sides));
+        });
+        countButtons.forEach(function (button) {
+            button.setAttribute("aria-pressed", String(Number(button.dataset.count) === settings.count));
+        });
+    }
+
+    function choose(change) {
+        startSensor();
+        Object.assign(settings, change);
+        try {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        } catch (error) {
+            // Not saved, but it still works.
+        }
+        showChoices();
+        placeDice();
+        message.textContent = "Shake the phone to roll, or tap Roll.";
+    }
+
+    sidesButtons.forEach(function (button) {
+        button.addEventListener("click", function () { choose({ sides: Number(button.dataset.sides) }); });
+    });
+    countButtons.forEach(function (button) {
+        button.addEventListener("click", function () { choose({ count: Number(button.dataset.count) }); });
+    });
+
+    function loadSettings() {
+        const fallback = { sides: 6, count: 2 };
+        try {
+            const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+            if (saved &amp;&amp; [4, 6, 8, 10, 12, 20].includes(saved.sides) &amp;&amp; saved.count &gt;= 1 &amp;&amp; saved.count &lt;= 4) {
+                return { sides: saved.sides, count: saved.count };
+            }
+        } catch (error) {
+            // Use the fallback.
+        }
+        return fallback;
+    }
+
+    function loadRecord() {
+        try {
+            return Number(localStorage.getItem(RECORD_KEY)) || 0;
+        } catch (error) {
+            return 0;
+        }
+    }
+
+    function saveRecord() {
+        try {
+            localStorage.setItem(RECORD_KEY, String(Math.round(record)));
+        } catch (error) {
+            // Not saved, but the game still works.
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+        while (leftover &gt;= STEP) {
+            update();
+            leftover -= STEP;
+        }
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Start ---------------------------------------------------------------
+
+    rollButton.addEventListener("click", function () {
+        startSensor();
+        throwDice(BUTTON_FORCE);
+        message.textContent = "Rolling...";
+    });
+
+    // Phones that don't ask for permission can feel shakes straight away.
+    if (window.DeviceMotionEvent &amp;&amp; typeof DeviceMotionEvent.requestPermission !== "function") {
+        startSensor();
+    }
+    showChoices();
+    placeDice();
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a D100: two D10s, one for the tens.</li>
+    <li>Keep the last 10 rolls in a list, to settle arguments.</li>
+    <li>Make a mix: 2 D6 and a D20 in the same throw.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>Shake Dice is made for phones. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

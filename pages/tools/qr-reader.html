@@ -1,0 +1,61 @@
+---
+layout: default
+title: QR Reader
+permalink: /tools/qr-reader/
+nonav: true
+css:
+  - /assets/qr-reader/qr-reader.css
+js:
+  - /assets/qr-reader/jsQR.js
+  - /assets/qr-reader/qr-reader.js
+---
+
+<div class="qr-reader container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h1 class="h2">QR Reader</h1>
+      <p id="message">Press Start and point the camera at a QR code.</p>
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col">
+      <div id="viewfinder" class="viewfinder">
+        <video id="video" playsinline muted></video>
+        <div class="frame" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+  <div id="result" class="row mt-3" hidden>
+    <div class="col">
+      <div class="result">
+        <p id="result-type" class="label">Text</p>
+        <p id="result-text" class="result-text"></p>
+        <p id="result-host" class="result-host" hidden></p>
+        <div class="actions">
+          <a id="open-link" class="btn btn-outline-dark" target="_blank" rel="noopener noreferrer" hidden>Open link</a>
+          <button type="button" id="copy" class="btn btn-outline-dark">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12 mt-3">
+      <button type="button" id="button-start" class="btn btn-success">Start</button>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col">
+      <label for="file" class="label">Or read a QR code from a picture</label>
+      <input type="file" id="file" accept="image/*" class="form-control mt-1">
+    </div>
+  </div>
+  <div id="history-box" class="row mt-4" hidden>
+    <div class="col">
+      <p class="label">Read before</p>
+      <ul id="history" class="history"></ul>
+      <button type="button" id="clear-history" class="btn btn-link btn-sm">Clear the list</button>
+    </div>
+  </div>
+  <p id="engine" class="mt-4 text-muted small">&nbsp;</p>
+  <p class="mt-5 text-center"><a href="/tutorials/qr-reader/">How to build this app</a></p>
+</div>

@@ -61,6 +61,7 @@
 - { slug: sudoku, page: pages/games/sudoku.html, emoji: "🔢" }
 - { slug: steady-hand, page: pages/games/steady-hand.html, emoji: "☕", width: 440, description: "Hold your phone as still as a full cup of coffee for 10 seconds. On a computer, hold the mouse still." }
 - { slug: spin-counter, page: pages/games/spin-counter.html, emoji: "🌪️", width: 440, description: "How many turns can you spin in 10 seconds? Uses the phone's gyroscope. On a computer, drag round the dial." }
+- { slug: shake-dice, page: pages/games/shake-dice.html, emoji: "🎲", label: SHAKE, width: 440, description: "Shake your phone to roll D4, D6, D8, D10, D12 or D20 dice. The harder you shake, the harder they are thrown. On a computer, press Roll." }
 - { slug: tic-tac-toe, page: pages/games/tic-tac-toe.html, emoji: "❌" }
 - { slug: ascii, page: pages/references/ascii.html, name: ASCII table, emoji: "🔤", open: tab }
 - { slug: calculator, page: pages/tools/calculator.html, emoji: "🧮" }
@@ -81,6 +82,7 @@
 - { slug: countdown, page: pages/tools/countdown.html, emoji: "⏳", open: tab }
 - { slug: egg-clock, page: pages/tools/egg-clock.html, emoji: "🥚", open: tab }
 - { slug: guitar-tuner, page: pages/tools/guitar-tuner.html, emoji: "🎸", open: tab, description: "A guitar tuner: play a string, and the microphone tells you if it is in tune." }
+- { slug: qr-reader, page: pages/tools/qr-reader.html, emoji: "📷", label: QR, open: tab, description: "Read QR codes with the camera, or from a picture. Links are shown first, never opened by themselves." }
 - { slug: myip, page: pages/tools/myip.html, name: My IP, emoji: "🌐" }
 - { slug: speedometer, page: pages/tools/speedometer.html, emoji: "🚗", open: tab, geolocation: true, description: "A speedometer from your GPS: speed, max speed, distance and average. Needs a device with GPS." }
 - { slug: week, page: pages/tools/week.html, name: Week number, emoji: "📅" }

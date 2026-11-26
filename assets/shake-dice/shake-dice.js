@@ -1,0 +1,543 @@
+/*
+ * Shake Dice: shake the phone to roll the dice. The harder you shake, the
+ * harder the dice are thrown: they fly faster, bounce more and roll longer.
+ * Choose D4, D6, D8, D10, D12 or D20, and 1 to 4 dice.
+ *
+ * The shake comes from the accelerometer, with the "devicemotion" event, as
+ * event.accelerationIncludingGravity, in m/s². A phone lying still feels
+ * only gravity, 9.8 m/s². Shaking adds to that, so how far it is from 9.8
+ * is how hard you shake.
+ *
+ * The numbers are fair: each one is picked with crypto.getRandomValues when
+ * the dice are thrown. How hard you shake changes the throw, not the odds.
+ * On a computer, press Roll.
+ */
+
+// --- Settings ------------------------------------------------------------
+
+const STEP = 1000 / 60;      // one update, in ms
+const GRAVITY = 9.81;        // m/s²
+const SHAKE_START = 8;       // m/s² away from gravity: this is a shake
+const SHAKE_READINGS = 3;    // strong readings it takes to count as a shake, not a bump
+const SHAKE_END = 250;       // ms of calm after a shake before the dice are thrown
+const HARDEST = 40;          // m/s²: shaking this hard throws as hard as it gets
+const BUTTON_FORCE = 18;     // the Roll button throws like a good shake
+const FRICTION = 0.995;      // air and felt take half a percent of the speed every step...
+const ROLLING = 0.05;        // ...and the felt takes this much more, so a fast die rolls longer
+const BOUNCE = 0.8;          // how much speed is left after hitting a wall
+const SIZE = 34;             // a die's radius, in pixels
+const COLORS = { 4: "#d9534f", 6: "#f5f1e6", 8: "#3b7dd8", 10: "#2e9e5b", 12: "#8a4fc7", 20: "#e8b455" };
+const SETTINGS_KEY = "shake-dice-settings";
+const RECORD_KEY = "shake-dice-record";
+
+// --- Canvas --------------------------------------------------------------
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+const TRAY = { left: 0, top: 40, right: WIDTH, bottom: HEIGHT - 50 };
+const message = document.getElementById("message");
+const rollButton = document.getElementById("start");
+const sidesButtons = document.querySelectorAll("#sides button");
+const countButtons = document.querySelectorAll("#count button");
+
+// --- State ---------------------------------------------------------------
+
+let settings = loadSettings();   // { sides, count }
+let dice = [];                   // each: x, y, vx, vy, angle, spin, value, face
+let rolling = false;
+let shaking = false;
+let strongReadings = 0;          // strong readings in this shake
+let peak = 0;                    // the hardest reading in this shake, m/s²
+let lastStrong = 0;              // when the last strong reading came
+let meter = 0;                   // the shake meter, m/s², falls back slowly
+let record = loadRecord();       // the hardest shake so far, m/s²
+let listening = false;
+
+// --- Random numbers ------------------------------------------------------
+
+// A fair whole number from 1 to n. Math.random() would do for a game, but
+// crypto.getRandomValues is the browser's best randomness. 2^32 can't be
+// split evenly into n parts, so numbers from the last, uneven part are
+// thrown away and we draw again.
+function randomInt(n) {
+    const limit = Math.floor(0x100000000 / n) * n;
+    const number = new Uint32Array(1);
+    do {
+        crypto.getRandomValues(number);
+    } while (number[0] >= limit);
+    return number[0] % n + 1;
+}
+
+// --- The accelerometer ---------------------------------------------------
+
+function onMotion(event) {
+    const a = event.accelerationIncludingGravity;
+    if (!a || a.x === null) {
+        return;
+    }
+    // How far from just gravity: 0 lying still, more the harder you shake.
+    const force = Math.abs(Math.hypot(a.x, a.y, a.z) - GRAVITY);
+    meter = Math.max(meter, force);
+    if (force < SHAKE_START) {
+        return;
+    }
+    if (!shaking) {
+        shaking = true;
+        strongReadings = 0;
+        peak = 0;
+    }
+    strongReadings++;
+    peak = Math.max(peak, force);
+    lastStrong = performance.now();
+    if (strongReadings >= SHAKE_READINGS) {
+        rattle(force);
+    }
+}
+
+// iPhones ask first, and only after a tap. Other phones can start at once.
+async function startSensor() {
+    if (listening || !window.DeviceMotionEvent) {
+        return;
+    }
+    if (typeof DeviceMotionEvent.requestPermission === "function") {
+        try {
+            if (await DeviceMotionEvent.requestPermission() !== "granted") {
+                return;
+            }
+        } catch (error) {
+            return;
+        }
+    }
+    window.addEventListener("devicemotion", onMotion);
+    listening = true;
+}
+
+// --- The dice ------------------------------------------------------------
+
+// Put the dice in a row in the middle, lying still.
+function placeDice() {
+    dice = [];
+    const gap = Math.min(SIZE * 2.6, (TRAY.right - TRAY.left - SIZE * 2) / Math.max(1, settings.count - 1));
+    const first = WIDTH / 2 - gap * (settings.count - 1) / 2;
+    for (let i = 0; i < settings.count; i++) {
+        dice.push({
+            x: first + gap * i, y: (TRAY.top + TRAY.bottom) / 2,
+            vx: 0, vy: 0, angle: 0, spin: 0,
+            value: settings.sides, face: settings.sides
+        });
+    }
+    rolling = false;
+}
+
+// While you shake, the dice rattle round the tray.
+function rattle(force) {
+    const kick = Math.min(force, HARDEST) * 0.12;
+    dice.forEach(function (die) {
+        die.vx += (Math.random() - 0.5) * kick;
+        die.vy += (Math.random() - 0.5) * kick;
+        die.spin += (Math.random() - 0.5) * 0.05;
+    });
+    rolling = true;
+}
+
+// Throw the dice: the numbers are picked now, and the harder the throw, the
+// faster they fly.
+function throwDice(force) {
+    const power = Math.min(1, force / HARDEST);
+    dice.forEach(function (die) {
+        die.value = randomInt(settings.sides);
+        const direction = Math.random() * Math.PI * 2;
+        const speed = (2 + power * 20) * (0.8 + Math.random() * 0.4);
+        die.vx = Math.cos(direction) * speed;
+        die.vy = Math.sin(direction) * speed;
+        die.spin = (Math.random() - 0.5) * (0.2 + power * 0.5);
+    });
+    rolling = true;
+}
+
+function strengthName(force) {
+    if (force < 14) {
+        return "A gentle shake.";
+    }
+    if (force < 22) {
+        return "A good shake.";
+    }
+    if (force < 32) {
+        return "A hard shake!";
+    }
+    return "A wild shake!";
+}
+
+function moveDice() {
+    dice.forEach(function (die) {
+        die.x += die.vx;
+        die.y += die.vy;
+        die.angle += die.spin;
+        bounceOffWalls(die);
+        slowDown(die);
+        // Rolling fast, the top face keeps changing. Slow, it shows its number.
+        const speed = Math.hypot(die.vx, die.vy);
+        if (speed > 1) {
+            if (Math.random() < speed / 15) {
+                die.face = randomInt(settings.sides);
+            }
+        } else {
+            die.face = die.value;
+        }
+    });
+    // Dice that touch push each other apart, and swap their speed along the
+    // line between them, like two balls of the same weight.
+    for (let i = 0; i < dice.length; i++) {
+        for (let j = i + 1; j < dice.length; j++) {
+            collide(dice[i], dice[j]);
+        }
+    }
+}
+
+// Friction takes a part of the speed, and the felt a fixed amount more. With
+// only the part, a die thrown twice as hard would roll just a little longer.
+// With the fixed amount, it rolls about twice as long, like a real throw.
+function slowDown(die) {
+    const speed = Math.hypot(die.vx, die.vy);
+    if (speed > 0) {
+        const slower = Math.max(0, speed * FRICTION - ROLLING) / speed;
+        die.vx *= slower;
+        die.vy *= slower;
+    }
+    die.spin *= 0.97;
+}
+
+function bounceOffWalls(die) {
+    const r = SIZE;
+    let hit = 0;
+    if (die.x < TRAY.left + r) {
+        die.x = TRAY.left + r;
+        hit = Math.abs(die.vx);
+        die.vx = Math.abs(die.vx) * BOUNCE;
+    } else if (die.x > TRAY.right - r) {
+        die.x = TRAY.right - r;
+        hit = Math.abs(die.vx);
+        die.vx = -Math.abs(die.vx) * BOUNCE;
+    }
+    if (die.y < TRAY.top + r) {
+        die.y = TRAY.top + r;
+        hit = Math.max(hit, Math.abs(die.vy));
+        die.vy = Math.abs(die.vy) * BOUNCE;
+    } else if (die.y > TRAY.bottom - r) {
+        die.y = TRAY.bottom - r;
+        hit = Math.max(hit, Math.abs(die.vy));
+        die.vy = -Math.abs(die.vy) * BOUNCE;
+    }
+    if (hit > 4 && !shaking && navigator.vibrate) {
+        navigator.vibrate(10);   // a tick when a die hits the wall hard
+    }
+}
+
+function collide(a, b) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const distance = Math.hypot(dx, dy);
+    const minimum = SIZE * 1.8;
+    if (distance >= minimum || distance === 0) {
+        return;
+    }
+    const nx = dx / distance;
+    const ny = dy / distance;
+    const push = (minimum - distance) / 2;
+    a.x -= nx * push;
+    a.y -= ny * push;
+    b.x += nx * push;
+    b.y += ny * push;
+    const closing = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+    if (closing > 0) {
+        a.vx -= closing * nx;
+        a.vy -= closing * ny;
+        b.vx += closing * nx;
+        b.vy += closing * ny;
+    }
+}
+
+function allStill() {
+    return dice.every(function (die) { return Math.hypot(die.vx, die.vy) < 0.15; });
+}
+
+function finish() {
+    rolling = false;
+    dice.forEach(function (die) { die.face = die.value; });
+    const values = dice.map(function (die) { return die.value; });
+    const total = values.reduce(function (sum, value) { return sum + value; }, 0);
+    const name = (dice.length > 1 ? dice.length + " × " : "") + "D" + settings.sides;
+    message.textContent = name + ": " + (dice.length > 1 ? values.join(" + ") + " = " + total : String(total));
+    if (navigator.vibrate) {
+        navigator.vibrate(40);
+    }
+}
+
+// --- The game ------------------------------------------------------------
+
+function update() {
+    meter *= 0.96;
+    if (shaking && performance.now() - lastStrong > SHAKE_END) {
+        shaking = false;
+        if (strongReadings >= SHAKE_READINGS) {
+            if (peak > record) {
+                record = peak;
+                saveRecord();
+            }
+            throwDice(peak);
+            message.textContent = strengthName(peak) + " Rolling...";
+        }
+    }
+    if (rolling) {
+        moveDice();
+        if (!shaking && allStill()) {
+            finish();
+        }
+    }
+}
+
+// --- Drawing -------------------------------------------------------------
+
+function draw() {
+    // The table, and the felt tray.
+    ctx.fillStyle = "#6b4423";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    const felt = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 40, WIDTH / 2, HEIGHT / 2, WIDTH * 0.75);
+    felt.addColorStop(0, "#2f7d4f");
+    felt.addColorStop(1, "#1d5636");
+    ctx.fillStyle = felt;
+    ctx.fillRect(TRAY.left, TRAY.top, TRAY.right - TRAY.left, TRAY.bottom - TRAY.top);
+
+    dice.forEach(drawDie);
+
+    // At the top: what is rolled, and the total.
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 16px Arial";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    ctx.fillText((dice.length > 1 ? dice.length + " × " : "") + "D" + settings.sides, 14, TRAY.top / 2);
+    if (!rolling && !shaking && dice.length > 1) {
+        ctx.textAlign = "right";
+        ctx.fillText("Total " + dice.reduce(function (sum, die) { return sum + die.value; }, 0), WIDTH - 14, TRAY.top / 2);
+    }
+
+    // At the bottom: the shake meter, and a line at the hardest shake.
+    const barLeft = 70;
+    const barWidth = WIDTH - barLeft - 16;
+    const barY = TRAY.bottom + 18;
+    ctx.textAlign = "left";
+    ctx.font = "bold 14px Arial";
+    ctx.fillText("Shake", 14, barY + 7);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+    ctx.fillRect(barLeft, barY, barWidth, 14);
+    const fill = Math.min(1, meter / HARDEST);
+    ctx.fillStyle = "hsl(" + Math.round(120 - 120 * fill) + ", 70%, 50%)";
+    ctx.fillRect(barLeft, barY, barWidth * fill, 14);
+    if (record > 0) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(barLeft + barWidth * Math.min(1, record / HARDEST) - 1, barY - 3, 3, 20);
+    }
+}
+
+function drawDie(die) {
+    const r = SIZE;
+    ctx.save();
+    // A soft shadow, then the die, turned.
+    ctx.translate(die.x + 4, die.y + 5);
+    ctx.rotate(die.angle);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    shape(settings.sides, r);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(die.x, die.y);
+    ctx.rotate(die.angle);
+    ctx.fillStyle = COLORS[settings.sides];
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+    ctx.lineWidth = 2;
+    shape(settings.sides, r);
+    ctx.fill();
+    ctx.stroke();
+    edges(settings.sides, r);
+
+    const dark = settings.sides === 6 || settings.sides === 20;
+    if (settings.sides === 6) {
+        pips(die.face, r);
+    } else {
+        ctx.fillStyle = dark ? "#222222" : "#ffffff";
+        ctx.font = "bold " + Math.round(die.face >= 10 ? r * 0.62 : r * 0.78) + "px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const y = settings.sides === 4 ? r * 0.18 : 0;   // a triangle's middle is low
+        ctx.fillText(String(die.face), 0, y);
+        // 6 and 9 look the same upside down, so they get a line under them.
+        if ((die.face === 6 || die.face === 9) && settings.sides >= 10) {
+            ctx.fillRect(-r * 0.2, y + r * 0.34, r * 0.4, 3);
+        }
+    }
+    ctx.restore();
+}
+
+// The outline of each kind of die, seen from above, round (0, 0).
+function shape(sides, r) {
+    ctx.beginPath();
+    if (sides === 6) {
+        ctx.roundRect(-r * 0.75, -r * 0.75, r * 1.5, r * 1.5, r * 0.22);
+    } else if (sides === 10) {
+        ctx.moveTo(0, -r * 1.1);       // a kite, like a D10's faces
+        ctx.lineTo(r * 0.95, -r * 0.1);
+        ctx.lineTo(0, r * 0.95);
+        ctx.lineTo(-r * 0.95, -r * 0.1);
+        ctx.closePath();
+    } else {
+        const corners = { 4: 3, 8: 4, 12: 5, 20: 6 }[sides];
+        const size = { 4: 1.2, 8: 1.05, 12: 1.0, 20: 1.05 }[sides];
+        polygon(corners, r * size);
+    }
+}
+
+// A few lighter lines, so the shapes look like the real dice.
+function edges(sides, r) {
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    if (sides === 8) {
+        ctx.moveTo(-r * 1.05, 0);
+        ctx.lineTo(r * 1.05, 0);
+    } else if (sides === 12) {
+        polygon(5, r * 0.62);
+    } else if (sides === 20) {
+        polygon(3, r * 0.78);
+    } else {
+        return;
+    }
+    ctx.stroke();
+}
+
+function polygon(corners, radius) {
+    for (let i = 0; i < corners; i++) {
+        const a = -Math.PI / 2 + i * Math.PI * 2 / corners;
+        const x = Math.cos(a) * radius;
+        const y = Math.sin(a) * radius;
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    }
+    ctx.closePath();
+}
+
+// The dots on a D6, on a 3 by 3 grid: -1, 0 or 1 across and down.
+const PIPS = {
+    1: [[0, 0]],
+    2: [[-1, -1], [1, 1]],
+    3: [[-1, -1], [0, 0], [1, 1]],
+    4: [[-1, -1], [1, -1], [-1, 1], [1, 1]],
+    5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]],
+    6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]]
+};
+
+function pips(value, r) {
+    ctx.fillStyle = "#222222";
+    PIPS[value].forEach(function (pip) {
+        ctx.beginPath();
+        ctx.arc(pip[0] * r * 0.42, pip[1] * r * 0.42, r * 0.13, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+
+// --- Choosing the dice -----------------------------------------------------
+
+function showChoices() {
+    sidesButtons.forEach(function (button) {
+        button.setAttribute("aria-pressed", String(Number(button.dataset.sides) === settings.sides));
+    });
+    countButtons.forEach(function (button) {
+        button.setAttribute("aria-pressed", String(Number(button.dataset.count) === settings.count));
+    });
+}
+
+function choose(change) {
+    startSensor();
+    Object.assign(settings, change);
+    try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch (error) {
+        // Not saved, but it still works.
+    }
+    showChoices();
+    placeDice();
+    message.textContent = "Shake the phone to roll, or tap Roll.";
+}
+
+sidesButtons.forEach(function (button) {
+    button.addEventListener("click", function () { choose({ sides: Number(button.dataset.sides) }); });
+});
+countButtons.forEach(function (button) {
+    button.addEventListener("click", function () { choose({ count: Number(button.dataset.count) }); });
+});
+
+function loadSettings() {
+    const fallback = { sides: 6, count: 2 };
+    try {
+        const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+        if (saved && [4, 6, 8, 10, 12, 20].includes(saved.sides) && saved.count >= 1 && saved.count <= 4) {
+            return { sides: saved.sides, count: saved.count };
+        }
+    } catch (error) {
+        // Use the fallback.
+    }
+    return fallback;
+}
+
+function loadRecord() {
+    try {
+        return Number(localStorage.getItem(RECORD_KEY)) || 0;
+    } catch (error) {
+        return 0;
+    }
+}
+
+function saveRecord() {
+    try {
+        localStorage.setItem(RECORD_KEY, String(Math.round(record)));
+    } catch (error) {
+        // Not saved, but the game still works.
+    }
+}
+
+// --- The loop ------------------------------------------------------------
+
+let lastTime = performance.now();
+let leftover = 0;
+
+function gameLoop(now) {
+    leftover += Math.min(now - lastTime, 250);
+    lastTime = now;
+    while (leftover >= STEP) {
+        update();
+        leftover -= STEP;
+    }
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+// --- Start ---------------------------------------------------------------
+
+rollButton.addEventListener("click", function () {
+    startSensor();
+    throwDice(BUTTON_FORCE);
+    message.textContent = "Rolling...";
+});
+
+// Phones that don't ask for permission can feel shakes straight away.
+if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission !== "function") {
+    startSensor();
+}
+showChoices();
+placeDice();
+requestAnimationFrame(gameLoop);

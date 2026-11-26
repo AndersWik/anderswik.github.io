@@ -1,0 +1,764 @@
+---
+layout: default
+title: QR Reader
+permalink: /tutorials/qr-reader/
+chapter: "02"
+chapter_title: "JavaScript apps"
+keywords: [javascript, camera, getUserMedia, video, facingMode, playsinline, QR code, BarcodeDetector, jsQR, library, feature detection, canvas, getImageData, pixels, regular expression, URL, clipboard, createImageBitmap, file input, textContent, localStorage]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>QR Reader</h1>
+  <p>Point the camera at a QR code, and the page reads it: a link, a Wi-Fi network with its password, or just text. It can also read a QR code from a picture, and it remembers the last ten codes.</p>
+  <p>Read the <a href="/tutorials/guitar-tuner/">Guitar tuner</a> first: the camera is asked for in the same way as the microphone. The new ideas are using a feature the browser may or may not have, with a <strong>library</strong> to fall back on, and handling text from strangers safely.</p>
+  <p><a href="/assets/tutorials/qr-reader.html">Open the finished reader</a> (it needs a camera, and a page on https)</p>
+
+  <h2>Step 1: The page</h2>
+  <p>Create <code>qr-reader.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The camera picture is a <code>&lt;video&gt;</code> in a square box, with a frame on top to aim with. Under it are the result, the Start button, a file input for pictures, and the codes read before:</p>
+  <pre><code class="language-html">&lt;h1&gt;QR Reader&lt;/h1&gt;
+&lt;p id="message"&gt;Press Start and point the camera at a QR code.&lt;/p&gt;
+
+&lt;div id="viewfinder" class="viewfinder"&gt;
+  &lt;video id="video" playsinline muted&gt;&lt;/video&gt;
+  &lt;div class="frame"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="result" class="result" hidden&gt;
+  &lt;p id="result-type" class="label"&gt;Text&lt;/p&gt;
+  &lt;p id="result-text" class="result-text"&gt;&lt;/p&gt;
+  &lt;p id="result-host" class="result-host" hidden&gt;&lt;/p&gt;
+  &lt;a id="open-link" target="_blank" rel="noopener noreferrer" hidden&gt;Open link&lt;/a&gt;
+  &lt;button type="button" id="copy"&gt;Copy&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;
+
+&lt;p class="label"&gt;&lt;label for="file"&gt;Or read a QR code from a picture&lt;/label&gt;&lt;/p&gt;
+&lt;input type="file" id="file" accept="image/*"&gt;
+
+&lt;div id="history-box" hidden&gt;
+  &lt;p class="label"&gt;Read before&lt;/p&gt;
+  &lt;ul id="history" class="history"&gt;&lt;/ul&gt;
+  &lt;button type="button" id="clear-history"&gt;Clear the list&lt;/button&gt;
+&lt;/div&gt;
+&lt;p id="engine"&gt;&amp;nbsp;&lt;/p&gt;</code></pre>
+  <p><code>hidden</code> hides an element until we show it. The CSS makes the box square with <code>aspect-ratio: 1 / 1</code>, and <code>object-fit: cover</code> fills it with the camera picture, cutting off the sides. The frame darkens everything outside it with a trick: a huge <code>box-shadow</code> spreads 999 pixels out from the frame, and the box's <code>overflow: hidden</code> cuts it off at the edges. It is all in the complete page below.</p>
+
+  <h2>Step 2: The camera</h2>
+  <pre><code class="language-javascript">async function start() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        message.textContent = "This browser can't use a camera here. It needs a page on https.";
+        return;
+    }
+    try {
+        // "environment" is the camera on the back, if there is one.
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+            audio: false
+        });
+    } catch (error) {
+        message.textContent = error.name === "NotFoundError"
+            ? "No camera found. You can still read a QR code from a picture."
+            : "The page may not use the camera. Allow it in the browser's settings.";
+        return;
+    }
+    video.srcObject = stream;
+    await video.play();
+    scanning = true;
+    viewfinder.classList.remove("found");
+    startButton.textContent = "Stop";
+    startButton.className = "btn btn-warning";
+    message.textContent = "Point the camera at a QR code.";
+    requestAnimationFrame(scan);
+}</code></pre>
+  <ul>
+    <li><code>getUserMedia</code> asks for the camera with <code>video</code>, the way the Guitar tuner asks for the microphone with <code>audio</code>. It only works on <code>https://</code> pages.</li>
+    <li><code>facingMode: "environment"</code> asks for the camera on the back, the one facing the world. A computer only has one camera, and gets that.</li>
+    <li>The camera goes into the video with <code>video.srcObject = stream</code>, and <code>play()</code> starts it.</li>
+    <li>On an iPhone, a video jumps to full screen when it plays, unless it has <code>playsinline</code>. That is why the <code>&lt;video&gt;</code> tag has it. <code>muted</code> lets it play without a tap.</li>
+  </ul>
+  <p>Stopping turns the camera off, and its light with it. It is also called when you switch to another app, through the <code>visibilitychange</code> event, so the camera never stays on in the background:</p>
+  <pre><code class="language-javascript">function stop(text) {
+    scanning = false;
+    if (stream !== null) {
+        stream.getTracks().forEach(function (track) { track.stop(); });   // the camera light goes off
+        stream = null;
+    }
+    video.srcObject = null;
+    startButton.textContent = current === null ? "Start" : "Scan again";
+    startButton.className = "btn btn-success";
+    message.textContent = text;
+}</code></pre>
+
+  <h2>Step 3: Two ways to read a code</h2>
+  <p>Reading a QR code is hard. The reader must find the three squares in the corners, straighten the picture if the code is held at an angle, read the black and white squares as bits, and fix the bits that were misread. Some browsers have all of that built in: the <strong>BarcodeDetector</strong>. But only some: Chrome and Edge on Android and Mac have it, Safari on iPhone and Firefox don't.</p>
+  <p>So we first check if the browser has one that reads QR codes. Checking for a feature, instead of for a browser name, is called <strong>feature detection</strong>:</p>
+  <pre><code class="language-javascript">async function makeDetector() {
+    if (!("BarcodeDetector" in window)) {
+        return null;
+    }
+    try {
+        const formats = await BarcodeDetector.getSupportedFormats();
+        if (formats.includes("qr_code")) {
+            return new BarcodeDetector({ formats: ["qr_code"] });
+        }
+    } catch (error) {
+        // No built-in reader after all.
+    }
+    return null;
+}</code></pre>
+  <p>For all other browsers we use <strong>jsQR</strong>, a library: someone else's code, in a file of its own, that we load before our own script. Pin the version, here 1.4.0, so it can't change under you, and add <code>integrity</code>, a fingerprint of the file. If the file on the other site is ever changed, the fingerprint doesn't match and the browser won't run it:</p>
+  <pre><code class="language-html">&lt;script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"
+        integrity="sha384-b5Ya4Bq3qCyz39m2ISh+4DxjAIljdeFwK/BsXLuj9gugaNwAcj/ia15fxNZL9Nlx"
+        crossorigin="anonymous"&gt;&lt;/script&gt;</code></pre>
+  <p>The QR Reader on this site keeps its own copy of the file instead, next to its other files, so it also works offline when it is installed as an app.</p>
+  <p>Then one function reads a code either way:</p>
+  <pre><code class="language-javascript">async function readCode(picture, width, height, thorough) {
+    if (detector !== null) {
+        try {
+            const codes = await detector.detect(picture);
+            return codes.length &gt; 0 ? codes[0].rawValue : null;
+        } catch (error) {
+            return null;
+        }
+    }
+    const scale = Math.min(1, (thorough ? PICTURE_SIZE : VIDEO_SIZE) / Math.max(width, height));
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
+    ctx.drawImage(picture, 0, 0, canvas.width, canvas.height);
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(pixels.data, pixels.width, pixels.height, {
+        inversionAttempts: thorough ? "attemptBoth" : "dontInvert"
+    });
+    return code ? code.data : null;
+}</code></pre>
+  <ul>
+    <li>The BarcodeDetector takes the video or picture as it is, and gives a list of the codes it found.</li>
+    <li>jsQR needs the <strong>pixels</strong>. We draw the picture on a canvas that is never shown, and <code>getImageData</code> gives its pixels as a long list of numbers: red, green, blue and alpha, for every pixel.</li>
+    <li>A camera picture can be 1920 pixels wide, and jsQR is slow on that many pixels. Shrunk to at most 640, it is much faster, and still sharp enough for a code that fills the frame.</li>
+    <li>Most codes are dark on light. <code>inversionAttempts: "dontInvert"</code> only looks for those, which is twice as fast. For a picture, where speed doesn't matter, <code>"attemptBoth"</code> also finds light codes on a dark background.</li>
+  </ul>
+
+  <h2>Step 4: Looking a few times a second</h2>
+  <pre><code class="language-javascript">function scan(now) {
+    if (!scanning) {
+        return;
+    }
+    requestAnimationFrame(scan);
+    if (busy || now - lastScan &lt; SCAN_EVERY || video.readyState &lt; video.HAVE_CURRENT_DATA) {
+        return;
+    }
+    busy = true;
+    lastScan = now;
+    readCode(video, video.videoWidth, video.videoHeight, false).then(function (text) {
+        busy = false;
+        if (text !== null &amp;&amp; scanning) {
+            viewfinder.classList.add("found");
+            if (navigator.vibrate) {
+                navigator.vibrate(80);
+            }
+            show(text);
+            remember(text);
+            stop("Found a QR code.");
+        }
+    });
+}</code></pre>
+  <p>This runs every frame, about 60 times a second, but only looks for a code every 150 milliseconds: that is plenty, and leaves the phone time for everything else. <code>readCode</code> takes a little while, so <code>busy</code> makes sure we never start a new look before the last one is done. When a code is found, the frame turns green, the phone buzzes, and the camera stops.</p>
+
+  <h2>Step 5: What is in the code?</h2>
+  <p>A QR code just holds text. Some text follows a pattern: a link starts with <code>https://</code>, and a Wi-Fi network looks like <code>WIFI:T:WPA;S:MyNetwork;P:secret;;</code>, where <code>S</code> is the network's name and <code>P</code> the password.</p>
+  <pre><code class="language-javascript">function describe(text) {
+    if (/^https?:\/\//i.test(text)) {
+        let host = "";
+        try {
+            host = new URL(text).hostname;
+        } catch (error) {
+            // Not a real address after all: show it as text.
+            return { type: "Text", text: text, copy: text };
+        }
+        return { type: "Link", text: text, copy: text, link: text, host: host };
+    }
+    if (/^WIFI:/i.test(text)) {
+        // WIFI:T:WPA;S:name;P:password;; where \ makes the next letter plain.
+        const fields = {};
+        const pattern = /([A-Z]):((?:\\.|[^;])*);/g;
+        let match;
+        while ((match = pattern.exec(text.slice(5))) !== null) {
+            fields[match[1]] = match[2].replace(/\\(.)/g, "$1");
+        }
+        if (fields.S) {
+            return {
+                type: "Wi-Fi network",
+                text: "Network: " + fields.S + (fields.P ? "\nPassword: " + fields.P : ""),
+                copy: fields.P || fields.S
+            };
+        }
+    }
+    return { type: "Text", text: text, copy: text };
+}</code></pre>
+  <ul>
+    <li><code>new URL(text)</code> takes a link apart. Its <code>hostname</code> is the site it goes to, like <code>www.anderswik.se</code>.</li>
+    <li>In the Wi-Fi pattern, a <code>;</code> ends each field. A name or password that has a <code>;</code> in it writes <code>\;</code> instead. The <strong>regular expression</strong> <code>((?:\\.|[^;])*)</code> reads "any number of: a backslash and any letter, or any letter but <code>;</code>". Then <code>replace(/\\(.)/g, "$1")</code> takes the backslashes away.</li>
+  </ul>
+
+  <h2>Step 6: Showing it safely</h2>
+  <p>A QR code on a poster could have been put there by anyone. It may hold a link to a fake bank, or text made to look like HTML. Three rules keep the reader safe:</p>
+  <pre><code class="language-javascript">function show(text) {
+    current = describe(text);
+    resultType.textContent = current.type;
+    resultText.textContent = current.text;   // textContent, never innerHTML: a code may hold anything
+    resultHost.hidden = !current.host;
+    resultHost.textContent = current.host ? "Goes to " + current.host : "";
+    openLink.hidden = !current.link;
+    openLink.href = current.link || "#";
+    copyButton.textContent = current.type === "Wi-Fi network" ? "Copy password" : "Copy";
+    resultBox.hidden = false;
+}</code></pre>
+  <ul>
+    <li><strong>Text, never HTML.</strong> <code>textContent</code> shows the code as letters. If we used <code>innerHTML</code>, a code with <code>&lt;img src=x onerror=...&gt;</code> in it would run its own script on our page.</li>
+    <li><strong>Never open a link by itself.</strong> You see the whole address, and the site it goes to, and decide. A code for <code>https://www.anderswik.se.bad-site.com</code> shows "Goes to www.anderswik.se.bad-site.com".</li>
+    <li><strong>Only web links get a button.</strong> Only <code>http</code> and <code>https</code> links can be opened. A link like <code>javascript:...</code> is shown as text. The link opens in a new tab with <code>rel="noopener"</code>, so the new page can't reach back to ours.</li>
+  </ul>
+  <p>Copy uses the clipboard, which also only works on <code>https</code> pages:</p>
+  <pre><code class="language-javascript">copyButton.addEventListener("click", async function () {
+    if (current === null) {
+        return;
+    }
+    const label = copyButton.textContent;
+    try {
+        await navigator.clipboard.writeText(current.copy);
+        copyButton.textContent = "Copied";
+    } catch (error) {
+        copyButton.textContent = "Can't copy here";
+    }
+    setTimeout(function () { copyButton.textContent = label; }, 1500);
+});</code></pre>
+
+  <h2>Step 7: Pictures, and codes read before</h2>
+  <p>A computer may have no camera, and a QR code may be in a screenshot. The file input lets you pick a picture. <code>createImageBitmap</code> turns the file into a picture that both readers can take:</p>
+  <pre><code class="language-javascript">fileInput.addEventListener("change", async function () {
+    const file = fileInput.files[0];
+    if (!file) {
+        return;
+    }
+    if (scanning) {
+        stop("");
+    }
+    let picture;
+    try {
+        picture = await createImageBitmap(file);
+    } catch (error) {
+        message.textContent = "That file isn't a picture this browser can open.";
+        return;
+    }
+    const text = await readCode(picture, picture.width, picture.height, true);
+    fileInput.value = "";
+    if (text === null) {
+        message.textContent = "No QR code found in the picture. Try a sharper one, or one closer to the code.";
+        return;
+    }
+    show(text);
+    remember(text);
+    startButton.textContent = "Start";
+    message.textContent = "Read a QR code from the picture.";
+});</code></pre>
+  <p>Every code read is saved in <code>localStorage</code>, newest first, at most ten. A code read again moves to the top, instead of being in the list twice:</p>
+  <pre><code class="language-javascript">function remember(text) {
+    history = [text].concat(history.filter(function (old) { return old !== text; })).slice(0, HISTORY_LENGTH);
+    try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    } catch (error) {
+        // Not saved, but the list still works until the page is closed.
+    }
+    drawHistory();
+}</code></pre>
+  <p>The list is made with <code>createElement</code> and <code>textContent</code>, for the same reason as in step 6.</p>
+
+  <h2>Step 8: Test it</h2>
+  <p>To test reading without holding up a phone, make a few QR codes as pictures, for example with Python's <code>qrcode</code> package, and give them to <code>readCode</code>. Tested like that in Firefox, which has no BarcodeDetector and so uses jsQR:</p>
+  <ul>
+    <li>A link, a line of text, and a Wi-Fi code with a <code>\;</code> in both the name and the password were all read right, and <code>describe</code> gave the right name and password.</li>
+    <li>A light code on a dark background was only found with <code>"attemptBoth"</code>, as expected: so pictures find it, and the camera, which is quicker, doesn't.</li>
+  </ul>
+  <p>Then test with the camera:</p>
+  <ul>
+    <li>Read a QR code from a phone screen, a poster, or a package. The frame should turn green.</li>
+    <li>Read a Wi-Fi code, like the one on many routers. Copy password should copy just the password.</li>
+    <li>Read the same code twice. It should only be in the list once.</li>
+    <li>Switch to another app while it scans. The camera light should go off.</li>
+    <li>The line at the bottom tells which reader the browser uses. Try a phone with Chrome and one with Safari.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>qr-reader.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;QR Reader&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+        text-align: center;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    /* The camera picture: a square, filled edge to edge. */
+    .viewfinder {
+        position: relative;
+        width: 320px;
+        max-width: 100%;
+        aspect-ratio: 1 / 1;
+        margin: 0 auto;
+        overflow: hidden;
+        background-color: #1b1d21;
+        border-radius: 16px;
+    }
+
+    video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* A square in the middle to aim with, the rest a little darker. */
+    .frame {
+        position: absolute;
+        inset: 16%;
+        border: 3px solid rgba(255, 255, 255, 0.85);
+        border-radius: 14px;
+        box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.3);
+    }
+
+    .viewfinder.found .frame {
+        border-color: #3ccf6e;
+    }
+
+    .label {
+        color: #c98a00;
+        font-weight: bold;
+    }
+
+    .result {
+        max-width: 420px;
+        margin: 16px auto 0;
+        padding: 16px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+    }
+
+    /* Long links have no spaces, so they may break anywhere. */
+    .result-text {
+        font-size: 18px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .result-host {
+        color: gray;
+    }
+
+    #button-start {
+        margin-top: 24px;
+        width: 200px;
+        height: 60px;
+        font-size: 18px;
+    }
+
+    .history {
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 0;
+        list-style: none;
+    }
+
+    .history button {
+        display: block;
+        width: 100%;
+        margin-bottom: 6px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;QR Reader&lt;/h1&gt;
+  &lt;p id="message"&gt;Press Start and point the camera at a QR code.&lt;/p&gt;
+
+  &lt;div id="viewfinder" class="viewfinder"&gt;
+    &lt;video id="video" playsinline muted&gt;&lt;/video&gt;
+    &lt;div class="frame"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div id="result" class="result" hidden&gt;
+    &lt;p id="result-type" class="label"&gt;Text&lt;/p&gt;
+    &lt;p id="result-text" class="result-text"&gt;&lt;/p&gt;
+    &lt;p id="result-host" class="result-host" hidden&gt;&lt;/p&gt;
+    &lt;a id="open-link" target="_blank" rel="noopener noreferrer" hidden&gt;Open link&lt;/a&gt;
+    &lt;button type="button" id="copy"&gt;Copy&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;
+
+  &lt;p class="label"&gt;&lt;label for="file"&gt;Or read a QR code from a picture&lt;/label&gt;&lt;/p&gt;
+  &lt;input type="file" id="file" accept="image/*"&gt;
+
+  &lt;div id="history-box" hidden&gt;
+    &lt;p class="label"&gt;Read before&lt;/p&gt;
+    &lt;ul id="history" class="history"&gt;&lt;/ul&gt;
+    &lt;button type="button" id="clear-history"&gt;Clear the list&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;p id="engine"&gt;&amp;nbsp;&lt;/p&gt;
+
+  &lt;!-- jsQR reads QR codes in browsers without a BarcodeDetector. --&gt;
+  &lt;script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" integrity="sha384-b5Ya4Bq3qCyz39m2ISh+4DxjAIljdeFwK/BsXLuj9gugaNwAcj/ia15fxNZL9Nlx" crossorigin="anonymous"&gt;&lt;/script&gt;
+  &lt;script&gt;
+    /*
+     * QR Reader: read QR codes with the camera, or from a picture.
+     *
+     * The camera comes from navigator.mediaDevices.getUserMedia() and is shown
+     * in a &lt;video&gt;. A few times a second we look for a QR code in the latest
+     * picture. Chrome on Android and Mac has a QR reader built in, the
+     * BarcodeDetector. Browsers without it, like Safari on iPhone and Firefox,
+     * use jsQR instead, a small library that finds the code in the pixels.
+     *
+     * A code can hold anything, also a link to a bad site, so a link is never
+     * opened by itself: you see where it goes, and tap Open link if you want.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SCAN_EVERY = 150;      // ms between two looks for a code
+    const VIDEO_SIZE = 640;      // jsQR: shrink the camera picture to at most this, it is faster
+    const PICTURE_SIZE = 1600;   // jsQR: the same for a picture, bigger, to find small codes
+    const HISTORY_KEY = "qr-reader-history";
+    const HISTORY_LENGTH = 10;
+
+    // --- State ---------------------------------------------------------------
+
+    let detector = null;         // the browser's BarcodeDetector, if it reads QR codes
+    let stream = null;           // the camera
+    let scanning = false;
+    let busy = false;            // still looking at the last picture?
+    let lastScan = 0;
+    let current = null;          // the code shown, as described by describe()
+    let history = loadHistory();
+
+    // jsQR needs the pixels, and a canvas gives them.
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+    // --- Elements on the page --------------------------------------------------
+
+    const message = document.getElementById("message");
+    const viewfinder = document.getElementById("viewfinder");
+    const video = document.getElementById("video");
+    const startButton = document.getElementById("button-start");
+    const resultBox = document.getElementById("result");
+    const resultType = document.getElementById("result-type");
+    const resultText = document.getElementById("result-text");
+    const resultHost = document.getElementById("result-host");
+    const openLink = document.getElementById("open-link");
+    const copyButton = document.getElementById("copy");
+    const fileInput = document.getElementById("file");
+    const historyBox = document.getElementById("history-box");
+    const historyList = document.getElementById("history");
+    const clearButton = document.getElementById("clear-history");
+    const engineText = document.getElementById("engine");
+
+    // --- Reading a code ----------------------------------------------------------
+
+    // The built-in reader, if the browser has one and it knows QR codes.
+    async function makeDetector() {
+        if (!("BarcodeDetector" in window)) {
+            return null;
+        }
+        try {
+            const formats = await BarcodeDetector.getSupportedFormats();
+            if (formats.includes("qr_code")) {
+                return new BarcodeDetector({ formats: ["qr_code"] });
+            }
+        } catch (error) {
+            // No built-in reader after all.
+        }
+        return null;
+    }
+
+    // Look for a QR code in a picture: the video, or an image. Returns the text
+    // in it, or null. "thorough" is for pictures: bigger, and also light codes
+    // on a dark background.
+    async function readCode(picture, width, height, thorough) {
+        if (detector !== null) {
+            try {
+                const codes = await detector.detect(picture);
+                return codes.length &gt; 0 ? codes[0].rawValue : null;
+            } catch (error) {
+                return null;
+            }
+        }
+        const scale = Math.min(1, (thorough ? PICTURE_SIZE : VIDEO_SIZE) / Math.max(width, height));
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        ctx.drawImage(picture, 0, 0, canvas.width, canvas.height);
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(pixels.data, pixels.width, pixels.height, {
+            inversionAttempts: thorough ? "attemptBoth" : "dontInvert"
+        });
+        return code ? code.data : null;
+    }
+
+    // --- The camera ----------------------------------------------------------------
+
+    async function start() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            message.textContent = "This browser can't use a camera here. It needs a page on https.";
+            return;
+        }
+        try {
+            // "environment" is the camera on the back, if there is one.
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" },
+                audio: false
+            });
+        } catch (error) {
+            message.textContent = error.name === "NotFoundError"
+                ? "No camera found. You can still read a QR code from a picture."
+                : "The page may not use the camera. Allow it in the browser's settings.";
+            return;
+        }
+        video.srcObject = stream;
+        await video.play();
+        scanning = true;
+        viewfinder.classList.remove("found");
+        startButton.textContent = "Stop";
+        startButton.className = "btn btn-warning";
+        message.textContent = "Point the camera at a QR code.";
+        requestAnimationFrame(scan);
+    }
+
+    function stop(text) {
+        scanning = false;
+        if (stream !== null) {
+            stream.getTracks().forEach(function (track) { track.stop(); });   // the camera light goes off
+            stream = null;
+        }
+        video.srcObject = null;
+        startButton.textContent = current === null ? "Start" : "Scan again";
+        startButton.className = "btn btn-success";
+        message.textContent = text;
+    }
+
+    // Every frame, but only look for a code every SCAN_EVERY ms, and never
+    // while the last look is still busy.
+    function scan(now) {
+        if (!scanning) {
+            return;
+        }
+        requestAnimationFrame(scan);
+        if (busy || now - lastScan &lt; SCAN_EVERY || video.readyState &lt; video.HAVE_CURRENT_DATA) {
+            return;
+        }
+        busy = true;
+        lastScan = now;
+        readCode(video, video.videoWidth, video.videoHeight, false).then(function (text) {
+            busy = false;
+            if (text !== null &amp;&amp; scanning) {
+                viewfinder.classList.add("found");
+                if (navigator.vibrate) {
+                    navigator.vibrate(80);
+                }
+                show(text);
+                remember(text);
+                stop("Found a QR code.");
+            }
+        });
+    }
+
+    // --- Showing a code ------------------------------------------------------------
+
+    // What kind of code is it? A link, a Wi-Fi network, or just text.
+    function describe(text) {
+        if (/^https?:\/\//i.test(text)) {
+            let host = "";
+            try {
+                host = new URL(text).hostname;
+            } catch (error) {
+                // Not a real address after all: show it as text.
+                return { type: "Text", text: text, copy: text };
+            }
+            return { type: "Link", text: text, copy: text, link: text, host: host };
+        }
+        if (/^WIFI:/i.test(text)) {
+            // WIFI:T:WPA;S:name;P:password;; where \ makes the next letter plain.
+            const fields = {};
+            const pattern = /([A-Z]):((?:\\.|[^;])*);/g;
+            let match;
+            while ((match = pattern.exec(text.slice(5))) !== null) {
+                fields[match[1]] = match[2].replace(/\\(.)/g, "$1");
+            }
+            if (fields.S) {
+                return {
+                    type: "Wi-Fi network",
+                    text: "Network: " + fields.S + (fields.P ? "\nPassword: " + fields.P : ""),
+                    copy: fields.P || fields.S
+                };
+            }
+        }
+        return { type: "Text", text: text, copy: text };
+    }
+
+    function show(text) {
+        current = describe(text);
+        resultType.textContent = current.type;
+        resultText.textContent = current.text;   // textContent, never innerHTML: a code may hold anything
+        resultHost.hidden = !current.host;
+        resultHost.textContent = current.host ? "Goes to " + current.host : "";
+        openLink.hidden = !current.link;
+        openLink.href = current.link || "#";
+        copyButton.textContent = current.type === "Wi-Fi network" ? "Copy password" : "Copy";
+        resultBox.hidden = false;
+    }
+
+    copyButton.addEventListener("click", async function () {
+        if (current === null) {
+            return;
+        }
+        const label = copyButton.textContent;
+        try {
+            await navigator.clipboard.writeText(current.copy);
+            copyButton.textContent = "Copied";
+        } catch (error) {
+            copyButton.textContent = "Can't copy here";
+        }
+        setTimeout(function () { copyButton.textContent = label; }, 1500);
+    });
+
+    // --- Reading a picture ---------------------------------------------------------
+
+    fileInput.addEventListener("change", async function () {
+        const file = fileInput.files[0];
+        if (!file) {
+            return;
+        }
+        if (scanning) {
+            stop("");
+        }
+        let picture;
+        try {
+            picture = await createImageBitmap(file);
+        } catch (error) {
+            message.textContent = "That file isn't a picture this browser can open.";
+            return;
+        }
+        const text = await readCode(picture, picture.width, picture.height, true);
+        fileInput.value = "";
+        if (text === null) {
+            message.textContent = "No QR code found in the picture. Try a sharper one, or one closer to the code.";
+            return;
+        }
+        show(text);
+        remember(text);
+        startButton.textContent = "Start";
+        message.textContent = "Read a QR code from the picture.";
+    });
+
+    // --- Codes read before -----------------------------------------------------------
+
+    function loadHistory() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(HISTORY_KEY));
+            return Array.isArray(saved) ? saved : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    // Put a code first in the list, without doubles, and keep the newest few.
+    function remember(text) {
+        history = [text].concat(history.filter(function (old) { return old !== text; })).slice(0, HISTORY_LENGTH);
+        try {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        } catch (error) {
+            // Not saved, but the list still works until the page is closed.
+        }
+        drawHistory();
+    }
+
+    function drawHistory() {
+        historyList.textContent = "";
+        history.forEach(function (text) {
+            const item = document.createElement("li");
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = text;
+            button.addEventListener("click", function () { show(text); });
+            item.appendChild(button);
+            historyList.appendChild(item);
+        });
+        historyBox.hidden = history.length === 0;
+    }
+
+    clearButton.addEventListener("click", function () {
+        history = [];
+        try {
+            localStorage.removeItem(HISTORY_KEY);
+        } catch (error) {
+            // Nothing saved to remove.
+        }
+        drawHistory();
+    });
+
+    // --- Start -----------------------------------------------------------------------
+
+    startButton.addEventListener("click", function () {
+        if (scanning) {
+            stop("Press Start to read a QR code.");
+        } else {
+            start();
+        }
+    });
+
+    // Switch the camera off when the page is hidden, like when you change apps.
+    document.addEventListener("visibilitychange", function () {
+        if (document.hidden &amp;&amp; scanning) {
+            stop("Press Start to read a QR code.");
+        }
+    });
+
+    makeDetector().then(function (found) {
+        detector = found;
+        engineText.textContent = detector !== null
+            ? "Reading QR codes with the browser's own BarcodeDetector."
+            : "Reading QR codes with jsQR.";
+    });
+    drawHistory();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Make QR codes too: type a text, and draw its code on a canvas. That is a lot more work without a library.</li>
+    <li>Read other codes: the BarcodeDetector also knows the barcodes on food, <code>"ean_13"</code>.</li>
+    <li>Draw an outline round the code that was found. Both readers tell where its corners are.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

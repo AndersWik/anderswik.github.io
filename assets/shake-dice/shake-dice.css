@@ -1,0 +1,134 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  text-align: center;
+  width: 420px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+/* The title: the site's font, and a short gold line under it. */
+.game h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+.game canvas {
+  display: block;
+  width: 360px;
+  max-width: 100%;
+  height: auto;
+  margin: 12px auto 0;
+  border: 8px solid #6b4423;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  touch-action: none;
+}
+
+.game #message {
+  min-height: 2.8em;
+  margin: 12px 0;
+}
+
+.game #start {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #222222;
+  background-color: #e8b455;
+  border: 3px solid #c99a3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* On a phone, less room round the dice, so they can be bigger. */
+@media (max-width: 480px) {
+  .game .container {
+    max-width: calc(100% - 16px);
+    margin: 8px;
+    padding: 12px;
+  }
+}
+
+/* --- The rules ---------------------------------------------------------- */
+
+.game .rules {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #dddddd;
+  text-align: left;
+}
+
+.game .rules summary {
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.game .rules ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.game .rules li {
+  margin-bottom: 6px;
+}
+
+/* --- Choosing the dice -------------------------------------------------- */
+
+.game .choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.game .choices-label {
+  align-self: center;
+  margin-right: 4px;
+  font-weight: bold;
+  color: #555555;
+}
+
+.game .choices button {
+  min-width: 46px;
+  padding: 8px 6px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #222222;
+  background-color: #ffffff;
+  border: 2px solid #dddddd;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.game .choices button[aria-pressed="true"] {
+  background-color: #fdf1d8;
+  border-color: #e8b455;
+}
