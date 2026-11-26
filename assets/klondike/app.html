@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Klondike</title>
+
+  <!-- Makes this page an installable app, see _scripts/make-pwa.py. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
+  <!-- iPhone and iPad read these instead of the manifest. -->
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Klondike">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/assets/klondike/klondike.css">
+  <style>
+    /* Without the site header the games would touch the top of the screen. */
+    .game { padding-block: 16px; }
+  </style>
+</head>
+<body>
+<div class="game">
+<div class="container">
+  <h1>Klondike</h1>
+
+  <div class="bar">
+    <p class="counts">Moves <span id="moves">0</span> · <span id="time">0:00</span></p>
+    <div class="buttons">
+      <label>Draw
+        <select id="draw">
+          <option value="1">1</option>
+          <option value="3">3</option>
+        </select>
+      </label>
+      <button type="button" id="undo">Undo</button>
+      <button type="button" id="new-game">New game</button>
+    </div>
+  </div>
+
+  <div id="board" class="felt">
+    <div class="row">
+      <div class="pile stock" data-pile="stock"></div>
+      <div class="pile waste" data-pile="waste"></div>
+      <div></div>
+      <div class="pile foundation" data-pile="f0"></div>
+      <div class="pile foundation" data-pile="f1"></div>
+      <div class="pile foundation" data-pile="f2"></div>
+      <div class="pile foundation" data-pile="f3"></div>
+    </div>
+    <div class="row tableau">
+      <div class="pile column" data-pile="t0"></div>
+      <div class="pile column" data-pile="t1"></div>
+      <div class="pile column" data-pile="t2"></div>
+      <div class="pile column" data-pile="t3"></div>
+      <div class="pile column" data-pile="t4"></div>
+      <div class="pile column" data-pile="t5"></div>
+      <div class="pile column" data-pile="t6"></div>
+    </div>
+  </div>
+
+  <p id="status" aria-live="polite">Drag the cards, or tap a card to move it.</p>
+  <button type="button" id="finish" class="finish" hidden>Finish: send all cards home</button>
+
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>Move all 52 cards to the four piles at the top right, one pile for each suit, from the ace up to the king.</li>
+      <li>In the seven columns, put a card on one that is one higher and the other color: a red 9 on a black 10. You can move a whole run of cards at once.</li>
+      <li>Only a king, or a run that starts with a king, can go in an empty column.</li>
+      <li>When a column's face-up cards are moved away, the card under them turns over.</li>
+      <li>Tap the pile at the top left to turn over 1 or 3 new cards. When it is empty, tap it again to start it over.</li>
+      <li>Tap a card to send it where it fits best: home to its pile if it can, otherwise to a column. Or drag it where you want it.</li>
+      <li>Your game is saved, so you can come back to it later.</li>
+    </ul>
+  </details>
+</div>
+</div>
+
+<script src="/assets/klondike/klondike.js"></script>
+<script>
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+</body>
+</html>

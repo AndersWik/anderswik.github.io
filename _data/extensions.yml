@@ -41,6 +41,7 @@
 - { slug: hi-lo-counter, page: pages/games/hi-lo-counter.html, emoji: "🎴", label: HI-LO, open: tab }
 - { slug: video-poker, page: pages/games/video-poker.html, emoji: "♥️", label: POKER, width: 600, description: "Video poker, Jacks or Better: hold the cards you want, draw, and win by the pay table." }
 - { slug: hangman, page: pages/games/hangman.html, emoji: "🪢" }
+- { slug: klondike, page: pages/games/klondike.html, emoji: "♦️", label: SOLITAIRE, open: tab, description: "Klondike solitaire: move all the cards home to the four foundations. Draw 1 or 3, with undo." }
 - { slug: kvarn, page: pages/games/kvarn.html, emoji: "⚪", label: "9" }
 - { slug: ludo, page: pages/games/ludo.html, emoji: "🎲", label: LUDO, open: tab }
 - { slug: pop-and-bump, page: pages/games/pop-and-bump.html, emoji: "🫧", open: tab }

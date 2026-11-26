@@ -34,6 +34,7 @@
 - { slug: hi-lo-counter, page: pages/games/hi-lo-counter.html, short_name: Hi-Lo, emoji: "🎴", label: HI-LO }
 - { slug: video-poker, page: pages/games/video-poker.html, short_name: Poker, emoji: "♥️", label: POKER }
 - { slug: hangman, page: pages/games/hangman.html, short_name: Hangman, emoji: "🪢" }
+- { slug: klondike, page: pages/games/klondike.html, short_name: Klondike, emoji: "♦️", label: SOLITAIRE }
 - { slug: kvarn, page: pages/games/kvarn.html, short_name: Kvarn, emoji: "⚪", label: "9" }
 - { slug: ludo, page: pages/games/ludo.html, short_name: Ludo, emoji: "🎲", label: LUDO }
 - { slug: pop-and-bump, page: pages/games/pop-and-bump.html, short_name: Pop and Bump, emoji: "🫧" }
