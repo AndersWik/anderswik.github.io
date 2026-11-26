@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compass</title>
+
+  <!-- Makes this page an installable app, see _scripts/make-pwa.py. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
+  <!-- iPhone and iPad read these instead of the manifest. -->
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Compass">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/assets/compass/compass.css">
+  <style>
+    /* Without the site header the games would touch the top of the screen. */
+    .game { padding-block: 16px; }
+  </style>
+</head>
+<body>
+<div class="compass container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Compass</h2>
+      <p id="message">Hold your phone flat and press Start.</p>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col">
+      <div class="rose">
+        <svg viewBox="-100 -100 200 200" aria-hidden="true">
+          <g id="dial">
+            <circle class="face" r="96"></circle>
+            <g id="ticks"></g>
+            <text class="point north" y="-62">N</text>
+            <text class="point" x="62">E</text>
+            <text class="point" y="62">S</text>
+            <text class="point" x="-62">W</text>
+            <polygon class="needle-north" points="0,-50 9,0 -9,0"></polygon>
+            <polygon class="needle-south" points="0,50 9,0 -9,0"></polygon>
+          </g>
+          <circle class="pin" r="4"></circle>
+          <polygon class="marker" points="0,-90 -7,-104 7,-104"></polygon>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col-6">
+      <p class="label">Heading</p>
+      <p id="heading" class="reading bw">---°</p>
+    </div>
+    <div class="col-6">
+      <p class="label">Direction</p>
+      <p id="direction" class="reading bw">--</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12 mt-3">
+      <button type="button" id="button-start" class="btn btn-success">Start</button>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/compass/compass.js"></script>
+<script>
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+</body>
+</html>

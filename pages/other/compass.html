@@ -1,0 +1,55 @@
+---
+layout: default
+title: Compass
+permalink: /other/compass/
+nonav: true
+css:
+  - /assets/compass/compass.css
+js:
+  - /assets/compass/compass.js
+---
+
+<div class="compass container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h2>Compass</h2>
+      <p id="message">Hold your phone flat and press Start.</p>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col">
+      <div class="rose">
+        <svg viewBox="-100 -100 200 200" aria-hidden="true">
+          <g id="dial">
+            <circle class="face" r="96"></circle>
+            <g id="ticks"></g>
+            <text class="point north" y="-62">N</text>
+            <text class="point" x="62">E</text>
+            <text class="point" y="62">S</text>
+            <text class="point" x="-62">W</text>
+            <polygon class="needle-north" points="0,-50 9,0 -9,0"></polygon>
+            <polygon class="needle-south" points="0,50 9,0 -9,0"></polygon>
+          </g>
+          <circle class="pin" r="4"></circle>
+          <polygon class="marker" points="0,-90 -7,-104 7,-104"></polygon>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col-6">
+      <p class="label">Heading</p>
+      <p id="heading" class="reading bw">---°</p>
+    </div>
+    <div class="col-6">
+      <p class="label">Direction</p>
+      <p id="direction" class="reading bw">--</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12 mt-3">
+      <button type="button" id="button-start" class="btn btn-success">Start</button>
+    </div>
+  </div>
+  <p class="mt-5 text-center"><a href="/tutorials/compass/">How to build this app</a></p>
+</div>

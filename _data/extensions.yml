@@ -63,6 +63,7 @@
 - { slug: px-em-converter, page: pages/utils/px-em-converter.html, emoji: "📏", description: "Convert pixels to em and rem, and back, from a base font size." }
 - { slug: unix-timestamp-convertor, page: pages/utils/unix-timestamp-convertor.html, name: Unix Timestamp Converter, emoji: "🕒" }
 - { slug: bubble-level, page: pages/other/bubble-level.html, emoji: "📐", description: "A bubble level for your phone: lay it on a surface and see if it is flat." }
+- { slug: compass, page: pages/other/compass.html, emoji: "🧭", description: "A compass for your phone: see which way north is and which way you are facing." }
 - { slug: countdown, page: pages/other/countdown.html, emoji: "⏳", open: tab }
 - { slug: discgolf, page: pages/other/discgolf.html, name: Discgolf score card, emoji: "🥏" }
 - { slug: egg-clock, page: pages/other/egg-clock.html, emoji: "🥚", open: tab }

@@ -1,0 +1,524 @@
+---
+layout: default
+title: Compass
+permalink: /tutorials/compass/
+chapter: "02"
+chapter_title: "JavaScript apps"
+keywords: [javascript, compass, deviceorientation, deviceorientationabsolute, webkitCompassHeading, alpha, heading, svg, createElementNS, rotate, transform, angles, smoothing, requestPermission]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Compass</h1>
+  <p>A compass for your phone: the dial turns so that N always points north, and a marker at the top shows which way you are facing. The new ideas are drawing with SVG from JavaScript, reading the compass that phones report in two different ways, and doing math with angles that go round in a circle.</p>
+  <p><a href="/assets/tutorials/compass.html">Open the finished page</a> (on a phone, a computer has no compass)</p>
+  <p>Read the <a href="/tutorials/bubble-level/">Bubble level</a> first. It explains the <code>deviceorientation</code> event, asking for permission on iPhone, and smoothing.</p>
+  <h2>The state</h2>
+  <pre><code class="language-javascript">const SMOOTHING = 0.2;   // 1 = no smoothing, smaller = calmer but slower
+const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+
+let heading = null;      // which way the phone points, 0 to 360
+let started = false;
+let gotEvent = false;    // the sensor has sent anything
+let gotReading = false;  // the sensor has sent a heading we can use</code></pre>
+  <p><code>heading</code> starts as <code>null</code>, not 0, because 0 means north. <code>null</code> means "no reading yet".</p>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>compass.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The compass is an SVG picture. Everything that turns with the dial is in the group <code>&lt;g id="dial"&gt;</code>, so we can turn it all with one <code>transform</code>. The pin in the middle and the gold marker at the top are outside the group, so they stay still.</p>
+  <pre><code class="language-html">&lt;h1&gt;Compass&lt;/h1&gt;
+&lt;p id="message"&gt;Hold your phone flat and press Start.&lt;/p&gt;
+
+&lt;div class="rose"&gt;
+  &lt;svg viewBox="-100 -100 200 200"&gt;
+    &lt;g id="dial"&gt;
+      &lt;circle class="face" r="96"&gt;&lt;/circle&gt;
+      &lt;g id="ticks"&gt;&lt;/g&gt;
+      &lt;text class="point north" y="-62"&gt;N&lt;/text&gt;
+      &lt;text class="point" x="62"&gt;E&lt;/text&gt;
+      &lt;text class="point" y="62"&gt;S&lt;/text&gt;
+      &lt;text class="point" x="-62"&gt;W&lt;/text&gt;
+      &lt;polygon class="needle-north" points="0,-50 9,0 -9,0"&gt;&lt;/polygon&gt;
+      &lt;polygon class="needle-south" points="0,50 9,0 -9,0"&gt;&lt;/polygon&gt;
+    &lt;/g&gt;
+    &lt;circle r="4"&gt;&lt;/circle&gt;
+    &lt;polygon class="marker" points="0,-90 -7,-104 7,-104"&gt;&lt;/polygon&gt;
+  &lt;/svg&gt;
+&lt;/div&gt;
+
+&lt;div class="readings"&gt;
+  &lt;p id="heading"&gt;---°&lt;/p&gt;
+  &lt;p id="direction"&gt;--&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;</code></pre>
+  <p><code>viewBox="-100 -100 200 200"</code> makes a drawing area 200 units wide with 0,0 in the middle. Then the dial is centered without any math, and <code>rotate()</code> turns things around the middle. In SVG, y grows downwards, so <code>y="-62"</code> is above the middle. A <code>polygon</code> is a shape from a list of corners: the north needle goes from the tip at 0,-50 to two corners beside the middle.</p>
+  <pre><code class="language-css">h1::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin: 10px auto 0;
+    background-color: #e8b455;
+    border-radius: 2px;
+}
+
+.rose {
+    width: 300px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.rose svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.face {
+    fill: #f7f3ea;
+    stroke: #333;
+    stroke-width: 5;
+}
+
+.tick {
+    stroke: #333;
+    stroke-width: 1;
+}
+
+.tick-big {
+    stroke-width: 2.5;
+}
+
+.degrees {
+    font-size: 9px;
+    fill: #777;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.point {
+    font-weight: bold;
+    font-size: 20px;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.north,
+.needle-north {
+    fill: #d63a2f;
+}
+
+.needle-south {
+    fill: #aaa;
+}
+
+.marker {
+    fill: #e8b455;
+}</code></pre>
+  <p>SVG shapes are colored with <code>fill</code> (inside) and <code>stroke</code> (outline), not <code>background-color</code> and <code>border</code>. <code>text-anchor: middle</code> and <code>dominant-baseline: central</code> put the middle of a letter on its x and y, instead of its bottom left corner. The marker pokes out above the circle, so the SVG needs <code>overflow: visible</code>.</p>
+  <h2>Step 2: Draw the ticks</h2>
+  <p>36 ticks are a lot to type, so a loop draws them. Every tick is the same short line at the top of the dial, turned round the middle by its angle:</p>
+  <pre><code class="language-javascript">const SVG = "http://www.w3.org/2000/svg";
+
+function drawTicks() {
+    for (let degrees = 0; degrees &lt; 360; degrees += 10) {
+        const big = degrees % 30 === 0;
+        const line = document.createElementNS(SVG, "line");
+        line.setAttribute("y1", -96);
+        line.setAttribute("y2", big ? -82 : -88);
+        line.setAttribute("class", big ? "tick tick-big" : "tick");
+        line.setAttribute("transform", `rotate(${degrees})`);
+        ticks.appendChild(line);
+
+        // N, E, S and W already have letters.
+        if (big &amp;&amp; degrees % 90 !== 0) {
+            const text = document.createElementNS(SVG, "text");
+            text.setAttribute("class", "degrees");
+            text.setAttribute("y", -72);
+            text.setAttribute("transform", `rotate(${degrees})`);
+            text.textContent = degrees;
+            ticks.appendChild(text);
+        }
+    }
+}</code></pre>
+  <p>SVG elements live in their own <em>namespace</em>. <code>document.createElement("line")</code> would make an HTML element called "line", which the browser doesn't know how to draw. <code>createElementNS</code> with the SVG namespace makes a real SVG line. SVG attributes are set with <code>setAttribute</code>, and <code>class</code> too, instead of <code>className</code>.</p>
+  <p><code>degrees % 30 === 0</code> is true for 0, 30, 60 and so on: every third tick is a big one with a number.</p>
+  <h2>Step 3: Where is north?</h2>
+  <p>In the <a href="/tutorials/bubble-level/">Bubble level</a> we used <code>beta</code> and <code>gamma</code>. A compass needs the third angle, <code>alpha</code>, which way the phone points. But in a normal <code>deviceorientation</code> event, <code>alpha</code> is often counted from wherever the phone pointed when the page started, not from north. And phones give us north in two different ways:</p>
+  <ul>
+    <li><strong>iPhone</strong>: <code>event.webkitCompassHeading</code>, degrees clockwise from north. It is -1 when the compass isn't ready.</li>
+    <li><strong>Android</strong>: a separate <code>deviceorientationabsolute</code> event, where <code>event.absolute</code> is true and <code>alpha</code> is counted from north. But <code>alpha</code> goes counterclockwise, so the heading is <code>360 - alpha</code>.</li>
+  </ul>
+  <pre><code class="language-javascript">function onOrientation(event) {
+    gotEvent = true;
+    let reading;
+    if (typeof event.webkitCompassHeading === "number" &amp;&amp; event.webkitCompassHeading &gt;= 0) {
+        reading = event.webkitCompassHeading;          // iPhone
+    } else if (event.absolute &amp;&amp; event.alpha !== null) {
+        reading = 360 - event.alpha;                    // Android
+    } else {
+        return;   // only a tilt, no north
+    }
+    gotReading = true;
+
+    reading = (reading + screenAngle()) % 360;
+    ...
+}</code></pre>
+  <p>When the screen turns to landscape, the top of the screen is one of the phone's sides, which points 90 degrees further round. So we add the screen's angle, and <code>% 360</code> keeps the result under 360:</p>
+  <pre><code class="language-javascript">function screenAngle() {
+    return screen.orientation ? screen.orientation.angle : window.orientation || 0;
+}</code></pre>
+  <p><code>start()</code> is the same as in the Bubble level, except for which event we listen to. If the browser knows the Android event, we use it:</p>
+  <pre><code class="language-javascript">if ("ondeviceorientationabsolute" in window) {
+    window.addEventListener("deviceorientationabsolute", onOrientation);
+} else {
+    window.addEventListener("deviceorientation", onOrientation);
+}</code></pre>
+  <p>A device can have a tilt sensor but no compass. Then events come, but none has a heading. <code>gotEvent</code> and <code>gotReading</code> tell the two cases apart, so the message after two seconds can say which:</p>
+  <pre><code class="language-javascript">setTimeout(function () {
+    if (!gotEvent) {
+        message.textContent = "No compass found. Open the page on a phone.";
+    } else if (!gotReading) {
+        message.textContent = "This device can tell its tilt, but not where north is.";
+    }
+}, 2000);</code></pre>
+  <h2>Step 4: Smoothing round a circle</h2>
+  <p>The Bubble level smoothed with <code>tilt = tilt + (new - tilt) * 0.2</code>. Try that with a compass pointing almost north: the heading is 359 and the new reading is 1. Then <code>new - tilt</code> is -358, and the dial spins almost all the way round, the long way, through south. The real difference is only +2.</p>
+  <p>We need the <em>shortest</em> way from one angle to the other:</p>
+  <pre><code class="language-javascript">function angleDifference(from, to) {
+    return ((to - from + 540) % 360) - 180;
+}</code></pre>
+  <p>From 359 to 1: (1 - 359 + 540) % 360 - 180 = 182 - 180 = 2. From 10 to 350: (350 - 10 + 540) % 360 - 180 = 160 - 180 = -20. Adding 540 (360 + 180) keeps the number positive before <code>%</code>, because <code>%</code> of a negative number is negative in JavaScript. The answer is always from -180 to 180.</p>
+  <pre><code class="language-javascript">if (heading === null) {
+    heading = reading;
+} else {
+    heading = (heading + angleDifference(heading, reading) * SMOOTHING + 360) % 360;
+}
+draw();</code></pre>
+  <p>The first reading is used as it is, so the dial doesn't swing in from north when you press Start. The <code>+ 360</code> and <code>% 360</code> keep the heading from 0 to 360 when it moves past north.</p>
+  <h2>Step 5: Turn the dial</h2>
+  <pre><code class="language-javascript">function directionName(degrees) {
+    return DIRECTIONS[Math.round(degrees / 45) % 8];
+}
+
+function draw() {
+    dial.setAttribute("transform", `rotate(${-heading})`);
+    const rounded = Math.round(heading) % 360;
+    headingText.textContent = rounded + "°";
+    directionText.textContent = directionName(rounded);
+}
+
+startButton.addEventListener("click", start);
+drawTicks();</code></pre>
+  <p>If the phone points east (90), north is to the left, so the dial turns the other way: <code>rotate(-90)</code>. The number under the gold marker is then 90, the heading.</p>
+  <p>There are 8 directions, 45 degrees apart. <code>Math.round(degrees / 45)</code> gives the nearest one: 40 / 45 rounds to 1, "NE". 350 / 45 rounds to 8, and <code>% 8</code> turns that back into 0, "N". <code>Math.round(heading) % 360</code> does the same for 359.6, which would round to 360 instead of 0.</p>
+  <h2>Step 6: Test it</h2>
+  <ul>
+    <li>Put the page on a server with <code>https://</code>, or use <code>localhost</code>, and open it on a phone.</li>
+    <li>On a computer, Chrome's developer tools can fake the sensor: More tools, Sensors, Orientation. Change alpha and the dial should turn.</li>
+    <li>Turn round slowly. The heading should go up when you turn right (clockwise).</li>
+    <li>Turn past north. The dial should move a little, not spin round.</li>
+    <li>Turn the phone to landscape. The heading should be the way the top of the screen points.</li>
+    <li>Compare with a real compass or a map app. Keep away from metal, magnets and speakers, they confuse the sensor. If it is wrong, wave the phone in a figure 8 to calibrate it.</li>
+  </ul>
+  <p>The phone's compass finds <em>magnetic</em> north. On a map, north is <em>true</em> north, the North Pole. The difference is a few degrees in most places, and it changes from place to place.</p>
+  <h2>The complete page</h2>
+  <p><strong>compass.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Compass&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    .rose {
+        width: 300px;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .rose svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+
+    .face {
+        fill: #f7f3ea;
+        stroke: #333;
+        stroke-width: 5;
+    }
+
+    .tick {
+        stroke: #333;
+        stroke-width: 1;
+    }
+
+    .tick-big {
+        stroke-width: 2.5;
+    }
+
+    .degrees {
+        font-size: 9px;
+        fill: #777;
+        text-anchor: middle;
+        dominant-baseline: central;
+    }
+
+    .point {
+        font-weight: bold;
+        font-size: 20px;
+        text-anchor: middle;
+        dominant-baseline: central;
+    }
+
+    .north,
+    .needle-north {
+        fill: #d63a2f;
+    }
+
+    .needle-south {
+        fill: #aaa;
+    }
+
+    .marker {
+        fill: #e8b455;
+    }
+
+    .readings {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        font-size: 32px;
+        font-family: monospace;
+    }
+
+    button {
+        width: 200px;
+        height: 60px;
+        font-size: 18px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Compass&lt;/h1&gt;
+  &lt;p id="message"&gt;Hold your phone flat and press Start.&lt;/p&gt;
+
+  &lt;div class="rose"&gt;
+    &lt;svg viewBox="-100 -100 200 200"&gt;
+      &lt;g id="dial"&gt;
+        &lt;circle class="face" r="96"&gt;&lt;/circle&gt;
+        &lt;g id="ticks"&gt;&lt;/g&gt;
+        &lt;text class="point north" y="-62"&gt;N&lt;/text&gt;
+        &lt;text class="point" x="62"&gt;E&lt;/text&gt;
+        &lt;text class="point" y="62"&gt;S&lt;/text&gt;
+        &lt;text class="point" x="-62"&gt;W&lt;/text&gt;
+        &lt;polygon class="needle-north" points="0,-50 9,0 -9,0"&gt;&lt;/polygon&gt;
+        &lt;polygon class="needle-south" points="0,50 9,0 -9,0"&gt;&lt;/polygon&gt;
+      &lt;/g&gt;
+      &lt;circle r="4"&gt;&lt;/circle&gt;
+      &lt;polygon class="marker" points="0,-90 -7,-104 7,-104"&gt;&lt;/polygon&gt;
+    &lt;/svg&gt;
+  &lt;/div&gt;
+
+  &lt;div class="readings"&gt;
+    &lt;p id="heading"&gt;---°&lt;/p&gt;
+    &lt;p id="direction"&gt;--&lt;/p&gt;
+  &lt;/div&gt;
+
+  &lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;
+
+  &lt;script&gt;
+    /*
+     * Compass: the dial turns so that N always points north, and the gold marker
+     * at the top shows which way the phone is pointing.
+     *
+     * Phones tell us where north is in two different ways:
+     *   iPhone   event.webkitCompassHeading, degrees clockwise from north
+     *   Android  the "deviceorientationabsolute" event, where event.alpha is
+     *            degrees counterclockwise from north, so the heading is 360 - alpha
+     */
+
+    // --- Settings --------------------------------------------------------------
+
+    const SMOOTHING = 0.2;   // 1 = no smoothing, smaller = calmer but slower
+    const DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+
+    // --- State -----------------------------------------------------------------
+
+    let heading = null;      // which way the phone points, 0 to 360
+    let started = false;
+    let gotEvent = false;    // the sensor has sent anything
+    let gotReading = false;  // the sensor has sent a heading we can use
+
+    // --- Elements on the page --------------------------------------------------
+
+    const dial = document.getElementById("dial");
+    const ticks = document.getElementById("ticks");
+    const headingText = document.getElementById("heading");
+    const directionText = document.getElementById("direction");
+    const message = document.getElementById("message");
+    const startButton = document.getElementById("button-start");
+
+    // --- The dial --------------------------------------------------------------
+
+    // Draw a tick every 10 degrees, a longer one and a number every 30.
+    // SVG elements must be made with createElementNS, not createElement.
+    const SVG = "http://www.w3.org/2000/svg";
+
+    function drawTicks() {
+        for (let degrees = 0; degrees &lt; 360; degrees += 10) {
+            const big = degrees % 30 === 0;
+            const line = document.createElementNS(SVG, "line");
+            line.setAttribute("y1", -96);
+            line.setAttribute("y2", big ? -82 : -88);
+            line.setAttribute("class", big ? "tick tick-big" : "tick");
+            line.setAttribute("transform", `rotate(${degrees})`);
+            ticks.appendChild(line);
+
+            // N, E, S and W already have letters.
+            if (big &amp;&amp; degrees % 90 !== 0) {
+                const text = document.createElementNS(SVG, "text");
+                text.setAttribute("class", "degrees");
+                text.setAttribute("y", -72);
+                text.setAttribute("transform", `rotate(${degrees})`);
+                text.textContent = degrees;
+                ticks.appendChild(text);
+            }
+        }
+    }
+
+    // --- Helpers ---------------------------------------------------------------
+
+    // The shortest way from one angle to another, from -180 to 180.
+    // From 350 to 10 is +20, not -340.
+    function angleDifference(from, to) {
+        return ((to - from + 540) % 360) - 180;
+    }
+
+    // How far the screen has turned: 0, 90, 180 or 270.
+    function screenAngle() {
+        return screen.orientation ? screen.orientation.angle : window.orientation || 0;
+    }
+
+    // 0 -&gt; "N", 40 -&gt; "NE", 350 -&gt; "N"
+    function directionName(degrees) {
+        return DIRECTIONS[Math.round(degrees / 45) % 8];
+    }
+
+    // --- Drawing ---------------------------------------------------------------
+
+    function draw() {
+        // Turn the dial the other way, so N stays pointing north.
+        dial.setAttribute("transform", `rotate(${-heading})`);
+        const rounded = Math.round(heading) % 360;
+        headingText.textContent = rounded + "°";
+        directionText.textContent = directionName(rounded);
+    }
+
+    // --- The sensor ------------------------------------------------------------
+
+    function onOrientation(event) {
+        gotEvent = true;
+        let reading;
+        if (typeof event.webkitCompassHeading === "number" &amp;&amp; event.webkitCompassHeading &gt;= 0) {
+            reading = event.webkitCompassHeading;          // iPhone
+        } else if (event.absolute &amp;&amp; event.alpha !== null) {
+            reading = 360 - event.alpha;                    // Android
+        } else {
+            return;   // only a tilt, no north
+        }
+        gotReading = true;
+
+        // When the screen turns to landscape, the top of the screen is a side of the phone.
+        reading = (reading + screenAngle()) % 360;
+
+        if (heading === null) {
+            heading = reading;
+        } else {
+            // Smoothing the short way round, so 359 -&gt; 1 doesn't spin past 180.
+            heading = (heading + angleDifference(heading, reading) * SMOOTHING + 360) % 360;
+        }
+        draw();
+    }
+
+    async function start() {
+        if (started) {
+            return;
+        }
+        if (!window.DeviceOrientationEvent) {
+            message.textContent = "This browser has no compass. Open the page on a phone.";
+            return;
+        }
+        // iPhone and iPad ask the user first, and only after a click.
+        if (typeof DeviceOrientationEvent.requestPermission === "function") {
+            try {
+                const answer = await DeviceOrientationEvent.requestPermission();
+                if (answer !== "granted") {
+                    message.textContent = "No permission to read the compass.";
+                    return;
+                }
+            } catch (error) {
+                message.textContent = "Could not ask for the compass: " + error.message;
+                return;
+            }
+        }
+        // Android sends the north-based angles in their own event.
+        if ("ondeviceorientationabsolute" in window) {
+            window.addEventListener("deviceorientationabsolute", onOrientation);
+        } else {
+            window.addEventListener("deviceorientation", onOrientation);
+        }
+        started = true;
+        startButton.disabled = true;
+        message.textContent = "Hold your phone flat, away from metal and magnets.";
+
+        // A computer often has the event but no sensor, so nothing ever comes.
+        setTimeout(function () {
+            if (!gotEvent) {
+                message.textContent = "No compass found. Open the page on a phone.";
+            } else if (!gotReading) {
+                message.textContent = "This device can tell its tilt, but not where north is.";
+            }
+        }, 2000);
+    }
+
+    // --- Start -----------------------------------------------------------------
+
+    startButton.addEventListener("click", start);
+    drawTicks();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Show 16 directions instead of 8: "NNE", "ENE" and so on, 22.5 degrees apart.</li>
+    <li>Add a button that saves the current heading, and an arrow that points back to it, like a "find my way back" compass.</li>
+    <li>Vibrate with <code>navigator.vibrate(40)</code> each time the heading passes north.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

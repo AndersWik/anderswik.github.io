@@ -1,0 +1,100 @@
+.compass h2 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.compass h2::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+.compass .rose {
+  width: 300px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.compass .rose svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.compass .face {
+  fill: #f7f3ea;
+  stroke: #1b1d21;
+  stroke-width: 5;
+}
+
+.compass .tick {
+  stroke: #1b1d21;
+  stroke-width: 1;
+}
+
+.compass .tick-big {
+  stroke-width: 2.5;
+}
+
+.compass .degrees {
+  font-family: ubuntu;
+  font-size: 9px;
+  fill: #6c757d;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.compass .point {
+  font-family: ubuntu;
+  font-weight: 700;
+  font-size: 20px;
+  fill: #1b1d21;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.compass .point.north {
+  fill: #d63a2f;
+}
+
+.compass .needle-north {
+  fill: #d63a2f;
+}
+
+.compass .needle-south {
+  fill: #adb5bd;
+}
+
+.compass .pin {
+  fill: #1b1d21;
+}
+
+.compass .marker {
+  fill: #e8b455;
+}
+
+.compass .label {
+  color: #fdbc40;
+  font-family: ubuntu;
+  font-size: 30px;
+  margin-bottom: 0.5rem;
+}
+
+.compass .reading {
+  font-family: ubuntu;
+  font-size: 40px;
+  font-variant-numeric: tabular-nums;
+}
+
+.compass button {
+  font-family: ubuntu;
+  width: 100%;
+  height: 70px;
+}
