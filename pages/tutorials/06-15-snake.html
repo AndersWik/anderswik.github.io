@@ -1,0 +1,617 @@
+---
+layout: default
+title: Snake
+permalink: /tutorials/snake/
+chapter: "06"
+chapter_title: "Classic arcade"
+keywords: [javascript, game, canvas, snake, grid, queue, unshift, pop, shift, slice, keyboard, swipe, pointer events, touch, localStorage]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Snake</h1>
+  <p>The classic: steer a snake to the food. Every piece of food makes it one square longer and a little faster. If it hits a wall or itself, the game is over. It works with the keyboard, and with swipes on a phone.</p>
+  <p>Unlike the other arcade games, Snake doesn't move smoothly: it jumps one square at a time, on a grid. That makes the code short, and a good game to build early. It uses the screens and the pause from <a href="/tutorials/asteroids/">Asteroids</a>, and the pointer events from <a href="/tutorials/mini-golf/">Mini Golf</a>.</p>
+  <p><a href="/assets/tutorials/snake.html">Open the finished game</a></p>
+
+  <h2>Step 1: The page</h2>
+  <p>Create <code>snake.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The board is a square canvas: 20 squares of 24 pixels is 480 pixels.</p>
+  <pre><code class="language-html">&lt;canvas id="gameCanvas" width="480" height="480"&gt;&lt;/canvas&gt;</code></pre>
+  <pre><code class="language-css">body {
+    margin: 0;
+    background-color: #222;
+}
+
+canvas {
+    display: block;
+    max-width: calc(100% - 20px);
+    height: auto;
+    margin: 20px auto;
+    border: 4px solid #444;
+    border-radius: 6px;
+    /* Swiping on a phone turns the snake instead of scrolling the page. */
+    touch-action: none;
+}</code></pre>
+  <p><code>touch-action: none</code> stops a swipe on the canvas from scrolling the page, so it can turn the snake instead.</p>
+
+  <h2>Step 2: A snake is a list of squares</h2>
+  <p>The snake is a list of squares on the grid, with the head first. A square is just <code>{ x, y }</code>, counted in squares, not pixels:</p>
+  <pre><code class="language-javascript">function newGame() {
+    // Three squares in the middle, moving right.
+    const middle = Math.floor(CELLS / 2);
+    snake = [
+        { x: middle, y: middle },
+        { x: middle - 1, y: middle },
+        { x: middle - 2, y: middle }
+    ];
+    direction = "right";
+    turns = [];
+    score = 0;
+    delay = START_DELAY;
+    sinceMove = 0;
+    placeFood();
+    gameStarted = true;
+    screen = "playing";
+}</code></pre>
+
+  <h2>Step 3: Moving</h2>
+  <p>Moving a whole snake sounds like a lot of work, but it isn't: add a new head in front, and take the last square of the tail away. Everything in between stays where it is. When the snake eats, we don't take the tail away, and it is one square longer:</p>
+  <pre><code class="language-javascript">function step() {
+    if (turns.length &gt; 0) {
+        direction = turns.shift();
+    }
+    const head = snake[0];
+    const move = DIRECTIONS[direction];
+    const next = { x: head.x + move.x, y: head.y + move.y };
+
+    const eats = food !== null &amp;&amp; next.x === food.x &amp;&amp; next.y === food.y;
+    // The tail moves away in the same step, so the head may go where the
+    // tail is now, unless the snake grows this step.
+    const body = eats ? snake : snake.slice(0, -1);
+    const hitWall = next.x &lt; 0 || next.x &gt;= CELLS || next.y &lt; 0 || next.y &gt;= CELLS;
+    const hitSelf = body.some(function (square) {
+        return square.x === next.x &amp;&amp; square.y === next.y;
+    });
+    if (hitWall || hitSelf) {
+        gameOver();
+        return;
+    }
+
+    snake.unshift(next);    // a new head in front...
+    if (eats) {
+        score++;
+        delay = Math.max(FASTEST, delay - SPEED_UP);
+        placeFood();
+    } else {
+        snake.pop();        // ...and the last square of the tail away
+    }
+}</code></pre>
+  <ul>
+    <li><code>unshift</code> adds to the start of a list, and <code>pop</code> takes the last one away.</li>
+    <li>The wall is easy: a square outside 0 to 19 is outside the board.</li>
+    <li><strong>The tail moves too.</strong> In the same step that the head moves, the tail moves away. So the head may go to the square where the tail is now, chasing its own tail round in a small loop. <code>snake.slice(0, -1)</code> is the snake without its last square, the body as it will be after the move. Only when it eats does the tail stay.</li>
+  </ul>
+
+  <h2>Step 4: Food</h2>
+  <pre><code class="language-javascript">function placeFood() {
+    const free = [];
+    for (let y = 0; y &lt; CELLS; y++) {
+        for (let x = 0; x &lt; CELLS; x++) {
+            if (!onSnake(x, y)) {
+                free.push({ x: x, y: y });
+            }
+        }
+    }
+    food = free.length &gt; 0 ? free[Math.floor(Math.random() * free.length)] : null;
+}
+
+function onSnake(x, y) {
+    return snake.some(function (square) {
+        return square.x === x &amp;&amp; square.y === y;
+    });
+}</code></pre>
+  <p>An easy way is to pick a random square, and try again if the snake is on it. But when the snake fills most of the board, that can take many tries. Listing the free squares first and picking one of them always works at once. When there is no free square left, you have filled the board.</p>
+
+  <h2>Step 5: Turning, with a queue</h2>
+  <p>A snake may not turn straight back: going right, it can't go left, or the head would go into its neck. That is easy to check. But there is a trap. Going right, press up and then left very fast, before the snake has moved. Up is fine, and then left is fine too, because now we are going up... but the snake never moved up. It turns from right to left, straight into itself, and the game is over.</p>
+  <p>The answer is a <strong>queue</strong> of turns. Each key press is checked against the turn before it, and added to the queue. Each move takes one turn from the front of the queue:</p>
+  <pre><code class="language-javascript">function turn(to) {
+    const last = turns.length &gt; 0 ? turns[turns.length - 1] : direction;
+    if (to === last || to === OPPOSITE[last] || turns.length &gt;= 3) {
+        return;
+    }
+    turns.push(to);
+}</code></pre>
+  <p><code>step()</code> starts with <code>direction = turns.shift()</code>: <code>shift</code> takes the first one out of the list. Now up and left, pressed fast, make the snake go up one square and then left, as you meant. The queue holds at most three turns, so a key held down doesn't fill it up.</p>
+
+  <h2>Step 6: The loop, faster and faster</h2>
+  <p>The snake moves once every <code>delay</code> milliseconds, and the delay gets 4 ms shorter for every piece of food, down to 60 ms. The loop adds up the time between frames, and moves when enough has passed:</p>
+  <pre><code class="language-javascript">function gameLoop(now) {
+    const passed = Math.min(now - lastTime, 250);
+    lastTime = now;
+
+    if (screen === "playing") {
+        sinceMove += passed;
+        while (sinceMove &gt;= delay &amp;&amp; screen === "playing") {
+            sinceMove -= delay;
+            step();
+        }
+    }
+
+    draw();
+    requestAnimationFrame(gameLoop);
+}</code></pre>
+  <p>The <code>while</code>, not an <code>if</code>, makes the snake keep its speed even if a frame comes late: then it moves twice in that frame.</p>
+
+  <h2>Step 7: Swipes</h2>
+  <p>On a phone, you swipe the way to go. We remember where the finger went down, and when it has moved 30 pixels, the longer way, sideways or up and down, is the direction:</p>
+  <pre><code class="language-javascript">canvas.addEventListener("pointermove", function (event) {
+    if (swipeStart === null || screen !== "playing") {
+        return;
+    }
+    const dx = event.clientX - swipeStart.x;
+    const dy = event.clientY - swipeStart.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) &lt; SWIPE) {
+        return;
+    }
+    if (Math.abs(dx) &gt; Math.abs(dy)) {
+        turn(dx &gt; 0 ? "right" : "left");
+    } else {
+        turn(dy &gt; 0 ? "down" : "up");
+    }
+    // Start again from here, so one long swipe can make two turns.
+    swipeStart = { x: event.clientX, y: event.clientY };
+});</code></pre>
+  <p>A swipe goes through <code>turn()</code> like a key, so it uses the same queue. A tap starts the game, and goes on after a pause, so the game needs no keyboard at all. That is why Snake can be installed as an app on a phone.</p>
+
+  <h2>Step 8: Drawing</h2>
+  <pre><code class="language-javascript">function drawSquare(square, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(square.x * SIZE + 1, square.y * SIZE + 1, SIZE - 2, SIZE - 2);
+}
+
+function drawSnake() {
+    snake.forEach(function (square, i) {
+        // The head is brighter, and the body fades a little to the tail.
+        const light = i === 0 ? 60 : 45 - Math.min(20, i);
+        drawSquare(square, "hsl(120, 70%, " + light + "%)");
+    });
+
+    // Two eyes on the head, looking the way it goes.
+    const head = snake[0];
+    const move = DIRECTIONS[direction];
+    const cx = head.x * SIZE + SIZE / 2 + move.x * SIZE / 5;
+    const cy = head.y * SIZE + SIZE / 2 + move.y * SIZE / 5;
+    ctx.fillStyle = "black";
+    [-1, 1].forEach(function (side) {
+        ctx.beginPath();
+        ctx.arc(cx + move.y * side * SIZE / 5, cy + move.x * side * SIZE / 5, SIZE / 10, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}</code></pre>
+  <ul>
+    <li>Each square is drawn 2 pixels smaller than the grid, so the snake shows as separate blocks.</li>
+    <li>The colors are <code>hsl()</code>: hue, saturation and lightness. Hue 120 is green, and we only change the lightness: the head is brightest, and the body gets a little darker towards the tail.</li>
+    <li>The eyes sit a little forward in the way the snake goes, and to its two sides. For a snake going right (<code>x: 1, y: 0</code>), the sides are up and down, which is the direction with x and y swapped.</li>
+  </ul>
+
+  <h2>Step 9: Test it</h2>
+  <ul>
+    <li>Going right, press up and left very fast. The snake should go up and then left, not die.</li>
+    <li>Going right, press left. Nothing should happen.</li>
+    <li>Drive into a wall, and into yourself.</li>
+    <li>Get long, and chase your own tail round in a small square. It should be allowed.</li>
+    <li>On a phone, swipe to turn. The page should not scroll.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>snake.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Snake&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        margin: 0;
+        background-color: #222;
+    }
+
+    canvas {
+        display: block;
+        max-width: calc(100% - 20px);
+        height: auto;
+        margin: 20px auto;
+        border: 4px solid #444;
+        border-radius: 6px;
+        /* Swiping on a phone turns the snake instead of scrolling the page. */
+        touch-action: none;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;canvas id="gameCanvas" width="480" height="480"&gt;&lt;/canvas&gt;
+
+  &lt;script&gt;
+    /*
+     * Snake: steer the snake to the food. Each piece of food makes it one
+     * square longer and a little faster. Hit a wall or yourself, and the game
+     * is over.
+     *
+     *   arrow keys or WASD   turn
+     *   swipe                turn, on a phone
+     *   P                    pause
+     *   Esc                  menu
+     *
+     * The board is a grid of squares. The snake is a list of squares, head
+     * first. To move, we add a new head in front and take the last square of
+     * the tail away. When it eats, we don't take the tail away: it grows.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const CELLS = 20;                // the board is 20 x 20 squares
+    const START_DELAY = 150;         // ms between two moves at the start
+    const FASTEST = 60;              // never faster than this
+    const SPEED_UP = 4;              // ms faster for each piece of food
+    const SWIPE = 30;                // pixels a finger must move to count as a swipe
+    const BEST_KEY = "snake-best";
+
+    const DIRECTIONS = {
+        up: { x: 0, y: -1 },
+        down: { x: 0, y: 1 },
+        left: { x: -1, y: 0 },
+        right: { x: 1, y: 0 }
+    };
+    const OPPOSITE = { up: "down", down: "up", left: "right", right: "left" };
+
+    // Keys and the direction they turn to.
+    const KEYS = {
+        ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
+        w: "up", s: "down", a: "left", d: "right",
+        W: "up", S: "down", A: "left", D: "right"
+    };
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    const SIZE = WIDTH / CELLS;      // pixels in one square
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";   // menu, playing, paused, gameOver
+    let gameStarted = false;
+
+    let snake = [];        // squares { x, y }, the head first
+    let direction = "right";
+    let turns = [];        // turns asked for, not done yet
+    let food = null;       // { x, y }
+    let score = 0;
+    let best = loadBest();
+    let delay = START_DELAY;
+    let sinceMove = 0;     // ms since the last move
+
+    // --- Starting --------------------------------------------------------------
+
+    function newGame() {
+        // Three squares in the middle, moving right.
+        const middle = Math.floor(CELLS / 2);
+        snake = [
+            { x: middle, y: middle },
+            { x: middle - 1, y: middle },
+            { x: middle - 2, y: middle }
+        ];
+        direction = "right";
+        turns = [];
+        score = 0;
+        delay = START_DELAY;
+        sinceMove = 0;
+        placeFood();
+        gameStarted = true;
+        screen = "playing";
+    }
+
+    // Food on a random square that the snake isn't on. We list the free
+    // squares and pick one, so it never takes many tries, even when the
+    // snake is long.
+    function placeFood() {
+        const free = [];
+        for (let y = 0; y &lt; CELLS; y++) {
+            for (let x = 0; x &lt; CELLS; x++) {
+                if (!onSnake(x, y)) {
+                    free.push({ x: x, y: y });
+                }
+            }
+        }
+        food = free.length &gt; 0 ? free[Math.floor(Math.random() * free.length)] : null;
+    }
+
+    function onSnake(x, y) {
+        return snake.some(function (square) {
+            return square.x === x &amp;&amp; square.y === y;
+        });
+    }
+
+    // --- Turning ---------------------------------------------------------------
+
+    // A turn is kept in a queue until the next move. Without the queue, two
+    // quick key presses between two moves, like up and then left while going
+    // right, would turn the snake straight back into itself. Each turn is
+    // checked against the turn before it, not against where the snake goes now.
+    function turn(to) {
+        const last = turns.length &gt; 0 ? turns[turns.length - 1] : direction;
+        if (to === last || to === OPPOSITE[last] || turns.length &gt;= 3) {
+            return;
+        }
+        turns.push(to);
+    }
+
+    // --- Moving ----------------------------------------------------------------
+
+    function step() {
+        if (turns.length &gt; 0) {
+            direction = turns.shift();
+        }
+        const head = snake[0];
+        const move = DIRECTIONS[direction];
+        const next = { x: head.x + move.x, y: head.y + move.y };
+
+        const eats = food !== null &amp;&amp; next.x === food.x &amp;&amp; next.y === food.y;
+        // The tail moves away in the same step, so the head may go where the
+        // tail is now, unless the snake grows this step.
+        const body = eats ? snake : snake.slice(0, -1);
+        const hitWall = next.x &lt; 0 || next.x &gt;= CELLS || next.y &lt; 0 || next.y &gt;= CELLS;
+        const hitSelf = body.some(function (square) {
+            return square.x === next.x &amp;&amp; square.y === next.y;
+        });
+        if (hitWall || hitSelf) {
+            gameOver();
+            return;
+        }
+
+        snake.unshift(next);    // a new head in front...
+        if (eats) {
+            score++;
+            delay = Math.max(FASTEST, delay - SPEED_UP);
+            placeFood();
+        } else {
+            snake.pop();        // ...and the last square of the tail away
+        }
+    }
+
+    function gameOver() {
+        if (score &gt; (best || 0)) {
+            best = score;
+            try {
+                localStorage.setItem(BEST_KEY, String(best));
+            } catch (error) {
+                // Not saved, but the game still works.
+            }
+        }
+        screen = "gameOver";
+    }
+
+    function loadBest() {
+        try {
+            const saved = Number(localStorage.getItem(BEST_KEY));
+            return saved &gt; 0 ? saved : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawText(text, x, y, size, color) {
+        ctx.fillStyle = color || "white";
+        ctx.font = size + "px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(text, x, y);
+    }
+
+    // A square of the board, a little smaller than the grid, so the squares
+    // of the snake show as separate blocks.
+    function drawSquare(square, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(square.x * SIZE + 1, square.y * SIZE + 1, SIZE - 2, SIZE - 2);
+    }
+
+    function drawBoard() {
+        ctx.fillStyle = "#111111";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        // A faint checkerboard, so you can count squares.
+        ctx.fillStyle = "#161616";
+        for (let y = 0; y &lt; CELLS; y++) {
+            for (let x = (y % 2); x &lt; CELLS; x += 2) {
+                ctx.fillRect(x * SIZE, y * SIZE, SIZE, SIZE);
+            }
+        }
+    }
+
+    function drawSnake() {
+        snake.forEach(function (square, i) {
+            // The head is brighter, and the body fades a little to the tail.
+            const light = i === 0 ? 60 : 45 - Math.min(20, i);
+            drawSquare(square, "hsl(120, 70%, " + light + "%)");
+        });
+
+        // Two eyes on the head, looking the way it goes.
+        const head = snake[0];
+        const move = DIRECTIONS[direction];
+        const cx = head.x * SIZE + SIZE / 2 + move.x * SIZE / 5;
+        const cy = head.y * SIZE + SIZE / 2 + move.y * SIZE / 5;
+        ctx.fillStyle = "black";
+        [-1, 1].forEach(function (side) {
+            ctx.beginPath();
+            ctx.arc(cx + move.y * side * SIZE / 5, cy + move.x * side * SIZE / 5, SIZE / 10, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    function drawFood() {
+        if (food === null) {
+            return;
+        }
+        ctx.fillStyle = "#e53935";
+        ctx.beginPath();
+        ctx.arc(food.x * SIZE + SIZE / 2, food.y * SIZE + SIZE / 2, SIZE / 2 - 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function drawMessage(title, lines) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        drawText(title, WIDTH / 2, HEIGHT / 2 - 50, 40);
+        lines.forEach(function (line, index) {
+            drawText(line, WIDTH / 2, HEIGHT / 2 + index * 28, 18);
+        });
+    }
+
+    function draw() {
+        drawBoard();
+
+        if (screen === "menu") {
+            drawText("Snake", WIDTH / 2, HEIGHT / 2 - 60, 56, "#7CFC00");
+            drawText("Eat the food. Don't hit the walls or yourself.", WIDTH / 2, HEIGHT / 2, 17);
+            drawText("Arrow keys, WASD or swipe to turn. P: pause", WIDTH / 2, HEIGHT / 2 + 28, 17);
+            drawText("Press Enter or tap to start", WIDTH / 2, HEIGHT / 2 + 70, 18, "yellow");
+            if (best !== null) {
+                drawText("Best: " + best, WIDTH / 2, HEIGHT - 50, 16, "gray");
+            }
+            if (gameStarted) {
+                drawText("Esc: back to the game", WIDTH / 2, HEIGHT - 25, 16);
+            }
+            return;
+        }
+
+        drawFood();
+        drawSnake();
+        ctx.textAlign = "left";
+        ctx.fillStyle = "white";
+        ctx.font = "16px Arial";
+        ctx.fillText("Score: " + score, 10, 22);
+
+        if (screen === "paused") {
+            drawMessage("Pause", ["Press P to go on"]);
+        } else if (screen === "gameOver") {
+            drawMessage("Game over", ["Score: " + score + "   Best: " + best, "Press Enter or tap to play again"]);
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    // The snake moves once every "delay" ms, which gets shorter as it eats.
+    // We add up the time between frames, and move when enough has passed.
+    let lastTime = performance.now();
+
+    function gameLoop(now) {
+        const passed = Math.min(now - lastTime, 250);
+        lastTime = now;
+
+        if (screen === "playing") {
+            sinceMove += passed;
+            while (sinceMove &gt;= delay &amp;&amp; screen === "playing") {
+                sinceMove -= delay;
+                step();
+            }
+        }
+
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Keyboard and swipes -------------------------------------------------
+
+    document.addEventListener("keydown", function (event) {
+        const key = event.key;
+
+        if (screen === "playing") {
+            if (KEYS[key]) {
+                turn(KEYS[key]);
+            } else if (key === "p" || key === "P") {
+                screen = "paused";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (screen === "paused") {
+            if (key === "p" || key === "P") {
+                screen = "playing";
+            } else if (key === "Escape") {
+                screen = "menu";
+            }
+        } else if (key === "Enter") {
+            newGame();
+        } else if (key === "Escape" &amp;&amp; screen === "menu" &amp;&amp; gameStarted) {
+            screen = "paused";
+        } else if (key === "Escape" &amp;&amp; screen === "gameOver") {
+            gameStarted = false;
+            screen = "menu";
+        }
+    });
+
+    // A swipe: where the finger went down, compared to where it is now.
+    // The longer way, sideways or up and down, is the direction.
+    let swipeStart = null;
+
+    canvas.addEventListener("pointerdown", function (event) {
+        if (screen === "menu" || screen === "gameOver") {
+            newGame();
+            return;
+        }
+        if (screen === "paused") {
+            screen = "playing";
+            return;
+        }
+        swipeStart = { x: event.clientX, y: event.clientY };
+    });
+
+    canvas.addEventListener("pointermove", function (event) {
+        if (swipeStart === null || screen !== "playing") {
+            return;
+        }
+        const dx = event.clientX - swipeStart.x;
+        const dy = event.clientY - swipeStart.y;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) &lt; SWIPE) {
+            return;
+        }
+        if (Math.abs(dx) &gt; Math.abs(dy)) {
+            turn(dx &gt; 0 ? "right" : "left");
+        } else {
+            turn(dy &gt; 0 ? "down" : "up");
+        }
+        // Start again from here, so one long swipe can make two turns.
+        swipeStart = { x: event.clientX, y: event.clientY };
+    });
+
+    canvas.addEventListener("pointerup", function () {
+        swipeStart = null;
+    });
+
+    canvas.addEventListener("pointercancel", function () {
+        swipeStart = null;
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Let the snake go through the walls and come out on the other side, as in <a href="/tutorials/asteroids/">Asteroids</a>.</li>
+    <li>Add a golden food that shows for a few seconds and is worth 5.</li>
+    <li>Add walls inside the board, as levels.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>Snake works with swipes, so it works well on a phone. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

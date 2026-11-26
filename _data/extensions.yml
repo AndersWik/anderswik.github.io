@@ -49,6 +49,7 @@
 - { slug: mini-golf, page: pages/games/mini-golf.html, emoji: "⛳", open: tab, description: "Mini golf with 20 holes: drag back and let go to putt." }
 - { slug: quiz, page: pages/games/quiz.html, emoji: "❓" }
 - { slug: reversi, page: pages/games/reversi.html, name: Reversi, emoji: "🌗" }
+- { slug: snake, page: pages/games/snake.html, emoji: "🐍", width: 520, description: "The classic Snake: eat, grow and don't hit the walls or yourself." }
 - { slug: rock-paper-scissors, page: pages/games/rock-paper-scissors.html, emoji: "✌️" }
 - { slug: roulette, page: pages/games/roulette.html, emoji: "🎡" }
 - { slug: slot-machine, page: pages/games/slot-machine.html, emoji: "🎰" }

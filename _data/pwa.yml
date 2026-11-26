@@ -42,6 +42,7 @@
 - { slug: mini-golf, page: pages/games/mini-golf.html, short_name: Mini Golf, emoji: "⛳" }
 - { slug: quiz, page: pages/games/quiz.html, short_name: Quiz, emoji: "❓" }
 - { slug: reversi, page: pages/games/reversi.html, name: Reversi, short_name: Reversi, emoji: "🌗" }
+- { slug: snake, page: pages/games/snake.html, short_name: Snake, emoji: "🐍" }
 - { slug: rock-paper-scissors, page: pages/games/rock-paper-scissors.html, short_name: RPS, emoji: "✌️" }
 - { slug: roulette, page: pages/games/roulette.html, short_name: Roulette, emoji: "🎡" }
 - { slug: slot-machine, page: pages/games/slot-machine.html, short_name: Slots, emoji: "🎰" }
