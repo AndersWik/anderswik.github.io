@@ -62,6 +62,7 @@
 - { slug: pomodoro-timer, page: pages/utils/pomodoro-timer.html, emoji: "🍅", open: tab, description: "A Pomodoro timer: focus for 25 minutes, take a 5 minute break, repeat." }
 - { slug: px-em-converter, page: pages/utils/px-em-converter.html, emoji: "📏", description: "Convert pixels to em and rem, and back, from a base font size." }
 - { slug: unix-timestamp-convertor, page: pages/utils/unix-timestamp-convertor.html, name: Unix Timestamp Converter, emoji: "🕒" }
+- { slug: bubble-level, page: pages/other/bubble-level.html, emoji: "📐", description: "A bubble level for your phone: lay it on a surface and see if it is flat." }
 - { slug: countdown, page: pages/other/countdown.html, emoji: "⏳", open: tab }
 - { slug: discgolf, page: pages/other/discgolf.html, name: Discgolf score card, emoji: "🥏" }
 - { slug: egg-clock, page: pages/other/egg-clock.html, emoji: "🥚", open: tab }

@@ -59,6 +59,7 @@
 - { slug: px-em-converter, page: pages/utils/px-em-converter.html, short_name: PX to EM, emoji: "📏" }
 - { slug: unix-timestamp-convertor, page: pages/utils/unix-timestamp-convertor.html, name: Unix Timestamp Converter, short_name: Timestamp, emoji: "🕒" }
 
+- { slug: bubble-level, page: pages/other/bubble-level.html, short_name: Level, emoji: "📐" }
 - { slug: countdown, page: pages/other/countdown.html, short_name: Countdown, emoji: "⏳" }
 - { slug: discgolf, page: pages/other/discgolf.html, name: Discgolf score card, short_name: Discgolf, emoji: "🥏" }
 - { slug: egg-clock, page: pages/other/egg-clock.html, short_name: Egg Clock, emoji: "🥚" }

@@ -1,0 +1,539 @@
+---
+layout: default
+title: Bubble level
+permalink: /tutorials/bubble-level/
+chapter: "02"
+chapter_title: "JavaScript apps"
+keywords: [javascript, deviceorientation, sensor, tilt, beta, gamma, requestPermission, async, await, smoothing, localStorage, vibrate, screen.orientation, transform]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Bubble level</h1>
+  <p>A bubble level for your phone: lay it on a table and the bubble floats to the high side, just like the air bubble in a real level. The new ideas are reading the phone's tilt sensor with the <code>deviceorientation</code> event, asking for permission on iPhone, and smoothing a shaky signal.</p>
+  <p><a href="/assets/tutorials/bubble-level.html">Open the finished page</a> (on a phone, a computer has no tilt sensor)</p>
+  <p>Read the <a href="/tutorials/egg-clock/">Egg clock</a> first. It explains keeping state in variables.</p>
+  <h2>The state</h2>
+  <pre><code class="language-javascript">const MAX_ANGLE = 10;     // the bubble touches the edge at this many degrees
+const LEVEL_ANGLE = 0.5;  // closer to flat than this counts as level
+const SMOOTHING = 0.2;    // 1 = no smoothing, smaller = calmer but slower
+const STORAGE_KEY = "bubble-level-offset";
+
+let tiltX = 0;            // the tilt, smoothed, in degrees
+let tiltY = 0;
+let offsetX = 0;          // the tilt saved by Calibrate
+let offsetY = 0;
+let started = false;      // true once the sensor is on
+let wasLevel = false;     // so we only buzz once when it gets level
+let gotReading = false;   // true when the sensor has sent anything</code></pre>
+  <h2>Step 1: The page</h2>
+  <p>Create <code>bubble-level.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The level is a round <code>div</code> with a small ring in the middle and the bubble on top:</p>
+  <pre><code class="language-html">&lt;h1&gt;Bubble level&lt;/h1&gt;
+&lt;p id="message"&gt;Lay your phone on a surface and press Start.&lt;/p&gt;
+
+&lt;div id="vial" class="vial"&gt;
+  &lt;div class="ring"&gt;&lt;/div&gt;
+  &lt;div id="bubble" class="bubble"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="angles"&gt;
+  &lt;p&gt;X &lt;span id="angle-x"&gt;0.0°&lt;/span&gt;&lt;/p&gt;
+  &lt;p&gt;Y &lt;span id="angle-y"&gt;0.0°&lt;/span&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div class="buttons"&gt;
+  &lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;
+  &lt;button type="button" id="button-calibrate"&gt;Calibrate&lt;/button&gt;
+  &lt;button type="button" id="button-reset"&gt;Reset&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+  <pre><code class="language-css">h1::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin: 10px auto 0;
+    background-color: #e8b455;
+    border-radius: 2px;
+}
+
+.vial {
+    position: relative;
+    width: 280px;
+    max-width: 100%;
+    aspect-ratio: 1;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: #c9df7a;
+    border: 6px solid #333;
+    overflow: hidden;
+}
+
+.ring,
+.bubble {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+}
+
+.ring {
+    width: 22%;
+    height: 22%;
+    border: 2px solid #333;
+    transform: translate(-50%, -50%);
+}
+
+.bubble {
+    width: 18%;
+    height: 18%;
+    margin: -9% 0 0 -9%;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.vial.level {
+    border-color: green;
+}</code></pre>
+  <p><code>h1::after</code> adds a short line under the heading without any extra HTML. A <code>::after</code> element needs <code>content</code>, even an empty one, to show up.</p>
+  <p><code>aspect-ratio: 1</code> makes the height the same as the width, and <code>border-radius: 50%</code> makes the square a circle. <code>left: 50%; top: 50%</code> puts the ring's and the bubble's top left corner in the middle. The ring moves back by half its size with <code>transform</code>. The bubble does the same with a negative <code>margin</code>, because we will use its <code>transform</code> to move it around. A percentage margin is a percentage of the width, which here is also the height.</p>
+  <h2>Step 2: Read the tilt</h2>
+  <p>A phone sends a <code>deviceorientation</code> event many times a second. It has three angles in degrees:</p>
+  <ul>
+    <li><code>beta</code>: tilt from front to back. Positive when the top edge is up. 90 when the phone stands up.</li>
+    <li><code>gamma</code>: tilt from left to right. Positive when the right edge is down.</li>
+    <li><code>alpha</code>: which way the phone points, like a compass. A level doesn't need it.</li>
+  </ul>
+  <pre><code class="language-javascript">function onOrientation(event) {
+    if (event.beta === null || event.gamma === null) {
+        return;
+    }
+    gotReading = true;
+    tiltX = tiltX + (event.gamma - tiltX) * SMOOTHING;
+    tiltY = tiltY + (event.beta - tiltY) * SMOOTHING;
+    draw();
+}</code></pre>
+  <p>So <code>tiltX</code> and <code>tiltY</code> point to the low side: right and down on the screen are positive, the same way as screen coordinates.</p>
+  <p>The sensor is noisy, and a bubble that jumps a little on every reading is hard to read. <strong>Smoothing</strong> fixes that: instead of jumping to the new reading, we only move a fifth of the way there. A few readings later we are almost there, but the small shakes cancel out. This is called a low-pass filter. Try <code>SMOOTHING = 1</code> to see the difference.</p>
+  <h2>Step 3: Ask for the sensor</h2>
+  <p>On iPhone and iPad a page must ask before it can read the sensor, and it may only ask after a click. <code>DeviceOrientationEvent.requestPermission</code> only exists there, so we check for it first:</p>
+  <pre><code class="language-javascript">async function start() {
+    if (started) {
+        return;
+    }
+    if (!window.DeviceOrientationEvent) {
+        message.textContent = "This browser has no tilt sensor. Open the page on a phone.";
+        return;
+    }
+    if (typeof DeviceOrientationEvent.requestPermission === "function") {
+        try {
+            const answer = await DeviceOrientationEvent.requestPermission();
+            if (answer !== "granted") {
+                message.textContent = "No permission to read the tilt sensor.";
+                return;
+            }
+        } catch (error) {
+            message.textContent = "Could not ask for the tilt sensor: " + error.message;
+            return;
+        }
+    }
+    window.addEventListener("deviceorientation", onOrientation);
+    started = true;
+    startButton.disabled = true;
+    message.textContent = "Lay your phone on a surface.";
+
+    setTimeout(function () {
+        if (!gotReading) {
+            message.textContent = "No tilt sensor found. Open the page on a phone.";
+        }
+    }, 2000);
+}</code></pre>
+  <p><code>requestPermission()</code> shows a question to the user, and the answer comes later. It returns a <em>promise</em>. <code>await</code> waits for the answer without freezing the page, and a function that uses <code>await</code> must be marked <code>async</code>. If something goes wrong, <code>await</code> throws an error, so it is inside <code>try</code> and <code>catch</code>.</p>
+  <p>Many computers have <code>DeviceOrientationEvent</code> but no sensor, so the event never comes. The <code>setTimeout</code> tells the user after two seconds of silence.</p>
+  <p>The sensor only works on a page served over <code>https://</code> (or <code>localhost</code>). Opened as a file, the page can't read it.</p>
+  <h2>Step 4: Move the bubble</h2>
+  <pre><code class="language-javascript">function draw() {
+    const tilt = toScreen(tiltX - offsetX, tiltY - offsetY);
+
+    // The bubble goes to the high side: the other way from the tilt.
+    let bx = -tilt.x / MAX_ANGLE;
+    let by = -tilt.y / MAX_ANGLE;
+
+    // Keep the bubble inside the circle.
+    const distance = Math.hypot(bx, by);
+    if (distance &gt; 1) {
+        bx = bx / distance;
+        by = by / distance;
+    }
+
+    const room = (vial.clientWidth - bubble.offsetWidth) / 2;
+    bubble.style.transform = `translate(${bx * room}px, ${by * room}px)`;
+
+    angleXText.textContent = tilt.x.toFixed(1) + "°";
+    angleYText.textContent = tilt.y.toFixed(1) + "°";
+}</code></pre>
+  <p>Dividing by <code>MAX_ANGLE</code> gives a number from -1 to 1 when the tilt is within 10 degrees. Then we multiply it by <code>room</code>, how far the bubble can move from the middle in pixels.</p>
+  <p>If we only limited <code>bx</code> and <code>by</code> to -1 and 1 each, the bubble could go into the corners of a square, outside the circle. <code>Math.hypot(bx, by)</code> is the distance from the middle (Pythagoras). If it is more than 1, we divide both by it, which keeps the direction but puts the bubble right at the edge.</p>
+  <h2>Step 5: When the screen turns</h2>
+  <p><code>beta</code> and <code>gamma</code> are measured on the phone, not on the screen. When the phone turns to landscape, the screen turns but the phone's left-right is now the screen's up-down. <code>screen.orientation.angle</code> says how far the screen has turned (0, 90, 180 or 270), and we turn the tilt back by that much:</p>
+  <pre><code class="language-javascript">function toScreen(x, y) {
+    const angle = (screen.orientation ? screen.orientation.angle : window.orientation || 0) * Math.PI / 180;
+    return {
+        x: x * Math.cos(angle) + y * Math.sin(angle),
+        y: -x * Math.sin(angle) + y * Math.cos(angle)
+    };
+}</code></pre>
+  <p>This is the usual formula for turning a point around the middle. <code>Math.cos</code> and <code>Math.sin</code> want radians, so degrees are multiplied by <code>Math.PI / 180</code>. At 90 degrees it gives <code>x = y</code> and <code>y = -x</code>. Older iPhones have no <code>screen.orientation</code>, but have <code>window.orientation</code> instead.</p>
+  <h2>Step 6: Show when it is level</h2>
+  <p>Add this to the end of <code>draw()</code>:</p>
+  <pre><code class="language-javascript">const level = Math.abs(tilt.x) &lt; LEVEL_ANGLE &amp;&amp; Math.abs(tilt.y) &lt; LEVEL_ANGLE;
+vial.classList.toggle("level", level);
+if (level &amp;&amp; !wasLevel &amp;&amp; navigator.vibrate) {
+    navigator.vibrate(40);
+}
+wasLevel = level;</code></pre>
+  <p><code>classList.toggle("level", level)</code> adds the class when <code>level</code> is true and removes it when it is false, so the border turns green. <code>navigator.vibrate(40)</code> buzzes for 40 milliseconds on phones that can. <code>wasLevel</code> makes it buzz once when it gets level, not on every reading while it stays level.</p>
+  <h2>Step 7: Calibrate</h2>
+  <p>A phone with a camera bump doesn't lie flat on its back. Calibrate saves the current tilt as "flat", and <code>draw()</code> subtracts it from every reading. <code>localStorage</code> remembers it until next time:</p>
+  <pre><code class="language-javascript">function calibrate() {
+    offsetX = tiltX;
+    offsetY = tiltY;
+    saveOffset();
+    draw();
+}
+
+function reset() {
+    offsetX = 0;
+    offsetY = 0;
+    saveOffset();
+    draw();
+}
+
+function saveOffset() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ x: offsetX, y: offsetY }));
+    } catch (error) {
+        // Not saved, but the level still works.
+    }
+}
+
+function loadOffset() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved) {
+            offsetX = saved.x;
+            offsetY = saved.y;
+        }
+    } catch (error) {
+        // Nothing saved, start from 0.
+    }
+}
+
+startButton.addEventListener("click", start);
+calibrateButton.addEventListener("click", calibrate);
+resetButton.addEventListener("click", reset);
+
+loadOffset();</code></pre>
+  <p><code>localStorage</code> only stores text, so <code>JSON.stringify</code> turns the object into text and <code>JSON.parse</code> turns it back. In a private window <code>localStorage</code> can throw an error, so it is inside <code>try</code>.</p>
+  <p>To calibrate well: lay the phone on a surface and press Calibrate. Then turn the phone around 180 degrees on the same spot. If the bubble is still in the middle, the surface is level.</p>
+  <h2>Step 8: Test it</h2>
+  <ul>
+    <li>Put the page on a server with <code>https://</code>, or use <code>localhost</code>, and open it on a phone.</li>
+    <li>On a computer, Chrome's developer tools can fake the sensor: More tools, Sensors, Orientation.</li>
+    <li>Lift the top edge of the phone. The bubble should go up, to the high side.</li>
+    <li>Lift the right edge. The bubble should go right.</li>
+    <li>Turn the phone to landscape and do the same. The bubble should still go to the high side.</li>
+    <li>Tilt it a lot. The bubble stops at the edge of the circle, also in the diagonals.</li>
+    <li>Press Calibrate, reload the page and press Start. The bubble should be in the middle again.</li>
+  </ul>
+  <h2>The complete page</h2>
+  <p><strong>bubble-level.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Bubble level&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+    }
+
+    body {
+        text-align: center;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+    
+    .vial {
+        position: relative;
+        width: 280px;
+        max-width: 100%;
+        aspect-ratio: 1;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: #c9df7a;
+        border: 6px solid #333;
+        overflow: hidden;
+    }
+
+    .ring,
+    .bubble {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        border-radius: 50%;
+    }
+
+    .ring {
+        width: 22%;
+        height: 22%;
+        border: 2px solid #333;
+        transform: translate(-50%, -50%);
+    }
+
+    .bubble {
+        width: 18%;
+        height: 18%;
+        margin: -9% 0 0 -9%;
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    .vial.level {
+        border-color: green;
+    }
+
+    .angles {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        font-size: 32px;
+        font-family: monospace;
+    }
+
+    .buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .buttons button {
+        height: 60px;
+        font-size: 18px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Bubble level&lt;/h1&gt;
+  &lt;p id="message"&gt;Lay your phone on a surface and press Start.&lt;/p&gt;
+
+  &lt;div id="vial" class="vial"&gt;
+    &lt;div class="ring"&gt;&lt;/div&gt;
+    &lt;div id="bubble" class="bubble"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class="angles"&gt;
+    &lt;p&gt;X &lt;span id="angle-x"&gt;0.0°&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Y &lt;span id="angle-y"&gt;0.0°&lt;/span&gt;&lt;/p&gt;
+  &lt;/div&gt;
+
+  &lt;div class="buttons"&gt;
+    &lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;
+    &lt;button type="button" id="button-calibrate"&gt;Calibrate&lt;/button&gt;
+    &lt;button type="button" id="button-reset"&gt;Reset&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Bubble level: lay the phone on a surface and the bubble shows which way it
+     * tilts. The bubble floats to the high side, like the air bubble in a real level.
+     *
+     * The phone tells us how it is tilted with the "deviceorientation" event:
+     *   beta   tilt front to back, in degrees (positive when the top edge is up)
+     *   gamma  tilt left to right, in degrees (positive when the right edge is down)
+     */
+
+    // --- Settings --------------------------------------------------------------
+
+    const MAX_ANGLE = 10;     // the bubble touches the edge at this many degrees
+    const LEVEL_ANGLE = 0.5;  // closer to flat than this counts as level
+    const SMOOTHING = 0.2;    // 1 = no smoothing, smaller = calmer but slower
+    const STORAGE_KEY = "bubble-level-offset";
+
+    // --- State -----------------------------------------------------------------
+
+    let tiltX = 0;
+    let tiltY = 0;
+    let offsetX = 0;
+    let offsetY = 0;
+    let started = false;
+    let wasLevel = false;
+    let gotReading = false;
+
+    // --- Elements on the page --------------------------------------------------
+
+    const vial = document.getElementById("vial");
+    const bubble = document.getElementById("bubble");
+    const angleXText = document.getElementById("angle-x");
+    const angleYText = document.getElementById("angle-y");
+    const message = document.getElementById("message");
+    const startButton = document.getElementById("button-start");
+    const calibrateButton = document.getElementById("button-calibrate");
+    const resetButton = document.getElementById("button-reset");
+
+    // --- Helpers ---------------------------------------------------------------
+
+    // Turn the phone's tilt into the tilt on the screen. When the screen turns
+    // to landscape, the phone's left-right is the screen's up-down.
+    function toScreen(x, y) {
+        const angle = (screen.orientation ? screen.orientation.angle : window.orientation || 0) * Math.PI / 180;
+        return {
+            x: x * Math.cos(angle) + y * Math.sin(angle),
+            y: -x * Math.sin(angle) + y * Math.cos(angle)
+        };
+    }
+
+    // --- Drawing ---------------------------------------------------------------
+
+    function draw() {
+        const tilt = toScreen(tiltX - offsetX, tiltY - offsetY);
+
+        // The bubble goes to the high side: the other way from the tilt.
+        let bx = -tilt.x / MAX_ANGLE;
+        let by = -tilt.y / MAX_ANGLE;
+
+        // Keep the bubble inside the circle: if it is too far out, scale it back.
+        const distance = Math.hypot(bx, by);
+        if (distance &gt; 1) {
+            bx = bx / distance;
+            by = by / distance;
+        }
+
+        const room = (vial.clientWidth - bubble.offsetWidth) / 2;
+        bubble.style.transform = `translate(${bx * room}px, ${by * room}px)`;
+
+        angleXText.textContent = tilt.x.toFixed(1) + "°";
+        angleYText.textContent = tilt.y.toFixed(1) + "°";
+
+        const level = Math.abs(tilt.x) &lt; LEVEL_ANGLE &amp;&amp; Math.abs(tilt.y) &lt; LEVEL_ANGLE;
+        vial.classList.toggle("level", level);
+        if (level &amp;&amp; !wasLevel &amp;&amp; navigator.vibrate) {
+            navigator.vibrate(40);
+        }
+        wasLevel = level;
+    }
+
+    // --- The sensor ------------------------------------------------------------
+
+    function onOrientation(event) {
+        if (event.beta === null || event.gamma === null) {
+            return;
+        }
+        gotReading = true;
+        // Smoothing: move only part of the way to the new reading.
+        tiltX = tiltX + (event.gamma - tiltX) * SMOOTHING;
+        tiltY = tiltY + (event.beta - tiltY) * SMOOTHING;
+        draw();
+    }
+
+    async function start() {
+        if (started) {
+            return;
+        }
+        if (!window.DeviceOrientationEvent) {
+            message.textContent = "This browser has no tilt sensor. Open the page on a phone.";
+            return;
+        }
+        // iPhone and iPad ask the user first, and only after a click.
+        if (typeof DeviceOrientationEvent.requestPermission === "function") {
+            try {
+                const answer = await DeviceOrientationEvent.requestPermission();
+                if (answer !== "granted") {
+                    message.textContent = "No permission to read the tilt sensor.";
+                    return;
+                }
+            } catch (error) {
+                message.textContent = "Could not ask for the tilt sensor: " + error.message;
+                return;
+            }
+        }
+        window.addEventListener("deviceorientation", onOrientation);
+        started = true;
+        startButton.disabled = true;
+        message.textContent = "Lay your phone on a surface.";
+
+        // A computer often has the event but no sensor, so nothing ever comes.
+        setTimeout(function () {
+            if (!gotReading) {
+                message.textContent = "No tilt sensor found. Open the page on a phone.";
+            }
+        }, 2000);
+    }
+
+    // --- Calibration -----------------------------------------------------------
+
+    function calibrate() {
+        offsetX = tiltX;
+        offsetY = tiltY;
+        saveOffset();
+        draw();
+    }
+
+    function reset() {
+        offsetX = 0;
+        offsetY = 0;
+        saveOffset();
+        draw();
+    }
+
+    function saveOffset() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ x: offsetX, y: offsetY }));
+        } catch (error) {
+            // Not saved, but the level still works.
+        }
+    }
+
+    function loadOffset() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (saved) {
+                offsetX = saved.x;
+                offsetY = saved.y;
+            }
+        } catch (error) {
+            // Nothing saved, start from 0.
+        }
+    }
+
+    // --- Connect the buttons ---------------------------------------------------
+
+    startButton.addEventListener("click", start);
+    calibrateButton.addEventListener("click", calibrate);
+    resetButton.addEventListener("click", reset);
+
+    loadOffset();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a tube level for when the phone stands on its edge, against a wall or a picture frame. Then <code>gamma</code> is the tilt to read.</li>
+    <li>Make the bubble move more when it is close to the middle, so small tilts are easier to see: try <code>Math.sign(x) * Math.sqrt(Math.abs(x))</code>.</li>
+    <li>Make a short beep with the Web Audio API from the <a href="/tutorials/egg-clock/">Egg clock</a> when it gets level.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
