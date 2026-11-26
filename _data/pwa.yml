@@ -28,6 +28,7 @@
 - { slug: chore-wheel, page: pages/games/chore-wheel.html, short_name: Chore Wheel, emoji: "🧹" }
 - { slug: discgolf, page: pages/games/discgolf.html, name: Discgolf score card, short_name: Discgolf, emoji: "🥏" }
 - { slug: eliza, page: pages/games/eliza.html, short_name: Eliza, emoji: "💬" }
+- { slug: clock-solitaire, page: pages/games/clock-solitaire.html, short_name: Clock, emoji: "🕐" }
 - { slug: coin-flip, page: pages/games/coin-flip.html, short_name: Coin Flip, emoji: "🪙" }
 - { slug: five-in-a-row, page: pages/games/five-in-a-row.html, short_name: Five in Row, emoji: "⚫", label: "5" }
 - { slug: four-in-a-row, page: pages/games/four-in-a-row.html, name: Connect Four, short_name: Connect 4, emoji: "🔴" }

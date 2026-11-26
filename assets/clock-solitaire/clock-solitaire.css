@@ -1,0 +1,294 @@
+.game {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.game .container {
+  text-align: center;
+  width: 640px;
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+/* The title: the site's font, and a short gold line under it. */
+.game h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.game h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+.game [hidden] {
+  display: none !important;
+}
+
+/* --- Cards turned and buttons ---------------------------------------------- */
+
+.game .bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.game .counts {
+  margin: 0;
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.game .buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.game button {
+  padding: 8px 16px;
+  font-size: 16px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 3px solid #3d3b3b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* --- The clock -------------------------------------------------------------- */
+
+/* A round table of felt. Everything on it is placed in em from its middle,
+   so this font size sets the size of the whole clock: smaller on a phone. */
+.game .felt {
+  position: relative;
+  width: 37em;
+  height: 37em;
+  max-width: 100%;
+  margin: 0 auto;
+  font-size: clamp(6px, calc((100vw - 100px) / 37), 14px);
+  background: radial-gradient(circle at 50% 45%, #2f8a5b, #1b5a3a 75%);
+  border: 8px solid #6b4423;
+  border-radius: 50%;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3);
+  box-sizing: content-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* On a phone, less room round the clock, so it can be bigger. */
+@media (max-width: 480px) {
+  .game .container {
+    max-width: calc(100% - 16px);
+    margin: 8px;
+    padding: 12px;
+  }
+
+  .game .felt {
+    font-size: calc((100vw - 64px) / 37);
+  }
+}
+
+/* A pile is a button the size of a card, with its middle at its place. */
+.game .pile {
+  position: absolute;
+  width: 4.6em;
+  height: 6.6em;
+  padding: 0;
+  font-size: 1em;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.game .pile.empty {
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+}
+
+.game .pile .slot {
+  position: absolute;
+  inset: 0;
+}
+
+/* How many cards are still face down in a pile. */
+.game .count {
+  position: absolute;
+  right: -0.4em;
+  top: -0.4em;
+  min-width: 1.4em;
+  padding: 0.1em 0.3em;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #222222;
+  background-color: #f6d77a;
+  border-radius: 1em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* The hour on the felt, next to its pile. */
+.game .hour {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2em;
+  margin: -0.7em 0 0 -1em;
+  font-family: Georgia, "DejaVu Serif", serif;
+  font-size: 1.1em;
+  font-weight: bold;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+}
+
+/* The card in the hand: lifted, with a gold edge, sliding in. */
+.game .hand {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: slide 0.25s ease-out;
+}
+
+.game .hand .playing-card {
+  box-shadow: 0 0 0 3px #f6d77a, 0 8px 12px rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+}
+
+@keyframes slide {
+  from { opacity: 0; transform: translate(-50%, -80%); }
+}
+
+/* A pile tapped by mistake. */
+.game .pile.shake {
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  25% { transform: translate(calc(-50% - 0.4em), -50%); }
+  75% { transform: translate(calc(-50% + 0.4em), -50%); }
+}
+
+/* --- The cards, as in Blackjack, Hi-Lo and Video Poker ------------------- */
+
+.game .slot {
+  flex: none;
+  perspective: 600px;
+}
+
+.game .playing-card {
+  position: relative;
+  width: 4.6em;
+  height: 6.6em;
+  transform-style: preserve-3d;
+}
+
+/* A card that is face down: turned round, so the back shows. */
+.game .playing-card.down {
+  transform: rotateY(180deg);
+}
+
+.game .face {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  backface-visibility: hidden;
+  box-shadow: -1px 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+.game .front {
+  background-color: #ffffff;
+  border: 1px solid #c9c9c9;
+  color: #1a1a1a;
+  font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
+}
+
+.game .playing-card.red .front {
+  color: #c8102e;
+}
+
+.game .back {
+  transform: rotateY(180deg);
+  background-color: #b3202a;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px);
+  border: 4px solid #ffffff;
+  outline: 1px solid #c9c9c9;
+  box-sizing: border-box;
+}
+
+.game .corner {
+  position: absolute;
+  font-size: 0.95em;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+}
+
+.game .corner.top {
+  top: 0.25em;
+  left: 0.25em;
+}
+
+.game .corner.bottom {
+  bottom: 0.25em;
+  right: 0.25em;
+  transform: rotate(180deg);
+}
+
+.game .pip {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.3em;
+}
+
+#status {
+  min-height: 2.8em;
+  margin: 12px 0 0;
+}
+
+/* --- The rules ---------------------------------------------------------- */
+
+.game .rules {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #dddddd;
+  text-align: left;
+}
+
+.game .rules summary {
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.game .rules ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.game .rules li {
+  margin-bottom: 6px;
+}

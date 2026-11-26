@@ -35,6 +35,7 @@
 - { slug: chore-wheel, page: pages/games/chore-wheel.html, emoji: "🧹" }
 - { slug: discgolf, page: pages/games/discgolf.html, name: Discgolf score card, emoji: "🥏" }
 - { slug: eliza, page: pages/games/eliza.html, emoji: "💬" }
+- { slug: clock-solitaire, page: pages/games/clock-solitaire.html, emoji: "🕐", width: 620, description: "Clock solitaire: put every card at its hour before the fourth king turns up." }
 - { slug: coin-flip, page: pages/games/coin-flip.html, emoji: "🪙" }
 - { slug: five-in-a-row, page: pages/games/five-in-a-row.html, emoji: "⚫", label: "5", open: tab }
 - { slug: four-in-a-row, page: pages/games/four-in-a-row.html, name: Connect Four, emoji: "🔴" }

@@ -1,0 +1,37 @@
+---
+layout: game
+title: Clock Solitaire
+permalink: /games/clock-solitaire/
+nonav: true
+css:
+  - /assets/clock-solitaire/clock-solitaire.css
+js:
+  - /assets/clock-solitaire/clock-solitaire.js
+---
+<div class="container">
+  <h1>Clock Solitaire</h1>
+
+  <div class="bar">
+    <p class="counts">Cards turned <span id="turned">0</span> of 52</p>
+    <div class="buttons">
+      <button type="button" id="auto">Play it for me</button>
+      <button type="button" id="new-game">New game</button>
+    </div>
+  </div>
+
+  <div id="board" class="felt"></div>
+
+  <p id="status" aria-live="polite"></p>
+
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>The cards are dealt in 13 piles of 4: twelve round a clock, with the ace at 1 o'clock, the 2 at 2 o'clock and so on to the queen at 12 o'clock. The kings' pile is in the middle.</li>
+      <li>The top card of the middle pile is turned over. Tap the pile at its hour: a 7 goes to 7 o'clock, a jack to 11 and a queen to 12. A king goes back to the middle.</li>
+      <li>The card goes under that pile, face up, and the top card of that pile is turned over next.</li>
+      <li>The game ends when the fourth king is turned over. You win if every card is face up by then.</li>
+      <li>There are no choices to make: the deal decides if you win. You win about one game in 13.</li>
+    </ul>
+  </details>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/clock-solitaire/">How to build this game</a></p>

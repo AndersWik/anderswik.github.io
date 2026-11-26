@@ -1,0 +1,814 @@
+---
+layout: default
+title: Clock Solitaire
+permalink: /tutorials/clock-solitaire/
+chapter: "09"
+chapter_title: "Solitaire"
+keywords: [javascript, game, cards, solitaire, patience, clock, circle, Math.sin, Math.cos, angles, em, calc, simulation, probability, setInterval, localStorage]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Clock Solitaire</h1>
+  <p>Clock is one of the simplest solitaires. The cards are dealt face down in 13 piles of 4: twelve round a clock, one for each hour, with the kings in the middle. Turn over a card from the middle, put it under the pile of its hour, and turn over the next card from that pile. If every card comes up before the fourth king, you win.</p>
+  <p>There are no choices: the deal decides everything, and you win about one game in 13. So this is a short tutorial about two things: placing things round a circle with <code>Math.cos</code> and <code>Math.sin</code>, and finding out how likely a win is by letting the computer play thousands of games. The cards are the ones from <a href="/tutorials/klondike/">Klondike</a>.</p>
+  <p><a href="/assets/tutorials/clock-solitaire.html">Open the finished game</a></p>
+
+  <h2>Step 1: The page</h2>
+  <p>Create <code>clock-solitaire.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The clock is one round box of felt, and JavaScript puts the piles on it:</p>
+  <pre><code class="language-html">&lt;div class="container"&gt;
+  &lt;h1&gt;Clock Solitaire&lt;/h1&gt;
+
+  &lt;div class="bar"&gt;
+    &lt;p class="counts"&gt;Cards turned &lt;span id="turned"&gt;0&lt;/span&gt; of 52&lt;/p&gt;
+    &lt;div class="buttons"&gt;
+      &lt;button type="button" id="auto"&gt;Play it for me&lt;/button&gt;
+      &lt;button type="button" id="new-game"&gt;New game&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div id="board" class="felt"&gt;&lt;/div&gt;
+
+  &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+
+  &lt;details class="rules"&gt;
+    &lt;summary&gt;How to play&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;The cards are dealt in 13 piles of 4: twelve round a clock, with the ace at 1 o'clock, the 2 at 2 o'clock and so on to the queen at 12 o'clock. The kings' pile is in the middle.&lt;/li&gt;
+      &lt;li&gt;The top card of the middle pile is turned over. Tap the pile at its hour: a 7 goes to 7 o'clock, a jack to 11 and a queen to 12. A king goes back to the middle.&lt;/li&gt;
+      &lt;li&gt;The card goes under that pile, face up, and the top card of that pile is turned over next.&lt;/li&gt;
+      &lt;li&gt;The game ends when the fourth king is turned over. You win if every card is face up by then.&lt;/li&gt;
+      &lt;li&gt;There are no choices to make: the deal decides if you win. You win about one game in 13.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
+&lt;/div&gt;</code></pre>
+  <p>Everything on the clock is placed in <code>em</code> from its middle, so the font size of the felt sets the size of the whole clock. On a phone it gets smaller, so the clock always fits:</p>
+  <pre><code class="language-css">.felt {
+    position: relative;
+    width: 37em;
+    height: 37em;</code></pre>
+
+  <h2>Step 2: Thirteen piles</h2>
+  <pre><code class="language-javascript">function newGame() {
+    stopAuto();
+    const deck = newDeck();
+    piles = [];
+    for (let i = 0; i &lt; 13; i++) {
+        piles.push({ down: deck.splice(0, 4), up: [] });
+    }
+    turned = 0;
+    over = false;
+    hand = null;
+    turnOver(KINGS);
+    statusText.textContent = "Tap the pile at the card's hour.";
+}</code></pre>
+  <p>Each pile has two lists: <code>down</code>, its face-down cards, and <code>up</code>, the face-up cards put under it. Pile 0 is the aces' pile, at 1 o'clock, and pile 12 the kings' pile in the middle, so a card's pile is just its rank minus 1:</p>
+  <pre><code class="language-javascript">function pileFor(card) {
+    return card.rank - 1;
+}</code></pre>
+
+  <h2>Step 3: Round a circle</h2>
+  <p>To place twelve piles round a clock, we turn the hour into an angle, and the angle into a place. A whole turn is 360 degrees, so one hour is 30. <code>Math.cos(angle)</code> is how far right a point on a circle is, and <code>Math.sin(angle)</code> how far down, for a circle of radius 1. Multiplied by the radius, they give the place:</p>
+  <pre><code class="language-javascript">function pilePosition(pile) {
+    if (pile === KINGS) {
+        return { x: 0, y: 0 };
+    }
+    const angle = ((pile + 1) * 30 - 90) * Math.PI / 180;
+    return { x: Math.cos(angle) * RADIUS, y: Math.sin(angle) * RADIUS };
+}</code></pre>
+  <ul>
+    <li>The angles of <code>sin</code> and <code>cos</code> start at 3 o'clock, but our hours start at 12. Taking 90 degrees away turns the clock back a quarter, so 12 is at the top.</li>
+    <li>On the screen, y grows downwards, so a positive <code>sin</code> is down. That makes the angles go clockwise, just like on a clock.</li>
+    <li><code>Math.PI / 180</code> turns degrees into radians, which is what <code>sin</code> and <code>cos</code> want.</li>
+  </ul>
+  <p>Each pile is then placed with <code>calc()</code>, half the box plus its place in em:</p>
+  <pre><code class="language-javascript">box.style.left = "calc(50% + " + at.x + "em)";
+box.style.top = "calc(50% + " + at.y + "em)";</code></pre>
+  <p>And the CSS moves the pile back by half its own size, <code>transform: translate(-50%, -50%)</code>, so its middle, not its corner, is at the place. The face-up cards peek out from under the pile in the same direction, <code>at.x / RADIUS</code> and <code>at.y / RADIUS</code>, which is the way from the middle out to the pile.</p>
+
+  <h2>Step 4: Playing</h2>
+  <pre><code class="language-javascript">function turnOver(pile) {
+    if (piles[pile].down.length === 0) {
+        endGame();
+        return;
+    }
+    hand = piles[pile].down.pop();
+    turned++;
+    render();
+}
+
+function place(pile) {
+    if (over || hand === null) {
+        return;
+    }
+    if (pile !== pileFor(hand)) {
+        const name = VALUE_NAMES[hand.value] || "a " + hand.value;
+        statusText.textContent = "That's " + name + ": it goes to " + hourName(pileFor(hand)) + ".";
+        shake(pile);
+        return;
+    }
+    piles[pile].up.push(hand);
+    hand = null;
+    statusText.textContent = "";
+    turnOver(pile);
+}</code></pre>
+  <p>The only thing the player does is tap the right pile. A wrong one gives a hint and a shake, and nothing moves. When a pile has no face-down cards left to turn, the game is over.</p>
+  <p>Why can that only happen in the middle? Look at any other pile, say 7 o'clock. We only ever turn a card from it right after putting a 7 there. There are four 7s, and the pile has four cards to turn, so it can never run out. The middle is different: its first card was turned at the very start, before any king had been put there. So by the time the fourth king arrives, the middle has already been turned four times, and it is empty. The game always ends with the fourth king, and you win if no other pile still has cards face down.</p>
+
+  <h2>Step 5: Play it for me</h2>
+  <p>Since there are no choices, the computer can play the game for you, one card every 300 ms:</p>
+  <pre><code class="language-javascript">function toggleAuto() {
+    if (autoTimer !== null) {
+        stopAuto();
+        return;
+    }
+    if (over) {
+        newGame();
+    }
+    autoButton.textContent = "Stop";
+    autoTimer = setInterval(function () {
+        if (over || hand === null) {
+            stopAuto();
+            return;
+        }
+        place(pileFor(hand));
+    }, AUTO_DELAY);
+}</code></pre>
+
+  <h2>Step 6: How often do you win?</h2>
+  <p>Mathematicians have worked out that you win Clock exactly one time in 13. We can check that without any math: let the computer play 2000 games, as fast as it can, and count. In the browser's console:</p>
+  <pre><code class="language-javascript">let wins = 0;
+for (let g = 0; g &lt; 2000; g++) {
+    newGame();
+    while (!over) {
+        place(pileFor(hand));
+    }
+    if (piles.every(pile =&gt; pile.down.length === 0)) {
+        wins++;
+    }
+}
+console.log(wins / 2000);</code></pre>
+  <p>When this game was tested, it won 148 of 2000, which is 7.4%. One in 13 is 7.7%, so that is as close as you can expect from 2000 games. This is called a <strong>simulation</strong>, or a Monte Carlo method, after the casino: when the math is hard, play it many times and count. It is also a good test of the rules: if the number had been far off, something would be wrong in the code.</p>
+  <p>The game saves how many games you have played and won, so you can see for yourself how rare a win is.</p>
+
+  <h2>Step 7: Test it</h2>
+  <ul>
+    <li>Tap the wrong pile. You should get a hint, and nothing should move.</li>
+    <li>Play a game to the end. It should always end with the fourth king.</li>
+    <li>Press "Play it for me" a few times, and watch the score: about one win in 13.</li>
+    <li>Make the window narrow. The clock should get smaller and still fit.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>clock-solitaire.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Clock Solitaire&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+
+    .container {
+        text-align: center;
+        width: 640px;
+        max-width: calc(100% - 40px);
+        box-sizing: border-box;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+
+    /* --- Cards turned and buttons ---------------------------------------------- */
+
+    .bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 12px 0;
+    }
+
+    .counts {
+        margin: 0;
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-size: 18px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 16px;
+        background-color: #000000;
+        color: #ffffff;
+        border: 3px solid #3d3b3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* --- The clock -------------------------------------------------------------- */
+
+    /* A round table of felt. Everything on it is placed in em from its middle,
+          so this font size sets the size of the whole clock: smaller on a phone. */
+    .felt {
+        position: relative;
+        width: 37em;
+        height: 37em;
+        max-width: 100%;
+        margin: 0 auto;
+        font-size: clamp(6px, calc((100vw - 100px) / 37), 14px);
+        background: radial-gradient(circle at 50% 45%, #2f8a5b, #1b5a3a 75%);
+        border: 8px solid #6b4423;
+        border-radius: 50%;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.3);
+        box-sizing: content-box;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    /* On a phone, less room round the clock, so it can be bigger. */
+    @media (max-width: 480px) {
+        .container {
+            max-width: calc(100% - 16px);
+            margin: 8px;
+            padding: 12px;
+        }
+
+        .felt {
+            font-size: calc((100vw - 64px) / 37);
+        }
+    }
+
+    /* A pile is a button the size of a card, with its middle at its place. */
+    .pile {
+        position: absolute;
+        width: 4.6em;
+        height: 6.6em;
+        padding: 0;
+        font-size: 1em;
+        background: none;
+        border: none;
+        border-radius: 6px;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+    }
+
+    .pile.empty {
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+    }
+
+    .pile .slot {
+        position: absolute;
+        inset: 0;
+    }
+
+    /* How many cards are still face down in a pile. */
+    .count {
+        position: absolute;
+        right: -0.4em;
+        top: -0.4em;
+        min-width: 1.4em;
+        padding: 0.1em 0.3em;
+        font-size: 0.9em;
+        font-weight: bold;
+        color: #222222;
+        background-color: #f6d77a;
+        border-radius: 1em;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    /* The hour on the felt, next to its pile. */
+    .hour {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 2em;
+        margin: -0.7em 0 0 -1em;
+        font-family: Georgia, "DejaVu Serif", serif;
+        font-size: 1.1em;
+        font-weight: bold;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.55);
+        pointer-events: none;
+    }
+
+    /* The card in the hand: lifted, with a gold edge, sliding in. */
+    .hand {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        animation: slide 0.25s ease-out;
+    }
+
+    .hand .playing-card {
+        box-shadow: 0 0 0 3px #f6d77a, 0 8px 12px rgba(0, 0, 0, 0.5);
+        border-radius: 6px;
+    }
+
+    @keyframes slide {
+        from { opacity: 0; transform: translate(-50%, -80%); }
+    }
+
+    /* A pile tapped by mistake. */
+    .pile.shake {
+        animation: shake 0.3s;
+    }
+
+    @keyframes shake {
+        25% { transform: translate(calc(-50% - 0.4em), -50%); }
+        75% { transform: translate(calc(-50% + 0.4em), -50%); }
+    }
+
+    /* --- The cards, as in Blackjack, Hi-Lo and Video Poker ------------------- */
+
+    .slot {
+        flex: none;
+        perspective: 600px;
+    }
+
+    .playing-card {
+        position: relative;
+        width: 4.6em;
+        height: 6.6em;
+        transform-style: preserve-3d;
+    }
+
+    /* A card that is face down: turned round, so the back shows. */
+    .playing-card.down {
+        transform: rotateY(180deg);
+    }
+
+    .face {
+        position: absolute;
+        inset: 0;
+        border-radius: 6px;
+        backface-visibility: hidden;
+        box-shadow: -1px 1px 4px rgba(0, 0, 0, 0.45);
+    }
+
+    .front {
+        background-color: #ffffff;
+        border: 1px solid #c9c9c9;
+        color: #1a1a1a;
+        font-family: Georgia, "DejaVu Serif", "Times New Roman", serif;
+    }
+
+    .playing-card.red .front {
+        color: #c8102e;
+    }
+
+    .back {
+        transform: rotateY(180deg);
+        background-color: #b3202a;
+        background-image:
+            repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px),
+            repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 6px);
+        border: 4px solid #ffffff;
+        outline: 1px solid #c9c9c9;
+        box-sizing: border-box;
+    }
+
+    .corner {
+        position: absolute;
+        font-size: 0.95em;
+        font-weight: bold;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .corner.top {
+        top: 0.25em;
+        left: 0.25em;
+    }
+
+    .corner.bottom {
+        bottom: 0.25em;
+        right: 0.25em;
+        transform: rotate(180deg);
+    }
+
+    .pip {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.3em;
+    }
+
+    #status {
+        min-height: 2.8em;
+        margin: 12px 0 0;
+    }
+
+    /* --- The rules ---------------------------------------------------------- */
+
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class="container"&gt;
+    &lt;h1&gt;Clock Solitaire&lt;/h1&gt;
+
+    &lt;div class="bar"&gt;
+      &lt;p class="counts"&gt;Cards turned &lt;span id="turned"&gt;0&lt;/span&gt; of 52&lt;/p&gt;
+      &lt;div class="buttons"&gt;
+        &lt;button type="button" id="auto"&gt;Play it for me&lt;/button&gt;
+        &lt;button type="button" id="new-game"&gt;New game&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div id="board" class="felt"&gt;&lt;/div&gt;
+
+    &lt;p id="status" aria-live="polite"&gt;&lt;/p&gt;
+
+    &lt;details class="rules"&gt;
+      &lt;summary&gt;How to play&lt;/summary&gt;
+      &lt;ul&gt;
+        &lt;li&gt;The cards are dealt in 13 piles of 4: twelve round a clock, with the ace at 1 o'clock, the 2 at 2 o'clock and so on to the queen at 12 o'clock. The kings' pile is in the middle.&lt;/li&gt;
+        &lt;li&gt;The top card of the middle pile is turned over. Tap the pile at its hour: a 7 goes to 7 o'clock, a jack to 11 and a queen to 12. A king goes back to the middle.&lt;/li&gt;
+        &lt;li&gt;The card goes under that pile, face up, and the top card of that pile is turned over next.&lt;/li&gt;
+        &lt;li&gt;The game ends when the fourth king is turned over. You win if every card is face up by then.&lt;/li&gt;
+        &lt;li&gt;There are no choices to make: the deal decides if you win. You win about one game in 13.&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/details&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Clock Solitaire: 52 cards in 13 piles of 4, face down. Twelve piles sit
+     * round a clock, one for each hour: the ace at 1 o'clock, the 2 at 2 and so
+     * on, the jack at 11 and the queen at 12. The kings' pile is in the middle.
+     *
+     * Turn over the top card of the middle pile. Put it face up under the pile
+     * of its hour, and turn over the top card of that pile. Go on until the
+     * fourth king is turned over. If every card is face up by then, you win.
+     *
+     * There are no choices: the deal decides everything. You win about one
+     * game in 13. The player's job is to find the right hour.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const SUITS = ["♠", "♥", "♦", "♣"];
+    const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const SUIT_NAMES = { "♠": "spades", "♥": "hearts", "♦": "diamonds", "♣": "clubs" };
+    const VALUE_NAMES = { A: "an ace", J: "a jack", Q: "a queen", K: "a king" };
+    const KINGS = 12;           // the middle pile: piles[12]
+    const RADIUS = 13;          // em from the middle of the clock to the middle of a pile
+    const PEEK = 0.5;           // em each face-up card peeks out from under its pile
+    const LABEL = 4.6;          // em from a pile's middle to its hour, towards the clock's middle
+    const HAND_X = 6.6;         // em right of the middle where the card in the hand is shown
+    const AUTO_DELAY = 300;     // ms between cards when the game plays itself
+    const STATS_KEY = "clock-solitaire";
+
+    // --- Elements on the page --------------------------------------------------
+
+    const board = document.getElementById("board");
+    const turnedText = document.getElementById("turned");
+    const statusText = document.getElementById("status");
+    const autoButton = document.getElementById("auto");
+    const newGameButton = document.getElementById("new-game");
+
+    // --- State ---------------------------------------------------------------
+
+    // piles[0] is the aces' pile at 1 o'clock ... piles[11] the queens' at
+    // 12 o'clock, and piles[12] the kings' in the middle. Each pile has its
+    // face-down cards and the face-up cards put under it.
+    let piles = [];
+    let hand = null;       // the card turned over, waiting to be put in place
+    let turned = 0;        // cards turned over so far
+    let over = false;
+    let autoTimer = null;
+
+    // --- Cards ---------------------------------------------------------------
+
+    function newDeck() {
+        const deck = [];
+        for (const suit of SUITS) {
+            VALUES.forEach(function (value, i) {
+                deck.push({ suit: suit, value: value, rank: i + 1 });
+            });
+        }
+        for (let i = deck.length - 1; i &gt; 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        return deck;
+    }
+
+    function isRed(card) {
+        return card.suit === "♥" || card.suit === "♦";
+    }
+
+    // The card element, the same as in Klondike. A card that isn't given
+    // (null) is shown face down.
+    function cardElement(card) {
+        const element = document.createElement("div");
+        element.className = "playing-card";
+        if (card === null) {
+            element.classList.add("down");
+        } else if (isRed(card)) {
+            element.classList.add("red");
+        }
+        element.setAttribute("role", "img");
+        element.setAttribute("aria-label", card === null ? "A card, face down" : card.value + " of " + SUIT_NAMES[card.suit]);
+        const front = document.createElement("div");
+        front.className = "face front";
+        if (card !== null) {
+            front.innerHTML =
+                '&lt;span class="corner top"&gt;' + card.value + "&lt;br&gt;" + card.suit + "&lt;/span&gt;" +
+                '&lt;span class="pip"&gt;' + card.suit + "&lt;/span&gt;" +
+                '&lt;span class="corner bottom"&gt;' + card.value + "&lt;br&gt;" + card.suit + "&lt;/span&gt;";
+        }
+        const back = document.createElement("div");
+        back.className = "face back";
+        element.append(front, back);
+        return element;
+    }
+
+    // --- The clock ---------------------------------------------------------------
+
+    // Which pile a card goes to: its rank minus 1. A king (rank 13) goes to
+    // pile 12, the middle.
+    function pileFor(card) {
+        return card.rank - 1;
+    }
+
+    // The hour a pile is at, as text for the player.
+    function hourName(pile) {
+        return pile === KINGS ? "the middle" : (pile + 1) + " o'clock";
+    }
+
+    // Where a pile is, in em from the middle of the clock. The hours go round
+    // like on a clock: 12 at the top, 3 to the right. An hour is 30 degrees,
+    // and the angles of sin and cos start at 3 o'clock, so we take 90 off.
+    function pilePosition(pile) {
+        if (pile === KINGS) {
+            return { x: 0, y: 0 };
+        }
+        const angle = ((pile + 1) * 30 - 90) * Math.PI / 180;
+        return { x: Math.cos(angle) * RADIUS, y: Math.sin(angle) * RADIUS };
+    }
+
+    // --- The game ------------------------------------------------------------
+
+    function newGame() {
+        stopAuto();
+        const deck = newDeck();
+        piles = [];
+        for (let i = 0; i &lt; 13; i++) {
+            piles.push({ down: deck.splice(0, 4), up: [] });
+        }
+        turned = 0;
+        over = false;
+        hand = null;
+        turnOver(KINGS);
+        statusText.textContent = "Tap the pile at the card's hour.";
+    }
+
+    // Turn over the top card of a pile, into the hand. If the pile has no
+    // face-down cards left, the game is over. That can only happen in the
+    // middle, with the fourth king: every other pile still has a card to turn.
+    function turnOver(pile) {
+        if (piles[pile].down.length === 0) {
+            endGame();
+            return;
+        }
+        hand = piles[pile].down.pop();
+        turned++;
+        render();
+    }
+
+    // The player tapped a pile. The card in the hand goes there if it is the
+    // right hour; then the top card of that pile is turned over.
+    function place(pile) {
+        if (over || hand === null) {
+            return;
+        }
+        if (pile !== pileFor(hand)) {
+            const name = VALUE_NAMES[hand.value] || "a " + hand.value;
+            statusText.textContent = "That's " + name + ": it goes to " + hourName(pileFor(hand)) + ".";
+            shake(pile);
+            return;
+        }
+        piles[pile].up.push(hand);
+        hand = null;
+        statusText.textContent = "";
+        turnOver(pile);
+    }
+
+    function endGame() {
+        over = true;
+        hand = null;
+        stopAuto();
+        const left = piles.reduce(function (sum, pile) { return sum + pile.down.length; }, 0);
+        const stats = countGame(left === 0);
+        if (left === 0) {
+            statusText.textContent = "You won! Every card came up before the last king. (" + stats + ")";
+        } else {
+            statusText.textContent = "The fourth king came up with " + left + (left === 1 ? " card" : " cards") +
+                " still face down. Better luck with the next deal! (" + stats + ")";
+        }
+        render();
+    }
+
+    // Games and wins, saved, so you can see how rare a win is.
+    function countGame(won) {
+        let stats = { games: 0, wins: 0 };
+        try {
+            stats = JSON.parse(localStorage.getItem(STATS_KEY)) || stats;
+            stats.games++;
+            if (won) {
+                stats.wins++;
+            }
+            localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+        } catch (error) {
+            stats.games++;
+            stats.wins += won ? 1 : 0;
+        }
+        return "You have won " + stats.wins + " of " + stats.games + (stats.games === 1 ? " game" : " games");
+    }
+
+    // --- Playing by itself -----------------------------------------------------
+
+    function toggleAuto() {
+        if (autoTimer !== null) {
+            stopAuto();
+            return;
+        }
+        if (over) {
+            newGame();
+        }
+        autoButton.textContent = "Stop";
+        autoTimer = setInterval(function () {
+            if (over || hand === null) {
+                stopAuto();
+                return;
+            }
+            place(pileFor(hand));
+        }, AUTO_DELAY);
+    }
+
+    function stopAuto() {
+        clearInterval(autoTimer);
+        autoTimer = null;
+        autoButton.textContent = "Play it for me";
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function render() {
+        board.innerHTML = "";
+        piles.forEach(function (pile, i) {
+            const at = pilePosition(i);
+            const box = document.createElement("button");
+            box.type = "button";
+            box.className = "pile";
+            box.dataset.pile = i;
+            box.setAttribute("aria-label", hourName(i) + ": " + pile.down.length + " face down, " + pile.up.length + " face up");
+            // The middle of the board is 50%; the pile's middle goes at its place.
+            box.style.left = "calc(50% + " + at.x + "em)";
+            box.style.top = "calc(50% + " + at.y + "em)";
+
+            // The face-up cards peek out from under the pile, away from the middle.
+            const out = i === KINGS ? { x: 0, y: 1 } : { x: at.x / RADIUS, y: at.y / RADIUS };
+            pile.up.forEach(function (card, n) {
+                const slot = document.createElement("div");
+                slot.className = "slot";
+                const shift = (pile.up.length - n) * PEEK;
+                slot.style.transform = "translate(" + (out.x * shift) + "em, " + (out.y * shift) + "em)";
+                slot.appendChild(cardElement(card));
+                box.appendChild(slot);
+            });
+            // The face-down cards on top, as one card with a count on it.
+            if (pile.down.length &gt; 0) {
+                const slot = document.createElement("div");
+                slot.className = "slot";
+                slot.appendChild(cardElement(null));
+                const count = document.createElement("span");
+                count.className = "count";
+                count.textContent = pile.down.length;
+                slot.appendChild(count);
+                box.appendChild(slot);
+            }
+            if (pile.down.length === 0 &amp;&amp; pile.up.length === 0) {
+                box.classList.add("empty");
+            }
+            // The hour, on the felt next to the pile, on the side of the middle.
+            const label = document.createElement("span");
+            label.className = "hour";
+            label.textContent = i === KINGS ? "K" : VALUES[i];
+            label.style.transform = "translate(" + (-out.x * LABEL) + "em, " + (-out.y * LABEL) + "em)";
+            box.appendChild(label);
+            board.appendChild(box);
+        });
+
+        // The card in the hand, between the middle and 3 o'clock.
+        if (hand !== null) {
+            const slot = document.createElement("div");
+            slot.className = "hand";
+            slot.style.left = "calc(50% + " + HAND_X + "em)";
+            slot.appendChild(cardElement(hand));
+            board.appendChild(slot);
+        }
+        turnedText.textContent = turned;
+    }
+
+    // A pile that was tapped by mistake gives a little shake.
+    function shake(pile) {
+        const box = board.querySelector('[data-pile="' + pile + '"]');
+        box.classList.remove("shake");
+        void box.offsetWidth;   // start the animation again, even if it just ran
+        box.classList.add("shake");
+    }
+
+    // --- Buttons ----------------------------------------------------------------
+
+    board.addEventListener("click", function (event) {
+        const box = event.target.closest("[data-pile]");
+        if (box &amp;&amp; autoTimer === null) {
+            place(Number(box.dataset.pile));
+        }
+    });
+    autoButton.addEventListener("click", toggleAuto);
+    newGameButton.addEventListener("click", newGame);
+
+    // --- Start ---------------------------------------------------------------
+
+    newGame();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Move the card from the hand to its pile with an animation, so you can see where it goes.</li>
+    <li>Add a timer, and save the fastest win.</li>
+    <li>Show the face-up cards more, so you can see which cards have come up at each hour.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>Clock Solitaire is played with taps, so it works well on a phone. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
