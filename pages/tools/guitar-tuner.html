@@ -1,0 +1,48 @@
+---
+layout: default
+title: Guitar Tuner
+permalink: /tools/guitar-tuner/
+nonav: true
+css:
+  - /assets/guitar-tuner/guitar-tuner.css
+js:
+  - /assets/guitar-tuner/guitar-tuner.js
+---
+
+<div class="guitar-tuner container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h1 class="h2">Guitar Tuner</h1>
+      <p id="message">Press Start and allow the page to use the microphone.</p>
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col">
+      <div class="dial bw">
+        <svg class="gauge" viewBox="-110 -105 220 120" aria-hidden="true">
+          <path class="arc" d="M -90 0 A 90 90 0 0 1 90 0"></path>
+          <path class="arc-good" d="M -9.4 -89.5 A 90 90 0 0 1 9.4 -89.5"></path>
+          <g id="ticks"></g>
+          <line id="needle" class="needle" x1="0" y1="0" x2="0" y2="-82"></line>
+          <circle class="pin" r="5"></circle>
+        </svg>
+        <p id="note" class="note">–</p>
+        <p id="cents" class="cents">&nbsp;</p>
+        <p id="frequency" class="frequency">&nbsp;</p>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col">
+      <p class="label">Strings: tap one to hear it</p>
+      <div id="strings" class="strings"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12 mt-3">
+      <button type="button" id="button-start" class="btn btn-success">Start</button>
+    </div>
+  </div>
+  <p class="mt-4 text-muted small">Play one string at a time, and let it ring. Standard tuning, with A at 440 Hz.</p>
+  <p class="mt-5 text-center"><a href="/tutorials/guitar-tuner/">How to build this app</a></p>
+</div>

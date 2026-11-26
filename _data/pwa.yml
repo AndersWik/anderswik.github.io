@@ -73,6 +73,7 @@
 - { slug: compass, page: pages/tools/compass.html, short_name: Compass, emoji: "🧭" }
 - { slug: countdown, page: pages/tools/countdown.html, short_name: Countdown, emoji: "⏳" }
 - { slug: egg-clock, page: pages/tools/egg-clock.html, short_name: Egg Clock, emoji: "🥚" }
+- { slug: guitar-tuner, page: pages/tools/guitar-tuner.html, short_name: Tuner, emoji: "🎸" }
 - { slug: myip, page: pages/tools/myip.html, name: My IP, short_name: My IP, emoji: "🌐" }
 - { slug: speedometer, page: pages/tools/speedometer.html, short_name: Speed, emoji: "🚗" }
 - { slug: week, page: pages/tools/week.html, name: Week number, short_name: Week, emoji: "📅" }

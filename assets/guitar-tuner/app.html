@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guitar Tuner</title>
+
+  <!-- Makes this page an installable app, see _scripts/make-pwa.py. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
+  <!-- iPhone and iPad read these instead of the manifest. -->
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Guitar Tuner">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/assets/guitar-tuner/guitar-tuner.css">
+  <style>
+    /* Without the site header the games would touch the top of the screen. */
+    .game { padding-block: 16px; }
+  </style>
+</head>
+<body>
+<div class="guitar-tuner container-sm mt-3 mb-3 pt-5 pb-5 text-center">
+  <div class="row align-items-start">
+    <div class="col">
+      <h1 class="h2">Guitar Tuner</h1>
+      <p id="message">Press Start and allow the page to use the microphone.</p>
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col">
+      <div class="dial bw">
+        <svg class="gauge" viewBox="-110 -105 220 120" aria-hidden="true">
+          <path class="arc" d="M -90 0 A 90 90 0 0 1 90 0"></path>
+          <path class="arc-good" d="M -9.4 -89.5 A 90 90 0 0 1 9.4 -89.5"></path>
+          <g id="ticks"></g>
+          <line id="needle" class="needle" x1="0" y1="0" x2="0" y2="-82"></line>
+          <circle class="pin" r="5"></circle>
+        </svg>
+        <p id="note" class="note">–</p>
+        <p id="cents" class="cents">&nbsp;</p>
+        <p id="frequency" class="frequency">&nbsp;</p>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col">
+      <p class="label">Strings: tap one to hear it</p>
+      <div id="strings" class="strings"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12 mt-3">
+      <button type="button" id="button-start" class="btn btn-success">Start</button>
+    </div>
+  </div>
+  <p class="mt-4 text-muted small">Play one string at a time, and let it ring. Standard tuning, with A at 440 Hz.</p>
+</div>
+
+<script src="/assets/guitar-tuner/guitar-tuner.js"></script>
+<script>
+  // The service worker saves the app so it also works offline.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+</body>
+</html>

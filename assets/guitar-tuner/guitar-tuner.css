@@ -1,0 +1,138 @@
+.guitar-tuner h1 {
+  font-family: "Ubuntu", Arial, sans-serif;
+  font-weight: 700;
+  color: #222222;
+  letter-spacing: 0.02em;
+}
+
+.guitar-tuner h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin: 10px auto 0;
+  background-color: #e8b455;
+  border-radius: 2px;
+}
+
+.guitar-tuner .dial {
+  padding: 16px 10px 14px;
+}
+
+/* The dial: an arc from -50 to +50 cents, green in the middle. */
+.guitar-tuner .gauge {
+  display: block;
+  width: 320px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.guitar-tuner .arc {
+  fill: none;
+  stroke: #dee2e6;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.guitar-tuner .arc-good {
+  fill: none;
+  stroke: #9be6a8;
+  stroke-width: 10;
+}
+
+.guitar-tuner .tick {
+  stroke: #6c757d;
+  stroke-width: 2;
+}
+
+.guitar-tuner .needle {
+  stroke: #d63a2f;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: transform 0.12s;
+}
+
+.guitar-tuner .needle.good {
+  stroke: #198754;
+}
+
+.guitar-tuner .pin {
+  fill: #222222;
+}
+
+.guitar-tuner .note {
+  margin: 0;
+  font-family: ubuntu;
+  font-weight: 700;
+  font-size: 72px;
+  line-height: 1.1;
+}
+
+.guitar-tuner .cents {
+  margin: 0;
+  font-family: ubuntu;
+  font-size: 20px;
+  color: #c98a00;
+}
+
+.guitar-tuner .good {
+  color: #198754;
+}
+
+.guitar-tuner .frequency {
+  margin: 4px 0 0;
+  color: #6c757d;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.guitar-tuner .label {
+  color: #fdbc40;
+  font-family: ubuntu;
+  font-size: 18px;
+  margin-bottom: 0.5rem;
+}
+
+/* The six strings, as round buttons. */
+.guitar-tuner .strings {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.guitar-tuner .string {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  font-family: ubuntu;
+  font-size: 22px;
+  font-weight: 700;
+  color: #222222;
+  background-color: #ffffff;
+  border: 3px solid #dee2e6;
+  border-radius: 50%;
+}
+
+.guitar-tuner .string small {
+  font-size: 11px;
+  font-weight: normal;
+  color: #6c757d;
+}
+
+/* The string the note is closest to, and green when it is in tune. */
+.guitar-tuner .string.near {
+  border-color: #e8b455;
+}
+
+.guitar-tuner .string.good {
+  border-color: #198754;
+  background-color: #e9f7ec;
+}
+
+.guitar-tuner #button-start {
+  font-family: ubuntu;
+  width: 100%;
+  height: 70px;
+}

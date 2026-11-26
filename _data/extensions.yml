@@ -77,6 +77,7 @@
 - { slug: compass, page: pages/tools/compass.html, emoji: "🧭", description: "A compass for your phone: see which way north is and which way you are facing." }
 - { slug: countdown, page: pages/tools/countdown.html, emoji: "⏳", open: tab }
 - { slug: egg-clock, page: pages/tools/egg-clock.html, emoji: "🥚", open: tab }
+- { slug: guitar-tuner, page: pages/tools/guitar-tuner.html, emoji: "🎸", open: tab, description: "A guitar tuner: play a string, and the microphone tells you if it is in tune." }
 - { slug: myip, page: pages/tools/myip.html, name: My IP, emoji: "🌐" }
 - { slug: speedometer, page: pages/tools/speedometer.html, emoji: "🚗", open: tab, geolocation: true, description: "A speedometer from your GPS: speed, max speed, distance and average. Needs a device with GPS." }
 - { slug: week, page: pages/tools/week.html, name: Week number, emoji: "📅" }

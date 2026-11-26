@@ -1,0 +1,850 @@
+---
+layout: default
+title: Guitar tuner
+permalink: /tutorials/guitar-tuner/
+chapter: "02"
+chapter_title: "JavaScript apps"
+keywords: [javascript, microphone, getUserMedia, Web Audio, AudioContext, AnalyserNode, pitch detection, autocorrelation, frequency, hertz, cents, MIDI, logarithm, median, oscillator, requestAnimationFrame]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Guitar tuner</h1>
+  <p>A guitar tuner: play a string, and the microphone tells you which note it is, and how many cents it is too high or too low. A needle shows it, and it turns green when the string is in tune. Tap a string's button to hear how it should sound.</p>
+  <p>Read the <a href="/tutorials/egg-clock/">Egg clock</a> first, for making sound with the Web Audio API, and the <a href="/tutorials/compass/">Compass</a> for drawing a dial with SVG.</p>
+  <p><a href="/assets/tutorials/guitar-tuner.html">Open the finished tuner</a> (it needs a microphone, and a page on https)</p>
+
+  <h2>Notes, hertz and cents</h2>
+  <p>A note is the air going back and forth, many times a second. The number of times a second is the <strong>frequency</strong>, in hertz (Hz). The A above middle C is 440 Hz. One octave up is twice the frequency, 880 Hz, and one octave is 12 half steps, so each half step is the frequency times the 12th root of 2.</p>
+  <p>That is easier with a number for every half step, the way MIDI numbers notes: A4 is 69, the next half step 70, and so on. A <strong>cent</strong> is a hundredth of a half step. A good ear hears about 5 cents, so within 5 is "in tune".</p>
+  <pre><code class="language-javascript">function midiFromFrequency(frequency) {
+    return 69 + 12 * Math.log2(frequency / A4);
+}
+
+function frequencyFromMidi(midi) {
+    return A4 * Math.pow(2, (midi - 69) / 12);
+}
+
+function noteName(midi) {
+    return NOTE_NAMES[midi % 12] + (Math.floor(midi / 12) - 1);
+}</code></pre>
+  <p><code>Math.log2</code> answers "2 to the power of what?". 880 / 440 is 2, which is 2 to the power of 1, times 12 half steps: 81, one octave above 69. A frequency of 82.41 Hz gives 40.00: the low E string, E2. If it had given 40.12, the string would be 12 cents too high.</p>
+
+  <h2>Step 1: The page</h2>
+  <p>Create <code>guitar-tuner.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The dial is a small SVG drawing: a grey arc, a green part in the middle, and a needle that turns round its bottom end.</p>
+  <pre><code class="language-html">&lt;h1&gt;Guitar tuner&lt;/h1&gt;
+&lt;p id="message"&gt;Press Start and allow the page to use the microphone.&lt;/p&gt;
+
+&lt;svg class="gauge" viewBox="-110 -105 220 120"&gt;
+  &lt;path class="arc" d="M -90 0 A 90 90 0 0 1 90 0"&gt;&lt;/path&gt;
+  &lt;path class="arc-good" d="M -9.4 -89.5 A 90 90 0 0 1 9.4 -89.5"&gt;&lt;/path&gt;
+  &lt;g id="ticks"&gt;&lt;/g&gt;
+  &lt;line id="needle" class="needle" x1="0" y1="0" x2="0" y2="-82"&gt;&lt;/line&gt;
+  &lt;circle r="5"&gt;&lt;/circle&gt;
+&lt;/svg&gt;
+&lt;p id="note" class="note"&gt;–&lt;/p&gt;
+&lt;p id="cents" class="cents"&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p id="frequency" class="frequency"&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;Strings: tap one to hear it&lt;/p&gt;
+&lt;div id="strings" class="strings"&gt;&lt;/div&gt;
+
+&lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;</code></pre>
+  <pre><code class="language-css">body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 16px;
+    text-align: center;
+}
+
+h1::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin: 10px auto 0;
+    background-color: #e8b455;
+    border-radius: 2px;
+}
+
+.gauge {
+    display: block;
+    width: 320px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.arc {
+    fill: none;
+    stroke: #ddd;
+    stroke-width: 10;
+    stroke-linecap: round;
+}
+
+.arc-good {
+    fill: none;
+    stroke: #9be6a8;
+    stroke-width: 10;
+}
+
+.tick {
+    stroke: gray;
+    stroke-width: 2;
+}
+
+.needle {
+    stroke: red;
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: transform 0.12s;
+}
+
+.needle.good {
+    stroke: green;
+}
+
+.note {
+    margin: 0;
+    font-size: 72px;
+    font-weight: bold;
+}
+
+.cents {
+    margin: 0;
+    font-size: 20px;
+    color: #c98a00;
+}
+
+.good {
+    color: green;
+}
+
+.frequency {
+    color: gray;
+}
+
+.strings {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.string {
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+    font-weight: bold;
+    background-color: white;
+    border: 3px solid #ddd;
+    border-radius: 50%;
+}
+
+.string.near {
+    border-color: #e8b455;
+}
+
+.string.good {
+    border-color: green;
+}
+
+#button-start {
+    margin-top: 24px;
+    width: 200px;
+    height: 60px;
+    font-size: 18px;
+}</code></pre>
+
+  <h2>Step 2: The microphone</h2>
+  <pre><code class="language-javascript">async function start() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        message.textContent = "This browser can't use a microphone here. It needs a page on https.";
+        return;
+    }
+    try {
+        // Echo cancellation and noise suppression are made for voices, and
+        // can change the sound of a string, so we turn them off.
+        stream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+        });
+    } catch (error) {
+        message.textContent = "The page may not use the microphone. Allow it in the browser's settings.";
+        return;
+    }
+    audio = audio || new AudioContext();
+    analyser = audio.createAnalyser();
+    analyser.fftSize = 4096;   // about 0.09 seconds of sound: more than two waves of the low E
+    audio.createMediaStreamSource(stream).connect(analyser);
+    samples = new Float32Array(analyser.fftSize);
+    listening = true;
+    recent = [];
+    startButton.textContent = "Stop";
+    startButton.className = "btn btn-warning";
+    message.textContent = "Listening. Play one string.";
+    listen();
+}</code></pre>
+  <ul>
+    <li><code>navigator.mediaDevices.getUserMedia</code> asks the user for the microphone. Like the location in the <a href="/tutorials/speedometer/">Speedometer</a>, it only works on <code>https://</code> pages, and the answer comes later, so we <code>await</code> it.</li>
+    <li>Phones clean up the sound for phone calls: they take away echo and noise, and turn the volume up and down. That can change the sound of a string, so we ask for the sound as it is.</li>
+    <li>An <code>AnalyserNode</code> lets us read the sound. <code>fftSize = 4096</code> means it keeps the last 4096 samples, about 0.09 seconds. That is enough to hold more than two whole waves of the lowest string.</li>
+  </ul>
+  <p>Stop turns the microphone off again with <code>track.stop()</code>, and the browser's "using the microphone" light goes off:</p>
+  <pre><code class="language-javascript">function stop() {
+    listening = false;
+    if (stream !== null) {
+        stream.getTracks().forEach(function (track) { track.stop(); });   // the microphone light goes off
+        stream = null;
+    }
+    startButton.textContent = "Start";
+    startButton.className = "btn btn-success";
+    message.textContent = "Press Start to tune.";
+    showSilence();
+}</code></pre>
+
+  <h2>Step 3: Finding the pitch</h2>
+  <p>This is the heart of the tuner. <code>getFloatTimeDomainData</code> gives the sound as 4096 numbers between -1 and 1. A note is a wave that repeats. To find how often, we take the sound and compare it with itself, shifted a little later. When the shift is exactly one wave, the two line up, and match. This is called <strong>autocorrelation</strong>:</p>
+  <pre><code class="language-javascript">function detectPitch(buffer, sampleRate) {
+    // Too quiet: no note.
+    let sum = 0;
+    for (let i = 0; i &lt; buffer.length; i++) {
+        sum += buffer[i] * buffer[i];
+    }
+    if (Math.sqrt(sum / buffer.length) &lt; QUIET) {
+        return null;
+    }
+
+    const minLag = Math.floor(sampleRate / HIGHEST);
+    const maxLag = Math.min(Math.floor(sampleRate / LOWEST), Math.floor(buffer.length / 2));
+    const size = buffer.length - maxLag;
+    const match = new Float32Array(maxLag + 1);
+    for (let lag = minLag; lag &lt;= maxLag; lag++) {
+        let together = 0;
+        let energy = 0;
+        for (let i = 0; i &lt; size; i++) {
+            together += buffer[i] * buffer[i + lag];
+            energy += buffer[i] * buffer[i] + buffer[i + lag] * buffer[i + lag];
+        }
+        match[lag] = energy &gt; 0 ? 2 * together / energy : 0;
+    }
+
+    // The peaks of the match, one between each time it crosses 0. A
+    // guitar string also rings at 2, 3 and 4 times its note (overtones),
+    // and a shift of two whole waves matches as well as one. So we don't
+    // take the highest peak, but the first one that is nearly as high:
+    // that is one whole wave.
+    const peaks = [];
+    let lag = minLag;
+    while (lag &lt; maxLag &amp;&amp; match[lag] &gt; 0) {
+        lag++;   // start after the first dip below 0
+    }
+    while (lag &lt; maxLag) {
+        while (lag &lt; maxLag &amp;&amp; match[lag] &lt;= 0) {
+            lag++;
+        }
+        let best = lag;
+        while (lag &lt; maxLag &amp;&amp; match[lag] &gt; 0) {
+            if (match[lag] &gt; match[best]) {
+                best = lag;
+            }
+            lag++;
+        }
+        if (match[best] &gt; 0) {
+            peaks.push(best);
+        }
+    }
+    if (peaks.length === 0) {
+        return null;
+    }
+    const highest = Math.max(...peaks.map(function (p) { return match[p]; }));
+    if (highest &lt; CLARITY) {
+        return null;   // the sound doesn't repeat clearly: noise, or many strings at once
+    }
+    const period = peaks.find(function (p) { return match[p] &gt;= highest * 0.9; });
+
+    // The true peak is often between two lags. A parabola through the peak
+    // and its two neighbours finds where it really is.
+    const a = match[period - 1];
+    const b = match[period];
+    const c = match[period + 1];
+    const shift = (a - c) / (2 * (a - 2 * b + c)) || 0;
+    return sampleRate / (period + shift);
+}</code></pre>
+  <ul>
+    <li><strong>Too quiet?</strong> The average loudness (the root mean square) tells if anything is being played at all.</li>
+    <li><strong>The match</strong> for every shift: the sound times the shifted sound, added up, divided by how much sound there is in both. 1 is a perfect match, -1 the exact opposite. We only try shifts for notes between 60 and 1200 Hz.</li>
+    <li><strong>The trap.</strong> A shift of two whole waves matches as well as one, so the best match could give a note an octave too low. And a guitar string doesn't only ring at its note, but also at 2, 3 and 4 times it (the overtones), which can trick a tuner into a note an octave too high. So we don't take the highest peak, but the <em>first</em> peak that is nearly as high: that is one whole wave. This is the McLeod pitch method.</li>
+    <li><strong>Between two samples.</strong> At 48 000 samples a second, the low E is a wave of about 582 samples, and one sample more or less is 3 cents. The true wave length is often between two whole samples. A parabola through the peak and its two neighbours finds where the top really is, to a small part of a sample.</li>
+  </ul>
+
+  <h2>Step 4: A calm needle</h2>
+  <p>About 60 times a second gives about 60 pitches a second, and each has a little noise. The needle shows the average of the last 8, after leaving out any that are far from the middle one:</p>
+  <pre><code class="language-javascript">function steady(frequency) {
+    recent.push(frequency);
+    if (recent.length &gt; 8) {
+        recent.shift();
+    }
+    const sorted = recent.slice().sort(function (a, b) { return a - b; });
+    const middle = sorted[Math.floor(sorted.length / 2)];
+    const close = recent.filter(function (f) {
+        return Math.abs(1200 * Math.log2(f / middle)) &lt; 30;
+    });
+    return close.reduce(function (sum, f) { return sum + f; }, 0) / close.length;
+}</code></pre>
+  <p>Averaging makes small random errors cancel each other out. Leaving out the odd ones first means that one reading an octave wrong, which happens when a string is first plucked, can't pull the average away.</p>
+
+  <h2>Step 5: Showing it</h2>
+  <pre><code class="language-javascript">function showPitch(frequency) {
+    const midi = midiFromFrequency(frequency);
+    const nearest = Math.round(midi);
+    const cents = Math.round((midi - nearest) * 100);
+
+    noteText.textContent = noteName(nearest);
+    frequencyText.textContent = frequency.toFixed(1) + " Hz (" + noteName(nearest) + " is " + frequencyFromMidi(nearest).toFixed(1) + " Hz)";
+    // -50 cents is all the way left, +50 all the way right: 60 degrees each way.
+    // As a style, not an attribute, so the CSS transition makes it glide.
+    needle.style.transform = "rotate(" + (cents / 50 * 60) + "deg)";
+
+    const inTune = Math.abs(cents) &lt;= IN_TUNE;
+    if (inTune) {
+        centsText.textContent = "In tune";
+    } else if (cents &lt; 0) {
+        centsText.textContent = cents + " cents: tune up";
+    } else {
+        centsText.textContent = "+" + cents + " cents: tune down";
+    }
+    noteText.classList.toggle("good", inTune);
+    centsText.classList.toggle("good", inTune);
+    needle.classList.toggle("good", inTune);
+
+    // The string this is closest to, measured in half steps.
+    let closest = 0;
+    STRINGS.forEach(function (string, i) {
+        if (Math.abs(midi - string.midi) &lt; Math.abs(midi - STRINGS[closest].midi)) {
+            closest = i;
+        }
+    });
+    Array.from(stringsBox.children).forEach(function (button, i) {
+        button.classList.toggle("near", i === closest);
+        button.classList.toggle("good", i === closest &amp;&amp; Math.abs(midi - STRINGS[i].midi) * 100 &lt;= IN_TUNE);
+    });
+}</code></pre>
+  <p>-50 cents turns the needle 60 degrees to the left, +50 cents 60 degrees to the right. It turns with <code>style.transform</code>, so the CSS <code>transition</code> makes it glide instead of jump. When the string is too low, it says "tune up": tighten the string. The closest of the six strings gets a gold ring, and a green one when it is in tune.</p>
+
+  <h2>Step 6: The loop</h2>
+  <pre><code class="language-javascript">function listen() {
+    if (!listening) {
+        return;
+    }
+    analyser.getFloatTimeDomainData(samples);
+    const frequency = detectPitch(samples, audio.sampleRate);
+    if (frequency !== null) {
+        lastHeard = performance.now();
+        showPitch(steady(frequency));
+    } else if (performance.now() - lastHeard &gt; HOLD) {
+        recent = [];
+        showSilence();
+    }
+    requestAnimationFrame(listen);
+}</code></pre>
+  <p>When no note is found for 1.5 seconds, the screen is cleared. Until then, the last note stays, so it doesn't blink while the string rings out.</p>
+
+  <h2>Step 7: Reference tones</h2>
+  <p>To tune by ear, each string's button plays its note for two seconds. A triangle wave sounds a little like a string, and the volume fades out like one:</p>
+  <pre><code class="language-javascript">function playNote(midi) {
+    audio = audio || new AudioContext();
+    const tone = audio.createOscillator();
+    const volume = audio.createGain();
+    tone.type = "triangle";
+    tone.frequency.value = frequencyFromMidi(midi);
+    volume.gain.setValueAtTime(0.4, audio.currentTime);
+    volume.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 2);
+    tone.connect(volume).connect(audio.destination);
+    tone.start();
+    tone.stop(audio.currentTime + 2);
+}</code></pre>
+  <p><code>exponentialRampToValueAtTime</code> makes the volume fall the way a real sound does: fast at first, then slower. An exponential ramp can't go all the way to 0, so it goes to 0.001, which you can't hear.</p>
+
+  <h2>Step 8: Test it</h2>
+  <p>A tuner is hard to test with a guitar alone: is the guitar in tune, or the tuner wrong? It is easier with made-up sounds where you know the answer. Make a list of 4096 numbers with <code>Math.sin</code> at an exact frequency, add some overtones and a little noise, and give it to <code>detectPitch</code>:</p>
+  <pre><code class="language-javascript">const buffer = new Float32Array(4096);
+for (let i = 0; i &lt; buffer.length; i++) {
+    const t = i / 48000;
+    buffer[i] = 0.2 * Math.sin(2 * Math.PI * 82.41 * t) + 0.15 * Math.sin(2 * Math.PI * 164.82 * t);
+}
+console.log(detectPitch(buffer, 48000));   // about 82.41</code></pre>
+  <p>Tested like that, with all six strings, pure tones and guitar-like tones with overtones, even a low E whose overtone was four times louder than the note, the tuner never got the octave wrong. With 8 readings, the needle was at most 0.3 cents off for guitar-like tones. Then test with a real guitar:</p>
+  <ul>
+    <li>Tune each string, and compare with the reference tone.</li>
+    <li>Play a chord. The tuner should show nothing, or flicker: it needs one note at a time.</li>
+    <li>Stop. The microphone light in the browser should go off.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>guitar-tuner.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Guitar tuner&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+        text-align: center;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    .gauge {
+        display: block;
+        width: 320px;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .arc {
+        fill: none;
+        stroke: #ddd;
+        stroke-width: 10;
+        stroke-linecap: round;
+    }
+
+    .arc-good {
+        fill: none;
+        stroke: #9be6a8;
+        stroke-width: 10;
+    }
+
+    .tick {
+        stroke: gray;
+        stroke-width: 2;
+    }
+
+    .needle {
+        stroke: red;
+        stroke-width: 4;
+        stroke-linecap: round;
+        transition: transform 0.12s;
+    }
+
+    .needle.good {
+        stroke: green;
+    }
+
+    .note {
+        margin: 0;
+        font-size: 72px;
+        font-weight: bold;
+    }
+
+    .cents {
+        margin: 0;
+        font-size: 20px;
+        color: #c98a00;
+    }
+
+    .good {
+        color: green;
+    }
+
+    .frequency {
+        color: gray;
+    }
+
+    .strings {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .string {
+        width: 52px;
+        height: 52px;
+        font-size: 22px;
+        font-weight: bold;
+        background-color: white;
+        border: 3px solid #ddd;
+        border-radius: 50%;
+    }
+
+    .string.near {
+        border-color: #e8b455;
+    }
+
+    .string.good {
+        border-color: green;
+    }
+
+    #button-start {
+        margin-top: 24px;
+        width: 200px;
+        height: 60px;
+        font-size: 18px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Guitar tuner&lt;/h1&gt;
+  &lt;p id="message"&gt;Press Start and allow the page to use the microphone.&lt;/p&gt;
+
+  &lt;svg class="gauge" viewBox="-110 -105 220 120"&gt;
+    &lt;path class="arc" d="M -90 0 A 90 90 0 0 1 90 0"&gt;&lt;/path&gt;
+    &lt;path class="arc-good" d="M -9.4 -89.5 A 90 90 0 0 1 9.4 -89.5"&gt;&lt;/path&gt;
+    &lt;g id="ticks"&gt;&lt;/g&gt;
+    &lt;line id="needle" class="needle" x1="0" y1="0" x2="0" y2="-82"&gt;&lt;/line&gt;
+    &lt;circle r="5"&gt;&lt;/circle&gt;
+  &lt;/svg&gt;
+  &lt;p id="note" class="note"&gt;–&lt;/p&gt;
+  &lt;p id="cents" class="cents"&gt;&amp;nbsp;&lt;/p&gt;
+  &lt;p id="frequency" class="frequency"&gt;&amp;nbsp;&lt;/p&gt;
+
+  &lt;p&gt;Strings: tap one to hear it&lt;/p&gt;
+  &lt;div id="strings" class="strings"&gt;&lt;/div&gt;
+
+  &lt;button type="button" id="button-start"&gt;Start&lt;/button&gt;
+
+  &lt;script&gt;
+    /*
+     * Guitar Tuner: listen with the microphone, find the pitch of the note,
+     * and show how far it is from the nearest note, in cents.
+     *
+     * A note is a wave that repeats: the low E string about 82 times a second,
+     * 82 hertz (Hz). To find the pitch, we find how long the wave takes to
+     * repeat. We compare the sound with itself, shifted a little later
+     * (autocorrelation): when the shift is one whole wave, the two line up.
+     *
+     * A cent is a hundredth of a half step. Within 5 cents is in tune.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const A4 = 440;                       // the A above middle C, in Hz
+    const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+    const STRINGS = [                     // standard tuning, low to high: MIDI note numbers
+        { name: "E", midi: 40 }, { name: "A", midi: 45 }, { name: "D", midi: 50 },
+        { name: "G", midi: 55 }, { name: "B", midi: 59 }, { name: "E", midi: 64 }
+    ];
+    const LOWEST = 60;                    // Hz: below the low E (82 Hz), with room to spare
+    const HIGHEST = 1200;                 // Hz: above the high E at the 12th fret
+    const QUIET = 0.01;                   // softer than this is no sound
+    const CLARITY = 0.9;                  // how clearly the wave must repeat
+    const IN_TUNE = 5;                    // cents
+    const HOLD = 1500;                    // ms the last note stays on the screen after the sound stops
+
+    // --- State ---------------------------------------------------------------
+
+    let audio = null;       // the AudioContext
+    let stream = null;      // the microphone
+    let analyser = null;
+    let samples = null;     // the latest sound, as numbers from -1 to 1
+    let listening = false;
+    let recent = [];        // the last few pitches found, to calm the needle
+    let lastHeard = 0;      // when a note was last found
+
+    // --- Elements on the page --------------------------------------------------
+
+    const message = document.getElementById("message");
+    const needle = document.getElementById("needle");
+    const noteText = document.getElementById("note");
+    const centsText = document.getElementById("cents");
+    const frequencyText = document.getElementById("frequency");
+    const stringsBox = document.getElementById("strings");
+    const startButton = document.getElementById("button-start");
+    const ticks = document.getElementById("ticks");
+
+    // --- Notes -------------------------------------------------------------------
+
+    // A frequency as a MIDI note number, with decimals: 440 Hz is 69, and every
+    // half step is 1 more. Twelve half steps make an octave, which doubles the
+    // frequency, so it is a logarithm with base 2.
+    function midiFromFrequency(frequency) {
+        return 69 + 12 * Math.log2(frequency / A4);
+    }
+
+    function frequencyFromMidi(midi) {
+        return A4 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    // 64 -&gt; "E4": the note name, and the octave number.
+    function noteName(midi) {
+        return NOTE_NAMES[midi % 12] + (Math.floor(midi / 12) - 1);
+    }
+
+    // --- Finding the pitch ---------------------------------------------------------
+
+    // The pitch of the sound in "buffer", in Hz, or null if there is no clear note.
+    // This is the McLeod method, a kind of autocorrelation: for every shift
+    // (lag), how well does the sound match itself that much later? 1 is a
+    // perfect match, 0 none at all, -1 the exact opposite.
+    function detectPitch(buffer, sampleRate) {
+        // Too quiet: no note.
+        let sum = 0;
+        for (let i = 0; i &lt; buffer.length; i++) {
+            sum += buffer[i] * buffer[i];
+        }
+        if (Math.sqrt(sum / buffer.length) &lt; QUIET) {
+            return null;
+        }
+
+        const minLag = Math.floor(sampleRate / HIGHEST);
+        const maxLag = Math.min(Math.floor(sampleRate / LOWEST), Math.floor(buffer.length / 2));
+        const size = buffer.length - maxLag;
+        const match = new Float32Array(maxLag + 1);
+        for (let lag = minLag; lag &lt;= maxLag; lag++) {
+            let together = 0;
+            let energy = 0;
+            for (let i = 0; i &lt; size; i++) {
+                together += buffer[i] * buffer[i + lag];
+                energy += buffer[i] * buffer[i] + buffer[i + lag] * buffer[i + lag];
+            }
+            match[lag] = energy &gt; 0 ? 2 * together / energy : 0;
+        }
+
+        // The peaks of the match, one between each time it crosses 0. A
+        // guitar string also rings at 2, 3 and 4 times its note (overtones),
+        // and a shift of two whole waves matches as well as one. So we don't
+        // take the highest peak, but the first one that is nearly as high:
+        // that is one whole wave.
+        const peaks = [];
+        let lag = minLag;
+        while (lag &lt; maxLag &amp;&amp; match[lag] &gt; 0) {
+            lag++;   // start after the first dip below 0
+        }
+        while (lag &lt; maxLag) {
+            while (lag &lt; maxLag &amp;&amp; match[lag] &lt;= 0) {
+                lag++;
+            }
+            let best = lag;
+            while (lag &lt; maxLag &amp;&amp; match[lag] &gt; 0) {
+                if (match[lag] &gt; match[best]) {
+                    best = lag;
+                }
+                lag++;
+            }
+            if (match[best] &gt; 0) {
+                peaks.push(best);
+            }
+        }
+        if (peaks.length === 0) {
+            return null;
+        }
+        const highest = Math.max(...peaks.map(function (p) { return match[p]; }));
+        if (highest &lt; CLARITY) {
+            return null;   // the sound doesn't repeat clearly: noise, or many strings at once
+        }
+        const period = peaks.find(function (p) { return match[p] &gt;= highest * 0.9; });
+
+        // The true peak is often between two lags. A parabola through the peak
+        // and its two neighbours finds where it really is.
+        const a = match[period - 1];
+        const b = match[period];
+        const c = match[period + 1];
+        const shift = (a - c) / (2 * (a - 2 * b + c)) || 0;
+        return sampleRate / (period + shift);
+    }
+
+    // Calm the needle: keep the last 8 pitches, about 0.13 seconds. Take the
+    // middle one (the median), leave out the ones far from it, like a wrong
+    // octave or the next string, and average the rest. Averaging makes the
+    // small errors from noise cancel out, and leaving out the odd ones means
+    // one bad reading can't make the needle jump.
+    function steady(frequency) {
+        recent.push(frequency);
+        if (recent.length &gt; 8) {
+            recent.shift();
+        }
+        const sorted = recent.slice().sort(function (a, b) { return a - b; });
+        const middle = sorted[Math.floor(sorted.length / 2)];
+        const close = recent.filter(function (f) {
+            return Math.abs(1200 * Math.log2(f / middle)) &lt; 30;
+        });
+        return close.reduce(function (sum, f) { return sum + f; }, 0) / close.length;
+    }
+
+    // --- Showing it ----------------------------------------------------------------
+
+    function showPitch(frequency) {
+        const midi = midiFromFrequency(frequency);
+        const nearest = Math.round(midi);
+        const cents = Math.round((midi - nearest) * 100);
+
+        noteText.textContent = noteName(nearest);
+        frequencyText.textContent = frequency.toFixed(1) + " Hz (" + noteName(nearest) + " is " + frequencyFromMidi(nearest).toFixed(1) + " Hz)";
+        // -50 cents is all the way left, +50 all the way right: 60 degrees each way.
+        // As a style, not an attribute, so the CSS transition makes it glide.
+        needle.style.transform = "rotate(" + (cents / 50 * 60) + "deg)";
+
+        const inTune = Math.abs(cents) &lt;= IN_TUNE;
+        if (inTune) {
+            centsText.textContent = "In tune";
+        } else if (cents &lt; 0) {
+            centsText.textContent = cents + " cents: tune up";
+        } else {
+            centsText.textContent = "+" + cents + " cents: tune down";
+        }
+        noteText.classList.toggle("good", inTune);
+        centsText.classList.toggle("good", inTune);
+        needle.classList.toggle("good", inTune);
+
+        // The string this is closest to, measured in half steps.
+        let closest = 0;
+        STRINGS.forEach(function (string, i) {
+            if (Math.abs(midi - string.midi) &lt; Math.abs(midi - STRINGS[closest].midi)) {
+                closest = i;
+            }
+        });
+        Array.from(stringsBox.children).forEach(function (button, i) {
+            button.classList.toggle("near", i === closest);
+            button.classList.toggle("good", i === closest &amp;&amp; Math.abs(midi - STRINGS[i].midi) * 100 &lt;= IN_TUNE);
+        });
+    }
+
+    function showSilence() {
+        noteText.textContent = "–";
+        centsText.innerHTML = "&amp;nbsp;";
+        frequencyText.innerHTML = "&amp;nbsp;";
+        needle.style.transform = "rotate(0deg)";
+        [noteText, centsText, needle].forEach(function (element) { element.classList.remove("good"); });
+        Array.from(stringsBox.children).forEach(function (button) { button.classList.remove("near", "good"); });
+    }
+
+    // The tick marks on the dial: every 10 cents, a longer one in the middle.
+    function drawTicks() {
+        for (let cents = -50; cents &lt;= 50; cents += 10) {
+            const angle = (cents / 50 * 60 - 90) * Math.PI / 180;
+            const inner = cents === 0 ? 70 : 78;
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", Math.cos(angle) * inner);
+            line.setAttribute("y1", Math.sin(angle) * inner);
+            line.setAttribute("x2", Math.cos(angle) * 90);
+            line.setAttribute("y2", Math.sin(angle) * 90);
+            line.setAttribute("class", "tick");
+            ticks.appendChild(line);
+        }
+    }
+
+    // --- Listening ---------------------------------------------------------------
+
+    async function start() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            message.textContent = "This browser can't use a microphone here. It needs a page on https.";
+            return;
+        }
+        try {
+            // Echo cancellation and noise suppression are made for voices, and
+            // can change the sound of a string, so we turn them off.
+            stream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            });
+        } catch (error) {
+            message.textContent = "The page may not use the microphone. Allow it in the browser's settings.";
+            return;
+        }
+        audio = audio || new AudioContext();
+        analyser = audio.createAnalyser();
+        analyser.fftSize = 4096;   // about 0.09 seconds of sound: more than two waves of the low E
+        audio.createMediaStreamSource(stream).connect(analyser);
+        samples = new Float32Array(analyser.fftSize);
+        listening = true;
+        recent = [];
+        startButton.textContent = "Stop";
+        startButton.className = "btn btn-warning";
+        message.textContent = "Listening. Play one string.";
+        listen();
+    }
+
+    function stop() {
+        listening = false;
+        if (stream !== null) {
+            stream.getTracks().forEach(function (track) { track.stop(); });   // the microphone light goes off
+            stream = null;
+        }
+        startButton.textContent = "Start";
+        startButton.className = "btn btn-success";
+        message.textContent = "Press Start to tune.";
+        showSilence();
+    }
+
+    // About 60 times a second: read the sound, and look for a note.
+    function listen() {
+        if (!listening) {
+            return;
+        }
+        analyser.getFloatTimeDomainData(samples);
+        const frequency = detectPitch(samples, audio.sampleRate);
+        if (frequency !== null) {
+            lastHeard = performance.now();
+            showPitch(steady(frequency));
+        } else if (performance.now() - lastHeard &gt; HOLD) {
+            recent = [];
+            showSilence();
+        }
+        requestAnimationFrame(listen);
+    }
+
+    // --- Reference tones -----------------------------------------------------------
+
+    // Play a string's note for 2 seconds, so you can tune by ear. A triangle
+    // wave sounds a bit like a string, and it fades out like one.
+    function playNote(midi) {
+        audio = audio || new AudioContext();
+        const tone = audio.createOscillator();
+        const volume = audio.createGain();
+        tone.type = "triangle";
+        tone.frequency.value = frequencyFromMidi(midi);
+        volume.gain.setValueAtTime(0.4, audio.currentTime);
+        volume.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 2);
+        tone.connect(volume).connect(audio.destination);
+        tone.start();
+        tone.stop(audio.currentTime + 2);
+    }
+
+    function drawStrings() {
+        STRINGS.forEach(function (string) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "string";
+            button.innerHTML = string.name + "&lt;small&gt;" + (Math.floor(string.midi / 12) - 1) + "&lt;/small&gt;";
+            button.setAttribute("aria-label", "Play " + noteName(string.midi));
+            button.addEventListener("click", function () { playNote(string.midi); });
+            stringsBox.appendChild(button);
+        });
+    }
+
+    // --- Start -----------------------------------------------------------------
+
+    startButton.addEventListener("click", function () {
+        if (listening) {
+            stop();
+        } else {
+            start();
+        }
+    });
+
+    drawTicks();
+    drawStrings();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Add other tunings, like Drop D (D A D G B E), or a bass (E A D G, an octave lower).</li>
+    <li>Let the user set A to 432 or 442 Hz instead of 440.</li>
+    <li>Draw the sound wave on a canvas, so you can see the string ring.</li>
+  </ul>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>
