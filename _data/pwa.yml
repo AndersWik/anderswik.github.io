@@ -53,6 +53,7 @@
 - { slug: slot-machine, page: pages/games/slot-machine.html, short_name: Slots, emoji: "🎰" }
 - { slug: sudoku, page: pages/games/sudoku.html, short_name: Sudoku, emoji: "🔢" }
 - { slug: steady-hand, page: pages/games/steady-hand.html, short_name: Steady Hand, emoji: "☕" }
+- { slug: spin-counter, page: pages/games/spin-counter.html, short_name: Spin Counter, emoji: "🌪️" }
 - { slug: tic-tac-toe, page: pages/games/tic-tac-toe.html, short_name: Tic Tac Toe, emoji: "❌" }
 
 - { slug: ascii, page: pages/references/ascii.html, name: ASCII table, short_name: ASCII, emoji: "🔤" }

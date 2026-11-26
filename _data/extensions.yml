@@ -60,6 +60,7 @@
 - { slug: slot-machine, page: pages/games/slot-machine.html, emoji: "🎰" }
 - { slug: sudoku, page: pages/games/sudoku.html, emoji: "🔢" }
 - { slug: steady-hand, page: pages/games/steady-hand.html, emoji: "☕", width: 440, description: "Hold your phone as still as a full cup of coffee for 10 seconds. On a computer, hold the mouse still." }
+- { slug: spin-counter, page: pages/games/spin-counter.html, emoji: "🌪️", width: 440, description: "How many turns can you spin in 10 seconds? Uses the phone's gyroscope. On a computer, drag round the dial." }
 - { slug: tic-tac-toe, page: pages/games/tic-tac-toe.html, emoji: "❌" }
 - { slug: ascii, page: pages/references/ascii.html, name: ASCII table, emoji: "🔤", open: tab }
 - { slug: calculator, page: pages/tools/calculator.html, emoji: "🧮" }

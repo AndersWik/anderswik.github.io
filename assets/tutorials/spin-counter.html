@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spin Counter</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+
+    .container {
+        text-align: center;
+        width: 420px;
+        max-width: calc(100% - 40px);
+        box-sizing: border-box;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    canvas {
+        display: block;
+        width: 360px;
+        max-width: 100%;
+        height: auto;
+        margin: 12px auto 0;
+        border: 8px solid #33373e;
+        border-radius: 8px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        box-sizing: border-box;
+        touch-action: none;
+    }
+
+    #message {
+        min-height: 2.8em;
+        margin: 12px 0;
+    }
+
+    #start {
+        width: 100%;
+        padding: 14px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #222222;
+        background-color: #e8b455;
+        border: 3px solid #c99a3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* On a phone, less room round the dial, so it can be bigger. */
+    @media (max-width: 480px) {
+        .container {
+            max-width: calc(100% - 16px);
+            margin: 8px;
+            padding: 12px;
+        }
+    }
+
+    /* --- The rules ---------------------------------------------------------- */
+
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Spin Counter</h1>
+    <canvas id="gameCanvas" width="360" height="460"></canvas>
+    <p id="message" aria-live="polite">Hold your phone tight, and tap Start.</p>
+    <button type="button" id="start">Start</button>
+    <details class="rules">
+      <summary>How to play</summary>
+      <ul>
+        <li>Tap Start and hold the phone still for the countdown, so it can find out which way is down.</li>
+        <li>Then spin round on the spot, holding the phone tight in both hands. Or lay it flat on a smooth table and spin it.</li>
+        <li>Spin as many full turns as you can in 10 seconds. Every turn buzzes. Turning back and forth doesn't count, only turns the same way.</li>
+        <li>Your best is saved.</li>
+        <li>Make room first, watch out for people and things around you, and stop if you get dizzy.</li>
+        <li>On a computer, drag round the dial with the mouse instead.</li>
+      </ul>
+    </details>
+  </div>
+
+  <script>
+    /*
+     * Spin Counter: how many turns can you spin in 10 seconds? Hold the phone
+     * tight and spin round on the spot, or spin it flat on a smooth table.
+     *
+     * The gyroscope measures how fast the phone turns, in degrees a second. Its
+     * numbers come with the "devicemotion" event, as event.rotationRate. Degrees
+     * a second times seconds is degrees, so adding them up tells how far the
+     * phone has turned. Which way is "round" depends on how you hold the phone,
+     * so the game first finds the line from up to down, from gravity, and only
+     * counts turning round that line.
+     *
+     * On a computer, which has no gyroscope, dragging round the dial does the same.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;      // one update, in ms
+    const SPIN_TIME = 10000;     // ms to spin
+    const COUNTDOWN = 3000;      // ms of "3, 2, 1" to hold still first
+    const SMOOTHING = 0.1;       // how fast the speed shown follows the real speed
+    const NO_SENSOR_TIME = 1500; // ms without a gyroscope reading before we say there is none
+    const BEST_KEY = "spin-counter-best";
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    const message = document.getElementById("message");
+    const startButton = document.getElementById("start");
+
+    // The dial, in pixels.
+    const DIAL = { x: WIDTH / 2, y: 225, r: 130 };
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";         // menu, countdown, spinning, done
+    let clock = 0;               // ms into the countdown or the spin
+    let heading = 0;             // where the needle points, in degrees
+    let spun = 0;                // degrees spun this round: + one way, - the other
+    let stepDegrees = 0;         // degrees turned since the last update
+    let speed = 0;               // degrees a second, smoothed
+    let topSpeed = 0;            // the fastest this round
+    let flash = 0;               // the ring glows for a moment after every full turn
+    let best = loadBest();
+    let axis = { x: 0, y: 0, z: 1 };   // the line from up to down, seen from the phone
+    let lastMotion = null;       // the time of the last gyroscope reading
+    let gyroscope = false;       // has a real gyroscope sent anything?
+    let listening = false;
+    let dragging = false;        // is the mouse button down on the dial?
+    let dragAngle = null;        // where the mouse is round the dial
+
+    // --- The gyroscope -------------------------------------------------------
+
+    // rotationRate has three numbers, each round one of the phone's own lines:
+    // alpha round z (straight out of the screen), beta round x (left to right),
+    // and gamma round y (bottom to top). Spinning round on the spot, holding
+    // the phone up in front of you, turns it round y. Spinning it flat on a
+    // table turns it round z. To count both, and anything in between, we take
+    // the part of the turning that goes round the up and down line.
+    function onMotion(event) {
+        const g = event.accelerationIncludingGravity;
+        if (screen !== "spinning" && g && g.x !== null) {
+            const size = Math.hypot(g.x, g.y, g.z);
+            // Only while the phone is fairly still: then all it feels is gravity.
+            if (size > 7 && size < 13) {
+                axis = smoothAxis(g.x / size, g.y / size, g.z / size);
+            }
+        }
+
+        const rate = event.rotationRate;
+        if (!rate || rate.alpha === null || rate.beta === null || rate.gamma === null) {
+            return;
+        }
+        gyroscope = true;
+        if (lastMotion !== null) {
+            const seconds = Math.min(0.1, (event.timeStamp - lastMotion) / 1000);
+            if (seconds > 0) {
+                const round = rate.beta * axis.x + rate.gamma * axis.y + rate.alpha * axis.z;
+                turnBy(round * seconds);
+            }
+        }
+        lastMotion = event.timeStamp;
+    }
+
+    // Move the axis a tenth of the way to the new reading, and keep it 1 long.
+    function smoothAxis(x, y, z) {
+        const nx = axis.x + (x - axis.x) * 0.1;
+        const ny = axis.y + (y - axis.y) * 0.1;
+        const nz = axis.z + (z - axis.z) * 0.1;
+        const size = Math.hypot(nx, ny, nz) || 1;
+        return { x: nx / size, y: ny / size, z: nz / size };
+    }
+
+    // iPhones ask first, and only after a tap.
+    async function startSensor() {
+        if (listening || !window.DeviceMotionEvent) {
+            return;
+        }
+        if (typeof DeviceMotionEvent.requestPermission === "function") {
+            try {
+                if (await DeviceMotionEvent.requestPermission() !== "granted") {
+                    return;
+                }
+            } catch (error) {
+                return;
+            }
+        }
+        window.addEventListener("devicemotion", onMotion);
+        listening = true;
+    }
+
+    // --- Counting turns ------------------------------------------------------
+
+    function turnBy(degrees) {
+        heading += degrees;
+        stepDegrees += degrees;
+        if (screen !== "spinning") {
+            return;
+        }
+        const before = Math.floor(Math.abs(spun) / 360);
+        spun += degrees;
+        if (Math.floor(Math.abs(spun) / 360) > before) {
+            flash = 1;
+            if (navigator.vibrate) {
+                navigator.vibrate(20);
+            }
+        }
+    }
+
+    // --- The mouse, on a computer --------------------------------------------
+
+    // The angle of the pointer round the middle of the dial, in degrees, or
+    // null when it is too close to the middle to tell.
+    function pointerAngle(event) {
+        const box = canvas.getBoundingClientRect();
+        const x = (event.clientX - box.left - canvas.clientLeft) * WIDTH / canvas.clientWidth - DIAL.x;
+        const y = (event.clientY - box.top - canvas.clientTop) * HEIGHT / canvas.clientHeight - DIAL.y;
+        if (Math.hypot(x, y) < 30) {
+            return null;
+        }
+        return Math.atan2(y, x) * 180 / Math.PI;
+    }
+
+    canvas.addEventListener("pointerdown", function (event) {
+        if (gyroscope) {
+            return;
+        }
+        canvas.setPointerCapture(event.pointerId);
+        dragging = true;
+        dragAngle = pointerAngle(event);
+    });
+
+    canvas.addEventListener("pointermove", function (event) {
+        if (gyroscope || !dragging) {
+            return;
+        }
+        const angle = pointerAngle(event);
+        if (angle !== null && dragAngle !== null) {
+            let change = angle - dragAngle;
+            // From 170 to -170 is 20 degrees on, not 340 back.
+            if (change > 180) {
+                change -= 360;
+            } else if (change < -180) {
+                change += 360;
+            }
+            turnBy(change);
+        }
+        dragAngle = angle;
+    });
+
+    ["pointerup", "pointercancel"].forEach(function (name) {
+        canvas.addEventListener(name, function () {
+            dragging = false;
+        });
+    });
+    // --- The game ------------------------------------------------------------
+
+    function startRound() {
+        screen = "countdown";
+        clock = 0;
+        spun = 0;
+        topSpeed = 0;
+        startButton.disabled = true;
+        message.textContent = "Hold still...";
+    }
+
+    function update() {
+        const seconds = STEP / 1000;
+        speed += (stepDegrees / seconds - speed) * SMOOTHING;
+        stepDegrees = 0;
+        flash = Math.max(0, flash - 0.04);
+
+        if (screen === "countdown") {
+            clock += STEP;
+            if (clock >= COUNTDOWN) {
+                screen = "spinning";
+                clock = 0;
+                spun = 0;
+                message.textContent = "Spin!";
+                if (navigator.vibrate) {
+                    navigator.vibrate(150);
+                }
+            }
+        } else if (screen === "spinning") {
+            clock += STEP;
+            topSpeed = Math.max(topSpeed, Math.abs(speed));
+            if (listening && !gyroscope && spun === 0 && clock > NO_SENSOR_TIME) {
+                message.textContent = "No gyroscope found. On a computer, drag round the dial with the mouse.";
+            }
+            if (clock >= SPIN_TIME) {
+                finish();
+            }
+        }
+    }
+
+    function finish() {
+        screen = "done";
+        const turns = Math.floor(Math.abs(spun) / 360);
+        const newBest = turns > 0 && (best === null || turns > best);
+        if (newBest) {
+            best = turns;
+            try {
+                localStorage.setItem(BEST_KEY, String(best));
+            } catch (error) {
+                // Not saved, but the game still works.
+            }
+        }
+        if (navigator.vibrate) {
+            navigator.vibrate([60, 40, 60]);
+        }
+        startButton.disabled = false;
+        startButton.textContent = "Spin again";
+        message.textContent = turns + (turns === 1 ? " turn" : " turns") + " in 10 seconds, top speed " +
+            rpm(topSpeed) + " RPM." + (newBest ? " A new best!" : "");
+    }
+
+    // Degrees a second to turns a minute: 360 degrees a second is 60 RPM.
+    function rpm(degreesPerSecond) {
+        return Math.round(Math.abs(degreesPerSecond) / 6);
+    }
+
+    function loadBest() {
+        try {
+            const saved = Number(localStorage.getItem(BEST_KEY));
+            return saved > 0 ? saved : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function draw() {
+        ctx.fillStyle = "#1b1d21";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // The ring, and in gold how far into the next turn you are. It fills
+        // the way you spin.
+        ctx.lineWidth = 18;
+        ctx.strokeStyle = "#33373e";
+        ctx.beginPath();
+        ctx.arc(DIAL.x, DIAL.y, DIAL.r, 0, Math.PI * 2);
+        ctx.stroke();
+        const part = (Math.abs(spun) % 360) / 360;
+        if (part > 0) {
+            const top = -Math.PI / 2;
+            ctx.strokeStyle = "#e8b455";
+            ctx.beginPath();
+            ctx.arc(DIAL.x, DIAL.y, DIAL.r, top, top + Math.sign(spun) * part * Math.PI * 2, spun < 0);
+            ctx.stroke();
+        }
+        // A glow after every full turn.
+        if (flash > 0) {
+            ctx.strokeStyle = "rgba(232, 180, 85, " + flash + ")";
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(DIAL.x, DIAL.y, DIAL.r + 16 + (1 - flash) * 12, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Twelve ticks, like a clock.
+        ctx.strokeStyle = "#5c616b";
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 12; i++) {
+            const a = i * Math.PI / 6;
+            ctx.beginPath();
+            ctx.moveTo(DIAL.x + Math.cos(a) * (DIAL.r - 22), DIAL.y + Math.sin(a) * (DIAL.r - 22));
+            ctx.lineTo(DIAL.x + Math.cos(a) * (DIAL.r - 32), DIAL.y + Math.sin(a) * (DIAL.r - 32));
+            ctx.stroke();
+        }
+
+        // The needle turns as you spin.
+        ctx.save();
+        ctx.translate(DIAL.x, DIAL.y);
+        ctx.rotate(heading * Math.PI / 180);
+        ctx.fillStyle = "#e05a47";
+        ctx.beginPath();
+        ctx.moveTo(0, -(DIAL.r - 38));
+        ctx.lineTo(9, -50);
+        ctx.lineTo(-9, -50);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // The hub: the countdown, or the turns.
+        ctx.fillStyle = "#2a2e35";
+        ctx.beginPath();
+        ctx.arc(DIAL.x, DIAL.y, 52, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        if (screen === "countdown") {
+            ctx.fillStyle = "#e8b455";
+            ctx.font = "bold 48px Arial";
+            ctx.fillText(String(Math.ceil((COUNTDOWN - clock) / 1000)), DIAL.x, DIAL.y);
+        } else {
+            const turns = Math.floor(Math.abs(spun) / 360);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 44px Arial";
+            ctx.fillText(String(turns), DIAL.x, DIAL.y - 6);
+            ctx.font = "13px Arial";
+            ctx.fillStyle = "#9aa0a8";
+            ctx.fillText(turns === 1 ? "turn" : "turns", DIAL.x, DIAL.y + 26);
+        }
+
+        // The speed under the dial.
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 22px Arial";
+        ctx.fillText(rpm(speed) + " RPM", DIAL.x, DIAL.y + DIAL.r + 42);
+
+        // Time left, as a bar.
+        let left = 1;
+        if (screen === "spinning") {
+            left = 1 - clock / SPIN_TIME;
+        } else if (screen === "done") {
+            left = 0;
+        }
+        ctx.fillStyle = "#33373e";
+        ctx.fillRect(30, HEIGHT - 34, WIDTH - 60, 12);
+        ctx.fillStyle = "#e8b455";
+        ctx.fillRect(30, HEIGHT - 34, (WIDTH - 60) * left, 12);
+
+        // Best at the top.
+        ctx.textBaseline = "alphabetic";
+        ctx.fillStyle = "#9aa0a8";
+        ctx.font = "bold 16px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText(screen === "spinning" ? ((SPIN_TIME - clock) / 1000).toFixed(1) + " s" : "", 14, 28);
+        ctx.textAlign = "right";
+        ctx.fillText(best ? "Best: " + best + (best === 1 ? " turn" : " turns") : "", WIDTH - 14, 28);
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+        while (leftover >= STEP) {
+            update();
+            leftover -= STEP;
+        }
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Start ---------------------------------------------------------------
+
+    startButton.addEventListener("click", async function () {
+        await startSensor();
+        startRound();
+    });
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
