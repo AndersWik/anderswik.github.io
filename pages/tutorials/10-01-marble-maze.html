@@ -1,0 +1,1048 @@
+---
+layout: default
+title: Marble Maze
+permalink: /tutorials/marble-maze/
+chapter: "10"
+chapter_title: "Mobile games"
+keywords: [javascript, game, canvas, deviceorientation, tilt, sensor, gyroscope, accelerometer, maze, maze generation, recursive backtracker, seeded random, breadth-first search, physics, collision, vibrate, localStorage]
+---
+
+<div class="tutorials container-sm mt-3 mb-3 pt-5 pb-5">
+  <h1>Marble Maze</h1>
+  <p>Tilt your phone to roll a marble through a maze to the green hole, without falling into the black ones. Every level is a bigger maze, with more holes. On a computer, the arrow keys tilt the board.</p>
+  <p>It brings together three things from earlier tutorials: the phone's tilt from the <a href="/tutorials/bubble-level/">Bubble level</a>, bouncing off walls from <a href="/tutorials/mini-golf/">Mini Golf</a>, and the breadth-first search from <a href="/tutorials/chinese-checkers/">Chinese Checkers</a>. The new idea is making a maze, a different one for every level, but the same every time you play that level.</p>
+  <p><a href="/assets/tutorials/marble-maze.html">Open the finished game</a> (on a phone, to tilt it)</p>
+
+  <h2>Step 1: The page</h2>
+  <p>Create <code>marble-maze.html</code> from the <a href="/tutorials/utility-page/">skeleton</a>. The board is a canvas in portrait, the way a phone is held:</p>
+  <pre><code class="language-html">&lt;div class="container"&gt;
+  &lt;h1&gt;Marble Maze&lt;/h1&gt;
+  &lt;canvas id="gameCanvas" width="360" height="500"&gt;&lt;/canvas&gt;
+  &lt;p id="message" aria-live="polite"&gt;Hold your phone the way you like, and tap Start.&lt;/p&gt;
+  &lt;button type="button" id="start"&gt;Start&lt;/button&gt;
+  &lt;details class="rules"&gt;
+    &lt;summary&gt;How to play&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Tilt the phone to roll the marble through the maze to the green hole.&lt;/li&gt;
+      &lt;li&gt;Don't roll into the black holes: the marble falls through and starts again.&lt;/li&gt;
+      &lt;li&gt;When you press Start, the way you hold the phone counts as flat. Hold it still for a moment, then tilt from there.&lt;/li&gt;
+      &lt;li&gt;Every level is bigger, with more holes. Your best time for each level is saved.&lt;/li&gt;
+      &lt;li&gt;On a computer, use the arrow keys to tilt the board.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
+&lt;/div&gt;</code></pre>
+  <p>The CSS gives the canvas a wooden frame and <code>touch-action: none</code>, so a finger on the board doesn't scroll the page. It is all in the complete page below.</p>
+
+  <h2>Step 2: The same random maze every time</h2>
+  <p><code>Math.random()</code> gives new numbers every time, so a maze made with it would be new every time too. To make level 5 the same maze for everyone, we need random numbers that always come out the same from the same start, the <strong>seed</strong>. A few lines of math called mulberry32 does that:</p>
+  <pre><code class="language-javascript">function seeded(seed) {
+    return function () {
+        seed = (seed + 0x6D2B79F5) | 0;
+        let t = Math.imul(seed ^ (seed &gt;&gt;&gt; 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t &gt;&gt;&gt; 7), 61 | t)) ^ t;
+        return ((t ^ (t &gt;&gt;&gt; 14)) &gt;&gt;&gt; 0) / 4294967296;
+    };
+}</code></pre>
+  <p>It mixes the bits of a number around so they look random, and changes the number each time. <code>seeded(5)</code> always gives the same list of numbers. The game uses the level number times 7919 (a prime number) as the seed.</p>
+
+  <h2>Step 3: Carving the maze</h2>
+  <p>The maze is a grid of cells, and every cell starts with all four walls. Then we walk through it:</p>
+  <ol>
+    <li>Start in the first cell.</li>
+    <li>Pick a random neighbour we haven't been to, knock down the wall between, and go there.</li>
+    <li>If every neighbour has been visited, go back one cell and try again from there.</li>
+    <li>When we are back at the start with nowhere to go, every cell has been visited.</li>
+  </ol>
+  <p>This is called a <strong>recursive backtracker</strong>. The list <code>stack</code> remembers the way back. Because we never go into a cell twice, there is exactly one way between any two cells: a "perfect" maze.</p>
+  <pre><code class="language-javascript">function makeMaze(n) {
+    const settings = levelSettings(n);
+    const random = seeded(n * 7919);
+    const cols = settings.cols;
+    const rows = settings.rows;
+    const cells = [];
+    for (let i = 0; i &lt; cols * rows; i++) {
+        cells.push({ n: true, e: true, s: true, w: true });
+    }
+    const at = function (c, r) { return r * cols + c; };
+    const steps = { n: [0, -1, "s"], e: [1, 0, "w"], s: [0, 1, "n"], w: [-1, 0, "e"] };
+
+    const visited = new Set([0]);
+    const stack = [0];
+    while (stack.length &gt; 0) {
+        const i = stack[stack.length - 1];
+        const c = i % cols;
+        const r = Math.floor(i / cols);
+        const options = Object.keys(steps).filter(function (side) {
+            const [dc, dr] = steps[side];
+            const nc = c + dc;
+            const nr = r + dr;
+            return nc &gt;= 0 &amp;&amp; nc &lt; cols &amp;&amp; nr &gt;= 0 &amp;&amp; nr &lt; rows &amp;&amp; !visited.has(at(nc, nr));
+        });
+        if (options.length === 0) {
+            stack.pop();
+            continue;
+        }
+        const side = options[Math.floor(random() * options.length)];
+        const [dc, dr, back] = steps[side];
+        const next = at(c + dc, r + dr);
+        cells[i][side] = false;
+        cells[next][back] = false;
+        visited.add(next);
+        stack.push(next);
+    }
+
+    // On later levels, knock down a few more walls, so there are loops and
+    // more than one way round.
+    for (let k = 0; k &lt; settings.loops; k++) {
+        const c = Math.floor(random() * (cols - 1));
+        const r = Math.floor(random() * rows);
+        cells[at(c, r)].e = false;
+        cells[at(c + 1, r)].w = false;
+    }
+
+    // The distance of every cell from the start, by breadth-first search.
+    // The goal is the cell furthest away.
+    const parent = new Array(cells.length).fill(-1);
+    const distance = new Array(cells.length).fill(-1);
+    distance[0] = 0;
+    const queue = [0];
+    while (queue.length &gt; 0) {
+        const i = queue.shift();
+        const c = i % cols;
+        const r = Math.floor(i / cols);
+        Object.keys(steps).forEach(function (side) {
+            if (cells[i][side]) {
+                return;
+            }
+            const next = at(c + steps[side][0], r + steps[side][1]);
+            if (distance[next] === -1) {
+                distance[next] = distance[i] + 1;
+                parent[next] = i;
+                queue.push(next);
+            }
+        });
+    }
+    let goal = 0;
+    distance.forEach(function (d, i) {
+        if (d &gt; distance[goal]) {
+            goal = i;
+        }
+    });
+    // The shortest way from the start to the goal: no holes there.
+    const path = new Set();
+    for (let i = goal; i !== -1; i = parent[i]) {
+        path.add(i);
+    }
+
+    // Where the maze goes on the canvas: as big as it fits, in the middle.
+    const size = Math.floor(Math.min((WIDTH - 2 * MARGIN) / cols, (HEIGHT - TOP - MARGIN) / rows));
+    const left = Math.round((WIDTH - size * cols) / 2);
+    const top = TOP + Math.round((HEIGHT - TOP - MARGIN - size * rows) / 2);
+    const middle = function (i) {
+        return { x: left + (i % cols + 0.5) * size, y: top + (Math.floor(i / cols) + 0.5) * size };
+    };
+
+    // Holes in cells off the way to the goal, picked at random.
+    const free = [];
+    cells.forEach(function (cell, i) {
+        if (!path.has(i)) {
+            free.push(i);
+        }
+    });
+    const holes = [];
+    for (let k = 0; k &lt; settings.holes &amp;&amp; free.length &gt; 0; k++) {
+        const pick = free.splice(Math.floor(random() * free.length), 1)[0];
+        holes.push(middle(pick));
+    }
+
+    // The walls, as straight lines: the top and left of every cell, and
+    // the bottom and right of the last row and column.
+    const walls = [];
+    cells.forEach(function (cell, i) {
+        const x = left + (i % cols) * size;
+        const y = top + Math.floor(i / cols) * size;
+        if (cell.n) walls.push([x, y, x + size, y]);
+        if (cell.w) walls.push([x, y, x, y + size]);
+        if (cell.s &amp;&amp; Math.floor(i / cols) === rows - 1) walls.push([x, y + size, x + size, y + size]);
+        if (cell.e &amp;&amp; i % cols === cols - 1) walls.push([x + size, y, x + size, y + size]);
+    });
+
+    return {
+        cols: cols, rows: rows, size: size, cells: cells, walls: walls, holes: holes,
+        start: middle(0), goal: middle(goal), path: Array.from(path).reverse(), middle: middle,
+        radius: Math.max(5, size * 0.24),       // the marble
+        holeRadius: size * 0.3
+    };
+}</code></pre>
+  <ul>
+    <li>From level 4, a few extra walls are knocked down, so there are loops and more than one way.</li>
+    <li>A breadth-first search finds how far every cell is from the start. The goal goes in the cell furthest away, so you have to go through the whole maze.</li>
+    <li>Following <code>parent</code> back from the goal gives the shortest way. The holes are only put in cells <strong>off</strong> that way, so every level can always be done.</li>
+    <li>The walls are turned into straight lines, the same kind of lines that Mini Golf bounces the ball off.</li>
+  </ul>
+
+  <h2>Step 4: The tilt</h2>
+  <p>The tilt comes from the <code>deviceorientation</code> event, as in the <a href="/tutorials/bubble-level/">Bubble level</a>: <code>gamma</code> is the tilt left to right, <code>beta</code> front to back. Behind it the phone combines its accelerometer and gyroscope, which makes it fast and steady.</p>
+  <pre><code class="language-javascript">function tilt() {
+    let x = 0;
+    let y = 0;
+    if (sensor !== null &amp;&amp; flat !== null) {
+        x = Math.sin(clampAngle(sensor.gamma - flat.gamma) * Math.PI / 180);
+        y = Math.sin(clampAngle(sensor.beta - flat.beta) * Math.PI / 180);
+        const turned = toScreen(x, y);
+        x = turned.x;
+        y = turned.y;
+    }
+    if (keys.ArrowLeft) x = -KEY_TILT;
+    if (keys.ArrowRight) x = KEY_TILT;
+    if (keys.ArrowUp) y = -KEY_TILT;
+    if (keys.ArrowDown) y = KEY_TILT;
+    return { x: x, y: y };
+}</code></pre>
+  <ul>
+    <li><strong>Flat is how you hold it.</strong> Nobody plays with the phone flat on a table. When you press Start, the angles at that moment are saved in <code>flat</code>, and the tilt is measured from there. The button "Make this flat" does it again.</li>
+    <li><strong>Like real gravity.</strong> A marble on a slope speeds up by gravity times the sine of the slope. So the tilt is <code>Math.sin</code> of the angle: a gentle slope rolls it slowly, a steep one fast.</li>
+    <li><strong>Not too steep.</strong> Over 30 degrees counts as 30, so you can still see the screen.</li>
+    <li>The arrow keys set the tilt too, so the game can be played, and tested, on a computer.</li>
+  </ul>
+
+  <h2>Step 5: Rolling and bouncing</h2>
+  <pre><code class="language-javascript">function update() {
+    if (screen === "falling") {
+        fallSteps++;
+        levelTime += STEP;
+        if (fallSteps &gt; 40) {
+            marble = { x: maze.start.x, y: maze.start.y, vx: 0, vy: 0 };
+            screen = "playing";
+        }
+        return;
+    }
+    levelTime += STEP;
+    const lean = tilt();
+    for (let s = 0; s &lt; SUBSTEPS; s++) {
+        marble.vx += lean.x * POWER / SUBSTEPS;
+        marble.vy += lean.y * POWER / SUBSTEPS;
+        marble.x += marble.vx / SUBSTEPS;
+        marble.y += marble.vy / SUBSTEPS;
+        maze.walls.forEach(bounceOffWall);
+    }
+    marble.vx *= FRICTION;
+    marble.vy *= FRICTION;
+    const speed = Math.hypot(marble.vx, marble.vy);
+    if (speed &gt; MAX_SPEED) {
+        marble.vx *= MAX_SPEED / speed;
+        marble.vy *= MAX_SPEED / speed;
+    }
+
+    // Into a hole: the middle of the marble is over it.
+    const hole = maze.holes.find(function (h) {
+        return Math.hypot(marble.x - h.x, marble.y - h.y) &lt; maze.holeRadius;
+    });
+    if (hole) {
+        falls++;
+        fallSteps = 0;
+        marble.x = hole.x;
+        marble.y = hole.y;
+        screen = "falling";
+        if (navigator.vibrate) {
+            navigator.vibrate([30, 40, 30]);
+        }
+        return;
+    }
+    if (Math.hypot(marble.x - maze.goal.x, marble.y - maze.goal.y) &lt; maze.holeRadius * 0.8) {
+        finishLevel();
+    }
+}</code></pre>
+  <p>Each step, the tilt adds to the marble's speed, the speed moves the marble, and it bounces off any wall it touches. As in Mini Golf, this happens in 4 small steps, so a fast marble can't jump through a wall. A little friction slows it down, so it doesn't roll for ever.</p>
+  <p>The bounce is the one from Mini Golf, with one addition: a hard knock makes the phone buzz.</p>
+  <pre><code class="language-javascript">function bounceOffWall(wall) {
+    const [ax, ay, bx, by] = wall;
+    const abx = bx - ax;
+    const aby = by - ay;
+    let t = ((marble.x - ax) * abx + (marble.y - ay) * aby) / (abx * abx + aby * aby);
+    t = Math.max(0, Math.min(1, t));
+    const cx = ax + abx * t;
+    const cy = ay + aby * t;
+    const dx = marble.x - cx;
+    const dy = marble.y - cy;
+    const distance = Math.hypot(dx, dy);
+    const minimum = maze.radius + WALL / 2;
+    if (distance &gt;= minimum || distance === 0) {
+        return;
+    }
+    const nx = dx / distance;
+    const ny = dy / distance;
+    marble.x = cx + nx * minimum;
+    marble.y = cy + ny * minimum;
+    const into = marble.vx * nx + marble.vy * ny;
+    if (into &lt; 0) {
+        marble.vx -= (1 + BOUNCE) * into * nx;
+        marble.vy -= (1 + BOUNCE) * into * ny;
+        // A hard knock: a short buzz on phones that can.
+        if (into &lt; -2.5 &amp;&amp; levelTime - lastBump &gt; 150 &amp;&amp; navigator.vibrate) {
+            navigator.vibrate(12);
+            lastBump = levelTime;
+        }
+    }
+}</code></pre>
+  <p><code>navigator.vibrate(12)</code> buzzes for 12 milliseconds, just a tick. A fall into a hole is a longer pattern: <code>[30, 40, 30]</code> is buzz, pause, buzz. Phones that can't vibrate don't have <code>navigator.vibrate</code>, so we check first.</p>
+
+  <h2>Step 6: Holes and the goal</h2>
+  <p>The marble falls into a hole when its middle is over the hole. Then it shrinks for a moment, as if it falls, and starts again from the start. Reaching the green hole ends the level, and the time is compared with your best for that level, saved in <code>localStorage</code>:</p>
+  <pre><code class="language-javascript">function finishLevel() {
+    screen = "levelDone";
+    const time = Math.round(levelTime);
+    const old = best[level];
+    if (old === undefined || time &lt; old) {
+        best[level] = time;
+        saveBest();
+    }
+    startButton.textContent = "Next level";
+    message.textContent = "Level " + level + " done in " + timeText(time) +
+        (falls &gt; 0 ? " with " + falls + (falls === 1 ? " fall" : " falls") : " without a fall") +
+        (old === undefined || time &lt; old ? ". A new best!" : ". Your best is " + timeText(old) + ".");
+}</code></pre>
+
+  <h2>Step 7: A shiny marble</h2>
+  <pre><code class="language-javascript">function drawMarble() {
+    let r = maze.radius;
+    if (screen === "falling") {
+        r *= Math.max(0, 1 - fallSteps / 25);   // it shrinks as it falls
+    }
+    if (r &lt;= 0) {
+        return;
+    }
+    // A shadow, then a shiny steel ball: light at the top left.
+    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    ctx.beginPath();
+    ctx.arc(marble.x + r * 0.25, marble.y + r * 0.3, r, 0, Math.PI * 2);
+    ctx.fill();
+    const shine = ctx.createRadialGradient(marble.x - r * 0.35, marble.y - r * 0.35, r * 0.1, marble.x, marble.y, r);
+    shine.addColorStop(0, "#ffffff");
+    shine.addColorStop(0.35, "#cfd8dc");
+    shine.addColorStop(1, "#546e7a");
+    ctx.fillStyle = shine;
+    ctx.beginPath();
+    ctx.arc(marble.x, marble.y, r, 0, Math.PI * 2);
+    ctx.fill();
+}</code></pre>
+  <p>A <strong>radial gradient</strong> goes from one circle to another: from white in a small circle at the top left, to dark grey at the edge. That one trick makes a flat circle look like a steel ball with light on it. The shadow is the same circle, dark and a little to the bottom right.</p>
+
+  <h2>Step 8: Test it</h2>
+  <p>Can every level really be done? A maze could have a corridor too narrow for the marble, or a hole in a bad place. A test let an <strong>autopilot</strong> play: it tilts the board towards the next cell on the way to the goal, and a little against the marble's speed, so it doesn't overshoot. It got through all of levels 1 to 12 without falling once.</p>
+  <ul>
+    <li>Press Start holding the phone at an angle. The marble should lie still, until you tilt from there.</li>
+    <li>Tilt right: the marble rolls right. Tilt the top away from you: it rolls up.</li>
+    <li>Roll into a black hole. It should fall, and start again.</li>
+    <li>Play level 3 twice. It should be the same maze both times.</li>
+    <li>On a computer, play with the arrow keys.</li>
+  </ul>
+
+  <h2>The complete page</h2>
+  <p><strong>marble-maze.html</strong></p>
+  <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Marble Maze&lt;/title&gt;
+  &lt;style&gt;
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+
+    .container {
+        text-align: center;
+        width: 420px;
+        max-width: calc(100% - 40px);
+        box-sizing: border-box;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+
+    /* The title: the site's font, and a short gold line under it. */
+    h1 {
+        font-family: "Ubuntu", Arial, sans-serif;
+        font-weight: 700;
+        color: #222222;
+        letter-spacing: 0.02em;
+    }
+
+    h1::after {
+        content: "";
+        display: block;
+        width: 48px;
+        height: 3px;
+        margin: 10px auto 0;
+        background-color: #e8b455;
+        border-radius: 2px;
+    }
+
+    canvas {
+        display: block;
+        width: 360px;
+        max-width: 100%;
+        height: auto;
+        margin: 12px auto 0;
+        border: 8px solid #6b4423;
+        border-radius: 8px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        box-sizing: border-box;
+        touch-action: none;
+    }
+
+    #message {
+        min-height: 2.8em;
+        margin: 12px 0;
+    }
+
+    #start {
+        width: 100%;
+        padding: 14px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #222222;
+        background-color: #e8b455;
+        border: 3px solid #c99a3b;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* On a phone, less room round the maze, so it can be bigger. */
+    @media (max-width: 480px) {
+        .container {
+            max-width: calc(100% - 16px);
+            margin: 8px;
+            padding: 12px;
+        }
+    }
+
+    /* --- The rules ---------------------------------------------------------- */
+
+    .rules {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+        text-align: left;
+    }
+
+    .rules summary {
+        cursor: pointer;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .rules ul {
+        margin-top: 12px;
+        padding-left: 20px;
+    }
+
+    .rules li {
+        margin-bottom: 6px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class="container"&gt;
+    &lt;h1&gt;Marble Maze&lt;/h1&gt;
+    &lt;canvas id="gameCanvas" width="360" height="500"&gt;&lt;/canvas&gt;
+    &lt;p id="message" aria-live="polite"&gt;Hold your phone the way you like, and tap Start.&lt;/p&gt;
+    &lt;button type="button" id="start"&gt;Start&lt;/button&gt;
+    &lt;details class="rules"&gt;
+      &lt;summary&gt;How to play&lt;/summary&gt;
+      &lt;ul&gt;
+        &lt;li&gt;Tilt the phone to roll the marble through the maze to the green hole.&lt;/li&gt;
+        &lt;li&gt;Don't roll into the black holes: the marble falls through and starts again.&lt;/li&gt;
+        &lt;li&gt;When you press Start, the way you hold the phone counts as flat. Hold it still for a moment, then tilt from there.&lt;/li&gt;
+        &lt;li&gt;Every level is bigger, with more holes. Your best time for each level is saved.&lt;/li&gt;
+        &lt;li&gt;On a computer, use the arrow keys to tilt the board.&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/details&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    /*
+     * Marble Maze: tilt the phone to roll a marble through a maze to the green
+     * hole, without falling into the black ones.
+     *
+     * The phone's tilt comes from the "deviceorientation" event, as in the
+     * Bubble level: beta is the tilt front to back, gamma left to right. The
+     * marble speeds up in the direction the phone leans, rolls on, slows down
+     * a little, and bounces off the walls.
+     *
+     * Every maze is made from its level number, so level 5 is the same maze
+     * every time. On a computer, the arrow keys tilt the board.
+     */
+
+    // --- Settings ------------------------------------------------------------
+
+    const STEP = 1000 / 60;      // one update, in ms
+    const SUBSTEPS = 4;          // small steps, so the marble can't jump through a wall
+    const POWER = 0.5;           // how fast the marble speeds up when tilted all the way, px per step per step
+    const FRICTION = 0.985;      // speed kept each step
+    const MAX_SPEED = 9;         // px per step
+    const BOUNCE = 0.3;          // speed kept when bouncing off a wall
+    const WALL = 5;              // px, how thick the walls are
+    const TOP = 34;              // px at the top for the level, time and falls
+    const MARGIN = 8;            // px round the maze
+    const MAX_TILT = 30;         // degrees: tilting more than this is the same as this
+    const KEY_TILT = 0.45;       // how far an arrow key tilts the board
+    const BEST_KEY = "marble-maze-best";
+
+    // --- Canvas --------------------------------------------------------------
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    const message = document.getElementById("message");
+    const startButton = document.getElementById("start");
+
+    // --- State ---------------------------------------------------------------
+
+    let screen = "menu";       // menu, playing, falling, levelDone
+    let level = 1;
+    let maze = null;           // the level: walls, holes, start and goal
+    let marble = null;         // { x, y, vx, vy }
+    let levelTime = 0;         // ms on this level
+    let falls = 0;
+    let fallSteps = 0;         // how far into falling down a hole
+    let best = loadBest();     // best time for each level: { "3": 12345 }
+    let lastBump = 0;
+
+    // The tilt: the sensor's last angles, and the angles that count as flat.
+    let sensor = null;         // { beta, gamma }
+    let flat = null;           // the same, from when Start was pressed
+    let listening = false;
+    const keys = {};
+
+    // --- Making a maze -------------------------------------------------------
+
+    // A random number generator that gives the same numbers for the same seed
+    // (mulberry32), so a level is the same maze every time. Math.random()
+    // can't be given a seed.
+    function seeded(seed) {
+        return function () {
+            seed = (seed + 0x6D2B79F5) | 0;
+            let t = Math.imul(seed ^ (seed &gt;&gt;&gt; 15), 1 | seed);
+            t = (t + Math.imul(t ^ (t &gt;&gt;&gt; 7), 61 | t)) ^ t;
+            return ((t ^ (t &gt;&gt;&gt; 14)) &gt;&gt;&gt; 0) / 4294967296;
+        };
+    }
+
+    // How big each level is, and how many holes and extra openings it has.
+    function levelSettings(n) {
+        const cols = Math.min(3 + n, 12);
+        return {
+            cols: cols,
+            rows: Math.round(cols * 1.35),
+            holes: Math.min(n - 1, 14),
+            loops: Math.max(0, Math.min(n - 3, 8))
+        };
+    }
+
+    // The maze: a grid of cells, each with four walls. We walk through the
+    // grid from the first cell, knocking down the wall to a random neighbour
+    // we haven't been to, and going back when there is none (a "recursive
+    // backtracker"). That makes exactly one way between any two cells.
+    function makeMaze(n) {
+        const settings = levelSettings(n);
+        const random = seeded(n * 7919);
+        const cols = settings.cols;
+        const rows = settings.rows;
+        const cells = [];
+        for (let i = 0; i &lt; cols * rows; i++) {
+            cells.push({ n: true, e: true, s: true, w: true });
+        }
+        const at = function (c, r) { return r * cols + c; };
+        const steps = { n: [0, -1, "s"], e: [1, 0, "w"], s: [0, 1, "n"], w: [-1, 0, "e"] };
+
+        const visited = new Set([0]);
+        const stack = [0];
+        while (stack.length &gt; 0) {
+            const i = stack[stack.length - 1];
+            const c = i % cols;
+            const r = Math.floor(i / cols);
+            const options = Object.keys(steps).filter(function (side) {
+                const [dc, dr] = steps[side];
+                const nc = c + dc;
+                const nr = r + dr;
+                return nc &gt;= 0 &amp;&amp; nc &lt; cols &amp;&amp; nr &gt;= 0 &amp;&amp; nr &lt; rows &amp;&amp; !visited.has(at(nc, nr));
+            });
+            if (options.length === 0) {
+                stack.pop();
+                continue;
+            }
+            const side = options[Math.floor(random() * options.length)];
+            const [dc, dr, back] = steps[side];
+            const next = at(c + dc, r + dr);
+            cells[i][side] = false;
+            cells[next][back] = false;
+            visited.add(next);
+            stack.push(next);
+        }
+
+        // On later levels, knock down a few more walls, so there are loops and
+        // more than one way round.
+        for (let k = 0; k &lt; settings.loops; k++) {
+            const c = Math.floor(random() * (cols - 1));
+            const r = Math.floor(random() * rows);
+            cells[at(c, r)].e = false;
+            cells[at(c + 1, r)].w = false;
+        }
+
+        // The distance of every cell from the start, by breadth-first search.
+        // The goal is the cell furthest away.
+        const parent = new Array(cells.length).fill(-1);
+        const distance = new Array(cells.length).fill(-1);
+        distance[0] = 0;
+        const queue = [0];
+        while (queue.length &gt; 0) {
+            const i = queue.shift();
+            const c = i % cols;
+            const r = Math.floor(i / cols);
+            Object.keys(steps).forEach(function (side) {
+                if (cells[i][side]) {
+                    return;
+                }
+                const next = at(c + steps[side][0], r + steps[side][1]);
+                if (distance[next] === -1) {
+                    distance[next] = distance[i] + 1;
+                    parent[next] = i;
+                    queue.push(next);
+                }
+            });
+        }
+        let goal = 0;
+        distance.forEach(function (d, i) {
+            if (d &gt; distance[goal]) {
+                goal = i;
+            }
+        });
+        // The shortest way from the start to the goal: no holes there.
+        const path = new Set();
+        for (let i = goal; i !== -1; i = parent[i]) {
+            path.add(i);
+        }
+
+        // Where the maze goes on the canvas: as big as it fits, in the middle.
+        const size = Math.floor(Math.min((WIDTH - 2 * MARGIN) / cols, (HEIGHT - TOP - MARGIN) / rows));
+        const left = Math.round((WIDTH - size * cols) / 2);
+        const top = TOP + Math.round((HEIGHT - TOP - MARGIN - size * rows) / 2);
+        const middle = function (i) {
+            return { x: left + (i % cols + 0.5) * size, y: top + (Math.floor(i / cols) + 0.5) * size };
+        };
+
+        // Holes in cells off the way to the goal, picked at random.
+        const free = [];
+        cells.forEach(function (cell, i) {
+            if (!path.has(i)) {
+                free.push(i);
+            }
+        });
+        const holes = [];
+        for (let k = 0; k &lt; settings.holes &amp;&amp; free.length &gt; 0; k++) {
+            const pick = free.splice(Math.floor(random() * free.length), 1)[0];
+            holes.push(middle(pick));
+        }
+
+        // The walls, as straight lines: the top and left of every cell, and
+        // the bottom and right of the last row and column.
+        const walls = [];
+        cells.forEach(function (cell, i) {
+            const x = left + (i % cols) * size;
+            const y = top + Math.floor(i / cols) * size;
+            if (cell.n) walls.push([x, y, x + size, y]);
+            if (cell.w) walls.push([x, y, x, y + size]);
+            if (cell.s &amp;&amp; Math.floor(i / cols) === rows - 1) walls.push([x, y + size, x + size, y + size]);
+            if (cell.e &amp;&amp; i % cols === cols - 1) walls.push([x + size, y, x + size, y + size]);
+        });
+
+        return {
+            cols: cols, rows: rows, size: size, cells: cells, walls: walls, holes: holes,
+            start: middle(0), goal: middle(goal), path: Array.from(path).reverse(), middle: middle,
+            radius: Math.max(5, size * 0.24),       // the marble
+            holeRadius: size * 0.3
+        };
+    }
+
+    // --- The tilt ------------------------------------------------------------
+
+    // The tilt as two numbers from -1 to 1: right and down. With the phone's
+    // sensor, it is the sine of how far the phone leans from "flat", and the
+    // marble speeds up just like a real one would: sin(angle) of gravity.
+    function tilt() {
+        let x = 0;
+        let y = 0;
+        if (sensor !== null &amp;&amp; flat !== null) {
+            x = Math.sin(clampAngle(sensor.gamma - flat.gamma) * Math.PI / 180);
+            y = Math.sin(clampAngle(sensor.beta - flat.beta) * Math.PI / 180);
+            const turned = toScreen(x, y);
+            x = turned.x;
+            y = turned.y;
+        }
+        if (keys.ArrowLeft) x = -KEY_TILT;
+        if (keys.ArrowRight) x = KEY_TILT;
+        if (keys.ArrowUp) y = -KEY_TILT;
+        if (keys.ArrowDown) y = KEY_TILT;
+        return { x: x, y: y };
+    }
+
+    function clampAngle(degrees) {
+        return Math.max(-MAX_TILT, Math.min(MAX_TILT, degrees));
+    }
+
+    // When the screen turns to landscape, the phone's left-right is the
+    // screen's up-down. Turn the tilt back, as in the Bubble level.
+    function toScreen(x, y) {
+        const angle = screenAngle() * Math.PI / 180;
+        return {
+            x: x * Math.cos(angle) + y * Math.sin(angle),
+            y: -x * Math.sin(angle) + y * Math.cos(angle)
+        };
+    }
+
+    // window.screen, because "screen" in this game is which screen of the game
+    // is showing: menu, playing and so on.
+    function screenAngle() {
+        return window.screen.orientation ? window.screen.orientation.angle : window.orientation || 0;
+    }
+
+    function onOrientation(event) {
+        if (event.beta === null || event.gamma === null) {
+            return;
+        }
+        sensor = { beta: event.beta, gamma: event.gamma };
+        if (flat === null) {
+            flat = sensor;   // the first reading after Start counts as flat
+        }
+    }
+
+    // iPhones ask the user first, and only after a tap, as in the Bubble level.
+    async function startSensor() {
+        if (listening || !window.DeviceOrientationEvent) {
+            return;
+        }
+        if (typeof DeviceOrientationEvent.requestPermission === "function") {
+            try {
+                if (await DeviceOrientationEvent.requestPermission() !== "granted") {
+                    message.textContent = "No permission to read the tilt. You can still use the arrow keys.";
+                    return;
+                }
+            } catch (error) {
+                return;
+            }
+        }
+        window.addEventListener("deviceorientation", onOrientation);
+        listening = true;
+    }
+
+    // --- Bouncing --------------------------------------------------------------
+
+    // The same bounce as in Mini Golf: find the point of the wall closest to
+    // the marble; if the marble is closer than its radius, push it out and
+    // turn its speed round.
+    function bounceOffWall(wall) {
+        const [ax, ay, bx, by] = wall;
+        const abx = bx - ax;
+        const aby = by - ay;
+        let t = ((marble.x - ax) * abx + (marble.y - ay) * aby) / (abx * abx + aby * aby);
+        t = Math.max(0, Math.min(1, t));
+        const cx = ax + abx * t;
+        const cy = ay + aby * t;
+        const dx = marble.x - cx;
+        const dy = marble.y - cy;
+        const distance = Math.hypot(dx, dy);
+        const minimum = maze.radius + WALL / 2;
+        if (distance &gt;= minimum || distance === 0) {
+            return;
+        }
+        const nx = dx / distance;
+        const ny = dy / distance;
+        marble.x = cx + nx * minimum;
+        marble.y = cy + ny * minimum;
+        const into = marble.vx * nx + marble.vy * ny;
+        if (into &lt; 0) {
+            marble.vx -= (1 + BOUNCE) * into * nx;
+            marble.vy -= (1 + BOUNCE) * into * ny;
+            // A hard knock: a short buzz on phones that can.
+            if (into &lt; -2.5 &amp;&amp; levelTime - lastBump &gt; 150 &amp;&amp; navigator.vibrate) {
+                navigator.vibrate(12);
+                lastBump = levelTime;
+            }
+        }
+    }
+
+    // --- The game ------------------------------------------------------------
+
+    function startLevel(n) {
+        level = n;
+        maze = makeMaze(n);
+        marble = { x: maze.start.x, y: maze.start.y, vx: 0, vy: 0 };
+        levelTime = 0;
+        falls = 0;
+        screen = "playing";
+        startButton.textContent = "Make this flat";
+        message.textContent = "Level " + n + ": roll to the green hole.";
+    }
+
+    function update() {
+        if (screen === "falling") {
+            fallSteps++;
+            levelTime += STEP;
+            if (fallSteps &gt; 40) {
+                marble = { x: maze.start.x, y: maze.start.y, vx: 0, vy: 0 };
+                screen = "playing";
+            }
+            return;
+        }
+        levelTime += STEP;
+        const lean = tilt();
+        for (let s = 0; s &lt; SUBSTEPS; s++) {
+            marble.vx += lean.x * POWER / SUBSTEPS;
+            marble.vy += lean.y * POWER / SUBSTEPS;
+            marble.x += marble.vx / SUBSTEPS;
+            marble.y += marble.vy / SUBSTEPS;
+            maze.walls.forEach(bounceOffWall);
+        }
+        marble.vx *= FRICTION;
+        marble.vy *= FRICTION;
+        const speed = Math.hypot(marble.vx, marble.vy);
+        if (speed &gt; MAX_SPEED) {
+            marble.vx *= MAX_SPEED / speed;
+            marble.vy *= MAX_SPEED / speed;
+        }
+
+        // Into a hole: the middle of the marble is over it.
+        const hole = maze.holes.find(function (h) {
+            return Math.hypot(marble.x - h.x, marble.y - h.y) &lt; maze.holeRadius;
+        });
+        if (hole) {
+            falls++;
+            fallSteps = 0;
+            marble.x = hole.x;
+            marble.y = hole.y;
+            screen = "falling";
+            if (navigator.vibrate) {
+                navigator.vibrate([30, 40, 30]);
+            }
+            return;
+        }
+        if (Math.hypot(marble.x - maze.goal.x, marble.y - maze.goal.y) &lt; maze.holeRadius * 0.8) {
+            finishLevel();
+        }
+    }
+
+    function finishLevel() {
+        screen = "levelDone";
+        const time = Math.round(levelTime);
+        const old = best[level];
+        if (old === undefined || time &lt; old) {
+            best[level] = time;
+            saveBest();
+        }
+        startButton.textContent = "Next level";
+        message.textContent = "Level " + level + " done in " + timeText(time) +
+            (falls &gt; 0 ? " with " + falls + (falls === 1 ? " fall" : " falls") : " without a fall") +
+            (old === undefined || time &lt; old ? ". A new best!" : ". Your best is " + timeText(old) + ".");
+    }
+
+    function timeText(ms) {
+        const seconds = ms / 1000;
+        return Math.floor(seconds / 60) + ":" + (seconds % 60).toFixed(1).padStart(4, "0");
+    }
+
+    function loadBest() {
+        try {
+            return JSON.parse(localStorage.getItem(BEST_KEY)) || {};
+        } catch (error) {
+            return {};
+        }
+    }
+
+    function saveBest() {
+        try {
+            localStorage.setItem(BEST_KEY, JSON.stringify(best));
+        } catch (error) {
+            // Not saved, but the game still works.
+        }
+    }
+
+    // --- Drawing -------------------------------------------------------------
+
+    function drawHole(h, goal) {
+        const r = maze.holeRadius;
+        const shade = ctx.createRadialGradient(h.x - r * 0.3, h.y - r * 0.3, r * 0.1, h.x, h.y, r);
+        shade.addColorStop(0, goal ? "#1b5e20" : "#000000");
+        shade.addColorStop(1, goal ? "#43a047" : "#3b2a1a");
+        ctx.fillStyle = shade;
+        ctx.beginPath();
+        ctx.arc(h.x, h.y, r, 0, Math.PI * 2);
+        ctx.fill();
+        if (goal) {
+            ctx.strokeStyle = "#a5d6a7";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+    }
+
+    function drawMarble() {
+        let r = maze.radius;
+        if (screen === "falling") {
+            r *= Math.max(0, 1 - fallSteps / 25);   // it shrinks as it falls
+        }
+        if (r &lt;= 0) {
+            return;
+        }
+        // A shadow, then a shiny steel ball: light at the top left.
+        ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+        ctx.beginPath();
+        ctx.arc(marble.x + r * 0.25, marble.y + r * 0.3, r, 0, Math.PI * 2);
+        ctx.fill();
+        const shine = ctx.createRadialGradient(marble.x - r * 0.35, marble.y - r * 0.35, r * 0.1, marble.x, marble.y, r);
+        shine.addColorStop(0, "#ffffff");
+        shine.addColorStop(0.35, "#cfd8dc");
+        shine.addColorStop(1, "#546e7a");
+        ctx.fillStyle = shine;
+        ctx.beginPath();
+        ctx.arc(marble.x, marble.y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function draw() {
+        // The wooden board.
+        const wood = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
+        wood.addColorStop(0, "#e2b97f");
+        wood.addColorStop(1, "#c8995e");
+        ctx.fillStyle = wood;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        if (maze === null) {
+            maze = makeMaze(1);
+            marble = { x: maze.start.x, y: maze.start.y, vx: 0, vy: 0 };
+        }
+
+        maze.holes.forEach(function (h) { drawHole(h, false); });
+        drawHole(maze.goal, true);
+
+        // The walls, with a shadow to the bottom right, so they stand up.
+        ctx.lineCap = "round";
+        ctx.lineWidth = WALL;
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+        ctx.beginPath();
+        maze.walls.forEach(function ([ax, ay, bx, by]) {
+            ctx.moveTo(ax + 2, ay + 2);
+            ctx.lineTo(bx + 2, by + 2);
+        });
+        ctx.stroke();
+        ctx.strokeStyle = "#5d3a1a";
+        ctx.beginPath();
+        maze.walls.forEach(function ([ax, ay, bx, by]) {
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(bx, by);
+        });
+        ctx.stroke();
+
+        drawMarble();
+
+        // Level, time and falls, at the top.
+        ctx.fillStyle = "#3b2a1a";
+        ctx.font = "bold 16px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("Level " + level, 10, 22);
+        ctx.textAlign = "center";
+        ctx.fillText(timeText(levelTime), WIDTH / 2, 22);
+        ctx.textAlign = "right";
+        ctx.fillText("Falls " + falls, WIDTH - 10, 22);
+
+        if (screen === "menu" || screen === "levelDone") {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.font = "bold 32px Arial";
+            ctx.fillText(screen === "menu" ? "Marble Maze" : "Level " + level + " done!", WIDTH / 2, HEIGHT / 2 - 10);
+            ctx.font = "16px Arial";
+            ctx.fillText(screen === "menu" ? "Tilt to roll the marble" : "Tap Next level", WIDTH / 2, HEIGHT / 2 + 22);
+        }
+    }
+
+    // --- The loop ------------------------------------------------------------
+
+    let lastTime = performance.now();
+    let leftover = 0;
+
+    function gameLoop(now) {
+        leftover += Math.min(now - lastTime, 250);
+        lastTime = now;
+        while (leftover &gt;= STEP) {
+            if (screen === "playing" || screen === "falling") {
+                update();
+            }
+            leftover -= STEP;
+        }
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Buttons and keys ------------------------------------------------------
+
+    // Start: switch the sensor on, and use how the phone is held now as flat.
+    // While playing, the same button makes the current tilt flat again.
+    startButton.addEventListener("click", async function () {
+        await startSensor();
+        flat = sensor;   // null until the first reading: then onOrientation sets it
+        if (screen === "menu") {
+            startLevel(1);
+        } else if (screen === "levelDone") {
+            startLevel(level + 1);
+        } else {
+            message.textContent = "This is flat now.";
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        keys[event.key] = true;
+        if (event.key === "Enter" &amp;&amp; screen !== "playing" &amp;&amp; screen !== "falling") {
+            startButton.click();
+        }
+    });
+
+    document.addEventListener("keyup", function (event) {
+        keys[event.key] = false;
+    });
+
+    window.addEventListener("blur", function () {
+        for (const key in keys) {
+            keys[key] = false;
+        }
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    requestAnimationFrame(gameLoop);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+  <h2>Try this</h2>
+  <ul>
+    <li>Add a second marble: both must reach a goal.</li>
+    <li>Make some floor tiles icy, with less friction, or sticky, with more.</li>
+    <li>Add a timer that counts down, so each level must be done in time.</li>
+  </ul>
+
+  <h2>Make it an app</h2>
+  <p>Marble Maze is made for phones. See <a href="/pwa/make-pwa/">Many apps at once</a> to install it as a Progressive Web App, and <a href="/firefox-plugins/make-extension/">the same for Firefox</a> to make it a browser extension.</p>
+  {% include chapter.html %}
+  <h2>Keywords</h2>
+  <p>{{ page.keywords | join: ", " }}</p>
+  {% include trail.html %}
+</div>

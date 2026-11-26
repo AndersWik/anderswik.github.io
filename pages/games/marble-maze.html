@@ -1,0 +1,27 @@
+---
+layout: game
+title: Marble Maze
+permalink: /games/marble-maze/
+nonav: true
+css:
+  - /assets/marble-maze/marble-maze.css
+js:
+  - /assets/marble-maze/marble-maze.js
+---
+<div class="container">
+  <h1>Marble Maze</h1>
+  <canvas id="gameCanvas" width="360" height="500"></canvas>
+  <p id="message" aria-live="polite">Hold your phone the way you like, and tap Start.</p>
+  <button type="button" id="start">Start</button>
+  <details class="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li>Tilt the phone to roll the marble through the maze to the green hole.</li>
+      <li>Don't roll into the black holes: the marble falls through and starts again.</li>
+      <li>When you press Start, the way you hold the phone counts as flat. Hold it still for a moment, then tilt from there.</li>
+      <li>Every level is bigger, with more holes. Your best time for each level is saved.</li>
+      <li>On a computer, use the arrow keys to tilt the board.</li>
+    </ul>
+  </details>
+</div>
+<p class="text-center mt-4"><a href="/tutorials/marble-maze/">How to build this game</a></p>

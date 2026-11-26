@@ -48,6 +48,7 @@
 - { slug: kvarn, page: pages/games/kvarn.html, emoji: "⚪", label: "9" }
 - { slug: ludo, page: pages/games/ludo.html, emoji: "🎲", label: LUDO, open: tab }
 - { slug: pop-and-bump, page: pages/games/pop-and-bump.html, emoji: "🫧", open: tab }
+- { slug: marble-maze, page: pages/games/marble-maze.html, emoji: "🌀", width: 440, description: "Tilt your phone to roll a marble through a maze. On a computer, use the arrow keys." }
 - { slug: memory, page: pages/games/memory.html, name: Memory, emoji: "🧠" }
 - { slug: minesweeper, page: pages/games/minesweeper.html, emoji: "🚩", open: tab }
 - { slug: mini-golf, page: pages/games/mini-golf.html, emoji: "⛳", open: tab, description: "Mini golf with 20 holes: drag back and let go to putt." }
